@@ -1,0 +1,12 @@
+# Ignore all exported data files (mogu sadržati sensitive informacije)
+*.txt
+*.csv
+*.json
+
+# Keep only documentation and query templates
+!README.md
+!EXPORT-QUERIES.sql
+!.gitignore
+
+# Template fajlovi koje treba čuvati (primer strukture bez podataka)
+!*-TEMPLATE.txt
