@@ -2,51 +2,32 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Eye, MousePointerClick, TrendingUp, Calendar, Phone, Mail, Globe } from 'lucide-react'
+import { Eye, MousePointerClick, TrendingUp, Heart, Share2 } from 'lucide-react'
 
-interface ProfileStats {
-  total_views: number
-  total_unique_views: number
-  phone_clicks: number
-  whatsapp_clicks: number
-  viber_clicks: number
-  telegram_clicks: number
-  email_clicks: number
-  website_clicks: number
-  search_appearances: number
-  favorites_count: number
-  last_viewed_at: string | null
+interface ModelStats {
+  total_profile_views: number
+  total_contact_views: number
+  total_favorites: number
+  total_shares: number
 }
 
 interface DailyStats {
   date: string
-  views: number
-  unique_views: number
-  phone_clicks: number
-  email_clicks: number
-  website_clicks: number
+  profile_views: number
+  contact_views: number
+  favorites: number
+  shares: number
 }
 
-interface OrderStats {
-  totalOrders: number
-  totalSpent: number
-  activeAds: number
-  pendingOrders: number
-}
+type DateRange = 'all' | 'week' | 'month' | 'year'
 
 export default function StatisticsPage() {
   const supabase = createClient()
   
   const [loading, setLoading] = useState(true)
-  const [profileStats, setProfileStats] = useState<ProfileStats | null>(null)
-  const [orderStats, setOrderStats] = useState<OrderStats>({
-    totalOrders: 0,
-    totalSpent: 0,
-    activeAds: 0,
-    pendingOrders: 0
-  })
+  const [modelStats, setModelStats] = useState<ModelStats | null>(null)
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
-  const [dateRange, setDateRange] = useState('month')
+  const [dateRange, setDateRange] = useState<DateRange>('all')
 
   useEffect(() => {
     loadStatistics()
@@ -57,17 +38,17 @@ export default function StatisticsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Load profile statistics
-      const { data: profileStatsData, error: profileStatsError } = await supabase
-        .from('profile_statistics')
+      // Load model statistics summary
+      const { data: summaryData, error: summaryError } = await supabase
+        .from('model_statistics_summary')
         .select('*')
-        .eq('profile_id', user.id)
+        .eq('model_id', user.id)
         .single()
 
-      if (profileStatsError && profileStatsError.code !== 'PGRST116') {
-        console.error('Profile stats error:', profileStatsError)
-      } else {
-        setProfileStats(profileStatsData)
+      if (summaryError && summaryError.code !== 'PGRST116') {
+        console.error('Summary stats error:', summaryError)
+      } else if (summaryData) {
+        setModelStats(summaryData)
       }
 
       // Calculate date range for daily stats
@@ -85,40 +66,23 @@ export default function StatisticsPage() {
       }
 
       // Load daily statistics
-      const { data: dailyStatsData, error: dailyStatsError } = await supabase
-        .from('daily_statistics')
+      const dailyQuery = supabase
+        .from('model_statistics_daily')
         .select('*')
-        .eq('profile_id', user.id)
-        .gte('date', startDate.toISOString().split('T')[0])
+        .eq('model_id', user.id)
         .order('date', { ascending: false })
         .limit(30)
+
+      if (dateRange !== 'all') {
+        dailyQuery.gte('date', startDate.toISOString().split('T')[0])
+      }
+
+      const { data: dailyStatsData, error: dailyStatsError } = await dailyQuery
 
       if (dailyStatsError) {
         console.error('Daily stats error:', dailyStatsError)
       } else {
         setDailyStats(dailyStatsData || [])
-      }
-
-      // Load order statistics
-      const { data: orders, error: ordersError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('user_id', user.id)
-
-      if (ordersError) {
-        console.error('Orders error:', ordersError)
-      } else {
-        const totalOrders = orders?.length || 0
-        const totalSpent = orders?.reduce((sum, order) => sum + order.total_amount, 0) || 0
-        const activeAds = orders?.filter(order => order.status === 'paid').length || 0
-        const pendingOrders = orders?.filter(order => order.status === 'pending').length || 0
-
-        setOrderStats({
-          totalOrders,
-          totalSpent,
-          activeAds,
-          pendingOrders
-        })
       }
     } catch (error) {
       console.error('Error loading statistics:', error)
@@ -127,20 +91,45 @@ export default function StatisticsPage() {
     }
   }
 
-  const getTotalContactClicks = () => {
-    if (!profileStats) return 0
-    return (
-      profileStats.phone_clicks +
-      profileStats.whatsapp_clicks +
-      profileStats.viber_clicks +
-      profileStats.telegram_clicks +
-      profileStats.email_clicks +
-      profileStats.website_clicks
-    )
+  const getViewsInPeriod = () => {
+    if (dateRange === 'all') {
+      return modelStats?.total_profile_views || 0
+    }
+    return dailyStats.reduce((sum, day) => sum + day.profile_views, 0)
   }
 
-  const getViewsInPeriod = () => {
-    return dailyStats.reduce((sum, day) => sum + day.views, 0)
+  const getContactViewsInPeriod = () => {
+    if (dateRange === 'all') {
+      return modelStats?.total_contact_views || 0
+    }
+    return dailyStats.reduce((sum, day) => sum + day.contact_views, 0)
+  }
+
+  const getFavoritesInPeriod = () => {
+    if (dateRange === 'all') {
+      return modelStats?.total_favorites || 0
+    }
+    return dailyStats.reduce((sum, day) => sum + day.favorites, 0)
+  }
+
+  const getSharesInPeriod = () => {
+    if (dateRange === 'all') {
+      return modelStats?.total_shares || 0
+    }
+    return dailyStats.reduce((sum, day) => sum + day.shares, 0)
+  }
+
+  const getRangeLabel = () => {
+    switch (dateRange) {
+      case 'week':
+        return 'Last 7 days'
+      case 'month':
+        return 'Last 30 days'
+      case 'year':
+        return 'Last year'
+      default:
+        return 'All time'
+    }
   }
 
   const StatCard = ({ 
@@ -192,6 +181,16 @@ export default function StatisticsPage() {
         <div className="mb-8">
           <div className="inline-flex bg-white rounded-lg shadow-sm border border-gray-200 p-1">
             <button
+              onClick={() => setDateRange('all')}
+              className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                dateRange === 'all'
+                  ? 'bg-pink-600 text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              All Time
+            </button>
+            <button
               onClick={() => setDateRange('week')}
               className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
                 dateRange === 'week'
@@ -224,162 +223,42 @@ export default function StatisticsPage() {
           </div>
         </div>
 
-        {/* Profile Statistics */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Profile Performance</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard
-              title="Total Views"
-              value={profileStats?.total_views || 0}
-              icon={Eye}
-              color="bg-blue-500"
-              subtitle="All time profile views"
-            />
-            <StatCard
-              title="Unique Visitors"
-              value={profileStats?.total_unique_views || 0}
-              icon={Eye}
-              color="bg-green-500"
-              subtitle="Unique profile visitors"
-            />
-            <StatCard
-              title="Contact Clicks"
-              value={getTotalContactClicks()}
-              icon={MousePointerClick}
-              color="bg-purple-500"
-              subtitle="Phone, Email, WhatsApp, etc."
-            />
-            <StatCard
-              title="Search Appearances"
-              value={profileStats?.search_appearances || 0}
-              icon={TrendingUp}
-              color="bg-orange-500"
-              subtitle="Times shown in search"
-            />
-          </div>
-        </div>
-
-        {/* Period Statistics */}
+        {/* Statistics */}
         <div className="mb-6">
           <h2 className="text-lg font-bold text-gray-900 mb-4">
-            Statistics for Selected Period
+            Statistics · {getRangeLabel()}
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
-              title="Views in Period"
+              title="Profile Views"
               value={getViewsInPeriod()}
-              icon={Calendar}
-              color="bg-indigo-500"
-              subtitle={`Last ${dateRange === 'week' ? '7 days' : dateRange === 'month' ? '30 days' : 'year'}`}
+              icon={Eye}
+              color="bg-blue-500"
+              subtitle={getRangeLabel()}
             />
             <StatCard
-              title="Active Ads"
-              value={orderStats.activeAds}
-              icon={TrendingUp}
+              title="Contact Views"
+              value={getContactViewsInPeriod()}
+              icon={MousePointerClick}
+              color="bg-purple-500"
+              subtitle={getRangeLabel()}
+            />
+            <StatCard
+              title="Favorites"
+              value={getFavoritesInPeriod()}
+              icon={Heart}
               color="bg-pink-500"
-              subtitle="Currently running"
+              subtitle={getRangeLabel()}
             />
             <StatCard
-              title="Pending Orders"
-              value={orderStats.pendingOrders}
-              icon={Calendar}
-              color="bg-yellow-500"
-              subtitle="Awaiting payment"
+              title="Shares"
+              value={getSharesInPeriod()}
+              icon={Share2}
+              color="bg-indigo-500"
+              subtitle={getRangeLabel()}
             />
           </div>
         </div>
-
-        {/* Contact Methods Performance */}
-        {profileStats && getTotalContactClicks() > 0 && (
-          <div className="mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Contact Methods Performance</h2>
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <div className="space-y-4">
-                {profileStats.phone_clicks > 0 && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-gray-600" />
-                      <span className="text-gray-700 font-medium">Phone Clicks</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-blue-500 rounded-full"
-                          style={{ width: `${(profileStats.phone_clicks / getTotalContactClicks() * 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-gray-900 w-12 text-right">
-                        {profileStats.phone_clicks}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {profileStats.whatsapp_clicks > 0 && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                      </svg>
-                      <span className="text-gray-700 font-medium">WhatsApp Clicks</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-green-500 rounded-full"
-                          style={{ width: `${(profileStats.whatsapp_clicks / getTotalContactClicks() * 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-gray-900 w-12 text-right">
-                        {profileStats.whatsapp_clicks}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {profileStats.email_clicks > 0 && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-5 h-5 text-gray-600" />
-                      <span className="text-gray-700 font-medium">Email Clicks</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-purple-500 rounded-full"
-                          style={{ width: `${(profileStats.email_clicks / getTotalContactClicks() * 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-gray-900 w-12 text-right">
-                        {profileStats.email_clicks}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {profileStats.website_clicks > 0 && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Globe className="w-5 h-5 text-gray-600" />
-                      <span className="text-gray-700 font-medium">Website Clicks</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-48 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-orange-500 rounded-full"
-                          style={{ width: `${(profileStats.website_clicks / getTotalContactClicks() * 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-bold text-gray-900 w-12 text-right">
-                        {profileStats.website_clicks}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Daily Activity */}
         {dailyStats.length > 0 && (
@@ -394,6 +273,8 @@ export default function StatisticsPage() {
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Views</th>
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Unique</th>
                       <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Contacts</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Favorites</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-600">Shares</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -407,13 +288,19 @@ export default function StatisticsPage() {
                           })}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-900 text-right font-semibold">
-                          {day.views}
+                          {day.profile_views}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                          {day.unique_views}
+                          {day.unique_visitors}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                          {day.phone_clicks + day.email_clicks + day.website_clicks}
+                          {day.contact_views}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                          {day.favorites}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600 text-right">
+                          {day.shares}
                         </td>
                       </tr>
                     ))}
@@ -424,37 +311,27 @@ export default function StatisticsPage() {
           </div>
         )}
 
-        {/* Boost Visibility Card */}
-        <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl p-6 shadow-sm text-white">
-          <h3 className="text-lg font-bold mb-2">Boost Your Visibility</h3>
-          <p className="text-pink-100 mb-6">
-            Increase your profile views and contact clicks by activating ads and banners
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <a 
-              href="/dashboard/model/activate-ad"
-              className="block px-4 py-3 bg-white text-pink-600 rounded-lg font-semibold hover:bg-pink-50 transition-all text-center"
-            >
-              Activate Ad Package
-            </a>
-            <button 
-              type="button"
-              aria-disabled="true"
-              className="block px-4 py-3 bg-white/10 border border-white/40 text-white/80 rounded-lg font-semibold cursor-not-allowed text-center text-sm tracking-wide"
-            >
-              Buy Banner · Coming soon
-            </button>
+        {/* No Data Message */}
+        {!modelStats && !loading && (
+          <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-r-lg">
+            <h4 className="text-sm font-bold text-yellow-900 mb-2">No Statistics Yet</h4>
+            <p className="text-sm text-yellow-800">
+              Your statistics will appear here once visitors start viewing your profile. 
+              Make sure your profile is complete and active to start receiving views!
+            </p>
           </div>
-        </div>
+        )}
 
         {/* Info Box */}
-        <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
-          <h4 className="text-sm font-bold text-blue-900 mb-2">About Statistics</h4>
-          <p className="text-sm text-blue-800">
-            Statistics are tracked automatically when visitors view your profile or click on contact methods. 
-            Data is updated in real-time. To increase your statistics, keep your profile updated and activate ads regularly.
-          </p>
-        </div>
+        {modelStats && (
+          <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+            <h4 className="text-sm font-bold text-blue-900 mb-2">About Statistics</h4>
+            <p className="text-sm text-blue-800">
+              Statistics are tracked automatically when visitors view your profile, click "Show Contact", save to favorites, or share your profile. 
+              Data updates in real-time.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )

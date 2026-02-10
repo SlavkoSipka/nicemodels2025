@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { trackModelAction, trackProfileView } from '@/lib/tracking'
 import {
   MapPin,
   Heart,
@@ -75,6 +76,8 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
     checkIfFavorite()
     checkExistingComment()
     checkIfLoggedIn()
+    // Track profile view
+    trackProfileView(profile.id)
   }, [profile.id])
 
   const checkIfLoggedIn = async () => {
@@ -203,13 +206,24 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
 
       if (!error) {
         setIsFavorite(true)
+        // Track favorite action
+        trackModelAction(profile.id, 'favorite_add')
       }
     }
 
     setIsSavingFavorite(false)
   }
 
+  const handleShowContact = () => {
+    // Track contact view action
+    trackModelAction(profile.id, 'contact_view')
+    setShowContact(true)
+  }
+
   const handleShare = async () => {
+    // Track share action
+    trackModelAction(profile.id, 'share')
+    
     const shareUrl = window.location.href
     const shareTitle = `${modelDetails?.showname || profile.username} - Nice Models`
     const shareText = `Check out ${modelDetails?.showname || profile.username} on Nice Models!`
@@ -446,7 +460,7 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
               <div className="space-y-3">
                 {!showContact ? (
                   <button 
-                    onClick={() => setShowContact(true)}
+                    onClick={handleShowContact}
                     className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-lg transition-all shadow-lg flex items-center justify-center gap-2"
                   >
                     <Phone className="w-5 h-5" />

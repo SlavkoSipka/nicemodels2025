@@ -1,6 +1,9 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Calendar, Sparkles } from 'lucide-react'
+import { trackProfileView } from '@/lib/tracking'
 
 interface ModelCardProps {
   model: {
@@ -21,8 +24,12 @@ interface ModelCardProps {
 export default function ModelCard({ model, priority = false }: ModelCardProps) {
   const details = model.model_details
 
+  const handleClick = () => {
+    trackProfileView(model.id)
+  }
+
   return (
-    <Link href={`/models/${model.id}`}>
+    <Link href={`/models/${model.id}`} onClick={handleClick}>
       <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group cursor-pointer border-2 border-transparent hover:border-pink-500">
         {/* Image */}
         <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-pink-100 to-rose-100">
