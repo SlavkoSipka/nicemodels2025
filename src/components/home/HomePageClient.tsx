@@ -230,8 +230,8 @@ export default function HomePageClient() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredModels.map((model) => (
-                  <ModelCard key={model.id} model={model} />
+                {filteredModels.map((model, index) => (
+                  <ModelCard key={model.id} model={model} priority={index < 3} />
                 ))}
               </div>
             )}

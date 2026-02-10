@@ -15,9 +15,10 @@ interface ModelCardProps {
       hair_color: string
     }
   }
+  priority?: boolean
 }
 
-export default function ModelCard({ model }: ModelCardProps) {
+export default function ModelCard({ model, priority = false }: ModelCardProps) {
   const details = model.model_details
 
   return (
@@ -30,6 +31,8 @@ export default function ModelCard({ model }: ModelCardProps) {
               src={model.photoUrl}
               alt={details?.showname || model.username}
               fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              priority={priority}
               className="object-cover group-hover:scale-110 transition-transform duration-500"
             />
           ) : (

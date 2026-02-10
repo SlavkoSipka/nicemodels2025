@@ -78,7 +78,6 @@ export default function ActivateAdPage() {
     if (!selectedPackage) return
 
     if (activationType === 'at_date' && !activationDate) {
-      alert('Please select activation date')
       return
     }
 
@@ -95,8 +94,6 @@ export default function ActivateAdPage() {
     setSelectedPackage(null)
     setActivationType('immediately')
     setActivationDate('')
-    
-    alert('Package added to cart!')
   }
 
   const removeFromCart = (index: number) => {
@@ -104,13 +101,55 @@ export default function ActivateAdPage() {
     saveCart(newCart)
   }
 
-  const goToCheckout = () => {
+  const goToCheckout = async () => {
     if (cart.length === 0) {
-      alert('Your cart is empty!')
       return
     }
-    // During beta there is no payment/checkout step.
-    alert('During the beta phase everything is free. Your ad activations will be handled manually by our team – no payment or checkout needed right now.')
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Kreiraj order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          status: 'paid',
+          total_amount: 0,
+          payment_method: 'card'
+        })
+        .select()
+        .single()
+
+      if (orderError || !order) {
+        console.error('Error creating order:', orderError)
+        return
+      }
+
+      // Kreiraj order_items za svaki cart item
+      for (const item of cart) {
+        const { error: itemError } = await supabase
+          .from('order_items')
+          .insert({
+            order_id: order.id,
+            product_id: item.product.id,
+            price_chf: 0,
+            activation_type: item.activationType,
+            activation_date: item.activationDate ? new Date(item.activationDate).toISOString() : null
+          })
+
+        if (itemError) {
+          console.error('Error creating order item:', itemError)
+        }
+      }
+
+      // Očisti cart
+      saveCart([])
+      router.push('/dashboard/model')
+    } catch (error) {
+      console.error('Error processing order:', error)
+    }
   }
 
   const getTotalAmount = () => {
@@ -139,21 +178,21 @@ export default function ActivateAdPage() {
           </div>
           
           {/* Cart Icon */}
-          <button
-            onClick={goToCheckout}
-            className="relative px-6 py-3 bg-pink-600 text-white rounded-lg font-bold hover:bg-pink-700 transition-all shadow-md flex items-center gap-2"
-          >
-            <ShoppingCart className="w-5 h-5" />
-            <span>Cart: {cart.length} item(s)</span>
-            <span className="ml-2 px-2 py-1 bg-white text-pink-600 rounded text-xs uppercase">
-              Free beta
-            </span>
-            {cart.length > 0 && (
+          {cart.length > 0 && (
+            <button
+              onClick={goToCheckout}
+              className="relative px-6 py-3 bg-pink-600 text-white rounded-lg font-bold hover:bg-pink-700 transition-all shadow-md flex items-center gap-2"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              <span>Cart: {cart.length} item(s)</span>
+              <span className="ml-2 px-2 py-1 bg-white text-pink-600 rounded text-xs uppercase">
+                Free beta
+              </span>
               <span className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                 {cart.length}
               </span>
-            )}
-          </button>
+            </button>
+          )}
         </div>
 
         {/* Info Box – Beta Free */}

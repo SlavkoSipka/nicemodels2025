@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { Users, Building2, Image, Video, UserCheck, UserX, LogOut, Home } from 'lucide-react'
+import { Users, Building2, Image, Video, UserCheck, UserX, LogOut, Home, MessageSquare } from 'lucide-react'
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -23,6 +23,7 @@ export default function AdminDashboard() {
     pendingVideos: 0,
     blockedUsers: 0,
     pendingVerifications: 0,
+    pendingComments: 0,
   })
 
   useEffect(() => {
@@ -47,13 +48,14 @@ export default function AdminDashboard() {
       }
 
       // Load statistics
-      const [modelsCount, clubsCount, photosCount, videosCount, blockedCount, verificationsCount] = await Promise.all([
+      const [modelsCount, clubsCount, photosCount, videosCount, blockedCount, verificationsCount, commentsCount] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company'),
         supabase.from('model_photos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
         supabase.from('model_videos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_blocked', true),
         supabase.from('verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ])
 
       setStats({
@@ -63,6 +65,7 @@ export default function AdminDashboard() {
         pendingVideos: videosCount.count || 0,
         blockedUsers: blockedCount.count || 0,
         pendingVerifications: verificationsCount.count || 0,
+        pendingComments: commentsCount.count || 0,
       })
 
       setLoading(false)
@@ -197,6 +200,21 @@ export default function AdminDashboard() {
               </div>
             </div>
           </Link>
+
+          {/* Pending Comments */}
+          <Link href="/dashboard/admin/comments">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Pending Comments</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.pendingComments}</p>
+                </div>
+                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <MessageSquare className="w-6 h-6 text-orange-600" />
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Quick Actions */}
@@ -226,6 +244,11 @@ export default function AdminDashboard() {
             <Link href="/dashboard/admin/verification">
               <button className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all">
                 Verifications
+              </button>
+            </Link>
+            <Link href="/dashboard/admin/comments">
+              <button className="w-full px-4 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-lg font-semibold hover:from-orange-700 hover:to-amber-700 transition-all">
+                Review Comments
               </button>
             </Link>
           </div>

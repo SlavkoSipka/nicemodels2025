@@ -19,16 +19,40 @@ export default function DashboardPage() {
         return
       }
 
-      // Check if onboarding is completed
+      // Get user profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('onboarding_completed, role')
         .eq('id', user.id)
         .single()
 
-      if (!profile?.onboarding_completed) {
-        // Redirect to onboarding if not completed
-        router.push('/onboarding')
+      // Check if onboarding is required (only for models and companies)
+      if (profile?.role === 'model' || profile?.role === 'company') {
+        if (!profile?.onboarding_completed) {
+          // Redirect to onboarding if not completed
+          router.push('/onboarding')
+          return
+        }
+      }
+
+      // Redirect to role-specific dashboard
+      if (profile?.role) {
+        switch (profile.role) {
+          case 'user':
+            router.push('/dashboard/user')
+            break
+          case 'model':
+            router.push('/dashboard/model')
+            break
+          case 'company':
+            router.push('/dashboard/company')
+            break
+          case 'admin':
+            router.push('/dashboard/admin')
+            break
+          default:
+            router.push('/dashboard/user')
+        }
         return
       }
 

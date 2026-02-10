@@ -31,6 +31,12 @@ export default function OnboardingPage() {
         .eq('id', user.id)
         .single()
 
+      // Regular users don't need onboarding, redirect to user dashboard
+      if (profile?.role === 'user') {
+        router.push('/dashboard/user')
+        return
+      }
+
       if (profile?.onboarding_completed) {
         // Already completed onboarding, redirect to dashboard
         if (profile.role === 'model') {

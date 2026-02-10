@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, User, BarChart3, Settings, LogOut, ExternalLink } from 'lucide-react'
+import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardSidebarProps {
@@ -25,14 +25,14 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
 
   // Check if a path is active
   const isActive = (path: string) => pathname === path
-  const isProfileActive = pathname?.startsWith('/dashboard/model/profile')
+  const isProfileActive = pathname?.startsWith(`/dashboard/${userRole}/profile`)
 
   // Auto-open dropdown if on a profile page
   useEffect(() => {
     if (isProfileActive) {
       setMyProfileOpen(true)
     }
-  }, [isProfileActive])
+  }, [isProfileActive, userRole])
 
   return (
     <aside 
@@ -61,17 +61,95 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-6 px-4">
         <div className="space-y-1">
-          <Link
-            href="/dashboard/model"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-              isActive('/dashboard/model')
-                ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
-                : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
-            }`}
-          >
-            <Home className="w-5 h-5" />
-            <span>Dashboard</span>
-          </Link>
+          {/* USER ROLE NAVIGATION */}
+          {userRole === 'user' && (
+            <>
+              <Link
+                href="/dashboard/user"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/user')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Home className="w-5 h-5" />
+                <span>Dashboard</span>
+              </Link>
+
+              <Link
+                href="/dashboard/user/profile"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/user/profile')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <User className="w-5 h-5" />
+                <span>Profile</span>
+              </Link>
+
+              <Link
+                href="/dashboard/user/favorites"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/user/favorites')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Heart className="w-5 h-5" />
+                <span>Favorites</span>
+              </Link>
+
+              <Link
+                href="/dashboard/user/comments"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/user/comments')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span>Comments</span>
+              </Link>
+
+              <Link
+                href="/dashboard/user/settings"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive('/dashboard/user/settings')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Settings className="w-5 h-5" />
+                <span>Settings</span>
+              </Link>
+
+              <div className="pt-4 mt-4 border-t border-gray-200">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* MODEL ROLE NAVIGATION */}
+          {userRole === 'model' && (
+            <>
+              <Link
+                href="/dashboard/model"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/model')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Home className="w-5 h-5" />
+                <span>Dashboard</span>
+              </Link>
 
           <div>
             <button
@@ -287,15 +365,17 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
             <span>Settings</span>
           </Link>
 
-          <div className="pt-4 mt-4 border-t border-gray-200">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Logout</span>
-            </button>
-          </div>
+              <div className="pt-4 mt-4 border-t border-gray-200">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </nav>
 

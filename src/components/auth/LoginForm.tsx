@@ -15,21 +15,11 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [verifiedMessage, setVerifiedMessage] = useState(false)
-  const [rememberMe, setRememberMe] = useState(false)
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [privacyAccepted, setPrivacyAccepted] = useState(false)
 
   useEffect(() => {
     if (searchParams.get('verified') === 'true') {
       setVerifiedMessage(true)
       setTimeout(() => setVerifiedMessage(false), 5000)
-    }
-    
-    // Check if email is saved (Remember me)
-    const savedEmail = localStorage.getItem('rememberedEmail')
-    if (savedEmail) {
-      setEmail(savedEmail)
-      setRememberMe(true)
     }
   }, [searchParams])
 
@@ -120,16 +110,6 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!termsAccepted || !privacyAccepted) {
-      setError('You must accept the terms and conditions and privacy policy.')
-      return
-    }
-    if (rememberMe) {
-      localStorage.setItem('rememberedEmail', email)
-    } else {
-      localStorage.removeItem('rememberedEmail')
-    }
-
     await loginWithCredentials(email, password)
   }
 
@@ -197,45 +177,6 @@ export default function LoginForm() {
         <Link href="/forgot-password" className="text-xs text-pink-600 hover:text-pink-700 font-semibold">
           Forgot password?
         </Link>
-      </div>
-
-      {/* Remember Me */}
-      <div className="pt-2">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            className="w-4 h-4 text-pink-600 border-2 border-gray-300 rounded focus:ring-1 focus:ring-pink-200 cursor-pointer"
-          />
-          <span className="text-xs text-gray-700">Remember me</span>
-        </label>
-      </div>
-
-      {/* Terms & Privacy */}
-      <div className="space-y-2 pt-2">
-        <label className="flex items-start gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={termsAccepted}
-            onChange={(e) => setTermsAccepted(e.target.checked)}
-            className="mt-0.5 w-4 h-4 text-pink-600 border-2 border-gray-300 rounded focus:ring-1 focus:ring-pink-200 cursor-pointer"
-          />
-          <span className="text-xs text-gray-700 leading-tight">
-            I accept the <Link href="/terms" className="text-pink-600 hover:text-pink-700 font-semibold underline">terms and conditions</Link>
-          </span>
-        </label>
-        <label className="flex items-start gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={privacyAccepted}
-            onChange={(e) => setPrivacyAccepted(e.target.checked)}
-            className="mt-0.5 w-4 h-4 text-pink-600 border-2 border-gray-300 rounded focus:ring-1 focus:ring-pink-200 cursor-pointer"
-          />
-          <span className="text-xs text-gray-700 leading-tight">
-            I accept the <Link href="/privacy" className="text-pink-600 hover:text-pink-700 font-semibold underline">privacy policy</Link>
-          </span>
-        </label>
       </div>
 
       {/* Submit Button */}

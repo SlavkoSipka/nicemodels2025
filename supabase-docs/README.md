@@ -1,100 +1,100 @@
 # 📊 Supabase Database Documentation
 
-Ovaj folder sadrži kompletan snapshot Supabase baze podataka za lakše praćenje strukture i debug.
-
-## 🔄 Kako eksportovati strukturu baze?
-
-### Korak 1: Otvori Supabase SQL Editor
-1. Idi na https://supabase.com/dashboard
-2. Selektuj svoj projekat
-3. Klikni na **SQL Editor** u levom meniju
-
-### Korak 2: Izvršavaj upite jedan po jedan
-Otvori **EXPORT-QUERIES.sql** i izvršavaj svaki query redom:
-
-1. **Query #1** → Kopiraj rezultat u `01-tables-columns.txt`
-2. **Query #2** → Kopiraj rezultat u `02-primary-keys.txt`
-3. **Query #3** → Kopiraj rezultat u `03-foreign-keys.txt`
-4. **Query #4** → Kopiraj rezultat u `04-indexes.txt`
-5. **Query #5** → Kopiraj rezultat u `05-rls-policies.txt`
-6. **Query #6** → Kopiraj rezultat u `06-create-statements.txt`
-7. **Query #7** → Kopiraj rezultat u `07-storage-buckets.txt`
-8. **Query #8** → Kopiraj rezultat u `08-functions-triggers.txt`
-9. **Query #9** → Kopiraj rezultat u `09-enums.txt`
-10. **Query #10** → Kopiraj rezultat u `10-table-counts.txt`
-
-### Korak 3: Formatiranje rezultata
-
-**Opcija A - JSON format (najbolje):**
-- U SQL Editor, nakon izvršavanja query-ja
-- Klikni **"Results"** tab
-- Klikni na **"..."** (tri tačke)
-- Selektuj **"Copy as JSON"**
-- Nalepi u odgovarajući `.txt` fajl
-
-**Opcija B - CSV format:**
-- U SQL Editor
-- Klikni **"Download CSV"**
-- Preimenuj i stavi u ovaj folder
-
-**Opcija C - Text format:**
-- Samo selektuj sve rezultate
-- Copy/Paste u `.txt` fajl
-
-## 📁 Struktura fajlova
-
-```
-supabase-docs/
-├── README.md (ovaj fajl)
-├── EXPORT-QUERIES.sql (svi SQL upiti)
-├── 01-tables-columns.txt (sve tabele i kolone)
-├── 02-primary-keys.txt (primary keys)
-├── 03-foreign-keys.txt (veze između tabela)
-├── 04-indexes.txt (indexi)
-├── 05-rls-policies.txt (security policies)
-├── 06-create-statements.txt (CREATE TABLE naredbe)
-├── 07-storage-buckets.txt (storage buckets)
-├── 08-functions-triggers.txt (funkcije i triggeri)
-├── 09-enums.txt (enum tipovi)
-└── 10-table-counts.txt (broj zapisa po tabeli)
-```
-
-## 🔍 Brza provera (za debugiranje)
-
-Ako imaš problem sa konkretnom tabelom (npr. `club_photos`), izvršiti:
-
-```sql
--- Proveri da li tabela postoji:
-SELECT EXISTS (
-    SELECT FROM information_schema.tables 
-    WHERE table_schema = 'public' 
-    AND table_name = 'club_photos'
-);
-
--- Proveri kolone:
-SELECT column_name, data_type, is_nullable, column_default
-FROM information_schema.columns
-WHERE table_name = 'club_photos'
-ORDER BY ordinal_position;
-
--- Proveri sample data:
-SELECT * FROM club_photos LIMIT 3;
-```
-
-## ⚠️ Važno!
-
-- **NE commituj** sensitive podatke (email-ove, lozinke, API keys)
-- Ovi fajlovi su već u `.gitignore` (osim README i EXPORT-QUERIES.sql)
-- Refresh-uj strukturu nakon svake veće promene u bazi
-- Datum poslednjeg updatea: **[DODAJ DATUM OVDE]**
-
-## 🐛 Debug problemi
-
-Trenutni problem koji rešavamo:
-- ❌ `club_photos` tabela - greška pri učitavanju
-- Verovatno: kolona `created_at` ne postoji ili se drugačije zove
-- Check: Query #1 će nam pokazati tačne nazive kolona
+**Ovaj folder sadrži lokalnu kopiju Supabase baze podataka za praćenje strukture.**
 
 ---
 
-**Poslednji export:** _[Dodaj datum kada eksportuješ]_
+## 📁 Glavni Fajlovi
+
+### 1. `DATABASE-STRUCTURE.md` ⭐
+**Glavni fajl za brzi uvid u strukturu baze.**
+
+Sadrži:
+- Najvažnije tabele i njihove kolone
+- Kritične greške koje se često prave (npr. `role` umesto `user_role`)
+- Storage buckets
+- Enums
+- RLS policies
+- Funkcije
+
+👉 **Uvek prvo pogledaj ovaj fajl!**
+
+---
+
+### 2. `FULL-DATABASE-EXPORT.json` 📦
+**Kompletan JSON export baze podataka.**
+
+Sadrži SVE:
+- Sve tabele i kolone (detaljno)
+- Primary keys
+- Foreign keys
+- Indexes
+- RLS policies
+- Storage buckets
+- Enums
+- Triggers
+
+---
+
+### 3. `EXPORT-QUERIES.sql` 🔄
+**SQL upiti za ponovno eksportovanje strukture baze.**
+
+Koristi kada trebaš da ažuriraš lokalnu kopiju:
+1. Otvori Supabase SQL Editor
+2. Izvrši query-je 1-10 redom
+3. Kopiraj rezultate u `FULL-DATABASE-EXPORT.json`
+4. Ažuriraj `DATABASE-STRUCTURE.md` sa novim promenama
+
+---
+
+### 4. `CREATE-FUNCTION-models_with_active_ads.sql`
+**SQL funkcija koja vraća modele sa aktivnim oglasima.**
+
+Ova funkcija se koristi na home page-u:
+- `SECURITY DEFINER` → zaobilazi RLS
+- Vraća sve modele koji imaju aktivne plaćene oglase
+
+---
+
+### 5. `CHANGELOG.md` 📝
+**Istorija svih promena u bazi.**
+
+- Datum svake promene
+- Šta je dodato/popravljeno
+- Breaking changes
+- Dokumentacija
+
+---
+
+## 🎯 Kako Koristiti?
+
+### Za AI Agente:
+1. Čitaj `DATABASE-STRUCTURE.md` za brzi uvid
+2. Koristi `FULL-DATABASE-EXPORT.json` za detaljne informacije
+3. Uvek proveri kolone pre pisanja koda
+
+### Za Developere:
+1. Nakon promene u bazi → izvrši `EXPORT-QUERIES.sql`
+2. Ažuriraj `FULL-DATABASE-EXPORT.json`
+3. Ažuriraj `DATABASE-STRUCTURE.md` sa ključnim promenama
+
+---
+
+## ⚠️ Česte Greške
+
+1. **`profiles.role` NE `profiles.user_role`**
+2. **`club_photos.uploaded_at` NE `club_photos.created_at`**
+3. **`orders.payment_method` mora biti: `card`, `twint`, ili `phone`**
+4. **`club_working_hours` svaki dan je poseban red u tabeli**
+
+---
+
+## 📚 Dodatni Fajlovi
+
+- `INVITE-SYSTEM-GUIDE.md` → Dokumentacija invite sistema
+- `INVITE-SYSTEM-IMPLEMENTATION.md` → Implementacija invite sistema
+- `INVITE-SYSTEM-SQL-COMPLETE.sql` → SQL za invite sistem
+
+---
+
+**Poslednji export:** 2026-02-09
