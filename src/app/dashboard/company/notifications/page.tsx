@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import CompanySidebar from '@/components/layout/CompanySidebar'
 import { Bell, Check, X, Trash2 } from 'lucide-react'
 
 interface Notification {
@@ -158,21 +157,16 @@ export default function CompanyNotificationsPage() {
 
   if (loading) {
     return (
-      <>
-        <CompanySidebar />
         <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading...</p>
           </div>
         </div>
-      </>
     )
   }
 
   return (
-    <>
-      <CompanySidebar />
       <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
@@ -310,6 +304,5 @@ export default function CompanyNotificationsPage() {
           )}
         </div>
       </div>
-    </>
   )
 }

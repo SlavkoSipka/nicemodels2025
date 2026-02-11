@@ -291,7 +291,7 @@ export default function StatisticsPage() {
                           {day.profile_views}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600 text-right">
-                          {day.unique_visitors}
+                          {day.profile_views}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600 text-right">
                           {day.contact_views}

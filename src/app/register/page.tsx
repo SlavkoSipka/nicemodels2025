@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import RegisterForm from '@/components/auth/RegisterForm'
 import Link from 'next/link'
@@ -84,7 +85,9 @@ export default function RegisterPage() {
 
               {/* Right Column - Registration Form */}
               <div>
-                <RegisterForm />
+                <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div></div>}>
+                  <RegisterForm />
+                </Suspense>
               </div>
             </div>
           </div>

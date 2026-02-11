@@ -1,0 +1,44 @@
+# Netlify Configuration for Next.js
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Next.js Runtime
+[build.environment]
+  NODE_VERSION = "20"
+
+# Redirects and rewrites (Next.js handles this, but good to have fallback)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Headers for security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Functions (for API routes)
+[functions]
+  directory = ".netlify/functions"
+  node_bundler = "esbuild"
+
+# Plugin for Next.js
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

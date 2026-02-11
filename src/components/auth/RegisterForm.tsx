@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
 export default function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     userType: '',
     username: '',
@@ -176,7 +177,7 @@ export default function RegisterForm() {
         </div>
 
         <Link
-          href="/login"
+          href={searchParams.get('redirect') ? `/login?redirect=${searchParams.get('redirect')}` : '/login'}
           className="inline-block px-6 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all"
         >
           Go to Login

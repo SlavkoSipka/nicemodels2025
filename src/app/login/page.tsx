@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import LoginForm from '@/components/auth/LoginForm'
 import Link from 'next/link'
@@ -84,7 +85,9 @@ export default function LoginPage() {
 
               {/* Right Column - Login Form */}
               <div>
-                <LoginForm />
+                <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div></div>}>
+                  <LoginForm />
+                </Suspense>
               </div>
             </div>
           </div>

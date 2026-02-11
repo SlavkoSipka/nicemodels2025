@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import CompanySidebar from '@/components/layout/CompanySidebar'
 import { Settings as SettingsIcon, Lock, Mail, AlertTriangle, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -19,9 +18,6 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-
-  // Email change
-  const [newEmail, setNewEmail] = useState('')
 
   // Notifications
   const [emailNotifications, setEmailNotifications] = useState(true)
@@ -95,41 +91,6 @@ export default function SettingsPage() {
     }
   }
 
-  const handleChangeEmail = async () => {
-    setError('')
-    setSuccess('')
-
-    if (!newEmail) {
-      setError('Please enter a new email address')
-      return
-    }
-
-    if (!newEmail.includes('@')) {
-      setError('Please enter a valid email address')
-      return
-    }
-
-    setSaving(true)
-
-    try {
-      const supabase = createClient()
-      
-      const { error: updateError } = await supabase.auth.updateUser({
-        email: newEmail
-      })
-
-      if (updateError) throw updateError
-
-      setSuccess('Verification email sent! Please check your new email address.')
-      setNewEmail('')
-      setTimeout(() => setSuccess(''), 5000)
-    } catch (err: any) {
-      setError(err.message || 'Failed to change email. Please try again.')
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const handleDeleteAccount = async () => {
     const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:')
     
@@ -162,22 +123,17 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <>
-        <CompanySidebar />
         <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading...</p>
           </div>
         </div>
-      </>
     )
   }
 
   return (
-    <>
-      <CompanySidebar />
-      <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">
@@ -292,39 +248,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Change Email */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Mail className="w-5 h-5 text-pink-600" />
-              Change Email Address
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  New Email Address
-                </label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="Enter your new email address"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  You will receive a verification email at your new address
-                </p>
-              </div>
-              <button
-                onClick={handleChangeEmail}
-                disabled={saving}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save className="w-5 h-5" />
-                {saving ? 'Updating...' : 'Update Email'}
-              </button>
-            </div>
-          </div>
-
           {/* Notifications (Placeholder) */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Notification Preferences</h3>
@@ -389,6 +312,5 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }

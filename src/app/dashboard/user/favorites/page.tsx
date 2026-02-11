@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Heart, Search, Loader2, MapPin, Trash2 } from 'lucide-react'
+import { Heart, Search, Loader2, MapPin, Trash2, User } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 

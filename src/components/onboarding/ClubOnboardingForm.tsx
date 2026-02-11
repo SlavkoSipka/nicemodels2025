@@ -451,7 +451,7 @@ export default function ClubOnboardingForm() {
       if (contactError) throw contactError
 
       // Insert working hours
-      const workingHoursToInsert = []
+      const workingHoursToInsert: any[] = []
       
       if (scheduleType === '24_7') {
         // 24/7 - all days, all hours

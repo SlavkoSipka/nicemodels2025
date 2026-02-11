@@ -64,13 +64,13 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
           </p>
           <div className="space-y-3">
             <Link
-              href="/register"
+              href="/register?redirect=%2Fcomments"
               className="block w-full py-3 px-4 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-lg transition-all shadow-lg text-center"
             >
               Create Account
             </Link>
             <Link
-              href="/login"
+              href="/login?redirect=%2Fcomments"
               className="block w-full py-3 px-4 border-2 border-pink-600 text-pink-600 hover:bg-pink-50 font-bold rounded-lg transition-all text-center"
             >
               Log In

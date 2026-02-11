@@ -81,8 +81,13 @@ export default function LoginForm() {
         }
       }
 
-      // Check if admin
-      if (effectiveRole === 'admin') {
+      // Check for redirect parameter
+      const redirectUrl = searchParams.get('redirect')
+      
+      if (redirectUrl) {
+        // If there's a redirect URL, go there instead of dashboard
+        router.push(redirectUrl)
+      } else if (effectiveRole === 'admin') {
         router.push('/dashboard/admin')
       } else if (!profile?.onboarding_completed) {
         // Redirect to onboarding
