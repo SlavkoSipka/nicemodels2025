@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { trackModelAction, trackProfileView } from '@/lib/tracking'
+import StartChatButton from '@/components/chat/StartChatButton'
 import {
   MapPin,
   Heart,
@@ -458,6 +459,9 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                {/* Send Message Button */}
+                <StartChatButton modelId={profile.id} />
+                
                 {!showContact ? (
                   <button 
                     onClick={handleShowContact}

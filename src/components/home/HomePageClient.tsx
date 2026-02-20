@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar'
 import ModelCard from './ModelCard'
 import BannerAd from './BannerAd'
 import CitySelector from './CitySelector'
+import StoriesSection from '@/components/stories/StoriesSection'
 
 interface Model {
   id: string
@@ -211,6 +212,9 @@ export default function HomePageClient() {
         totalModels={models.length}
         models={models}
       />
+
+      {/* Stories Section */}
+      <StoriesSection />
 
       {/* Main Content with 3-column layout */}
       <div className="max-w-7xl mx-auto px-4 py-8">

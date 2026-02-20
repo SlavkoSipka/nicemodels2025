@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import ChatWidget from '@/components/chat/ChatWidget'
 
 export default function Navbar() {
   const router = useRouter()
@@ -264,6 +265,9 @@ export default function Navbar() {
           </div>
         </div>
       )}
+      
+      {/* Chat Widget (only for logged-in users) */}
+      {user && <ChatWidget />}
     </nav>
   )
 }

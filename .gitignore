@@ -40,3 +40,9 @@ yarn-error.log*
 *.swp
 *.swo
 *~
+
+# Data snapshots (local only)
+data-snapshot/
+*.csv
+*.dump
+*-snapshot.json
