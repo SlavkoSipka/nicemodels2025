@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { trackModelAction, trackProfileView } from '@/lib/tracking'
+import StartChatButton from '@/components/chat/StartChatButton'
 import {
   MapPin,
   Heart,
@@ -258,7 +259,7 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
       if (!photo.file_path) return null
       return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${photo.file_path}`
     })
-    .filter((url): url is string => url !== null)
+    .filter((url: string | null): url is string => url !== null)
 
   const formatLanguageLevel = (level: string) => {
     const levels: Record<string, string> = {
@@ -458,6 +459,9 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
 
               {/* Action Buttons */}
               <div className="space-y-3">
+                {/* Send Message Button */}
+                <StartChatButton modelId={profile.id} />
+                
                 {!showContact ? (
                   <button 
                     onClick={handleShowContact}
@@ -1135,13 +1139,13 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
             {/* Buttons */}
             <div className="space-y-3">
               <Link
-                href="/register"
+                href={`/register?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all shadow-lg text-center"
               >
                 Create Account
               </Link>
               <Link
-                href="/login"
+                href={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold rounded-lg transition-all text-center"
               >
                 Log In
@@ -1188,13 +1192,13 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
             {/* Buttons */}
             <div className="space-y-3">
               <Link
-                href="/register"
+                href={`/register?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-lg transition-all shadow-lg text-center"
               >
                 Create Account
               </Link>
               <Link
-                href="/login"
+                href={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 border-2 border-pink-600 text-pink-600 hover:bg-pink-50 font-bold rounded-lg transition-all text-center"
               >
                 Log In

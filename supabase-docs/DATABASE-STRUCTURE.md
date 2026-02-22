@@ -67,6 +67,14 @@
 ⚠️ Svaki dan je POSEBAN RED u tabeli!
 ```
 
+### `club_analytics` tabela
+```
+- id, club_id (FK → profiles.id), event_type, viewer_id, viewer_role, created_at
+- event_type: 'profile_view', 'contact_click'
+- viewer_role: 'authenticated', 'guest'
+⚠️ Tracka profile views i contact button clicks!
+```
+
 ## 📦 Storage Buckets
 
 ```
@@ -86,6 +94,7 @@ profiles.id → club_details.club_id
 profiles.id → club_contact_details.club_id
 profiles.id → club_photos.club_id
 profiles.id → club_working_hours.club_id
+profiles.id → club_analytics.club_id (AND viewer_id)
 profiles.id → model_details.model_id
 profiles.id → model_photos.model_id
 

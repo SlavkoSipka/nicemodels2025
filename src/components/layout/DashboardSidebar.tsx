@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare } from 'lucide-react'
+import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardSidebarProps {
@@ -32,7 +32,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
     if (isProfileActive) {
       setMyProfileOpen(true)
     }
-  }, [isProfileActive, userRole])
+  }, [isProfileActive])
 
   return (
     <aside 
@@ -271,6 +271,18 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
           </div>
 
           <Link
+            href="/dashboard/model/upload-story"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+              isActive('/dashboard/model/upload-story')
+                ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+            }`}
+          >
+            <Camera className="w-5 h-5" />
+            <span>Upload Story</span>
+          </Link>
+
+          <Link
             href="/dashboard/model/verification"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive('/dashboard/model/verification')
@@ -376,18 +388,183 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               </div>
             </>
           )}
+
+          {/* COMPANY ROLE NAVIGATION */}
+          {userRole === 'company' && (
+            <>
+              <Link
+                href="/dashboard/company"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/company')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Home className="w-5 h-5" />
+                <span>Dashboard</span>
+              </Link>
+
+              <div>
+                <button
+                  onClick={() => setMyProfileOpen(!myProfileOpen)}
+                  className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg transition-all ${
+                    pathname?.startsWith('/dashboard/company/profile')
+                      ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                      : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Building2 className="w-5 h-5" />
+                    <span>Agency Profile</span>
+                  </div>
+                  <svg 
+                    className={`w-4 h-4 transition-transform ${myProfileOpen ? 'rotate-180' : ''}`} 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {myProfileOpen && (
+                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-pink-200 pl-4">
+                    <Link
+                      href="/dashboard/company/profile/basic-info"
+                      className={`block py-2 px-3 text-sm rounded-md transition-all ${
+                        isActive('/dashboard/company/profile/basic-info')
+                          ? 'bg-pink-100 text-pink-700 font-semibold'
+                          : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                      }`}
+                    >
+                      Basic Info
+                    </Link>
+                    <Link
+                      href="/dashboard/company/profile/contact-details"
+                      className={`block py-2 px-3 text-sm rounded-md transition-all ${
+                        isActive('/dashboard/company/profile/contact-details')
+                          ? 'bg-pink-100 text-pink-700 font-semibold'
+                          : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                      }`}
+                    >
+                      Contact Details
+                    </Link>
+                    <Link
+                      href="/dashboard/company/profile/working-hours"
+                      className={`block py-2 px-3 text-sm rounded-md transition-all ${
+                        isActive('/dashboard/company/profile/working-hours')
+                          ? 'bg-pink-100 text-pink-700 font-semibold'
+                          : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                      }`}
+                    >
+                      Working Hours
+                    </Link>
+                    <Link
+                      href="/dashboard/company/profile/club-photos"
+                      className={`block py-2 px-3 text-sm rounded-md transition-all ${
+                        isActive('/dashboard/company/profile/club-photos')
+                          ? 'bg-pink-100 text-pink-700 font-semibold'
+                          : 'text-gray-600 hover:text-pink-600 hover:bg-pink-50'
+                      }`}
+                    >
+                      Club Photos
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              <Link
+                href="/dashboard/company/activate-ad"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/company/activate-ad')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Activate Ads</span>
+              </Link>
+
+              <Link
+                href="/dashboard/company/models"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/company/models')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Users className="w-5 h-5" />
+                <span>Manage Models</span>
+              </Link>
+
+              <Link
+                href="/dashboard/company/statistics"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive('/dashboard/company/statistics')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <BarChart3 className="w-5 h-5" />
+                <span>Statistics</span>
+              </Link>
+
+              <Link
+                href="/dashboard/company/settings"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                  isActive('/dashboard/company/settings')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Settings className="w-5 h-5" />
+                <span>Settings</span>
+              </Link>
+
+              <div className="pt-4 mt-4 border-t border-gray-200">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </nav>
 
       {/* Go To Public Area */}
       <div className="p-4 border-t border-gray-100">
-        <Link
-          href="/"
-          className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-700 to-gray-800 text-white hover:from-gray-800 hover:to-gray-900 rounded-lg transition-all shadow-sm group font-medium"
-        >
-          <span>Go To Public Area</span>
-          <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-        </Link>
+        {userRole === 'company' ? (
+          <div className="space-y-2">
+            <Link
+              href="/clubs"
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-pink-700 hover:to-rose-700 rounded-lg transition-all shadow-sm group font-medium"
+            >
+              <span>View Clubs Page</span>
+              <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
+            <Link
+              href="/"
+              className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-700 to-gray-800 text-white hover:from-gray-800 hover:to-gray-900 rounded-lg transition-all shadow-sm group font-medium"
+            >
+              <span>View Girls Page</span>
+              <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </Link>
+          </div>
+        ) : (
+          <Link
+            href="/"
+            className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-700 to-gray-800 text-white hover:from-gray-800 hover:to-gray-900 rounded-lg transition-all shadow-sm group font-medium"
+          >
+            <span>Go To Public Area</span>
+            <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          </Link>
+        )}
       </div>
     </aside>
   )

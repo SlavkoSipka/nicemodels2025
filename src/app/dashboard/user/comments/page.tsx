@@ -33,5 +33,11 @@ export default async function UserCommentsPage() {
 
   console.log('User comments query:', { comments, error, userId: user.id })
 
-  return <UserCommentsClient comments={comments || []} />
+  // Transform nested arrays to objects
+  const transformedComments = comments?.map(comment => ({
+    ...comment,
+    model: Array.isArray(comment.model) ? comment.model[0] : comment.model
+  })) || []
+
+  return <UserCommentsClient comments={transformedComments} />
 }

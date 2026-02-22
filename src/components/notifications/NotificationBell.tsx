@@ -19,7 +19,7 @@ interface Notification {
 }
 
 interface NotificationBellProps {
-  userRole?: 'model' | 'company' | 'admin'
+  userRole?: 'model' | 'company' | 'admin' | 'user'
 }
 
 export default function NotificationBell({ userRole = 'model' }: NotificationBellProps) {

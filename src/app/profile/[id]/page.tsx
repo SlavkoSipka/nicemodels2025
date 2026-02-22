@@ -22,6 +22,7 @@ import ReviewsList from '@/components/profile/ReviewsList'
 import ContactButtons from '@/components/profile/ContactButtons'
 import SimilarProfiles from '@/components/profile/SimilarProfiles'
 import { getProfileById, getModelRating } from '@/lib/api/profiles'
+import { createClient } from '@/lib/supabase/server'
 
 interface ProfilePageProps {
   params: Promise<{ id: string }>
@@ -32,8 +33,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const resolvedParams = await params
   const { id } = resolvedParams
 
+  // Create Supabase server client
+  const supabase = await createClient()
+
   // Fetch profile from Supabase
-  const profileData = await getProfileById(id)
+  const profileData = await getProfileById(id, supabase)
   
   if (!profileData) {
     notFound()
@@ -56,7 +60,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   }
 
   // Get rating
-  const rating = await getModelRating(id)
+  const rating = await getModelRating(id, supabase)
 
   // Map days of week
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -295,7 +299,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
         </div>
 
         {/* Similar Profiles */}
-        <SimilarProfiles currentProfileId={id} city={profile.city} />
+        <SimilarProfiles currentProfileId={id} city={profile.city} supabase={supabase} />
       </div>
     </div>
   )

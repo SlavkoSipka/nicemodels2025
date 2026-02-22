@@ -29,6 +29,7 @@ interface Model {
 interface Banner {
   id: string
   banner_file_path: string
+  bannerUrl: string
   advertising_text: string
   contact_info: any
 }
@@ -153,10 +154,10 @@ export default function HomePageClient() {
         .from('orders')
         .select('id')
         .eq('status', 'paid')
-        .in('id', bannerOrders.map(b => b.order_id))
+        .in('id', bannerOrders.map((b: any) => b.order_id))
 
-      const paidOrderIds = paidOrders?.map(o => o.id) || []
-      const paidBanners = bannerOrders.filter(b => paidOrderIds.includes(b.order_id))
+      const paidOrderIds = paidOrders?.map((o: any) => o.id) || []
+      const paidBanners = bannerOrders.filter((b: any) => paidOrderIds.includes(b.order_id))
 
       // Get banner URLs
       const bannersWithUrls = await Promise.all(

@@ -818,7 +818,7 @@ export default function ModelOnboardingForm() {
       }
 
       // Insert working hours
-      const workingHoursToInsert = []
+      const workingHoursToInsert: any[] = []
       
       if (scheduleType === '24_7') {
         // 24/7 - all days, all hours
@@ -870,7 +870,7 @@ export default function ModelOnboardingForm() {
       }
 
       // Insert rates
-      const ratesToInsert = []
+      const ratesToInsert: any[] = []
       
       // Add incall rates
       incallRates.forEach(rate => {

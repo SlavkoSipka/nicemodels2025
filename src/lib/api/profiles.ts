@@ -1,15 +1,4 @@
-// Import both server and client for flexibility
-import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import type { SupabaseClient } from '@supabase/supabase-js'
-
-// Helper to get the appropriate client
-// If clientParam is provided, use it (for client components)
-// Otherwise, create server client (for server components)
-async function getSupabaseClient(clientParam?: SupabaseClient) {
-  if (clientParam) return clientParam
-  return await createServerClient()
-}
 
 export interface Profile {
   id: string
@@ -84,8 +73,8 @@ export interface SearchFilters {
 /**
  * Fetch featured/top models for homepage
  */
-export async function getFeaturedProfiles(limit: number = 4, client?: SupabaseClient) {
-  const supabase = await getSupabaseClient(client)
+export async function getFeaturedProfiles(limit: number = 4, client: SupabaseClient) {
+  const supabase = client
 
   const { data, error } = await supabase
     .from('profiles')
@@ -141,8 +130,8 @@ export async function getFeaturedProfiles(limit: number = 4, client?: SupabaseCl
 /**
  * Search profiles with filters
  */
-export async function searchProfiles(filters: SearchFilters, page: number = 1, pageSize: number = 12, client?: SupabaseClient) {
-  const supabase = await getSupabaseClient(client)
+export async function searchProfiles(filters: SearchFilters, page: number = 1, pageSize: number = 12, client: SupabaseClient) {
+  const supabase = client
   const offset = (page - 1) * pageSize
 
   let query = supabase
@@ -236,8 +225,8 @@ export async function searchProfiles(filters: SearchFilters, page: number = 1, p
 /**
  * Get single profile by ID with all details
  */
-export async function getProfileById(id: string, client?: SupabaseClient) {
-  const supabase = await getSupabaseClient(client)
+export async function getProfileById(id: string, client: SupabaseClient) {
+  const supabase = client
 
   try {
     // First, try to get basic profile
@@ -302,7 +291,7 @@ export async function getProfileById(id: string, client?: SupabaseClient) {
       language_code: lang,
       language_name: lang,
       proficiency_level: 'fluent' // Default, since we don't store proficiency in array
-    }) || []
+    })) || []
 
     // Get availability from model_details (working_hours, working_hours_type, custom_schedule)
     // Availability is now stored in model_details instead of separate table
@@ -337,8 +326,8 @@ export async function getProfileById(id: string, client?: SupabaseClient) {
 /**
  * Get similar profiles (same city)
  */
-export async function getSimilarProfiles(profileId: string, city: string, limit: number = 4, client?: SupabaseClient) {
-  const supabase = await getSupabaseClient(client)
+export async function getSimilarProfiles(profileId: string, city: string, limit: number = 4, client: SupabaseClient) {
+  const supabase = client
 
   const { data, error } = await supabase
     .from('profiles')
@@ -394,8 +383,8 @@ export async function getSimilarProfiles(profileId: string, city: string, limit:
 /**
  * Calculate average rating for a model
  */
-export async function getModelRating(modelId: string, client?: SupabaseClient) {
-  const supabase = await getSupabaseClient(client)
+export async function getModelRating(modelId: string, client: SupabaseClient) {
+  const supabase = client
 
   const { data, error } = await supabase
     .from('reviews')
@@ -419,15 +408,15 @@ export async function getModelRating(modelId: string, client?: SupabaseClient) {
 /**
  * Get all profiles (models) - for homepage display
  */
-export async function getAllProfiles(page: number = 1, pageSize: number = 24) {
-  return searchProfiles({}, page, pageSize)
+export async function getAllProfiles(page: number = 1, pageSize: number = 24, client: SupabaseClient) {
+  return searchProfiles({}, page, pageSize, client)
 }
 
 /**
  * Get cities/areas with profile counts
  */
-export async function getCitiesWithCounts(client?: SupabaseClient) {
-  const supabase = await getSupabaseClient(client)
+export async function getCitiesWithCounts(client: SupabaseClient) {
+  const supabase = client
 
   // Get all model profiles with their cities
   const { data, error } = await supabase
@@ -481,8 +470,8 @@ export async function getCitiesWithCounts(client?: SupabaseClient) {
 /**
  * Get total profile count
  */
-export async function getTotalProfileCount(client?: SupabaseClient) {
-  const supabase = await getSupabaseClient(client)
+export async function getTotalProfileCount(client: SupabaseClient) {
+  const supabase = client
 
   const { count, error } = await supabase
     .from('profiles')

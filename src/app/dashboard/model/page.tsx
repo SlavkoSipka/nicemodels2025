@@ -57,7 +57,7 @@ export default function ModelDashboardPage() {
           .order('invited_at', { ascending: false })
           .limit(3)
 
-        let enrichedInvites = []
+        let enrichedInvites: any[] = []
         if (invitesData && invitesData.length > 0) {
           const inviteClubIds = invitesData.map(inv => inv.club_id)
           const { data: inviteClubsData } = await supabase

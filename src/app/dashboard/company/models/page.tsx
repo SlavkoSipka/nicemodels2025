@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import CompanySidebar from '@/components/layout/CompanySidebar'
 import { Edit, Trash2, Eye, UserPlus, X, Clock } from 'lucide-react'
 
 interface Model {
@@ -133,21 +132,16 @@ export default function ManageModelsPage() {
 
   if (loading) {
     return (
-      <>
-        <CompanySidebar />
         <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading...</p>
           </div>
         </div>
-      </>
     )
   }
 
   return (
-    <>
-      <CompanySidebar />
       <div className="min-h-screen bg-gray-50 py-8 px-4 ml-[280px]">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -372,7 +366,6 @@ export default function ManageModelsPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }
 

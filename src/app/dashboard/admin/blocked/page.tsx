@@ -73,7 +73,14 @@ export default function AdminBlockedPage() {
       .eq('is_blocked', true)
       .order('blocked_at', { ascending: false })
 
-    setBlockedUsers(users || [])
+    // Transform nested arrays to objects
+    const transformedUsers = users?.map(user => ({
+      ...user,
+      model_details: Array.isArray(user.model_details) ? user.model_details[0] : user.model_details,
+      club_details: Array.isArray(user.club_details) ? user.club_details[0] : user.club_details
+    })) || []
+
+    setBlockedUsers(transformedUsers)
     setLoading(false)
   }
 

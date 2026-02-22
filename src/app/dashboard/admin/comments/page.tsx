@@ -59,5 +59,26 @@ export default async function AdminCommentsPage() {
 
   console.log('Admin comments query:', { comments, error })
 
-  return <CommentsReviewClient comments={comments || []} />
+  // Transform nested arrays properly
+  const transformedComments = comments?.map(comment => {
+    const model = Array.isArray(comment.model) ? comment.model[0] : comment.model
+    const modelDetails = Array.isArray(model?.model_details) 
+      ? model.model_details 
+      : (model?.model_details ? [model.model_details] : [])
+    const modelContactDetails = Array.isArray(model?.model_contact_details)
+      ? model.model_contact_details
+      : (model?.model_contact_details ? [model.model_contact_details] : [])
+
+    return {
+      ...comment,
+      user: Array.isArray(comment.user) ? comment.user[0] : comment.user,
+      model: {
+        ...model,
+        model_details: modelDetails,
+        model_contact_details: modelContactDetails
+      }
+    }
+  }) || []
+
+  return <CommentsReviewClient comments={transformedComments} />
 }

@@ -30,7 +30,7 @@ export default async function CommentsPage() {
     .order('created_at', { ascending: false })
 
   // Fetch model photos separately for approved comments
-  const modelIds = comments?.map(c => c.model.id) || []
+  const modelIds = comments?.map(c => (c.model as any)?.id).filter(Boolean) || []
   const { data: photos } = await supabase
     .from('model_photos')
     .select('model_id, file_path')
@@ -46,11 +46,17 @@ export default async function CommentsPage() {
     }
   })
 
-  // Attach photos to comments
-  const commentsWithPhotos = comments?.map(comment => ({
-    ...comment,
-    modelPhoto: photoMap[comment.model.id] || null
-  })) || []
+  // Attach photos to comments and transform structure
+  const commentsWithPhotos = comments?.map(comment => {
+    const model = Array.isArray(comment.model) ? comment.model[0] : comment.model
+    const user = Array.isArray(comment.user) ? comment.user[0] : comment.user
+    return {
+      ...comment,
+      user: user || { id: '', username: 'Unknown' },
+      model: model || { id: '', username: '', model_details: [] },
+      modelPhoto: photoMap[model?.id] || null
+    }
+  }) || []
 
   console.log('Comments page:', { comments: commentsWithPhotos.length, error })
 

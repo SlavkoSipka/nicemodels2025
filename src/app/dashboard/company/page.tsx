@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import CompanySidebar from '@/components/layout/CompanySidebar'
 import { Building2, Users, TrendingUp, Calendar, Eye, MessageSquare, Star } from 'lucide-react'
 
 export default function CompanyDashboardPage() {
@@ -64,15 +63,12 @@ export default function CompanyDashboardPage() {
 
   if (loading) {
     return (
-      <>
-        <CompanySidebar />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
         </div>
-      </>
+      </div>
     )
   }
 
@@ -80,9 +76,7 @@ export default function CompanyDashboardPage() {
   const clientCode = user?.id?.slice(0, 8).toUpperCase() || 'N/A'
 
   return (
-    <>
-      <CompanySidebar />
-      <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
         <div className="max-w-6xl mx-auto">
           {/* BLOCKED ACCOUNT WARNING */}
           {profile?.is_blocked && (
@@ -409,7 +403,6 @@ export default function CompanyDashboardPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }
 

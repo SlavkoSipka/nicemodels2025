@@ -2,20 +2,22 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, Star, CheckCircle } from 'lucide-react'
 import { getSimilarProfiles, getPrimaryPhoto, getModelRating } from '@/lib/api/profiles'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 interface SimilarProfilesProps {
   currentProfileId: string
   city: string
+  supabase: SupabaseClient
 }
 
-export default async function SimilarProfiles({ currentProfileId, city }: SimilarProfilesProps) {
+export default async function SimilarProfiles({ currentProfileId, city, supabase }: SimilarProfilesProps) {
   // Fetch similar profiles from Supabase
-  const profilesData = await getSimilarProfiles(currentProfileId, city, 4)
+  const profilesData = await getSimilarProfiles(currentProfileId, city, 4, supabase)
   
   // Get ratings
   const profiles = await Promise.all(
     profilesData.map(async (profile) => {
-      const rating = await getModelRating(profile.id)
+      const rating = await getModelRating(profile.id, supabase)
       return {
         ...profile,
         rating: rating.rating,
