@@ -116,7 +116,6 @@ export default function HomePageClient() {
           const model_services_list: ModelService[] = (modelServicesData || [])
             .map((row: any) => row.services)
             .filter(Boolean)
-          console.log(`Model ${model.id} services:`, model_services_list)
 
           // Get first photo
           const { data: photos } = await supabase
