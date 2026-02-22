@@ -6,16 +6,20 @@ import Navbar from '@/components/layout/Navbar'
 import ModelCard from './ModelCard'
 import BannerAd from './BannerAd'
 import CitySelector from './CitySelector'
+import StoryStrip from './StoryStrip'
 
 interface Model {
   id: string
   username: string
+  created_at?: string
   model_details: {
     showname: string
     city: string
     age: number
     ethnicity: string
     hair_color: string
+    about_me?: string
+    services_for?: string[]
   }
   model_photos: Array<{
     file_path: string
@@ -84,7 +88,7 @@ export default function HomePageClient() {
           // Get model details
           const { data: details, error: detailsError } = await supabase
             .from('model_details')
-            .select('showname, city, age, ethnicity, hair_color')
+            .select('showname, city, age, ethnicity, hair_color, about_me, services_for')
             .eq('model_id', model.id)
             .single()
 
@@ -111,7 +115,8 @@ export default function HomePageClient() {
           return {
             ...model,
             model_details: details,
-            photoUrl
+            photoUrl,
+            created_at: model.created_at || new Date().toISOString()
           }
         })
       )
@@ -203,7 +208,10 @@ export default function HomePageClient() {
     <>
       <Navbar />
       <div className="bg-gray-50 min-h-screen">
-      {/* City Selector */}
+      {/* Story - horizontal circular profiles */}
+      <StoryStrip models={models} />
+
+      {/* Gradovi (City Selector) */}
       <CitySelector
         selectedCity={selectedCity}
         setSelectedCity={setSelectedCity}
@@ -211,39 +219,22 @@ export default function HomePageClient() {
         models={models}
       />
 
-      {/* Main Content with 3-column layout */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-6">
-          {/* Left Sidebar - Banners */}
-          <aside className="hidden lg:block w-64 flex-shrink-0 space-y-6 sticky top-4 self-start">
-            {banners.slice(0, 3).map((banner) => (
-              <BannerAd key={banner.id} banner={banner} />
-            ))}
-          </aside>
-
-          {/* Center - Model Grid */}
-          <main className="flex-1 min-w-0">
-            {filteredModels.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
-                <p className="text-2xl font-bold text-gray-400 mb-2">No models found</p>
-                <p className="text-gray-500">Try selecting a different city</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredModels.map((model, index) => (
-                  <ModelCard key={model.id} model={model} priority={index < 3} />
-                ))}
-              </div>
-            )}
-          </main>
-
-          {/* Right Sidebar - Banners */}
-          <aside className="hidden xl:block w-64 flex-shrink-0 space-y-6 sticky top-4 self-start">
-            {banners.slice(3, 6).map((banner) => (
-              <BannerAd key={banner.id} banner={banner} />
-            ))}
-          </aside>
-        </div>
+      {/* Main Content - grid puni celu širinu */}
+      <div className="max-w-7xl mx-auto px-4 py-6 w-full">
+        <main className="w-full">
+          {filteredModels.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
+              <p className="text-2xl font-bold text-gray-400 mb-2">No models found</p>
+              <p className="text-gray-500">Try selecting a different city</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+              {filteredModels.map((model, index) => (
+                <ModelCard key={model.id} model={model} priority={index < 3} />
+              ))}
+            </div>
+          )}
+        </main>
       </div>
       </div>
     </>

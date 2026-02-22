@@ -2,13 +2,14 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, Calendar, Sparkles } from 'lucide-react'
+import { MapPin, Sparkles } from 'lucide-react'
 import { trackProfileView } from '@/lib/tracking'
 
 interface ModelCardProps {
   model: {
     id: string
     username: string
+    created_at?: string
     photoUrl?: string
     model_details: {
       showname: string
@@ -16,9 +17,20 @@ interface ModelCardProps {
       age: number
       ethnicity: string
       hair_color: string
+      about_me?: string
+      services_for?: string[]
     }
   }
   priority?: boolean
+}
+
+function timeAgo(dateStr?: string): string {
+  if (!dateStr) return ''
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
+  if (diff < 60) return `vor ${diff} Sekunden`
+  if (diff < 3600) return `vor ${Math.floor(diff / 60)} Minute${Math.floor(diff / 60) === 1 ? '' : 'n'}`
+  if (diff < 86400) return `vor ${Math.floor(diff / 3600)} Stunde${Math.floor(diff / 3600) === 1 ? '' : 'n'}`
+  return `vor ${Math.floor(diff / 86400)} Tag${Math.floor(diff / 86400) === 1 ? '' : 'en'}`
 }
 
 export default function ModelCard({ model, priority = false }: ModelCardProps) {
@@ -28,76 +40,81 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
     trackProfileView(model.id)
   }
 
+  const title = details?.showname || model.username
+  const location = details?.city ? `${details.city}${details.age ? `, ${details.age} years` : ''}` : (details?.age ? `${details.age} years` : '')
+  const tags = details?.services_for?.length ? details.services_for : []
+  const description = details?.about_me || ''
+  const ago = timeAgo(model.created_at)
+
   return (
-    <Link href={`/models/${model.id}`} onClick={handleClick}>
-      <div className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 group cursor-pointer border-2 border-transparent hover:border-pink-500">
-        {/* Image */}
-        <div className="relative aspect-[3/4] overflow-hidden bg-gradient-to-br from-pink-100 to-rose-100">
+    <Link href={`/models/${model.id}`} onClick={handleClick} className="block group w-full">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl hover:border-brand/40 transition-all duration-200 flex flex-row w-full">
+        {/* Image - levo; visina kartice = visina slike (aspect 3:4) */}
+        <div className="relative w-[42%] min-w-[160px] flex-shrink-0 aspect-[3/4] bg-gradient-to-br from-pink-100 to-rose-100">
           {model.photoUrl ? (
             <Image
               src={model.photoUrl}
-              alt={details?.showname || model.username}
+              alt={title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              sizes="(max-width: 640px) 45vw, 25vw"
               priority={priority}
-              className="object-cover group-hover:scale-110 transition-transform duration-500"
+              className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Sparkles className="w-16 h-16 text-pink-300" />
+              <Sparkles className="w-12 h-12 text-pink-300" />
             </div>
           )}
-          
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* "NEW" Badge */}
-          <div className="absolute top-3 right-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-            HOT
-          </div>
         </div>
 
-        {/* Info */}
-        <div className="p-4">
-          <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-pink-600 transition-colors">
-            {details?.showname || model.username}
-          </h3>
-          
-          <div className="space-y-2">
-            {details?.city && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin className="w-4 h-4 text-pink-500" />
-                <span>{details.city}</span>
-              </div>
-            )}
-            
-            {details?.age && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="w-4 h-4 text-pink-500" />
-                <span>{details.age} years</span>
-              </div>
-            )}
-            
-            {(details?.ethnicity || details?.hair_color) && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {details?.ethnicity && (
-                  <span className="px-2 py-1 bg-pink-100 text-pink-700 rounded-full text-xs font-semibold">
-                    {details.ethnicity}
-                  </span>
-                )}
-                {details?.hair_color && (
-                  <span className="px-2 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold">
-                    {details.hair_color}
-                  </span>
-                )}
-              </div>
+        {/* Content - right ~58% */}
+        <div className="flex-1 p-4 sm:p-5 flex flex-col min-w-0 justify-between self-stretch">
+          {/* Top row: PREMIUM + time */}
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
+              PREMIUM
+            </span>
+            {ago && (
+              <span className="text-xs text-gray-400 whitespace-nowrap">{ago}</span>
             )}
           </div>
-          
-          {/* View Profile Button */}
-          <button className="mt-4 w-full py-2 bg-gradient-to-r from-pink-500 to-rose-600 text-white font-semibold rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:from-pink-600 hover:to-rose-700">
-            View Profile
-          </button>
+
+          {/* Title */}
+          <h3 className="font-bold text-gray-900 text-base sm:text-lg leading-snug mb-2 line-clamp-2 group-hover:text-brand transition-colors">
+            {title}
+          </h3>
+
+          {/* Description */}
+          {description && (
+            <p className="text-sm text-gray-600 line-clamp-4 mb-2 leading-relaxed flex-1 min-h-0">
+              {description}
+            </p>
+          )}
+
+          {/* Tags (e.g. Sie sucht ihn) */}
+          {tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-1.5">
+              {tags.slice(0, 2).map((tag) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium"
+                >
+                  <svg className="w-3.5 h-3.5 fill-blue-500 flex-shrink-0" viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                  </svg>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Location */}
+          {location && (
+            <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-auto">
+              <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              <span className="truncate">{location}</span>
+            </div>
+          )}
         </div>
       </div>
     </Link>

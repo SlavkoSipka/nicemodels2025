@@ -55,7 +55,7 @@ export default function CitySelector({ selectedCity, setSelectedCity, totalModel
             onClick={() => setSelectedCity('all')}
             className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               selectedCity === 'all'
-                ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md'
+                ? 'bg-brand text-white shadow-md'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -69,7 +69,7 @@ export default function CitySelector({ selectedCity, setSelectedCity, totalModel
               onClick={() => setSelectedCity(city.name)}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                 selectedCity === city.name
-                  ? 'bg-gradient-to-r from-pink-600 to-rose-600 text-white shadow-md'
+                  ? 'bg-brand text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >

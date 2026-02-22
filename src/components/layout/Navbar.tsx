@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -58,21 +59,19 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 shadow-2xl">
       {/* Top Bar - Black background */}
-      <div className="bg-black border-b border-gray-800">
+      <div className="border-b border-gray-800" style={{ backgroundColor: '#1f2126' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex flex-col group">
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight">
-                <span className="text-white">nice</span>
-                <span className="bg-gradient-to-r from-pink-500 to-rose-600 bg-clip-text text-transparent">
-                  models
-                </span>
-                <span className="text-pink-500 text-xl">.ch</span>
-              </h1>
-              <span className="text-[9px] md:text-[10px] uppercase tracking-[0.25em] text-gray-400 font-semibold">
-                The Erotic Portal
-              </span>
+            <Link href="/" className="flex items-center group">
+              <Image
+                src="/logo2.png"
+                alt="nicemodels.ch"
+                width={240}
+                height={60}
+                className="h-10 w-auto md:h-12"
+                priority
+              />
             </Link>
 
             {/* Desktop Auth Section */}
@@ -93,7 +92,7 @@ export default function Navbar() {
                       profile?.role === 'company' ? '/dashboard/company' : 
                       '/dashboard'
                     }
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-pink-600 to-rose-600 rounded-lg hover:from-pink-700 hover:to-rose-700 transition-all"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand-hover rounded-lg transition-all"
                   >
                     <User className="w-4 h-4" />
                     <span>{profile?.username || 'User'}</span>
@@ -110,7 +109,7 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/register"
-                    className="px-5 py-2.5 text-sm font-bold bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-pink-700 hover:to-rose-700 rounded-lg transition-all shadow-lg shadow-pink-500/30"
+                    className="px-5 py-2.5 text-sm font-bold bg-brand text-white hover:bg-brand-hover rounded-lg transition-all shadow-lg shadow-brand/30"
                   >
                     REGISTER
                   </Link>
@@ -137,7 +136,7 @@ export default function Navbar() {
       </div>
 
       {/* Navigation Bar - Pink gradient */}
-      <div className="bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 border-t border-pink-500/50">
+      <div className="border-t border-brand/50 bg-brand">
         <div className="max-w-7xl mx-auto px-4">
           <div className="hidden lg:flex items-center justify-center gap-0 py-0">
             <Link
@@ -176,39 +175,39 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-gray-900 border-t border-pink-500/30">
+        <div className="lg:hidden bg-gray-900 border-t border-brand/30">
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             <Link
               href="/"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-pink-500/20 hover:text-white rounded-lg transition-all"
+              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               Girls
             </Link>
             <Link
               href="/clubs"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-pink-500/20 hover:text-white rounded-lg transition-all"
+              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               Clubs/Agency
             </Link>
             <Link
               href="/comments"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-pink-500/20 hover:text-white rounded-lg transition-all"
+              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               Comments
             </Link>
             <Link
               href="/contact"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-pink-500/20 hover:text-white rounded-lg transition-all"
+              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               Contact
             </Link>
             <Link
               href="/blog"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-pink-500/20 hover:text-white rounded-lg transition-all"
+              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
               onClick={() => setMobileMenuOpen(false)}
             >
               Blog
@@ -227,7 +226,7 @@ export default function Navbar() {
                       profile?.role === 'company' ? '/dashboard/company' : 
                       '/dashboard'
                     }
-                    className="block w-full px-4 py-3 text-sm font-bold bg-gradient-to-r from-pink-600 to-rose-600 text-white text-center hover:from-pink-700 hover:to-rose-700 rounded-lg transition-all shadow-lg"
+                    className="block w-full px-4 py-3 text-sm font-bold bg-brand text-white text-center hover:bg-brand-hover rounded-lg transition-all shadow-lg"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     📊 Dashboard
@@ -246,7 +245,7 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/register"
-                    className="block w-full px-4 py-3 text-sm font-bold bg-gradient-to-r from-pink-600 to-rose-600 text-white text-center hover:from-pink-700 hover:to-rose-700 rounded-lg transition-all shadow-lg"
+                    className="block w-full px-4 py-3 text-sm font-bold bg-brand text-white text-center hover:bg-brand-hover rounded-lg transition-all shadow-lg"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     REGISTER
