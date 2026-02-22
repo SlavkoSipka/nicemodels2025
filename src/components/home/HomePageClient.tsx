@@ -6,7 +6,12 @@ import Navbar from '@/components/layout/Navbar'
 import ModelCard from './ModelCard'
 import BannerAd from './BannerAd'
 import CitySelector from './CitySelector'
-import StoryStrip from './StoryStrip'
+import StoriesSection from '@/components/stories/StoriesSection'
+
+interface ModelService {
+  id: number
+  name: string
+}
 
 interface Model {
   id: string
@@ -21,6 +26,7 @@ interface Model {
     about_me?: string
     services_for?: string[]
   }
+  model_services_list?: ModelService[]
   model_photos: Array<{
     file_path: string
   }>
@@ -42,6 +48,8 @@ export default function HomePageClient() {
   
   // Filters
   const [selectedCity, setSelectedCity] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [selectedOffer, setSelectedOffer] = useState<string>('all')
 
   useEffect(() => {
     loadData()
@@ -49,7 +57,7 @@ export default function HomePageClient() {
 
   useEffect(() => {
     applyFilters()
-  }, [selectedCity, models])
+  }, [selectedCity, selectedCategory, selectedOffer, models])
 
   const loadData = async () => {
     try {
@@ -97,6 +105,19 @@ export default function HomePageClient() {
             console.error(`Error fetching details for model ${model.id}:`, detailsError)
           }
 
+          // Get services from model_services + services table
+          const { data: modelServicesData, error: msError } = await supabase
+            .from('model_services')
+            .select('service_id, services(id, name)')
+            .eq('model_id', model.id)
+          if (msError) {
+            console.error(`model_services error for ${model.id}:`, msError)
+          }
+          const model_services_list: ModelService[] = (modelServicesData || [])
+            .map((row: any) => row.services)
+            .filter(Boolean)
+          console.log(`Model ${model.id} services:`, model_services_list)
+
           // Get first photo
           const { data: photos } = await supabase
             .from('model_photos')
@@ -116,6 +137,7 @@ export default function HomePageClient() {
           return {
             ...model,
             model_details: details,
+            model_services_list,
             photoUrl,
             created_at: model.created_at || new Date().toISOString()
           }
@@ -190,6 +212,14 @@ export default function HomePageClient() {
     if (selectedCity !== 'all') {
       filtered = filtered.filter(m => m.model_details?.city === selectedCity)
     }
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(m => m.model_details?.ethnicity === selectedCategory)
+    }
+    if (selectedOffer !== 'all') {
+      filtered = filtered.filter(m =>
+        m.model_services_list?.some((s) => s.name === selectedOffer)
+      )
+    }
 
     setFilteredModels(filtered)
   }
@@ -209,13 +239,17 @@ export default function HomePageClient() {
     <>
       <Navbar />
       <div className="bg-gray-50 min-h-screen">
-      {/* Story - horizontal circular profiles */}
-      <StoryStrip models={models} />
+      {/* Story sistem - prikaz i viewer */}
+      <StoriesSection />
 
-      {/* Gradovi (City Selector) */}
+      {/* Filter bar: Region, Category, Offer */}
       <CitySelector
         selectedCity={selectedCity}
         setSelectedCity={setSelectedCity}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        selectedOffer={selectedOffer}
+        setSelectedOffer={setSelectedOffer}
         totalModels={models.length}
         models={models}
       />
@@ -226,7 +260,7 @@ export default function HomePageClient() {
           {filteredModels.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
               <p className="text-2xl font-bold text-gray-400 mb-2">No models found</p>
-              <p className="text-gray-500">Try selecting a different city</p>
+              <p className="text-gray-500">Try changing filters</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">

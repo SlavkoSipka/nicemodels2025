@@ -138,35 +138,35 @@ export default function Navbar() {
 
       {/* Navigation Bar - Pink gradient */}
       <div className="border-t border-brand/50 bg-brand">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="hidden lg:flex items-center justify-center gap-0 py-0">
+        <div className="max-w-7xl mx-auto px-4 w-full">
+          <div className="hidden lg:flex items-center justify-center gap-20 py-0 font-cookie">
             <Link
               href="/"
-              className="px-5 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all"
+              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
             >
               Girls
             </Link>
             <Link
               href="/clubs"
-              className="px-5 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all"
+              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
             >
               Clubs/Agency
             </Link>
             <Link
               href="/comments"
-              className="px-5 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all"
+              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
             >
               Comments
             </Link>
             <Link
               href="/contact"
-              className="px-5 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all"
+              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
             >
               Contact
             </Link>
             <Link
               href="/blog"
-              className="px-5 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all"
+              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
             >
               Blog
             </Link>

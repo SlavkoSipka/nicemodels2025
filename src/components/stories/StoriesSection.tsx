@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Plus } from 'lucide-react';
+import { Plus, User } from 'lucide-react';
 import Link from 'next/link';
 import StoryViewer from './StoryViewer';
 
@@ -95,17 +95,21 @@ export default function StoriesSection() {
     );
   }
 
-  if (modelStories.length === 0 && currentUser?.role !== 'model') {
-    return null; // Don't show section if no stories
+  const hasAddButton = currentUser?.role === 'model';
+  const totalSlots = 16;
+  const ghostCount = Math.max(0, totalSlots - modelStories.length - (hasAddButton ? 1 : 0));
+
+  if (modelStories.length === 0 && !hasAddButton) {
+    return null;
   }
 
   return (
     <>
-      <div className="py-6 bg-white border-y border-gray-200">
+      <div className="py-6 bg-gray-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {/* Add Story button for models */}
-            {currentUser?.role === 'model' && (
+            {hasAddButton && (
               <Link href="/dashboard/model/upload-story" className="flex-shrink-0 text-center group">
                 <div className="relative">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center border-4 border-gray-200 group-hover:border-pink-500 transition-all">
@@ -130,7 +134,6 @@ export default function StoriesSection() {
                   className="flex-shrink-0 text-center group"
                 >
                   <div className="relative">
-                    {/* Story Ring */}
                     <div
                       className={`w-20 h-20 rounded-full p-[3px] ${
                         hasUnviewed
@@ -152,8 +155,6 @@ export default function StoriesSection() {
                         )}
                       </div>
                     </div>
-
-                    {/* Story Count Badge */}
                     {modelStory.total_stories > 1 && (
                       <div className="absolute bottom-0 right-0 w-6 h-6 bg-pink-600 text-white rounded-full flex items-center justify-center text-xs font-bold border-2 border-white">
                         {modelStory.total_stories}
@@ -166,6 +167,20 @@ export default function StoriesSection() {
                 </button>
               );
             })}
+
+            {/* Ghost placeholders – samo dizajn, ne klikaju se; uklanjaju se kako dolaze pravi story-i */}
+            {Array.from({ length: ghostCount }).map((_, i) => (
+              <div
+                key={`ghost-${i}`}
+                className="flex-shrink-0 text-center pointer-events-none select-none"
+                aria-hidden
+              >
+                <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 bg-gray-100 flex items-center justify-center">
+                  <User className="w-8 h-8 text-gray-400" />
+                </div>
+                <p className="text-xs font-medium text-gray-400 mt-2 w-20 truncate">—</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
