@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Upload, Image as ImageIcon, Video, X, Loader2 } from 'lucide-react';
+import { Upload, Image as ImageIcon, Video, X, Loader2, Clock, Trash2 } from 'lucide-react';
 
 export default function UploadStoryPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -12,8 +12,59 @@ export default function UploadStoryPage() {
   const [duration, setDuration] = useState(5);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const [activeStories, setActiveStories] = useState<any[]>([]);
+  const [loadingStories, setLoadingStories] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
+
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  useEffect(() => {
+    loadActiveStories();
+  }, []);
+
+  async function loadActiveStories() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('model_stories')
+        .select('*')
+        .eq('model_id', user.id)
+        .gte('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false });
+
+      setActiveStories(data || []);
+    } catch {}
+    finally { setLoadingStories(false); }
+  }
+
+  async function deleteStory(story: any) {
+    if (!confirm('Delete this story?')) return;
+    setDeletingId(story.id);
+    try {
+      await supabase.from('model_stories').delete().eq('id', story.id);
+      if (story.media_url) {
+        await supabase.storage.from('model-stories').remove([story.media_url]);
+      }
+      setActiveStories(prev => prev.filter(s => s.id !== story.id));
+    } catch {}
+    finally { setDeletingId(null); }
+  }
+
+  function timeLeft(expiresAt: string) {
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    if (diff <= 0) return 'Expired';
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+  }
+
+  function storyMediaUrl(path: string) {
+    return `${SUPABASE_URL}/storage/v1/object/public/model-stories/${path}`;
+  }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -111,9 +162,9 @@ export default function UploadStoryPage() {
       }
 
       // Success!
-      alert('Story uploaded successfully! 🎉');
-      router.push('/dashboard/model');
-      router.refresh();
+      clearSelection();
+      await loadActiveStories();
+      alert('Story uploaded successfully!');
     } catch (err) {
       console.error('Error:', err);
       setError('An unexpected error occurred');
@@ -239,6 +290,84 @@ export default function UploadStoryPage() {
             </div>
           )}
         </div>
+
+        {/* ── Active stories ── */}
+        <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Clock className="w-5 h-5 text-brand" />
+            <h2 className="text-base font-bold text-gray-900">Active stories</h2>
+            {!loadingStories && (
+              <span className="ml-auto text-xs text-gray-400">{activeStories.length} active</span>
+            )}
+          </div>
+
+          {loadingStories ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-gray-300" />
+            </div>
+          ) : activeStories.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              No active stories. Upload one above!
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {activeStories.map(story => (
+                <div key={story.id} className="relative group rounded-lg overflow-hidden bg-black aspect-[9/16]">
+                  {story.media_type === 'video' ? (
+                    <video
+                      src={storyMediaUrl(story.media_url)}
+                      className="w-full h-full object-cover"
+                      muted
+                      playsInline
+                      onMouseEnter={e => (e.currentTarget as HTMLVideoElement).play()}
+                      onMouseLeave={e => { const v = e.currentTarget as HTMLVideoElement; v.pause(); v.currentTime = 0; }}
+                    />
+                  ) : (
+                    <img
+                      src={storyMediaUrl(story.media_url)}
+                      alt={story.caption || 'Story'}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+
+                  {/* Overlay info */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+                  {/* Type badge */}
+                  <div className="absolute top-2 left-2">
+                    <span className="text-xs font-bold text-white bg-black/40 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                      {story.media_type === 'video' ? 'Video' : 'Photo'}
+                    </span>
+                  </div>
+
+                  {/* Delete button */}
+                  <button
+                    onClick={() => deleteStory(story)}
+                    disabled={deletingId === story.id}
+                    className="absolute top-2 right-2 p-1.5 bg-black/50 hover:bg-red-600 text-white rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    {deletingId === story.id
+                      ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      : <Trash2 className="w-3.5 h-3.5" />
+                    }
+                  </button>
+
+                  {/* Bottom info */}
+                  <div className="absolute bottom-0 left-0 right-0 p-2">
+                    {story.caption && (
+                      <p className="text-white text-xs font-medium line-clamp-2 mb-1">{story.caption}</p>
+                    )}
+                    <div className="flex items-center gap-1 text-white/70 text-xs">
+                      <Clock className="w-3 h-3" />
+                      {timeLeft(story.expires_at)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

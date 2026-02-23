@@ -76,10 +76,10 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Auth Section */}
-            <div className="hidden lg:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-2">
               {/* Language Selector */}
-              <div className="flex items-center gap-1.5 px-3 py-2 text-sm font-semibold text-gray-300 border border-gray-700 rounded-lg">
-                <span className="text-base">🇩🇪</span>
+              <div className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-400 border border-gray-600 rounded-md">
+                <span className="text-sm">🇩🇪</span>
                 DE
               </div>
 
@@ -93,15 +93,15 @@ export default function Navbar() {
                       profile?.role === 'company' ? '/dashboard/company' : 
                       '/dashboard'
                     }
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-brand hover:bg-brand-hover rounded-lg transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand-hover rounded-md transition-all"
                   >
-                    <User className="w-4 h-4" />
+                    <User className="w-3.5 h-3.5" />
                     <span>{profile?.username || 'User'}</span>
                   </Link>
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="px-4 py-2 text-sm font-semibold text-gray-200 border border-gray-600 rounded-lg hover:bg-gray-800 hover:text-white transition-all"
+                    className="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white transition-all"
                   >
                     Logout
                   </button>
@@ -110,14 +110,13 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/register"
-                    className="px-5 py-2.5 text-sm font-bold bg-brand text-white hover:bg-brand-hover rounded-lg transition-all shadow-lg shadow-brand/30"
+                    className="px-3 py-1.5 text-xs font-semibold bg-brand text-white hover:bg-brand-hover rounded-md transition-all"
                   >
                     REGISTER
                   </Link>
-                  
                   <Link
                     href="/login"
-                    className="px-5 py-2.5 text-sm font-bold bg-white text-gray-900 hover:bg-gray-100 rounded-lg transition-all shadow-lg"
+                    className="px-3 py-1.5 text-xs font-semibold bg-white/10 text-white border border-gray-600 rounded-md hover:bg-white/20 transition-all"
                   >
                     LOG IN
                   </Link>

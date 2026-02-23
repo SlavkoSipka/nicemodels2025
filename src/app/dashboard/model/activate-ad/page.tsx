@@ -32,11 +32,56 @@ export default function ActivateAdPage() {
   const [selectedPackage, setSelectedPackage] = useState<Product | null>(null)
   const [activationType, setActivationType] = useState<'immediately' | 'after_current' | 'at_date'>('immediately')
   const [activationDate, setActivationDate] = useState<string>('')
+  const [hasActiveAd, setHasActiveAd] = useState(false)
+  const [activeAdExpiry, setActiveAdExpiry] = useState<string | null>(null)
 
   useEffect(() => {
     loadPackages()
     loadCart()
+    checkActiveAd()
   }, [])
+
+  const checkActiveAd = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from('order_items')
+        .select(`
+          id,
+          activation_date,
+          orders!inner(user_id, status, created_at),
+          products!inner(product_type, duration_hours)
+        `)
+        .eq('orders.user_id', user.id)
+        .eq('orders.status', 'paid')
+        .eq('products.product_type', 'ad_package')
+
+      if (!data || data.length === 0) return
+
+      const now = new Date()
+      for (const item of data) {
+        const order = (item as any).orders
+        const product = (item as any).products
+        const startDate = item.activation_date
+          ? new Date(item.activation_date)
+          : new Date(order.created_at)
+        const expiryDate = new Date(startDate.getTime() + product.duration_hours * 3600000)
+
+        if (startDate <= now && expiryDate > now) {
+          setHasActiveAd(true)
+          setActiveAdExpiry(expiryDate.toLocaleDateString('en-CH', {
+            day: 'numeric', month: 'long', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+          }))
+          return
+        }
+      }
+    } catch (e) {
+      console.error('Error checking active ad:', e)
+    }
+  }
 
   const loadPackages = async () => {
     const { data, error } = await supabase
@@ -203,97 +248,107 @@ export default function ActivateAdPage() {
           </p>
         </div>
 
-        {/* Duration Selection */}
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Select duration:</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {packages.map((pkg) => (
-              <div
-                key={pkg.id}
-                onClick={() => setSelectedPackage(pkg)}
-                className={`relative bg-white rounded-xl border-2 cursor-pointer transition-all hover:shadow-lg ${
-                  selectedPackage?.id === pkg.id
-                    ? 'border-pink-600 shadow-lg'
-                    : 'border-gray-200'
-                }`}
-              >
-                {/* Discount Badge */}
-                {pkg.discount_percent > 0 && (
-                  <div className="absolute -top-3 -left-3 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold transform -rotate-12">
-                    {pkg.discount_percent}% per day
-                  </div>
-                )}
-
-                <div className="p-6 text-center">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{pkg.name}</h3>
-                  <p className="text-gray-600 text-sm mb-4">{pkg.duration_hours} hours</p>
-                  
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <p className="text-lg font-bold text-green-600">Free during beta</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Activation Date Selection */}
-        {selectedPackage && (
-          <div className="mb-8 bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Select activation date:</h2>
-            <div className="flex flex-wrap gap-4">
-              <button
-                onClick={() => setActivationType('immediately')}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                  activationType === 'immediately'
-                    ? 'bg-pink-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Zap className="w-5 h-5" />
-                Immediately
-              </button>
-              
-              <button
-                onClick={() => setActivationType('after_current')}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                  activationType === 'after_current'
-                    ? 'bg-pink-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Clock className="w-5 h-5" />
-                After current
-              </button>
-              
-              <button
-                onClick={() => setActivationType('at_date')}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center gap-2 ${
-                  activationType === 'at_date'
-                    ? 'bg-pink-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Calendar className="w-5 h-5" />
-                At certain date
-              </button>
+        {/* Active ad status */}
+        {hasActiveAd && (
+          <div className="mb-8 bg-white border border-emerald-200 rounded-xl p-6 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-
-            {activationType === 'at_date' && (
-              <div className="mt-4">
-                <input
-                  type="datetime-local"
-                  value={activationDate}
-                  onChange={(e) => setActivationDate(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                />
-              </div>
-            )}
+            <div>
+              <p className="text-sm font-bold text-emerald-800 mb-1">Your ad is currently active</p>
+              <p className="text-sm text-gray-600">
+                You already have an active Unlimited Pass during the beta phase. Your profile is visible in search results.
+              </p>
+              {activeAdExpiry && (
+                <p className="text-xs text-gray-400 mt-1">Active until: {activeAdExpiry}</p>
+              )}
+            </div>
           </div>
         )}
 
+        {/* Duration Selection */}
+        {!hasActiveAd && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Select duration:</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {packages.map((pkg, idx) => {
+              const isBetaAvailable = idx === 0
+              const isSelected = selectedPackage?.id === pkg.id
+              const isInCart = cart.some(item => item.product.id === pkg.id)
+
+              if (!isBetaAvailable) {
+                // Greyed out / locked card
+                return (
+                  <div
+                    key={pkg.id}
+                    className="relative bg-gray-50 rounded-xl border-2 border-gray-200 opacity-50 cursor-not-allowed"
+                  >
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gray-400 text-white px-3 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap">
+                      Coming soon
+                    </div>
+                    <div className="p-6 text-center">
+                      <h3 className="text-xl font-bold text-gray-400 mb-2">{pkg.name}</h3>
+                      <p className="text-gray-400 text-sm mb-4">{pkg.duration_hours} hours</p>
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <p className="text-sm text-gray-400">Not available in beta</p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+
+              // Active beta card (1 day → Unlimited beta)
+              return (
+                <div
+                  key={pkg.id}
+                  onClick={() => !isInCart && setSelectedPackage(pkg)}
+                  className={`relative bg-white rounded-xl border-2 transition-all ${
+                    isInCart
+                      ? 'border-green-500 opacity-60 cursor-not-allowed'
+                      : isSelected
+                        ? 'border-pink-600 shadow-lg cursor-pointer'
+                        : 'border-gray-200 hover:border-pink-300 hover:shadow-lg cursor-pointer'
+                  }`}
+                >
+                  {/* Badge */}
+                  <div className={`absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white ${isInCart ? 'bg-green-500' : 'bg-green-500'}`}>
+                    {isInCart ? 'Added to cart' : 'Beta — Free'}
+                  </div>
+
+                  <div className="p-6 text-center">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1">Unlimited Pass</h3>
+                    <p className="text-xs text-gray-400 mb-4">Active for the entire beta phase</p>
+
+                    <div className="mt-6 pt-4 border-t border-gray-200">
+                      <p className="text-lg font-bold text-green-600">100% Free</p>
+                      <p className="text-xs text-gray-400 mt-1">No payment needed</p>
+                    </div>
+                  </div>
+
+                  {isInCart ? (
+                    <div className="absolute bottom-3 right-3 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  ) : isSelected ? (
+                    <div className="absolute bottom-3 right-3 w-5 h-5 bg-pink-600 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+        )}
+
         {/* Add to Cart Button */}
-        {selectedPackage && (
+        {!hasActiveAd && selectedPackage && (
           <div className="mb-8">
             <button
               onClick={addToCart}
@@ -306,19 +361,15 @@ export default function ActivateAdPage() {
         )}
 
         {/* Current Cart */}
-        {cart.length > 0 && (
+        {!hasActiveAd && cart.length > 0 && (
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Your Cart:</h2>
             <div className="space-y-3">
               {cart.map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900">{item.product.name}</p>
-                    <p className="text-sm text-gray-600">
-                      Activation: {item.activationType === 'immediately' ? 'Immediately' : 
-                                  item.activationType === 'after_current' ? 'After current' : 
-                                  `On ${item.activationDate ? new Date(item.activationDate).toLocaleDateString() : ''}`}
-                    </p>
+                    <p className="font-semibold text-gray-900">Unlimited Pass</p>
+                    <p className="text-sm text-gray-400">Active for the entire beta phase</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <p className="font-bold text-green-600 text-sm">Free during beta</p>

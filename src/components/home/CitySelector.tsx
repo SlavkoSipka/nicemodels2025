@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 
 interface ModelDetail {
   city?: string
@@ -25,6 +25,8 @@ interface CitySelectorProps {
   setSelectedCategory: (category: string) => void
   selectedOffer: string
   setSelectedOffer: (offer: string) => void
+  searchQuery: string
+  setSearchQuery: (q: string) => void
   totalModels: number
   models: HomeModel[]
 }
@@ -96,6 +98,8 @@ export default function CitySelector({
   setSelectedCategory,
   selectedOffer,
   setSelectedOffer,
+  searchQuery,
+  setSearchQuery,
   totalModels,
   models,
 }: CitySelectorProps) {
@@ -154,7 +158,7 @@ export default function CitySelector({
   return (
     <div className="bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-4 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 w-full items-center">
           {/* Region */}
           <div className="relative min-w-0" ref={regionRef}>
             <button
@@ -270,6 +274,19 @@ export default function CitySelector({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Search by model name */}
+          <div className="relative min-w-0 sm:w-44">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name"
+              className="w-full pl-9 pr-3 py-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+              aria-label="Search models by name"
+            />
           </div>
         </div>
       </div>

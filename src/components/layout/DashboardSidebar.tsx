@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera } from 'lucide-react'
@@ -42,17 +43,15 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
       {/* Logo & Notifications */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center justify-between mb-3">
-          <Link href="/" className="flex flex-col">
-            <h1 className="text-2xl font-black tracking-tight">
-              <span className="text-gray-900">nice</span>
-              <span className="bg-gradient-to-r from-pink-500 to-rose-600 bg-clip-text text-transparent">
-                models
-              </span>
-              <span className="text-pink-500 text-lg">.ch</span>
-            </h1>
-            <span className="text-[9px] uppercase tracking-wider text-gray-400 font-semibold mt-0.5">
-              The Erotic Portal
-            </span>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/logo2.png"
+              alt="nicemodels.ch"
+              width={162}
+              height={48}
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </Link>
           <NotificationBell userRole={userRole} />
         </div>

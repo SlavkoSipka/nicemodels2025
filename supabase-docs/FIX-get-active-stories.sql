@@ -21,13 +21,14 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
   RETURN QUERY
+  -- Prva (profilna) slika modela = prva po uploaded_at
   WITH model_primary_photo AS (
     SELECT DISTINCT ON (mp.model_id) 
       mp.model_id as photo_model_id,
       mp.file_path as photo_path
     FROM model_photos mp
     WHERE mp.is_approved = TRUE
-    ORDER BY mp.model_id, mp.uploaded_at DESC
+    ORDER BY mp.model_id, mp.uploaded_at ASC
   )
   SELECT 
     p.id,

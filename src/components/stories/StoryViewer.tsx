@@ -143,7 +143,7 @@ export default function StoryViewer({ modelStory, onClose }: StoryViewerProps) {
   }
 
   const photoUrl = modelStory.model_photo
-    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${modelStory.model_photo}`
+    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${modelStory.model_photo}`
     : null;
 
   return (

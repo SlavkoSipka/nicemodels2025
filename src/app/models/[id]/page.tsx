@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import ModelProfileClient from './ModelProfileClient'
 
 interface ModelPageProps {
@@ -124,6 +125,7 @@ export default async function ModelPage({ params }: ModelPageProps) {
     <>
       <Navbar />
       <ModelProfileClient modelData={modelData} />
+      <Footer />
     </>
   )
 }

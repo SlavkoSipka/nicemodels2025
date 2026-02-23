@@ -94,10 +94,10 @@ export default function SettingsPage() {
       return
     }
 
-    // Password requirements
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!_+@])[A-Za-z\d!_+@]{8,20}$/
+    // Password requirements: 8-20 chars, 1 uppercase, 1 digit, one of !_+-@
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!_+@\-])[A-Za-z\d!_+@\-]{8,20}$/
     if (!passwordRegex.test(newPassword)) {
-      alert('Password must be 8-20 characters with at least 1 uppercase letter, 1 digit, and one of: !_+@')
+      alert('Password must be 8-20 characters with at least 1 uppercase letter, 1 digit, and one of: !_+-@')
       return
     }
 
@@ -209,38 +209,6 @@ export default function SettingsPage() {
                 For your protection, in order to change this field please contact our support team.
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* Profile Status */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Profile Status</h2>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-700 font-medium">
-                Your profile status: <span className={`font-bold ${profileEnabled ? 'text-green-600' : 'text-red-600'}`}>
-                  {profileEnabled ? 'Enabled' : 'Disabled'}
-                </span>
-              </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {profileEnabled 
-                  ? 'Your profile is visible to public users' 
-                  : 'Your profile is hidden from public view'}
-              </p>
-            </div>
-            <button
-              onClick={handleProfileStatusToggle}
-              disabled={saving}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                profileEnabled ? 'bg-green-500' : 'bg-gray-300'
-              } ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                  profileEnabled ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
-            </button>
           </div>
         </div>
 

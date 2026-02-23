@@ -243,18 +243,15 @@ export default function PurchaseHistoryPage() {
                                 BANNER
                               </span>
                             )}
-                            <h4 className="font-semibold text-gray-900">{item.product.name}</h4>
+                            <h4 className="font-semibold text-gray-900">
+                              {item.product.product_type === 'ad_package' ? 'Unlimited Pass' : item.product.name}
+                            </h4>
                           </div>
-                          <p className="text-sm text-gray-600">{item.product.description}</p>
-                          
-                          {/* Ad Package Details */}
-                          {item.product.product_type === 'ad_package' && item.activation_type && (
-                            <p className="text-xs text-gray-500 mt-2">
-                              Activation: {item.activation_type === 'immediately' ? 'Immediately' : 
-                                          item.activation_type === 'after_current' ? 'After current' : 
-                                          `On ${item.activation_date ? new Date(item.activation_date).toLocaleDateString() : ''}`}
-                            </p>
-                          )}
+                          <p className="text-sm text-gray-600">
+                            {item.product.product_type === 'ad_package'
+                              ? 'Active for the entire beta phase'
+                              : item.product.description}
+                          </p>
                           
                           {/* Banner Details */}
                           {item.product.product_type === 'banner_package' && item.banner_file_path && (
@@ -268,7 +265,9 @@ export default function PurchaseHistoryPage() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-sm text-green-600">Free during beta</p>
-                          <p className="text-xs text-gray-500">{item.product.duration_days} days</p>
+                          <p className="text-xs text-gray-500">
+                            {item.product.product_type === 'ad_package' ? 'Beta phase' : `${item.product.duration_days} days`}
+                          </p>
                         </div>
                       </div>
                     ))}

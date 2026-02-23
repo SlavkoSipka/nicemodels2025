@@ -45,9 +45,7 @@ export default function StatisticsPage() {
         .eq('model_id', user.id)
         .single()
 
-      if (summaryError && summaryError.code !== 'PGRST116') {
-        console.error('Summary stats error:', summaryError)
-      } else if (summaryData) {
+      if (!summaryError && summaryData) {
         setModelStats(summaryData)
       }
 
@@ -79,9 +77,7 @@ export default function StatisticsPage() {
 
       const { data: dailyStatsData, error: dailyStatsError } = await dailyQuery
 
-      if (dailyStatsError) {
-        console.error('Daily stats error:', dailyStatsError)
-      } else {
+      if (!dailyStatsError) {
         setDailyStats(dailyStatsData || [])
       }
     } catch (error) {

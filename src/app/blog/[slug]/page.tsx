@@ -1,12 +1,13 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
-import { Calendar, User, Clock, ArrowLeft, Tag, Share2 } from 'lucide-react'
+import Footer from '@/components/layout/Footer'
+import { Calendar, User, Clock, ArrowLeft } from 'lucide-react'
 
-// Template blog posts (isti kao u blog/page.tsx - kasnije iz database)
 const BLOG_POSTS = [
   {
     id: 1,
@@ -16,10 +17,8 @@ const BLOG_POSTS = [
     content: `
       <h2>Why Your Profile Matters</h2>
       <p>Your profile is your first impression and often the deciding factor for potential clients. A well-crafted profile can significantly increase your bookings and help you stand out in a competitive market.</p>
-      
       <h2>Professional Photography</h2>
       <p>High-quality photos are essential. Invest in professional photography or learn proper lighting and angles. Your main photo should be clear, well-lit, and showcase your best features.</p>
-      
       <h3>Photo Tips:</h3>
       <ul>
         <li>Use natural lighting when possible</li>
@@ -27,10 +26,8 @@ const BLOG_POSTS = [
         <li>Keep photos recent and accurate</li>
         <li>Maintain professionalism while being attractive</li>
       </ul>
-      
       <h2>Writing Your Description</h2>
       <p>Your description should be engaging, honest, and highlight what makes you unique. Avoid clichés and be specific about your services and personality.</p>
-      
       <h3>Description Best Practices:</h3>
       <ul>
         <li>Be authentic and genuine</li>
@@ -39,13 +36,10 @@ const BLOG_POSTS = [
         <li>Include your availability and working hours</li>
         <li>Proofread for grammar and spelling</li>
       </ul>
-      
       <h2>Setting Your Rates</h2>
       <p>Research competitive rates in your area while valuing your time appropriately. Be transparent about your pricing structure and any additional costs.</p>
-      
       <h2>Verification and Trust</h2>
       <p>Complete your verification process to build trust with potential clients. Verified profiles receive significantly more attention and bookings.</p>
-      
       <h2>Regular Updates</h2>
       <p>Keep your profile fresh by updating photos, availability, and information regularly. Active profiles rank higher in search results.</p>
     `,
@@ -54,20 +48,18 @@ const BLOG_POSTS = [
     date: '2026-02-10',
     image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200',
     featured: true,
-    readTime: '5 min read'
+    readTime: '5 min',
   },
   {
     id: 2,
     slug: 'safety-tips-for-escorts',
     title: 'Essential Safety Tips for Escorts',
-    excerpt: 'Your safety is our priority. This comprehensive guide covers important safety measures.',
+    excerpt: 'Your safety is our priority. This comprehensive guide covers important safety measures, client screening, and emergency protocols.',
     content: `
       <h2>Client Screening</h2>
       <p>Always screen your clients before meeting. Request references, verify their identity, and trust your instincts.</p>
-      
       <h2>Meeting Locations</h2>
       <p>Choose safe, public locations for initial meetings. For outcalls, research the location beforehand and let someone know where you'll be.</p>
-      
       <h2>Emergency Protocols</h2>
       <p>Have an emergency contact and a safety plan. Keep your phone charged and accessible at all times.</p>
     `,
@@ -76,42 +68,115 @@ const BLOG_POSTS = [
     date: '2026-02-08',
     image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1200',
     featured: false,
-    readTime: '7 min read'
-  }
+    readTime: '7 min',
+  },
+  {
+    id: 3,
+    slug: 'understanding-swiss-escort-laws',
+    title: 'Understanding Swiss Escort Industry Regulations',
+    excerpt: 'A detailed overview of the legal framework surrounding escort services in Switzerland.',
+    content: `
+      <h2>Legal Framework</h2>
+      <p>Switzerland has a clear and regulated approach to the escort industry. Understanding these rules protects both service providers and clients.</p>
+      <h2>Registration</h2>
+      <p>In many cantons, registration with local authorities may be required. Always check the regulations in your specific region.</p>
+    `,
+    category: 'Legal',
+    author: 'Legal Advisor',
+    date: '2026-02-05',
+    image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=1200',
+    featured: false,
+    readTime: '10 min',
+  },
+  {
+    id: 4,
+    slug: 'maximizing-your-online-presence',
+    title: 'Maximizing Your Online Presence',
+    excerpt: 'Discover strategies to increase your visibility on NiceModels.ch and attract more clients.',
+    content: `
+      <h2>Profile Optimization</h2>
+      <p>A well-optimized profile ranks higher in search results and gets more views. Focus on completeness and keyword-rich descriptions.</p>
+      <h2>Consistency</h2>
+      <p>Update your profile regularly. Active profiles are prioritized in our discovery algorithm.</p>
+    `,
+    category: 'Marketing',
+    author: 'Marketing Team',
+    date: '2026-02-03',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200',
+    featured: false,
+    readTime: '6 min',
+  },
+  {
+    id: 5,
+    slug: 'photography-tips-for-models',
+    title: 'Professional Photography Tips for Your Profile',
+    excerpt: 'High-quality photos are crucial for success. Learn about lighting, angles, and editing.',
+    content: `
+      <h2>Lighting is Everything</h2>
+      <p>Good lighting transforms an average photo into a great one. Natural window light is your best friend.</p>
+      <h2>Angles and Composition</h2>
+      <p>Experiment with different angles to find your most flattering perspective. Rule of thirds applies to portrait photography too.</p>
+    `,
+    category: 'Tips & Guides',
+    author: 'Photo Expert',
+    date: '2026-01-30',
+    image: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1200',
+    featured: false,
+    readTime: '8 min',
+  },
+  {
+    id: 6,
+    slug: 'building-client-relationships',
+    title: 'Building Long-Term Client Relationships',
+    excerpt: 'How to maintain professionalism while building a loyal client base.',
+    content: `
+      <h2>Communication</h2>
+      <p>Clear, prompt, and professional communication builds trust and keeps clients coming back.</p>
+      <h2>Consistency</h2>
+      <p>Deliver a consistent experience every time. Reliability is one of the most valued traits.</p>
+    `,
+    category: 'Business',
+    author: 'Business Coach',
+    date: '2026-01-28',
+    image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1200',
+    featured: false,
+    readTime: '5 min',
+  },
 ]
 
 export default function BlogPostPage() {
   const params = useParams()
-  const router = useRouter()
   const slug = params.slug as string
-
-  const post = BLOG_POSTS.find(p => p.slug === slug)
+  const [email, setEmail] = useState('')
+  const [subscribed, setSubscribed] = useState(false)
+  const post = BLOG_POSTS.find((p) => p.slug === slug)
 
   if (!post) {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Post Not Found</h1>
-            <Link href="/blog" className="text-pink-600 hover:underline">
-              ← Back to Blog
-            </Link>
-          </div>
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
+          <p className="text-gray-500 text-sm">Article not found.</p>
+          <Link href="/blog" className="text-sm font-medium text-brand hover:underline flex items-center gap-1">
+            <ArrowLeft className="w-4 h-4" /> Back to Blog
+          </Link>
         </div>
+        <Footer />
       </>
     )
   }
 
-  const relatedPosts = BLOG_POSTS.filter(p => p.id !== post.id && p.category === post.category).slice(0, 3)
+  const relatedPosts = BLOG_POSTS.filter(
+    (p) => p.id !== post.id && p.category === post.category
+  ).slice(0, 3)
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50">
-        
-        {/* Hero Image */}
-        <div className="relative h-[400px] bg-gradient-to-br from-pink-100 to-rose-100">
+      <div className="min-h-screen bg-white">
+
+        {/* ── Hero image ── */}
+        <div className="relative w-full aspect-[21/9] max-h-[480px] bg-gray-100 overflow-hidden">
           <Image
             src={post.image}
             alt={post.title}
@@ -120,131 +185,145 @@ export default function BlogPostPage() {
             sizes="100vw"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          
-          {/* Back Button */}
-          <div className="absolute top-8 left-4 max-w-7xl mx-auto w-full px-4">
-            <Link
-              href="/blog"
-              className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-gray-900 font-semibold hover:bg-white transition-all shadow-md"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to Blog</span>
-            </Link>
+        </div>
+
+        {/* ── Article ── */}
+        <div className="max-w-3xl mx-auto px-4 py-12">
+
+          {/* Category label */}
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand mb-4">
+            {post.category}
+          </p>
+
+          {/* Title */}
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-4">
+            {post.title}
+          </h1>
+
+          {/* Excerpt */}
+          <p className="text-lg text-gray-500 leading-relaxed mb-8">
+            {post.excerpt}
+          </p>
+
+          {/* Meta */}
+          <div className="flex flex-wrap items-center gap-5 pb-8 mb-8 border-b border-gray-100 text-sm text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <User className="w-4 h-4" />
+              {post.author}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" />
+              {new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-4 h-4" />
+              {post.readTime} read
+            </span>
+          </div>
+
+          {/* Content */}
+          <div
+            className="
+              prose prose-gray max-w-none
+              prose-headings:font-semibold prose-headings:text-gray-900 prose-headings:tracking-tight
+              prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
+              prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3
+              prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-5
+              prose-ul:pl-5 prose-ul:space-y-1
+              prose-li:text-gray-600
+              prose-a:text-brand prose-a:no-underline hover:prose-a:underline
+            "
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+
+          {/* Tags */}
+          <div className="flex flex-wrap items-center gap-2 mt-12 pt-8 border-t border-gray-100">
+            <span className="text-xs text-gray-400 font-medium uppercase tracking-wider mr-1">Tags</span>
+            {[post.category, 'Switzerland', 'Guide'].map((tag) => (
+              <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
 
-        {/* Article Content */}
-        <div className="max-w-4xl mx-auto px-4 -mt-20 relative z-10">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-200 p-8 md:p-12 mb-12">
-            
-            {/* Category Badge */}
-            <div className="inline-flex items-center gap-2 bg-pink-100 text-pink-700 px-4 py-2 rounded-full mb-6">
-              <Tag className="w-4 h-4" />
-              <span className="font-semibold text-sm">{post.category}</span>
-            </div>
-
-            {/* Title */}
-            <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 leading-tight">
-              {post.title}
-            </h1>
-
-            {/* Excerpt */}
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              {post.excerpt}
-            </p>
-
-            {/* Meta Info */}
-            <div className="flex flex-wrap items-center gap-6 pb-8 mb-8 border-b border-gray-200">
-              <div className="flex items-center gap-2 text-gray-600">
-                <User className="w-5 h-5" />
-                <span className="font-semibold">{post.author}</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Calendar className="w-5 h-5" />
-                <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
-              </div>
-              <div className="flex items-center gap-2 text-pink-600 font-semibold">
-                <Clock className="w-5 h-5" />
-                <span>{post.readTime}</span>
-              </div>
-              <button className="ml-auto flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all">
-                <Share2 className="w-4 h-4" />
-                <span className="font-semibold text-sm">Share</span>
-              </button>
-            </div>
-
-            {/* Content */}
-            <div 
-              className="prose prose-lg max-w-none
-                prose-headings:font-bold prose-headings:text-gray-900
-                prose-h2:text-3xl prose-h2:mt-8 prose-h2:mb-4
-                prose-h3:text-2xl prose-h3:mt-6 prose-h3:mb-3
-                prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-4
-                prose-ul:list-disc prose-ul:ml-6 prose-ul:mb-4
-                prose-li:text-gray-700 prose-li:mb-2
-                prose-a:text-pink-600 prose-a:no-underline hover:prose-a:underline"
-              dangerouslySetInnerHTML={{ __html: post.content }}
-            />
-
-            {/* Tags */}
-            <div className="mt-12 pt-8 border-t border-gray-200">
-              <div className="flex flex-wrap gap-2">
-                <span className="text-gray-600 font-semibold">Tags:</span>
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">Profile Tips</span>
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">Marketing</span>
-                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">Success</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Related Posts */}
-          {relatedPosts.length > 0 && (
-            <div className="mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">Related Articles</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {relatedPosts.map(relatedPost => (
+        {/* ── Related posts ── */}
+        {relatedPosts.length > 0 && (
+          <div className="border-t border-gray-100 bg-gray-50">
+            <div className="max-w-3xl mx-auto px-4 py-12">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-7">
+                Related articles
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedPosts.map((rel) => (
                   <Link
-                    key={relatedPost.id}
-                    href={`/blog/${relatedPost.slug}`}
-                    className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all"
+                    key={rel.id}
+                    href={`/blog/${rel.slug}`}
+                    className="group flex flex-col"
                   >
-                    <div className="relative h-40 bg-gradient-to-br from-pink-100 to-rose-100">
+                    <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-gray-200 mb-3">
                       <Image
-                        src={relatedPost.image}
-                        alt={relatedPost.title}
+                        src={rel.image}
+                        alt={rel.title}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        sizes="(max-width: 768px) 100vw, 33vw"
+                        className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                        sizes="(max-width: 640px) 100vw, 33vw"
                       />
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-pink-600 transition-colors">
-                        {relatedPost.title}
-                      </h3>
-                      <p className="text-sm text-gray-600">{relatedPost.readTime}</p>
-                    </div>
+                    <p className="text-xs font-semibold text-brand uppercase tracking-wide mb-1">{rel.category}</p>
+                    <h3 className="text-sm font-semibold text-gray-900 group-hover:text-brand transition-colors leading-snug line-clamp-2 mb-2">
+                      {rel.title}
+                    </h3>
+                    <span className="text-xs text-gray-400 mt-auto flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {rel.readTime}
+                    </span>
                   </Link>
                 ))}
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* CTA */}
-          <div className="bg-gradient-to-br from-pink-600 via-rose-500 to-pink-600 rounded-2xl p-8 text-center text-white shadow-xl mb-12">
-            <h2 className="text-3xl font-bold mb-4">Ready to Get Started?</h2>
-            <p className="text-pink-100 mb-6 max-w-2xl mx-auto">
-              Create your profile today and start connecting with clients across Switzerland.
+        {/* ── Newsletter ── */}
+        <div className="max-w-7xl mx-auto px-4">
+        <div className="my-10 rounded-xl border border-gray-200 bg-gray-50 px-8 py-10 flex flex-col sm:flex-row items-center gap-8">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Newsletter</p>
+            <h3 className="text-xl font-bold text-gray-900 mb-1">Stay in the loop</h3>
+            <p className="text-sm text-gray-500">
+              Get the latest guides and news delivered to your inbox. No spam — unsubscribe anytime.
             </p>
-            <Link
-              href="/register"
-              className="inline-block px-8 py-4 bg-white text-pink-600 rounded-xl font-bold hover:bg-pink-50 transition-all shadow-md"
-            >
-              Create Account
-            </Link>
+          </div>
+          <div className="flex-shrink-0 w-full sm:w-auto">
+            {subscribed ? (
+              <p className="text-sm font-medium text-emerald-600">You're subscribed ✓</p>
+            ) : (
+              <form
+                onSubmit={(e) => { e.preventDefault(); setSubscribed(true) }}
+                className="flex gap-2"
+              >
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-56 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Subscribe
+                </button>
+              </form>
+            )}
           </div>
         </div>
+        </div>
+
       </div>
+      <Footer />
     </>
   )
 }

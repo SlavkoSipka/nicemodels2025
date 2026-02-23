@@ -9,7 +9,6 @@ export default function BiographyEditPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [user, setUser] = useState<any>(null)
-  const [smsNotifications, setSmsNotifications] = useState(false)
   
   const [formData, setFormData] = useState({
     showname: '',
@@ -52,25 +51,29 @@ export default function BiographyEditPage() {
           .eq('model_id', user.id)
           .single()
 
+        // helper: normalize legacy Capitalized enum values to lowercase/snake_case
+        const norm = (v: string | null | undefined) =>
+          v ? v.toLowerCase().replace(/\s+/g, '_').replace(/[()]/g, '') : ''
+
         if (modelDetails) {
           setFormData({
             showname: modelDetails.showname || '',
             slogan: modelDetails.slogan || '',
-            gender: modelDetails.gender || '',
-            ethnicity: modelDetails.ethnicity || '',
+            gender: norm(modelDetails.gender),
+            ethnicity: norm(modelDetails.ethnicity),
             nationality: modelDetails.nationality || '',
             age: modelDetails.age?.toString() || '',
-            hair_color: modelDetails.hair_color || '',
-            eye_color: modelDetails.eye_color || '',
+            hair_color: norm(modelDetails.hair_color),
+            eye_color: norm(modelDetails.eye_color),
             height_cm: modelDetails.height_cm?.toString() || '',
             weight_kg: modelDetails.weight_kg?.toString() || '',
-            dress_size: modelDetails.dress_size || '',
+            dress_size: norm(modelDetails.dress_size),
             bust_cm: modelDetails.bust_cm?.toString() || '',
             waist_cm: modelDetails.waist_cm?.toString() || '',
             hip_cm: modelDetails.hip_cm?.toString() || '',
-            pubic_hair: modelDetails.pubic_hair || '',
-            smoking: modelDetails.smoking || '',
-            drinking: modelDetails.drinking || '',
+            pubic_hair: norm(modelDetails.pubic_hair),
+            smoking: norm(modelDetails.smoking),
+            drinking: norm(modelDetails.drinking),
             special_characteristics: modelDetails.special_characteristics || '',
           })
         }
@@ -125,12 +128,16 @@ export default function BiographyEditPage() {
         .from('model_details')
         .upsert({ model_id: user.id, ...updateData }, { onConflict: 'model_id' })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase upsert error:', error)
+        alert('Failed to save changes: ' + (error.message || error.details || JSON.stringify(error)))
+        return
+      }
 
       alert('Biography updated successfully!')
     } catch (error: any) {
       console.error('Error saving:', error)
-      alert('Failed to save changes: ' + error.message)
+      alert('Failed to save changes: ' + (error?.message || String(error)))
     } finally {
       setSaving(false)
     }
@@ -162,17 +169,6 @@ export default function BiographyEditPage() {
               Once you have updated your info, don't forget to save the changes.
             </p>
           </div>
-
-          {/* SMS Notifications */}
-          <label className="flex items-center gap-2 mb-6 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={smsNotifications}
-              onChange={(e) => setSmsNotifications(e.target.checked)}
-              className="w-4 h-4 text-pink-600 rounded focus:ring-pink-500"
-            />
-            <span className="text-sm font-medium text-gray-700">Receive SMS when profile is Online</span>
-          </label>
 
           {/* Basic BIO */}
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-100">
@@ -217,9 +213,9 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select...</option>
-                  <option value="Female">Female</option>
-                  <option value="Male">Male</option>
-                  <option value="Trans">Trans</option>
+                  <option value="female">Female</option>
+                  <option value="male">Male</option>
+                  <option value="trans">Trans</option>
                 </select>
               </div>
 
@@ -233,14 +229,14 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select ethnicity</option>
-                  <option value="Asian">Asian</option>
-                  <option value="Black">Black</option>
-                  <option value="Caucasian (white)">Caucasian (white)</option>
-                  <option value="Latin">Latin</option>
-                  <option value="Mixed">Mixed</option>
-                  <option value="Indian">Indian</option>
-                  <option value="Arab">Arab</option>
-                  <option value="Caucasian">Caucasian</option>
+                  <option value="asian">Asian</option>
+                  <option value="black">Black</option>
+                  <option value="caucasian_white">Caucasian (white)</option>
+                  <option value="latin">Latin</option>
+                  <option value="mixed">Mixed</option>
+                  <option value="indian">Indian</option>
+                  <option value="arab">Arab</option>
+                  <option value="caucasian">Caucasian</option>
                 </select>
               </div>
 
@@ -392,12 +388,12 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select hair color</option>
-                  <option value="Blond">Blond</option>
-                  <option value="Light brown">Light brown</option>
-                  <option value="Brunette">Brunette</option>
-                  <option value="Black">Black</option>
-                  <option value="Red">Red</option>
-                  <option value="Other">Other</option>
+                  <option value="blond">Blond</option>
+                  <option value="light_brown">Light brown</option>
+                  <option value="brunette">Brunette</option>
+                  <option value="black">Black</option>
+                  <option value="red">Red</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
 
@@ -411,11 +407,11 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select eye color</option>
-                  <option value="Black">Black</option>
-                  <option value="Brown">Brown</option>
-                  <option value="Green">Green</option>
-                  <option value="Blue">Blue</option>
-                  <option value="Gray">Gray</option>
+                  <option value="black">Black</option>
+                  <option value="brown">Brown</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="gray">Gray</option>
                 </select>
               </div>
 
@@ -461,12 +457,12 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select...</option>
-                  <option value="XS">XS</option>
-                  <option value="S">S</option>
-                  <option value="M">M</option>
-                  <option value="L">L</option>
-                  <option value="XL">XL</option>
-                  <option value="XXL">XXL</option>
+                  <option value="xs">XS</option>
+                  <option value="s">S</option>
+                  <option value="m">M</option>
+                  <option value="l">L</option>
+                  <option value="xl">XL</option>
+                  <option value="xxl">XXL</option>
                 </select>
               </div>
 
@@ -528,10 +524,10 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select option</option>
-                  <option value="Shaved completely">Shaved completely</option>
-                  <option value="Shaved mostly">Shaved mostly</option>
-                  <option value="Trimmed">Trimmed</option>
-                  <option value="All natural">All natural</option>
+                  <option value="shaved_completely">Shaved completely</option>
+                  <option value="shaved_mostly">Shaved mostly</option>
+                  <option value="trimmed">Trimmed</option>
+                  <option value="all_natural">All natural</option>
                 </select>
               </div>
             </div>
@@ -552,9 +548,9 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select option</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                  <option value="Occasionally">Occasionally</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                  <option value="occasionally">Occasionally</option>
                 </select>
               </div>
 
@@ -568,9 +564,9 @@ export default function BiographyEditPage() {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                 >
                   <option value="">Select option</option>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                  <option value="Occasionally">Occasionally</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                  <option value="occasionally">Occasionally</option>
                 </select>
               </div>
             </div>

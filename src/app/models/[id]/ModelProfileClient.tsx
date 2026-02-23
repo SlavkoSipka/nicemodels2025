@@ -253,13 +253,30 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
     }
   }
 
-  // Get photo URLs
-  const photoUrls = photos
-    .map((photo: any) => {
-      if (!photo.file_path) return null
-      return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${photo.file_path}`
-    })
-    .filter((url: string | null): url is string => url !== null)
+  // Build unified media list: photos first, then videos
+  const mediaItems: { type: 'photo' | 'video'; url: string }[] = [
+    ...photos
+      .map((photo: any) => {
+        if (!photo.file_path) return null
+        return {
+          type: 'photo' as const,
+          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${photo.file_path}`
+        }
+      })
+      .filter(Boolean),
+    ...videos
+      .map((video: any) => {
+        if (!video.file_path) return null
+        return {
+          type: 'video' as const,
+          url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-videos/${video.file_path}`
+        }
+      })
+      .filter(Boolean),
+  ]
+
+  // Keep photoUrls for backward compat (stats display)
+  const photoUrls = mediaItems.filter(m => m.type === 'photo').map(m => m.url)
 
   const formatLanguageLevel = (level: string) => {
     const levels: Record<string, string> = {
@@ -333,310 +350,222 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-[550px_1fr] gap-8">
-          {/* Left Column - Photos Only */}
-          <div className="space-y-6">
-            {/* Photo Gallery */}
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden sticky top-4">
-              {/* Main Photo */}
-              <div className="relative aspect-[9/16] bg-gradient-to-br from-pink-100 to-rose-100">
-                {photoUrls.length > 0 && photoUrls[selectedPhotoIndex] ? (
-                  <>
+          {/* Left Column - sticky media viewer (photos + videos) */}
+          <div>
+            <div
+              className="sticky top-[125px] relative overflow-hidden rounded-lg bg-black"
+              style={{ height: '75vh' }}
+            >
+              {mediaItems.length > 0 ? (
+                <>
+                  {/* Current media item */}
+                  {mediaItems[selectedPhotoIndex]?.type === 'video' ? (
+                    <video
+                      key={mediaItems[selectedPhotoIndex].url}
+                      src={mediaItems[selectedPhotoIndex].url}
+                      className="absolute inset-0 w-full h-full object-contain"
+                      controls
+                      playsInline
+                    />
+                  ) : (
                     <Image
-                      src={photoUrls[selectedPhotoIndex]}
+                      src={mediaItems[selectedPhotoIndex]?.url || ''}
                       alt={modelDetails?.showname || profile.username}
                       fill
                       sizes="(max-width: 768px) 100vw, 550px"
-                      className="object-cover"
+                      className="object-cover object-top"
                       priority
                     />
-                    {/* Navigation Arrows */}
-                    {photoUrls.length > 1 && (
-                      <>
-                        <button
-                          onClick={() => setSelectedPhotoIndex(prev => prev === 0 ? photoUrls.length - 1 : prev - 1)}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all"
-                        >
-                          <ChevronLeft className="w-6 h-6" />
-                        </button>
-                        <button
-                          onClick={() => setSelectedPhotoIndex(prev => prev === photoUrls.length - 1 ? 0 : prev + 1)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-3 rounded-full transition-all"
-                        >
-                          <ChevronRight className="w-6 h-6" />
-                        </button>
-                      </>
+                  )}
+
+                  {/* Navigation arrows */}
+                  {mediaItems.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setSelectedPhotoIndex(prev => prev === 0 ? mediaItems.length - 1 : prev - 1)}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full transition-all z-10"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedPhotoIndex(prev => prev === mediaItems.length - 1 ? 0 : prev + 1)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-2.5 rounded-full transition-all z-10"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Counter + video badge */}
+                  <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
+                    {mediaItems[selectedPhotoIndex]?.type === 'video' && (
+                      <span className="bg-black/60 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                        VIDEO
+                      </span>
                     )}
-                    {/* Photo Counter */}
-                    <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-                      {selectedPhotoIndex + 1} / {photoUrls.length}
-                    </div>
-                  </>
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Sparkles className="w-20 h-20 text-pink-300" />
+                    {mediaItems.length > 1 && (
+                      <span className="bg-black/60 text-white px-3 py-1 rounded-full text-sm">
+                        {selectedPhotoIndex + 1} / {mediaItems.length}
+                      </span>
+                    )}
                   </div>
-                )}
-
-                {/* Verified Badge */}
-                {profile.is_verified && (
-                  <div className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 shadow-lg">
-                    <CheckCircle className="w-4 h-4" />
-                    Verified
-                  </div>
-                )}
-              </div>
-
-              {/* Thumbnail Strip */}
-              {photoUrls.length > 1 && (
-                <div className="p-4 bg-gray-50 flex gap-2 overflow-x-auto justify-center">
-                  {photoUrls.map((url: string, index: number) => (
-                    <button
-                      key={index}
-                      onClick={() => setSelectedPhotoIndex(index)}
-                      className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                        index === selectedPhotoIndex
-                          ? 'border-pink-500 ring-2 ring-pink-200'
-                          : 'border-gray-200 hover:border-pink-300'
-                      }`}
-                    >
-                      {url && (
-                        <Image
-                          src={url}
-                          alt={`Photo ${index + 1}`}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
-                        />
-                      )}
-                    </button>
-                  ))}
+                </>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                  <Sparkles className="w-20 h-20 text-gray-300" />
                 </div>
               )}
             </div>
-
           </div>
 
-          {/* Right Column - All Content */}
-          <div className="space-y-6">
-            {/* Main Info Card */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {modelDetails?.showname || profile.username}
-              </h1>
+          {/* Right Column */}
+          <div className="space-y-4">
 
-              {/* Slogan */}
-              {modelDetails?.slogan && (
-                <p className="text-sm text-gray-600 italic mb-4">
-                  "{modelDetails.slogan}"
-                </p>
-              )}
-
-              {/* Location */}
-              {modelDetails?.city && (
-                <div className="flex items-center gap-2 text-gray-600 mb-4">
-                  <MapPin className="w-5 h-5 text-pink-600" />
-                  <span className="font-medium">{modelDetails.city}</span>
+            {/* ── Hero info card ── */}
+            <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
+              {/* colored top bar */}
+              <div className="h-1.5 bg-gradient-to-r from-brand via-rose-400 to-pink-300" />
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-3 mb-1">
+                  <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+                    {modelDetails?.showname || profile.username}
+                  </h1>
+                  {profile.is_verified && (
+                    <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-500 px-2.5 py-1 rounded-full shrink-0 shadow-sm">
+                      <CheckCircle className="w-3.5 h-3.5" /> Verified
+                    </span>
+                  )}
                 </div>
-              )}
-
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {modelDetails?.age && (
-                  <div className="text-center p-3 bg-pink-50 rounded-lg">
-                    <Calendar className="w-5 h-5 text-pink-600 mx-auto mb-1" />
-                    <div className="text-sm text-gray-600">Age</div>
-                    <div className="text-lg font-bold text-gray-900">{modelDetails.age}</div>
-                  </div>
+                {modelDetails?.slogan && (
+                  <p className="text-sm text-brand/80 italic mb-3">"{modelDetails.slogan}"</p>
                 )}
-                {photos.length > 0 && (
-                  <div className="text-center p-3 bg-purple-50 rounded-lg">
-                    <ImageIcon className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                    <div className="text-sm text-gray-600">Photos</div>
-                    <div className="text-lg font-bold text-gray-900">{photos.length}</div>
-                  </div>
-                )}
-              </div>
 
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                {/* Send Message Button */}
-                <StartChatButton modelId={profile.id} />
-                
+                {/* key stats row */}
+                <div className="flex flex-wrap gap-3 mb-5">
+                  {modelDetails?.city && (
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1">
+                      <MapPin className="w-3.5 h-3.5 text-brand" /> {modelDetails.city}
+                    </span>
+                  )}
+                  {modelDetails?.age && (
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1">
+                      <Calendar className="w-3.5 h-3.5 text-blue-500" /> {modelDetails.age} yrs
+                    </span>
+                  )}
+                  {photos.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1">
+                      <ImageIcon className="w-3.5 h-3.5 text-purple-500" /> {photos.length} photos
+                    </span>
+                  )}
+                </div>
+
+                {/* Contact reveal */}
                 {!showContact ? (
-                  <button 
+                  <button
                     onClick={handleShowContact}
-                    className="w-full py-3 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-lg transition-all shadow-lg flex items-center justify-center gap-2"
+                    className="w-full py-3 bg-gradient-to-r from-brand to-rose-500 hover:from-brand-hover hover:to-rose-600 text-white font-bold rounded-md transition-all shadow-md flex items-center justify-center gap-2 mb-3"
                   >
-                    <Phone className="w-5 h-5" />
-                    Show Contact
+                    <Phone className="w-4 h-4" /> Show Contact
                   </button>
                 ) : (
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200">
+                  <div className="mb-3 p-4 bg-emerald-50 border border-emerald-200 rounded-md">
                     {contactDetails ? (
-                      <>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Phone className="w-5 h-5 text-green-600" />
-                          <span className="font-bold text-gray-900">Contact Information</span>
-                        </div>
-                        
-                        {/* Phone Number */}
+                      <div className="space-y-2.5">
                         {contactDetails.show_phone_number && contactDetails.phone_number && (
-                          <>
-                            <a 
-                              href={`tel:${contactDetails.country_code || ''}${contactDetails.phone_number}`} 
-                              className="text-2xl font-bold text-green-600 hover:text-green-700 block mb-3"
+                          <div>
+                            <a
+                              href={`tel:${contactDetails.country_code || ''}${contactDetails.phone_number}`}
+                              className="text-2xl font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
                             >
                               {contactDetails.country_code || ''} {contactDetails.phone_number}
                             </a>
-                            
-                            {/* Messaging Apps */}
                             {(contactDetails.has_whatsapp || contactDetails.has_viber || contactDetails.has_telegram) && (
-                              <div className="flex flex-wrap gap-2 mb-3">
-                                {contactDetails.has_whatsapp && (
-                                  <span className="px-3 py-1 bg-white text-green-600 rounded-full text-xs font-semibold border border-green-200">
-                                    WhatsApp
-                                  </span>
-                                )}
-                                {contactDetails.has_viber && (
-                                  <span className="px-3 py-1 bg-white text-purple-600 rounded-full text-xs font-semibold border border-purple-200">
-                                    Viber
-                                  </span>
-                                )}
-                                {contactDetails.has_telegram && (
-                                  <span className="px-3 py-1 bg-white text-blue-600 rounded-full text-xs font-semibold border border-blue-200">
-                                    Telegram
-                                  </span>
-                                )}
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {contactDetails.has_whatsapp && <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">WhatsApp</span>}
+                                {contactDetails.has_viber && <span className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 font-semibold rounded-full">Viber</span>}
+                                {contactDetails.has_telegram && <span className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 font-semibold rounded-full">Telegram</span>}
                               </div>
                             )}
-                          </>
-                        )}
-                        
-                        {/* Email */}
-                        {contactDetails.email && (
-                          <a 
-                            href={`mailto:${contactDetails.email}`}
-                            className="flex items-center gap-2 text-gray-700 hover:text-green-600 mb-2"
-                          >
-                            <Mail className="w-4 h-4" />
-                            <span className="font-medium">{contactDetails.email}</span>
-                          </a>
-                        )}
-                        
-                        {/* Website */}
-                        {contactDetails.website && (
-                          <a 
-                            href={contactDetails.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-gray-700 hover:text-green-600 mb-3"
-                          >
-                            <Globe className="w-4 h-4" />
-                            <span className="font-medium">{contactDetails.website}</span>
-                          </a>
-                        )}
-                        
-                        {/* Instructions */}
-                        {contactDetails.contact_instruction && (
-                          <p className="text-sm text-gray-700 mb-2 bg-white p-2 rounded">
-                            📋 {contactDetails.contact_instruction.replace(/_/g, ' ')}
-                          </p>
-                        )}
-                        
-                        {contactDetails.no_withheld_numbers && (
-                          <p className="text-xs text-red-600 font-medium mb-2 bg-red-50 p-2 rounded">
-                            ⚠️ No withheld numbers accepted
-                          </p>
-                        )}
-                        
-                        {contactDetails.other_instructions && (
-                          <p className="text-sm text-gray-600 italic bg-white p-2 rounded">
-                            💬 {contactDetails.other_instructions}
-                          </p>
-                        )}
-                        
-                        {/* If no contact info at all */}
-                        {!contactDetails.phone_number && !contactDetails.email && !contactDetails.website && (
-                          <div className="text-center py-2">
-                            <p className="text-gray-600 text-sm">No contact details provided yet</p>
                           </div>
                         )}
-                      </>
-                    ) : (
-                      <div className="text-center py-4">
-                        <Phone className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-600">Contact information not available</p>
+                        {contactDetails.email && (
+                          <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-brand">
+                            <Mail className="w-4 h-4 text-brand" /> {contactDetails.email}
+                          </a>
+                        )}
+                        {contactDetails.website && (
+                          <a href={contactDetails.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-700 hover:text-brand">
+                            <Globe className="w-4 h-4 text-brand" /> {contactDetails.website}
+                          </a>
+                        )}
+                        {contactDetails.contact_instruction && (
+                          <p className="text-xs text-gray-500">{contactDetails.contact_instruction.replace(/_/g, ' ')}</p>
+                        )}
+                        {contactDetails.no_withheld_numbers && (
+                          <p className="text-xs text-red-600 font-semibold">No withheld numbers accepted</p>
+                        )}
+                        {!contactDetails.phone_number && !contactDetails.email && !contactDetails.website && (
+                          <p className="text-sm text-gray-500 text-center py-1">No contact details provided yet</p>
+                        )}
                       </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 text-center py-1">Contact information not available</p>
                     )}
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
+
+                {/* Save + Share */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
                     onClick={toggleFavorite}
                     disabled={isSavingFavorite || isCheckingFavorite}
-                    className={`py-2 border-2 font-semibold rounded-lg transition-all flex items-center justify-center gap-2 relative overflow-hidden ${
-                      isFavorite 
-                        ? 'bg-pink-600 border-pink-600 text-white hover:bg-pink-700' 
-                        : 'border-pink-600 text-pink-600 hover:bg-pink-50'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`py-2.5 text-sm font-bold rounded-md border-2 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 ${
+                      isFavorite
+                        ? 'bg-brand border-brand text-white shadow-md'
+                        : 'border-brand text-brand hover:bg-brand hover:text-white'
+                    }`}
                   >
-                    <Heart 
-                      className={`w-4 h-4 transition-all duration-300 ${
-                        isFavorite 
-                          ? 'fill-current scale-110 animate-pulse' 
-                          : 'scale-100'
-                      }`} 
-                    />
-                    <span className={isSavingFavorite ? 'animate-pulse' : ''}>
-                      {isSavingFavorite ? 'Saving...' : isFavorite ? 'Saved' : 'Save'}
-                    </span>
-                    {isFavorite && (
-                      <span className="absolute inset-0 bg-pink-400 opacity-0 animate-ping"></span>
-                    )}
+                    <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+                    {isSavingFavorite ? 'Saving…' : isFavorite ? 'Saved' : 'Save'}
                   </button>
-                  <button 
+                  <button
                     onClick={handleShare}
-                    className="py-2 border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
+                    className="py-2.5 text-sm font-bold rounded-md border-2 border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-all flex items-center justify-center gap-1.5"
                   >
-                    <Share2 className="w-4 h-4" />
-                    Share
+                    <Share2 className="w-4 h-4" /> Share
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* User Reviews Section - Only visible to logged-in users, excluding user's own comment */}
+            {/* ── Reviews ── */}
             {(() => {
-              const otherUsersComments = comments?.filter((c: any) => c.user?.id !== currentUserId) || []
-              return isLoggedIn && otherUsersComments.length > 0 && (
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                    <MessageCircle className="w-6 h-6 text-blue-600" />
-                    User Reviews ({otherUsersComments.length})
-                  </h2>
+              const otherComments = comments?.filter((c: any) => c.user?.id !== currentUserId) || []
+              return isLoggedIn && otherComments.length > 0 && (
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
+                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-800">Reviews <span className="text-gray-400 font-normal">({otherComments.length})</span></p>
+                  </div>
                   <div className="space-y-4">
-                    {otherUsersComments.map((comment: any) => (
-                      <div key={comment.id} className="border-b border-gray-200 last:border-0 pb-4 last:pb-0">
+                    {otherComments.map((comment: any) => (
+                      <div key={comment.id} className="bg-gray-50 rounded-md p-4">
                         <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <p className="font-semibold text-gray-900">{comment.user.username || 'Anonymous'}</p>
-                            <p className="text-xs text-gray-500">
-                              {new Date(comment.created_at).toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                              })}
-                            </p>
-                          </div>
+                          <span className="text-sm font-bold text-gray-900">{comment.user.username || 'Anonymous'}</span>
                           {comment.rating && (
-                            <div className="flex items-center gap-0.5">
+                            <div className="flex gap-0.5">
                               {Array.from({ length: comment.rating }).map((_: any, i: number) => (
-                                <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                               ))}
                             </div>
                           )}
                         </div>
-                        <p className="text-gray-700 leading-relaxed">{comment.comment_text}</p>
+                        <p className="text-xs text-gray-400 mb-2">
+                          {new Date(comment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </p>
+                        <p className="text-sm text-gray-700 leading-relaxed">{comment.comment_text}</p>
                       </div>
                     ))}
                   </div>
@@ -644,454 +573,296 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
               )
             })()}
 
-            {/* My Comment or Leave a Comment Section */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border-2 border-blue-300 p-6">
+            {/* ── Leave a review ── */}
+            <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-white/80" />
+                  <p className="text-sm font-bold text-white">
+                    {myComment ? 'Your review' : 'Leave a review'}
+                  </p>
+                </div>
+              </div>
+              <div className="p-5">
               {myComment ? (
-                // User has already submitted a comment - show it
                 <div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <MessageCircle className="w-6 h-6 text-blue-600" />
-                    <h3 className="text-lg font-bold text-gray-900">Your Comment</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      myComment.status === 'pending' ? 'bg-orange-100 text-orange-700' :
-                      myComment.status === 'approved' ? 'bg-green-100 text-green-700' :
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                      myComment.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                      myComment.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
                       'bg-red-100 text-red-700'
                     }`}>
-                      {myComment.status === 'pending' ? '⏳ Pending Review' :
-                       myComment.status === 'approved' ? '✓ Approved' :
-                       '✗ Not Approved'}
+                      {myComment.status === 'pending' ? 'Pending review' : myComment.status === 'approved' ? 'Approved' : 'Not approved'}
                     </span>
+                    <p className="text-xs text-gray-400">
+                      {new Date(myComment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </p>
                   </div>
-                  
                   {myComment.rating && (
-                    <div className="flex items-center gap-1 mb-3">
+                    <div className="flex gap-0.5 mb-2">
                       {Array.from({ length: myComment.rating }).map((_: any, i: number) => (
-                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
                       ))}
                     </div>
                   )}
-                  
-                  <div className="bg-white rounded-lg p-4 mb-3">
-                    <p className="text-gray-800 leading-relaxed">{myComment.comment_text}</p>
-                  </div>
-                  
-                  <p className="text-xs text-gray-500">
-                    Submitted on {new Date(myComment.created_at).toLocaleDateString('en-US', { 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
-                    })}
-                  </p>
-                  
-                  {myComment.status === 'pending' && (
-                    <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-3">
-                      <p className="text-sm text-orange-700">
-                        <strong>Under Review:</strong> Your comment is being reviewed by our administrators.
-                      </p>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-700 leading-relaxed">{myComment.comment_text}</p>
                 </div>
               ) : (
-                // User hasn't submitted a comment yet - show form
                 <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <MessageCircle className="w-6 h-6 text-blue-600" />
-                    <h3 className="text-lg font-bold text-gray-900">Share Your Experience</h3>
-                  </div>
-                  
                   {commentSuccess && (
-                    <div className="mb-4 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-                      <p className="text-green-800 font-semibold mb-1">✅ Comment Submitted!</p>
-                      <p className="text-sm text-green-700">
-                        Thank you for your feedback. Your comment is pending admin review and will be published once approved.
-                      </p>
+                    <div className="mb-3 p-3 bg-emerald-50 border border-emerald-200 rounded-md text-sm text-emerald-700 font-medium">
+                      Comment submitted — pending review.
                     </div>
                   )}
-
                   {!showCommentForm ? (
-                    <div>
-                      <p className="text-sm text-gray-700 mb-4">
-                        Have you worked with this model? Share your honest experience to help others make informed decisions. 
-                        Your review will be verified before publishing.
-                      </p>
+                    <>
+                      <p className="text-sm text-gray-500 mb-3">Share your experience with this model to help others.</p>
                       <button
                         onClick={() => {
                           const supabase = createClient()
                           supabase.auth.getUser().then(({ data: { user } }) => {
-                            if (!user) {
-                              setShowCommentLoginModal(true)
-                            } else {
-                              setShowCommentForm(true)
-                            }
+                            if (!user) setShowCommentLoginModal(true)
+                            else setShowCommentForm(true)
                           })
                         }}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                        className="w-full py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-md transition-all shadow-sm flex items-center justify-center gap-2"
                       >
-                        <MessageCircle className="w-5 h-5" />
-                        Leave a Comment
+                        <MessageCircle className="w-4 h-4" /> Write a review
                       </button>
-                    </div>
+                    </>
                   ) : (
-                    <div className="space-y-4">
-                      {/* Rating */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Rating (Optional)
-                        </label>
-                        <div className="flex gap-2">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              onClick={() => setCommentRating(star)}
-                              className={`text-3xl transition-all ${
-                                star <= commentRating ? 'text-yellow-400' : 'text-gray-300'
-                              } hover:text-yellow-400`}
-                            >
-                              ★
-                            </button>
-                          ))}
-                        </div>
+                    <div className="space-y-3">
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button key={star} onClick={() => setCommentRating(star)}
+                            className={`text-2xl transition-colors ${star <= commentRating ? 'text-amber-400' : 'text-gray-200 hover:text-amber-300'}`}>
+                            ★
+                          </button>
+                        ))}
                       </div>
-
-                      {/* Comment Text */}
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Your Experience *
-                        </label>
-                        <textarea
-                          value={commentText}
-                          onChange={(e) => setCommentText(e.target.value)}
-                          placeholder="Share your honest experience working with this model..."
-                          rows={5}
-                          className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          maxLength={1000}
-                        />
-                        <p className="mt-1 text-xs text-gray-500">
-                          {commentText.length} / 1000 characters
-                        </p>
-                      </div>
-
-                      {/* Buttons */}
-                      <div className="flex gap-3">
+                      <textarea
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="Share your experience…"
+                        rows={4}
+                        maxLength={1000}
+                        className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      />
+                      <p className="text-xs text-gray-400 text-right">{commentText.length} / 1000</p>
+                      <div className="flex gap-2">
                         <button
                           onClick={submitComment}
                           disabled={submittingComment || !commentText.trim()}
-                          className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="flex-1 py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-md transition-all disabled:opacity-50"
                         >
-                          {submittingComment ? 'Submitting...' : 'Submit Comment'}
+                          {submittingComment ? 'Submitting…' : 'Submit'}
                         </button>
                         <button
-                          onClick={() => {
-                            setShowCommentForm(false)
-                            setCommentText('')
-                            setCommentRating(0)
-                          }}
-                          className="px-6 py-3 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold rounded-lg transition-all"
+                          onClick={() => { setShowCommentForm(false); setCommentText(''); setCommentRating(0) }}
+                          className="px-4 py-2.5 text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
                         >
                           Cancel
                         </button>
                       </div>
-
-                      <p className="text-xs text-gray-600 italic">
-                        📝 All comments are reviewed by our team before being published to ensure authenticity and quality.
-                      </p>
+                      <p className="text-xs text-gray-400">All reviews are verified before publishing.</p>
                     </div>
                   )}
                 </div>
               )}
-            </div>
-
-            {/* Bio Section */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                <Info className="w-6 h-6 text-pink-600" />
-                Bio & Personal Info
-              </h2>
-              <div className="grid grid-cols-2 gap-4">
-                {modelDetails?.age && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Age</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.age} years</span>
-                  </div>
-                )}
-                {modelDetails?.gender && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Gender</span>
-                    <span className="text-gray-900 font-semibold">{formatGender(modelDetails.gender)}</span>
-                  </div>
-                )}
-                {modelDetails?.ethnicity && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Ethnicity</span>
-                    <span className="text-gray-900 font-semibold">{formatEthnicity(modelDetails.ethnicity)}</span>
-                  </div>
-                )}
-                {modelDetails?.nationality && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Nationality</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.nationality}</span>
-                  </div>
-                )}
-                {modelDetails?.height_cm && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Height</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.height_cm} cm</span>
-                  </div>
-                )}
-                {modelDetails?.weight_kg && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Weight</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.weight_kg} kg</span>
-                  </div>
-                )}
-                {modelDetails?.hair_color && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Hair Color</span>
-                    <span className="text-gray-900 font-semibold">{formatHairColor(modelDetails.hair_color)}</span>
-                  </div>
-                )}
-                {modelDetails?.eye_color && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Eye Color</span>
-                    <span className="text-gray-900 font-semibold">{formatEyeColor(modelDetails.eye_color)}</span>
-                  </div>
-                )}
-                {modelDetails?.bust_cm && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Bust</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.bust_cm} cm</span>
-                  </div>
-                )}
-                {modelDetails?.waist_cm && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Waist</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.waist_cm} cm</span>
-                  </div>
-                )}
-                {modelDetails?.hip_cm && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Hip</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.hip_cm} cm</span>
-                  </div>
-                )}
-                {modelDetails?.dress_size && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Dress Size</span>
-                    <span className="text-gray-900 font-semibold">{modelDetails.dress_size.toUpperCase()}</span>
-                  </div>
-                )}
-                {modelDetails?.sexual_orientation && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Orientation</span>
-                    <span className="text-gray-900 font-semibold">{formatEthnicity(modelDetails.sexual_orientation)}</span>
-                  </div>
-                )}
-                {modelDetails?.pubic_hair && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Pubic Hair</span>
-                    <span className="text-gray-900 font-semibold">{formatEthnicity(modelDetails.pubic_hair)}</span>
-                  </div>
-                )}
-                {modelDetails?.smoking && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Smoking</span>
-                    <span className="text-gray-900 font-semibold">{formatEthnicity(modelDetails.smoking)}</span>
-                  </div>
-                )}
-                {modelDetails?.drinking && (
-                  <div className="flex flex-col">
-                    <span className="text-sm text-gray-500 mb-1">Drinking</span>
-                    <span className="text-gray-900 font-semibold">{formatEthnicity(modelDetails.drinking)}</span>
-                  </div>
-                )}
               </div>
-              {modelDetails?.special_characteristics && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Special Characteristics</h3>
-                  <p className="text-gray-600">{modelDetails.special_characteristics}</p>
-                </div>
-              )}
             </div>
 
-            {/* About Me Section */}
+            {/* ── About Me ── */}
             {modelDetails?.about_me && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <User className="w-6 h-6 text-pink-600" />
-                  About Me
-                </h2>
-                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                  {modelDetails.about_me}
-                </p>
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
+                    <User className="w-4 h-4 text-violet-600" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">About me</p>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{modelDetails.about_me}</p>
               </div>
             )}
 
-            {/* Languages */}
-            {languages.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <LanguagesIcon className="w-6 h-6 text-pink-600" />
-                  Languages
-                </h2>
+            {/* ── Details ── */}
+            {modelDetails && (
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
+                    <Info className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">Details</p>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
-                  {languages.map((lang: any) => (
-                    <div key={lang.id} className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-                      <span className="font-semibold text-gray-900">{lang.language}</span>
-                      <span className="text-sm text-gray-600">{formatLanguageLevel(lang.level)}</span>
+                  {[
+                    modelDetails.age && ['Age', `${modelDetails.age} yrs`],
+                    modelDetails.gender && ['Gender', formatGender(modelDetails.gender)],
+                    modelDetails.ethnicity && ['Ethnicity', formatEthnicity(modelDetails.ethnicity)],
+                    modelDetails.nationality && ['Nationality', modelDetails.nationality],
+                    modelDetails.height_cm && ['Height', `${modelDetails.height_cm} cm`],
+                    modelDetails.weight_kg && ['Weight', `${modelDetails.weight_kg} kg`],
+                    modelDetails.hair_color && ['Hair', formatHairColor(modelDetails.hair_color)],
+                    modelDetails.eye_color && ['Eyes', formatEyeColor(modelDetails.eye_color)],
+                    modelDetails.bust_cm && ['Bust', `${modelDetails.bust_cm} cm`],
+                    modelDetails.waist_cm && ['Waist', `${modelDetails.waist_cm} cm`],
+                    modelDetails.hip_cm && ['Hip', `${modelDetails.hip_cm} cm`],
+                    modelDetails.dress_size && ['Dress', modelDetails.dress_size.toUpperCase()],
+                    modelDetails.sexual_orientation && ['Orientation', formatEthnicity(modelDetails.sexual_orientation)],
+                    modelDetails.smoking && ['Smoking', formatEthnicity(modelDetails.smoking)],
+                    modelDetails.drinking && ['Drinking', formatEthnicity(modelDetails.drinking)],
+                  ].filter(Boolean).map(([label, value]) => (
+                    <div key={label as string} className="bg-gray-50 rounded-md p-3">
+                      <span className="text-xs text-gray-400 font-medium">{label as string}</span>
+                      <p className="text-sm font-semibold text-gray-900 mt-0.5">{value as string}</p>
                     </div>
                   ))}
                 </div>
+                {modelDetails.special_characteristics && (
+                  <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-md">
+                    <span className="text-xs font-semibold text-amber-700">Special characteristics</span>
+                    <p className="text-sm text-gray-700 mt-0.5">{modelDetails.special_characteristics}</p>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Area & Address */}
-            {modelDetails?.city && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Home className="w-6 h-6 text-pink-600" />
-                  Location & Availability
-                </h2>
-                <div className="space-y-3">
-                  {modelDetails?.city && (
-                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                      <MapPin className="w-5 h-5 text-pink-600 mt-1" />
-                      <div>
-                        <div className="font-semibold text-gray-900">{modelDetails.city}</div>
-                        {modelDetails?.incall_options && modelDetails.incall_options.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {formatIncallOptions(modelDetails.incall_options).map((option: string, idx: number) => (
-                              <span key={idx} className="px-2 py-1 bg-pink-100 text-pink-700 rounded text-xs font-medium">
-                                Incall: {option}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        {modelDetails?.outcall_options && modelDetails.outcall_options.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {formatIncallOptions(modelDetails.outcall_options).map((option: string, idx: number) => (
-                              <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-                                Outcall: {option}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {modelDetails?.services_for && modelDetails.services_for.length > 0 && (
-                    <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-100">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-2">Services For</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {modelDetails.services_for.map((service: string, idx: number) => (
-                          <span key={idx} className="px-2 py-1 bg-white text-gray-700 rounded text-sm">
-                            {service}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Services Section */}
+            {/* ── Services ── */}
             {services.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-pink-600" />
-                  Services Offered
-                </h2>
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-brand" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">Services</p>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {services.map((service: any) => (
-                    <div
-                      key={service.id}
-                      className="flex items-center gap-1.5 p-2 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg border border-pink-100"
-                    >
-                      <CheckCircle className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
-                      <span className="text-xs font-medium text-gray-800 leading-tight">
-                        {service.service?.name || 'Service'}
-                      </span>
+                    <div key={service.id} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span className="text-xs font-medium text-gray-800 leading-tight">{service.service?.name || 'Service'}</span>
+                    </div>
+                  ))}
+                </div>
+                {modelDetails?.services_for?.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Services for</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {modelDetails.services_for.map((sf: string, i: number) => (
+                        <span key={i} className="text-xs px-3 py-1 bg-blue-50 text-blue-700 font-medium rounded-full">{sf}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Languages ── */}
+            {languages.length > 0 && (
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
+                    <LanguagesIcon className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">Languages</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {languages.map((lang: any) => (
+                    <div key={lang.id} className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-md px-3 py-1.5">
+                      <span className="text-sm font-semibold text-indigo-800">{lang.language}</span>
+                      <span className="text-xs text-indigo-500">{formatLanguageLevel(lang.level)}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Working Hours Section */}
+            {/* ── Location & Availability ── */}
+            {modelDetails?.city && (
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
+                    <Home className="w-4 h-4 text-rose-600" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">Location</p>
+                </div>
+                <div className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
+                  <MapPin className="w-4 h-4 text-brand" /> {modelDetails.city}
+                </div>
+                {modelDetails?.incall_options?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-1.5">
+                    {formatIncallOptions(modelDetails.incall_options).map((opt: string, i: number) => (
+                      <span key={i} className="text-xs px-2.5 py-1 bg-pink-50 text-pink-700 font-medium border border-pink-100 rounded-full">Incall: {opt}</span>
+                    ))}
+                  </div>
+                )}
+                {modelDetails?.outcall_options?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {formatIncallOptions(modelDetails.outcall_options).map((opt: string, i: number) => (
+                      <span key={i} className="text-xs px-2.5 py-1 bg-purple-50 text-purple-700 font-medium border border-purple-100 rounded-full">Outcall: {opt}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Rates ── */}
+            {rates.length > 0 && (
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">Rates</p>
+                </div>
+                <div className="space-y-2">
+                  {rates.map((rate: any) => (
+                    <div key={rate.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${rate.rate_type === 'incall' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                          {rate.rate_type === 'incall' ? 'Incall' : 'Outcall'}
+                        </span>
+                        <span className="text-sm text-gray-700">{formatDuration(rate.duration)}</span>
+                      </div>
+                      <span className="text-base font-bold text-brand">{rate.amount} {rate.currency || 'CHF'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Working Hours ── */}
             {workingHours.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Clock className="w-6 h-6 text-pink-600" />
-                  Working Hours
-                </h2>
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">Working hours</p>
+                </div>
                 {(() => {
-                  // Check if all days are 24/7 (00:00 - 23:59)
-                  const is24_7 = workingHours.length === 7 && workingHours.every((wh: any) => 
+                  const is24_7 = workingHours.length === 7 && workingHours.every((wh: any) =>
                     wh.start_time === '00:00:00' && wh.end_time === '23:59:00'
                   )
-                  
-                  if (is24_7) {
-                    return (
-                      <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200 text-center">
-                        <div className="flex items-center justify-center gap-2 mb-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span className="text-xl font-bold text-green-700">24/7 Available</span>
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        </div>
-                        <p className="text-xs text-green-600 font-medium">Open every day, all day</p>
-                      </div>
-                    )
-                  }
-                  
+                  if (is24_7) return (
+                    <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-md">
+                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      <span className="text-sm font-bold text-emerald-700">Available 24 / 7</span>
+                    </div>
+                  )
                   return (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {workingHours.map((wh: any) => (
-                        <div key={wh.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <span className="font-medium text-gray-900">{formatDayOfWeek(wh.day_of_week)}</span>
-                          <span className="text-gray-600">
-                            {wh.start_time && wh.end_time 
-                              ? `${wh.start_time.slice(0, 5)} - ${wh.end_time.slice(0, 5)}`
-                              : 'Closed'}
+                        <div key={wh.id} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
+                          <span className="text-sm text-gray-600">{formatDayOfWeek(wh.day_of_week)}</span>
+                          <span className="text-sm font-semibold text-gray-900">
+                            {wh.start_time && wh.end_time ? `${wh.start_time.slice(0, 5)} – ${wh.end_time.slice(0, 5)}` : 'Closed'}
                           </span>
                         </div>
                       ))}
                     </div>
                   )
                 })()}
-              </div>
-            )}
-
-            {/* Rates Section */}
-            {rates.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <DollarSign className="w-6 h-6 text-pink-600" />
-                  Rates
-                </h2>
-                <div className="space-y-3">
-                  {rates.map((rate: any) => (
-                    <div
-                      key={rate.id}
-                      className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          rate.rate_type === 'incall' 
-                            ? 'bg-blue-100 text-blue-700' 
-                            : 'bg-purple-100 text-purple-700'
-                        }`}>
-                          {rate.rate_type === 'incall' ? 'Incall' : 'Outcall'}
-                        </div>
-                        <span className="text-gray-700 font-medium">
-                          {formatDuration(rate.duration)}
-                        </span>
-                      </div>
-                      <div className="text-xl font-bold text-pink-600">
-                        {rate.amount} {rate.currency || 'CHF'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 

@@ -41,7 +41,9 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   }
 
   const title = details?.showname || model.username
-  const location = details?.city ? `${details.city}${details.age ? `, ${details.age} years` : ''}` : (details?.age ? `${details.age} years` : '')
+  const city = details?.city || ''
+  const age = details?.age ? `${details.age} years` : ''
+  const location = [city, age].filter(Boolean).join(', ')
   const tags = details?.services_for?.length ? details.services_for : []
   const description = details?.about_me || ''
   const ago = timeAgo(model.created_at)
@@ -49,8 +51,9 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   return (
     <Link href={`/models/${model.id}`} onClick={handleClick} className="block group w-full">
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl hover:border-brand/40 transition-all duration-200 flex flex-row w-full">
-        {/* Image - levo; visina kartice = visina slike (aspect 3:4) */}
-        <div className="relative w-[42%] min-w-[160px] flex-shrink-0 aspect-[3/4] bg-gradient-to-br from-pink-100 to-rose-100">
+
+        {/* Slika - levo, aspect 3:4 */}
+        <div className="relative w-[40%] min-w-[150px] flex-shrink-0 aspect-[3/4] bg-gray-100">
           {model.photoUrl ? (
             <Image
               src={model.photoUrl}
@@ -62,16 +65,17 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Sparkles className="w-12 h-12 text-pink-300" />
+              <Sparkles className="w-12 h-12 text-gray-300" />
             </div>
           )}
         </div>
 
-        {/* Content - right ~58% */}
-        <div className="flex-1 p-4 sm:p-5 flex flex-col min-w-0 justify-between self-stretch">
-          {/* Top row: PREMIUM + time */}
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
+        {/* Sadržaj - desno */}
+        <div className="flex-1 p-4 sm:p-5 flex flex-col gap-2 min-w-0 self-stretch">
+
+          {/* PREMIUM + vreme */}
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-bold text-red-600 uppercase tracking-widest">
               PREMIUM
             </span>
             {ago && (
@@ -79,27 +83,29 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             )}
           </div>
 
-          {/* Title */}
-          <h3 className="font-bold text-gray-900 text-base sm:text-lg leading-snug mb-2 line-clamp-2 group-hover:text-brand transition-colors">
+          {/* Ime */}
+          <h3 className="font-bold text-gray-900 text-lg sm:text-xl leading-tight line-clamp-2 group-hover:text-brand transition-colors">
             {title}
           </h3>
 
-          {/* Description */}
-          {description && (
-            <p className="text-sm text-gray-600 line-clamp-4 mb-2 leading-relaxed flex-1 min-h-0">
+          {/* Opis - popunjava slobodan prostor */}
+          {description ? (
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed line-clamp-5 flex-1">
               {description}
             </p>
+          ) : (
+            <div className="flex-1" />
           )}
 
-          {/* Tags (e.g. Sie sucht ihn) */}
+          {/* Tagovi (usluge) */}
           {tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-1.5">
-              {tags.slice(0, 2).map((tag) => (
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              {tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium"
                 >
-                  <svg className="w-3.5 h-3.5 fill-blue-500 flex-shrink-0" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 fill-blue-500 flex-shrink-0" viewBox="0 0 24 24">
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
                   </svg>
                   {tag}
@@ -108,11 +114,11 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             </div>
           )}
 
-          {/* Location */}
+          {/* Lokacija */}
           {location && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-500 mt-auto">
+            <div className="flex items-center gap-1.5 text-sm text-gray-500">
               <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
-              <span className="truncate">{location}</span>
+              <span className="truncate font-medium">{location}</span>
             </div>
           )}
         </div>

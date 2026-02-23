@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
 import ModelCard from './ModelCard'
 import BannerAd from './BannerAd'
 import CitySelector from './CitySelector'
@@ -50,6 +51,7 @@ export default function HomePageClient() {
   const [selectedCity, setSelectedCity] = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedOffer, setSelectedOffer] = useState<string>('all')
+  const [searchQuery, setSearchQuery] = useState<string>('')
 
   useEffect(() => {
     loadData()
@@ -57,7 +59,7 @@ export default function HomePageClient() {
 
   useEffect(() => {
     applyFilters()
-  }, [selectedCity, selectedCategory, selectedOffer, models])
+  }, [selectedCity, selectedCategory, selectedOffer, searchQuery, models])
 
   const loadData = async () => {
     try {
@@ -99,7 +101,7 @@ export default function HomePageClient() {
             .from('model_details')
             .select('showname, city, age, ethnicity, hair_color, about_me, services_for')
             .eq('model_id', model.id)
-            .single()
+            .maybeSingle()
 
           if (detailsError) {
             console.error(`Error fetching details for model ${model.id}:`, detailsError)
@@ -219,6 +221,13 @@ export default function HomePageClient() {
         m.model_services_list?.some((s) => s.name === selectedOffer)
       )
     }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      filtered = filtered.filter(m => {
+        const name = m.model_details?.showname ?? m.username ?? ''
+        return name.toLowerCase().includes(q)
+      })
+    }
 
     setFilteredModels(filtered)
   }
@@ -249,6 +258,8 @@ export default function HomePageClient() {
         setSelectedCategory={setSelectedCategory}
         selectedOffer={selectedOffer}
         setSelectedOffer={setSelectedOffer}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
         totalModels={models.length}
         models={models}
       />
@@ -271,6 +282,7 @@ export default function HomePageClient() {
         </main>
       </div>
       </div>
+      <Footer />
     </>
   )
 }
