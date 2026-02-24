@@ -54,17 +54,12 @@ export default function StoriesSection() {
 
   async function loadStories() {
     try {
-      console.log('📸 Loading stories...');
       const { data, error } = await supabase.rpc('get_active_model_stories');
-      
-      if (error) {
-        console.error('❌ Error loading stories:', error);
-      } else {
-        console.log('✅ Stories loaded:', data);
+      if (!error) {
         setModelStories(data || []);
       }
-    } catch (err) {
-      console.error('❌ Exception loading stories:', err);
+    } catch {
+      // silent fail
     } finally {
       setLoading(false);
     }
@@ -95,10 +90,12 @@ export default function StoriesSection() {
     );
   }
 
-  const hasAddButton = currentUser?.role === 'model';
+  const isModel = currentUser?.role === 'model';
+  const hasAddButton = isModel;
   const totalSlots = 16;
   const ghostCount = Math.max(0, totalSlots - modelStories.length - (hasAddButton ? 1 : 0));
 
+  // Hide the section only if there are truly no stories and user is not a model
   if (modelStories.length === 0 && !hasAddButton) {
     return null;
   }

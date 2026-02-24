@@ -1,139 +1,116 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Home, Heart, MessageSquare, TrendingUp } from 'lucide-react'
+import { LayoutDashboard, Heart, MessageSquare, Home } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function UserDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  if (!user) {
-    redirect('/login')
-  }
+  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  if (!profile) redirect('/login')
 
-  // Fetch user profile
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile) {
-    redirect('/login')
-  }
-
-  // Fetch favorites count
-  const { count: favoritesCount } = await supabase
-    .from('favorites')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-
-  // Fetch comments count
-  const { count: commentsCount } = await supabase
-    .from('model_comments')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id)
+  const [{ count: favoritesCount }, { count: commentsCount }] = await Promise.all([
+    supabase.from('favorites').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('model_comments').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+  ])
 
   return (
     <div className="ml-[280px] min-h-screen bg-gray-50">
-      <div className="p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {profile.username || 'User'}!
-          </h1>
-          <p className="text-gray-600">
-            Here's what's happening with your account
-          </p>
-        </div>
+      <div className="py-6 px-6">
+        <div className="max-w-5xl mx-auto space-y-4">
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Favorites Card */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-pink-100 rounded-lg">
-                <Heart className="w-6 h-6 text-pink-600" />
-              </div>
-              <span className="text-3xl font-bold text-gray-900">{favoritesCount || 0}</span>
+          {/* Header */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center">
+              <LayoutDashboard className="w-4 h-4 text-brand" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-1">Favorites</h3>
-            <p className="text-xs text-gray-500">Saved models & clubs</p>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Welcome back, <span className="text-brand">{profile.username || 'User'}</span>!
+              </h1>
+              <p className="text-xs text-gray-500">Here's what's happening with your account</p>
+            </div>
           </div>
 
-          {/* Comments Card */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <MessageSquare className="w-6 h-6 text-blue-600" />
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center">
+                  <Heart className="w-4 h-4 text-brand" />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">{favoritesCount || 0}</span>
               </div>
-              <span className="text-3xl font-bold text-gray-900">{commentsCount || 0}</span>
+              <p className="text-xs font-semibold text-gray-700">Favorites</p>
+              <p className="text-xs text-gray-400">Saved models & clubs</p>
             </div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-1">Comments</h3>
-            <p className="text-xs text-gray-500">Your reviews</p>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">{commentsCount || 0}</span>
+              </div>
+              <p className="text-xs font-semibold text-gray-700">Comments</p>
+              <p className="text-xs text-gray-400">Your reviews</p>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">Active</span>
+              </div>
+              <p className="text-xs font-semibold text-gray-700">Account Status</p>
+              <p className="text-xs text-gray-400">Everything is working</p>
+            </div>
           </div>
 
-          {/* Profile Views Card */}
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-              <span className="text-3xl font-bold text-gray-900">0</span>
-            </div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-1">Activity</h3>
-            <p className="text-xs text-gray-500">Recent interactions</p>
-          </div>
-        </div>
+          {/* Quick Actions */}
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <p className="text-sm font-bold text-gray-800 mb-3">Quick Actions</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Link href="/"
+                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-brand hover:bg-brand/5 transition-colors group">
+                <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center group-hover:bg-brand/20">
+                  <Home className="w-4 h-4 text-brand" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">Browse Models</p>
+                  <p className="text-xs text-gray-500">Discover new profiles</p>
+                </div>
+              </Link>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a
-              href="/"
-              className="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-pink-500 hover:bg-pink-50 transition-all group"
-            >
-              <div className="p-3 bg-gradient-to-br from-pink-100 to-rose-100 rounded-lg group-hover:from-pink-200 group-hover:to-rose-200 transition-all">
-                <Home className="w-6 h-6 text-pink-600" />
-              </div>
+              <Link href="/dashboard/user/favorites"
+                className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:border-brand hover:bg-brand/5 transition-colors group">
+                <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center group-hover:bg-brand/20">
+                  <Heart className="w-4 h-4 text-brand" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">View Favorites</p>
+                  <p className="text-xs text-gray-500">See your saved profiles</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+
+          {/* Account notice */}
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-start gap-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mt-1.5 shrink-0" />
               <div>
-                <h3 className="font-semibold text-gray-900 group-hover:text-pink-600 transition-colors">
-                  Browse Models
-                </h3>
-                <p className="text-sm text-gray-500">Discover new profiles</p>
+                <p className="text-sm font-bold text-gray-900 mb-0.5">Account Status: <span className="text-emerald-600">Active</span></p>
+                <p className="text-xs text-gray-500">
+                  Your account is ready to use. Browse models, save favorites, and leave reviews to help other users.
+                </p>
               </div>
-            </a>
-
-            <a
-              href="/dashboard/user/favorites"
-              className="flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-pink-500 hover:bg-pink-50 transition-all group"
-            >
-              <div className="p-3 bg-gradient-to-br from-pink-100 to-rose-100 rounded-lg group-hover:from-pink-200 group-hover:to-rose-200 transition-all">
-                <Heart className="w-6 h-6 text-pink-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 group-hover:text-pink-600 transition-colors">
-                  View Favorites
-                </h3>
-                <p className="text-sm text-gray-500">See your saved profiles</p>
-              </div>
-            </a>
+            </div>
           </div>
-        </div>
 
-        {/* Welcome Message */}
-        <div className="mt-8 bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl shadow-sm p-6 border border-pink-100">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">
-            Welcome to Nice Models! 🎉
-          </h2>
-          <p className="text-gray-700 mb-4">
-            Your account is active and ready to use. Start exploring our platform by browsing models, 
-            saving your favorites, and leaving reviews to help other users.
-          </p>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            <span>Account Status: <span className="font-semibold text-green-600">Active</span></span>
-          </div>
         </div>
       </div>
     </div>

@@ -14,12 +14,10 @@ export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
 
-  // Password change
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
-  // Notifications
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [smsNotifications, setSmsNotifications] = useState(false)
 
@@ -35,7 +33,6 @@ export default function SettingsPage() {
 
       setUser(user)
 
-      // Load profile
       const { data: profileData } = await supabase
         .from('profiles')
         .select('*')
@@ -72,7 +69,6 @@ export default function SettingsPage() {
 
     try {
       const supabase = createClient()
-      
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       })
@@ -93,15 +89,13 @@ export default function SettingsPage() {
 
   const handleDeleteAccount = async () => {
     const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:')
-    
+
     if (confirmation !== 'DELETE') {
       return
     }
 
     try {
       const supabase = createClient()
-      
-      // Mark account for deletion (admin will handle actual deletion)
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -123,194 +117,189 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
+        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-gray-700 rounded-lg p-2">
-                <SettingsIcon className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-            </div>
-            <p className="text-gray-600">Manage your account settings and preferences</p>
-          </div>
+    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+      <div className="max-w-4xl mx-auto space-y-4">
 
-          {/* Error/Success Messages */}
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-              <p className="text-red-800">{error}</p>
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center">
+              <SettingsIcon className="w-4 h-4 text-brand" />
             </div>
-          )}
-
-          {success && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-              <p className="text-green-800">{success}</p>
-            </div>
-          )}
-
-          {/* Account Info */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Mail className="w-5 h-5 text-pink-600" />
-              Account Information
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">Email</p>
-                  <p className="text-sm text-gray-600">{user?.email}</p>
-                </div>
-                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
-                  Verified
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">Account Type</p>
-                  <p className="text-sm text-gray-600">Club / Agency</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">Member Since</p>
-                  <p className="text-sm text-gray-600">
-                    {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
-                  </p>
-                </div>
-              </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+              <p className="text-xs text-gray-500">Manage your account settings and preferences</p>
             </div>
           </div>
+          <button
+            onClick={() => router.push('/dashboard/company')}
+            className="text-sm font-semibold text-gray-600 hover:text-gray-900"
+          >
+            Back to Dashboard
+          </button>
+        </div>
 
-          {/* Change Password */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-              <Lock className="w-5 h-5 text-pink-600" />
-              Change Password
-            </h3>
-            <div className="space-y-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-emerald-800">{success}</p>
+          </div>
+        )}
+
+        {/* Account Info */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+              <Mail className="w-4 h-4 text-brand" />
+            </div>
+            <p className="text-sm font-bold text-gray-800">Account Information</p>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between py-2.5 px-3 bg-gray-50 rounded-lg">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter your current password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                />
+                <p className="text-xs font-semibold text-gray-500">Email</p>
+                <p className="text-sm text-gray-900">{user?.email}</p>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter your new password (min. 8 characters)"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm your new password"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                />
-              </div>
-              <button
-                onClick={handleChangePassword}
-                disabled={saving}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save className="w-5 h-5" />
-                {saving ? 'Updating...' : 'Update Password'}
-              </button>
+              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                Verified
+              </span>
             </div>
-          </div>
-
-          {/* Notifications (Placeholder) */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Notification Preferences</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                <input
-                  type="checkbox"
-                  checked={emailNotifications}
-                  onChange={(e) => setEmailNotifications(e.target.checked)}
-                  className="mt-1 w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-                />
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900">
-                    Email Notifications
-                  </label>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Receive updates about your club, new inquiries, and system messages
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg opacity-50">
-                <input
-                  type="checkbox"
-                  checked={smsNotifications}
-                  onChange={(e) => setSmsNotifications(e.target.checked)}
-                  disabled
-                  className="mt-1 w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-                />
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900">
-                    SMS Notifications <span className="text-xs text-gray-500">(Coming Soon)</span>
-                  </label>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Get instant alerts for urgent inquiries via SMS
-                  </p>
-                </div>
+            <div className="flex items-center justify-between py-2.5 px-3 bg-gray-50 rounded-lg">
+              <div>
+                <p className="text-xs font-semibold text-gray-500">Account Type</p>
+                <p className="text-sm text-gray-900">Club / Agency</p>
               </div>
             </div>
-          </div>
-
-          {/* Danger Zone */}
-          <div className="bg-white rounded-xl shadow-sm border-2 border-red-200 p-6">
-            <h3 className="text-lg font-bold text-red-600 mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
-              Danger Zone
-            </h3>
-            <div className="space-y-4">
-              <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                <h4 className="font-semibold text-gray-900 mb-2">Delete Account</h4>
-                <p className="text-sm text-gray-700 mb-4">
-                  Once you delete your account, there is no going back. All your data, club information, 
-                  and model profiles will be permanently removed.
+            <div className="flex items-center justify-between py-2.5 px-3 bg-gray-50 rounded-lg">
+              <div>
+                <p className="text-xs font-semibold text-gray-500">Member Since</p>
+                <p className="text-sm text-gray-900">
+                  {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
                 </p>
-                <button
-                  onClick={handleDeleteAccount}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-all"
-                >
-                  Delete My Account
-                </button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Change Password */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+              <Lock className="w-4 h-4 text-brand" />
+            </div>
+            <p className="text-sm font-bold text-gray-800">Change Password</p>
+          </div>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">Current Password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Current password"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">New Password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="New password (min. 8 characters)"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">Confirm New Password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+            <button
+              onClick={handleChangePassword}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <p className="text-sm font-bold text-gray-800 mb-3">Notification Preferences</p>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 py-2.5 px-3 bg-gray-50 rounded-lg">
+              <input
+                type="checkbox"
+                id="email-notif"
+                checked={emailNotifications}
+                onChange={(e) => setEmailNotifications(e.target.checked)}
+                className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
+              />
+              <label htmlFor="email-notif" className="flex-1">
+                <span className="text-sm font-semibold text-gray-900">Email Notifications</span>
+                <p className="text-xs text-gray-500 mt-0.5">Updates about your club, inquiries, and system messages</p>
+              </label>
+            </div>
+            <div className="flex items-center gap-3 py-2.5 px-3 bg-gray-50 rounded-lg opacity-50">
+              <input
+                type="checkbox"
+                id="sms-notif"
+                checked={smsNotifications}
+                onChange={(e) => setSmsNotifications(e.target.checked)}
+                disabled
+                className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
+              />
+              <label htmlFor="sms-notif" className="flex-1">
+                <span className="text-sm font-semibold text-gray-900">SMS Notifications</span>
+                <span className="text-xs text-gray-500 ml-1">(Coming soon)</span>
+                <p className="text-xs text-gray-500 mt-0.5">Instant alerts via SMS</p>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="bg-white border border-red-200 rounded-lg p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-5 h-5 text-red-600" />
+            <p className="text-sm font-bold text-red-700">Danger Zone</p>
+          </div>
+          <div className="p-3 bg-red-50 rounded-lg border border-red-100">
+            <p className="text-sm text-gray-700 mb-3">
+              Once you delete your account, there is no going back. All your data, club information, and model links will be affected.
+            </p>
+            <button
+              onClick={handleDeleteAccount}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors"
+            >
+              Delete My Account
+            </button>
+          </div>
+        </div>
+
       </div>
+    </div>
   )
 }

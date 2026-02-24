@@ -65,8 +65,8 @@ export default function StoryViewer({ modelStory, onClose }: StoryViewerProps) {
   async function markAsViewed(storyId: string) {
     try {
       await supabase.rpc('mark_story_viewed', { p_story_id: storyId });
-    } catch (err) {
-      console.error('Error marking story as viewed:', err);
+    } catch {
+      // silent fail — anon users may not have permission
     }
   }
 

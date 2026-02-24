@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Building2, Save, AlertCircle } from 'lucide-react'
+import { Building2, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
 const ENTRANCE_FEE_OPTIONS = [
   { value: 'na', label: 'N/A' },
@@ -75,7 +75,6 @@ export default function BasicInfoPage() {
 
       setUser(user)
 
-      // Load existing club details
       const { data: clubData } = await supabase
         .from('club_details')
         .select('*')
@@ -158,216 +157,185 @@ export default function BasicInfoPage() {
 
   if (loading) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
+        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
     )
   }
 
   return (
-      <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-pink-100 rounded-lg p-2">
-                <Building2 className="w-6 h-6 text-pink-600" />
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900">Basic Info</h1>
-            </div>
-            <p className="text-gray-600">Manage your club's basic information and amenities</p>
+    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Header — compact, dashboard style */}
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center">
+            <Building2 className="w-4 h-4 text-brand" />
           </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Basic Info</h1>
+            <p className="text-xs text-gray-500">Manage your club's basic information and amenities</p>
+          </div>
+        </div>
 
-          {/* Error/Success Messages */}
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
+        {/* Messages — compact */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
 
-          {success && (
-            <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-              <svg className="w-5 h-5 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <p className="text-green-800">{success}</p>
-            </div>
-          )}
+        {success && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-emerald-800">{success}</p>
+          </div>
+        )}
 
-          {/* Form */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-            {/* Club Name */}
+        {/* Form — single card, tighter */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+          {/* Row 1: Club name + Display name */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
+              <label className="block text-xs font-bold text-gray-800 mb-1">
                 Club Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.club_name}
                 onChange={(e) => handleChange('club_name', e.target.value)}
-                placeholder="Enter your club's official name"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="Official name"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
-
-            {/* Display Name */}
             <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
+              <label className="block text-xs font-bold text-gray-800 mb-1">
                 Display Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.display_name}
                 onChange={(e) => handleChange('display_name', e.target.value)}
-                placeholder="Public display name (can be different from club name)"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
-              <p className="mt-1 text-xs text-gray-500">This is how your club will appear to visitors</p>
-            </div>
-
-            {/* Area */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
-                Area / Region
-              </label>
-              <input
-                type="text"
-                value={formData.area}
-                onChange={(e) => handleChange('area', e.target.value)}
-                placeholder="e.g., Zurich Center, Basel West"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                placeholder="How your club appears to visitors"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
+          </div>
 
-            {/* About Description */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-2">
-                About Your Club
-              </label>
-              <textarea
-                value={formData.about_description}
-                onChange={(e) => handleChange('about_description', e.target.value)}
-                maxLength={maxChars}
-                rows={6}
-                placeholder="Describe your club, services, atmosphere, and what makes you unique..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-              />
-              <div className="mt-1 text-right text-xs text-gray-500">
-                {charCount} / {maxChars}
-              </div>
-            </div>
+          {/* Area — full width, one line */}
+          <div>
+            <label className="block text-xs font-bold text-gray-800 mb-1">Area / Region</label>
+            <input
+              type="text"
+              value={formData.area}
+              onChange={(e) => handleChange('area', e.target.value)}
+              placeholder="e.g., Zurich Center, Basel West"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+            />
+          </div>
 
-            {/* Is Club Checkbox */}
-            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-              <input
-                type="checkbox"
-                checked={formData.is_club}
-                onChange={(e) => handleChange('is_club', e.target.checked)}
-                className="mt-1 w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-              />
+          {/* About — smaller textarea */}
+          <div>
+            <label className="block text-xs font-bold text-gray-800 mb-1">About Your Club</label>
+            <textarea
+              value={formData.about_description}
+              onChange={(e) => handleChange('about_description', e.target.value)}
+              maxLength={maxChars}
+              rows={3}
+              placeholder="Describe your club, services, atmosphere..."
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent resize-none"
+            />
+            <div className="mt-0.5 text-right text-xs text-gray-400">{charCount} / {maxChars}</div>
+          </div>
+
+          {/* Physical club — compact row */}
+          <div className="flex items-center gap-3 py-2">
+            <input
+              type="checkbox"
+              id="is_club"
+              checked={formData.is_club}
+              onChange={(e) => handleChange('is_club', e.target.checked)}
+              className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
+            />
+            <label htmlFor="is_club" className="text-sm text-gray-700">
+              This is a physical club/venue (nightclub, gentlemen's club, etc.)
+            </label>
+          </div>
+
+          {/* Amenities — one row, 4 selects */}
+          <div className="pt-3 border-t border-gray-100">
+            <p className="text-xs font-bold text-gray-800 mb-2">Amenities & Features</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label className="block text-sm font-semibold text-gray-900">
-                  This is a physical club/venue
-                </label>
-                <p className="text-xs text-gray-600 mt-1">
-                  Check this if you operate a physical location (nightclub, gentlemen's club, etc.)
-                </p>
+                <label className="block text-xs text-gray-500 mb-0.5">Entrance</label>
+                <select
+                  value={formData.entrance_fee}
+                  onChange={(e) => handleChange('entrance_fee', e.target.value)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                >
+                  {ENTRANCE_FEE_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-0.5">Wellness</label>
+                <select
+                  value={formData.wellness}
+                  onChange={(e) => handleChange('wellness', e.target.value)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                >
+                  {WELLNESS_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-0.5">Food & Drinks</label>
+                <select
+                  value={formData.food_and_drinks}
+                  onChange={(e) => handleChange('food_and_drinks', e.target.value)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                >
+                  {FOOD_DRINKS_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-0.5">Outdoor</label>
+                <select
+                  value={formData.outdoor_area}
+                  onChange={(e) => handleChange('outdoor_area', e.target.value)}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                >
+                  {OUTDOOR_AREA_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
+          </div>
 
-            {/* Amenities Section */}
-            <div className="pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Amenities & Features</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Entrance Fee */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Entrance Fee
-                  </label>
-                  <select
-                    value={formData.entrance_fee}
-                    onChange={(e) => handleChange('entrance_fee', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  >
-                    {ENTRANCE_FEE_OPTIONS.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Wellness */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Wellness Facilities
-                  </label>
-                  <select
-                    value={formData.wellness}
-                    onChange={(e) => handleChange('wellness', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  >
-                    {WELLNESS_OPTIONS.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Food & Drinks */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Food & Drinks
-                  </label>
-                  <select
-                    value={formData.food_and_drinks}
-                    onChange={(e) => handleChange('food_and_drinks', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  >
-                    {FOOD_DRINKS_OPTIONS.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Outdoor Area */}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2">
-                    Outdoor Area
-                  </label>
-                  <select
-                    value={formData.outdoor_area}
-                    onChange={(e) => handleChange('outdoor_area', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  >
-                    {OUTDOOR_AREA_OPTIONS.map(option => (
-                      <option key={option.value} value={option.value}>{option.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-              <button
-                onClick={() => router.push('/dashboard/company')}
-                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Save className="w-5 h-5" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
+          {/* Actions — same row, minimal */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            <button
+              onClick={() => router.push('/dashboard/company')}
+              className="text-sm font-semibold text-gray-600 hover:text-gray-900"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="w-4 h-4" />
+              {saving ? 'Saving...' : 'Save'}
+            </button>
           </div>
         </div>
       </div>
+    </div>
   )
 }

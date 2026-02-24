@@ -40,7 +40,7 @@ export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         {/* Minimal header */}
         <div className="bg-gray-50 border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 py-8">
@@ -52,7 +52,7 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 py-12">
+        <div className="max-w-7xl mx-auto px-4 pt-12 pb-20">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             {/* Contact Information - Left Side */}

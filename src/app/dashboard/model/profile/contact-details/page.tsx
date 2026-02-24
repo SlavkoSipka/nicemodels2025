@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { Phone, Save, CheckCircle, AlertCircle } from 'lucide-react'
 
 const COUNTRY_CODES = [
   { label: 'Switzerland (+41)', value: '+41' },
@@ -22,13 +23,11 @@ const COUNTRY_CODES = [
 export default function ContactDetailsPage() {
   const router = useRouter()
   const supabase = createClient()
-  
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
 
-  // Form state
   const [showPhoneNumber, setShowPhoneNumber] = useState(false)
   const [countryCode, setCountryCode] = useState('+41')
   const [phoneNumber, setPhoneNumber] = useState('')
@@ -40,289 +39,177 @@ export default function ContactDetailsPage() {
   const [otherInstructions, setOtherInstructions] = useState('')
 
   useEffect(() => {
-    loadContactDetails()
-  }, [])
-
-  const loadContactDetails = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      const { data, error } = await supabase
-        .from('model_contact_details')
-        .select('*')
-        .eq('model_id', user.id)
-        .single()
-
-      if (error && error.code !== 'PGRST116') {
-        throw error
-      }
-
-      if (data) {
-        setShowPhoneNumber(data.show_phone_number || false)
-        setCountryCode(data.country_code || '+41')
-        setPhoneNumber(data.phone_number || '')
-        setHasViber(data.has_viber || false)
-        setHasWhatsapp(data.has_whatsapp || false)
-        setHasTelegram(data.has_telegram || false)
-        setContactInstruction(data.contact_instruction || 'sms_and_call')
-        setNoWithheldNumbers(data.no_withheld_numbers || false)
-        setOtherInstructions(data.other_instructions || '')
-      }
-    } catch (err: any) {
-      console.error('Error loading contact details:', err)
-      setError('Failed to load contact details')
-    } finally {
-      setLoading(false)
+    const load = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/login'); return }
+        const { data, error: e } = await supabase.from('model_contact_details').select('*').eq('model_id', user.id).single()
+        if (e && e.code !== 'PGRST116') throw e
+        if (data) {
+          setShowPhoneNumber(data.show_phone_number || false)
+          setCountryCode(data.country_code || '+41')
+          setPhoneNumber(data.phone_number || '')
+          setHasViber(data.has_viber || false)
+          setHasWhatsapp(data.has_whatsapp || false)
+          setHasTelegram(data.has_telegram || false)
+          setContactInstruction(data.contact_instruction || 'sms_and_call')
+          setNoWithheldNumbers(data.no_withheld_numbers || false)
+          setOtherInstructions(data.other_instructions || '')
+        }
+      } catch (err: any) {
+        setError('Failed to load contact details')
+      } finally { setLoading(false) }
     }
-  }
+    load()
+  }, [])
 
   const handleSave = async () => {
     try {
-      setSaving(true)
-      setError('')
-      setSuccess(false)
-
+      setSaving(true); setError(''); setSuccess(false)
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
-
-      const contactData = {
-        model_id: user.id,
-        show_phone_number: showPhoneNumber,
-        country_code: countryCode,
-        phone_number: phoneNumber,
-        has_viber: hasViber,
-        has_whatsapp: hasWhatsapp,
-        has_telegram: hasTelegram,
-        contact_instruction: contactInstruction,
-        no_withheld_numbers: noWithheldNumbers,
-        other_instructions: otherInstructions,
+      const { error: e } = await supabase.from('model_contact_details').upsert({
+        model_id: user.id, show_phone_number: showPhoneNumber, country_code: countryCode,
+        phone_number: phoneNumber, has_viber: hasViber, has_whatsapp: hasWhatsapp,
+        has_telegram: hasTelegram, contact_instruction: contactInstruction,
+        no_withheld_numbers: noWithheldNumbers, other_instructions: otherInstructions,
         updated_at: new Date().toISOString()
-      }
-
-      const { error: upsertError } = await supabase
-        .from('model_contact_details')
-        .upsert(contactData, {
-          onConflict: 'model_id'
-        })
-
-      if (upsertError) throw upsertError
-
+      }, { onConflict: 'model_id' })
+      if (e) throw e
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err: any) {
-      console.error('Error saving contact details:', err)
       setError(err.message || 'Failed to save contact details')
-    } finally {
-      setSaving(false)
-    }
+    } finally { setSaving(false) }
   }
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-gray-50 ml-[280px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-      </div>
-    )
-  }
+  const inputCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand'
+  const toggleBtn = (active: boolean, color?: string) =>
+    `px-3 py-2 text-sm rounded-lg border transition-colors font-medium ${active
+      ? (color || 'border-brand bg-brand/10 text-brand')
+      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'}`
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
+      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
-      <div className="flex-1 p-8 ml-[280px]">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Contact Details</h1>
-            <p className="text-gray-600 mt-2">Manage your contact information and preferences</p>
+    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center">
+              <Phone className="w-4 h-4 text-brand" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Contact Details</h1>
+              <p className="text-xs text-gray-500">Manage your contact information and preferences</p>
+            </div>
+          </div>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-emerald-800">Contact details saved successfully!</p>
+          </div>
+        )}
+
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
+          {/* Show phone toggle */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={showPhoneNumber} onChange={e => setShowPhoneNumber(e.target.checked)}
+              className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand" />
+            <span className="text-sm font-semibold text-gray-900">Show phone number on profile</span>
+          </label>
+
+          {/* Phone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">Country Code <span className="text-red-500">*</span></label>
+              <select value={countryCode} onChange={e => setCountryCode(e.target.value)} className={inputCls}>
+                {COUNTRY_CODES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">Phone Number <span className="text-red-500">*</span></label>
+              <input type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)}
+                placeholder="Enter phone number" className={inputCls} />
+            </div>
           </div>
 
-          {error && (
-            <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-              Contact details saved successfully!
-            </div>
-          )}
-
-          <div className="bg-white rounded-xl shadow-sm p-8 space-y-6">
-            {/* Show Phone Number */}
-            <div>
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showPhoneNumber}
-                  onChange={(e) => setShowPhoneNumber(e.target.checked)}
-                  className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-                />
-                <span className="text-base font-medium text-gray-900">Show phone number</span>
-              </label>
-            </div>
-
-            {/* Country Code & Phone Number */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Country Code <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                >
-                  {COUNTRY_CODES.map((country) => (
-                    <option key={country.value} value={country.value}>
-                      {country.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter phone number"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Please provide the country calling code if you use a non-Swiss number
-                </p>
-              </div>
-            </div>
-
-            {/* Messaging Apps */}
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => setHasViber(!hasViber)}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
-                    hasViber
-                      ? 'bg-purple-100 text-purple-700 border-2 border-purple-500'
-                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-purple-300'
-                  }`}
-                >
-                  {hasViber && '✓ '}Viber
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setHasWhatsapp(!hasWhatsapp)}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
-                    hasWhatsapp
-                      ? 'bg-green-100 text-green-700 border-2 border-green-500'
-                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-green-300'
-                  }`}
-                >
-                  {hasWhatsapp && '✓ '}WhatsApp
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setHasTelegram(!hasTelegram)}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
-                    hasTelegram
-                      ? 'bg-blue-100 text-blue-700 border-2 border-blue-500'
-                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-300'
-                  }`}
-                >
-                  {hasTelegram && '✓ '}Telegram
-                </button>
-              </div>
-            </div>
-
-            {/* Instructions */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-3">
-                Instructions
-              </label>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => setContactInstruction('sms_and_call')}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
-                    contactInstruction === 'sms_and_call'
-                      ? 'bg-pink-600 text-white'
-                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-pink-300'
-                  }`}
-                >
-                  SMS and Call
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setContactInstruction('sms_only')}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
-                    contactInstruction === 'sms_only'
-                      ? 'bg-pink-600 text-white'
-                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-pink-300'
-                  }`}
-                >
-                  SMS Only
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setContactInstruction('no_sms')}
-                  className={`px-6 py-2.5 rounded-lg font-medium transition-all ${
-                    contactInstruction === 'no_sms'
-                      ? 'bg-pink-600 text-white'
-                      : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-pink-300'
-                  }`}
-                >
-                  No SMS
-                </button>
-              </div>
-            </div>
-
-            {/* No Withheld Numbers */}
-            <div>
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={noWithheldNumbers}
-                  onChange={(e) => setNoWithheldNumbers(e.target.checked)}
-                  className="w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
-                />
-                <span className="text-base font-medium text-gray-900">No Withheld Numbers</span>
-              </label>
-            </div>
-
-            {/* Other Instructions */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Other
-              </label>
-              <textarea
-                value={otherInstructions}
-                onChange={(e) => setOtherInstructions(e.target.value)}
-                placeholder="Additional instructions..."
-                rows={4}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-              />
-            </div>
-
-            {/* Save Button */}
-            <div className="pt-4 border-t">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="w-full md:w-auto px-8 py-3 bg-pink-600 text-white font-medium rounded-lg hover:bg-pink-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
+          {/* Messaging apps */}
+          <div>
+            <p className="text-xs font-bold text-gray-800 mb-2">Available on</p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setHasViber(!hasViber)}
+                className={toggleBtn(hasViber, 'border-purple-400 bg-purple-50 text-purple-700')}>
+                {hasViber && '✓ '}Viber
+              </button>
+              <button type="button" onClick={() => setHasWhatsapp(!hasWhatsapp)}
+                className={toggleBtn(hasWhatsapp, 'border-green-400 bg-green-50 text-green-700')}>
+                {hasWhatsapp && '✓ '}WhatsApp
+              </button>
+              <button type="button" onClick={() => setHasTelegram(!hasTelegram)}
+                className={toggleBtn(hasTelegram, 'border-blue-400 bg-blue-50 text-blue-700')}>
+                {hasTelegram && '✓ '}Telegram
               </button>
             </div>
           </div>
+
+          {/* Instructions */}
+          <div>
+            <p className="text-xs font-bold text-gray-800 mb-2">Contact Preference</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: 'sms_and_call', label: 'SMS & Call' },
+                { value: 'sms_only', label: 'SMS Only' },
+                { value: 'no_sms', label: 'No SMS' }
+              ].map(opt => (
+                <button key={opt.value} type="button"
+                  onClick={() => setContactInstruction(opt.value as any)}
+                  className={toggleBtn(contactInstruction === opt.value)}>
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* No withheld numbers */}
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={noWithheldNumbers} onChange={e => setNoWithheldNumbers(e.target.checked)}
+              className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand" />
+            <span className="text-sm font-semibold text-gray-900">No withheld numbers</span>
+          </label>
+
+          {/* Other instructions */}
+          <div>
+            <label className="block text-xs font-bold text-gray-800 mb-1">Other instructions</label>
+            <textarea value={otherInstructions} onChange={e => setOtherInstructions(e.target.value)}
+              placeholder="Additional instructions..." rows={3}
+              className={inputCls + ' resize-none'} />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 pb-2">
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
+            <Save className="w-4 h-4" />
+            {saving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
+    </div>
   )
 }

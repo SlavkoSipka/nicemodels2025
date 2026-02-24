@@ -4,7 +4,19 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { Users, Building2, Image, Video, UserCheck, UserX, LogOut, Home, MessageSquare } from 'lucide-react'
+import {
+  LayoutDashboard, Users, Building2, Image, Film, UserX,
+  ShieldCheck, MessageSquare, Home, LogOut, ChevronRight, AlertCircle
+} from 'lucide-react'
+
+interface StatCard {
+  label: string
+  value: number
+  icon: React.ReactNode
+  href: string
+  accent: string
+  urgent?: boolean
+}
 
 export default function AdminDashboard() {
   const router = useRouter()
@@ -16,39 +28,15 @@ export default function AdminDashboard() {
     router.push('/login')
     router.refresh()
   }
+
   const [stats, setStats] = useState({
-    totalModels: 0,
-    totalClubs: 0,
-    pendingPhotos: 0,
-    pendingVideos: 0,
-    blockedUsers: 0,
-    pendingVerifications: 0,
-    pendingComments: 0,
+    totalModels: 0, totalClubs: 0, pendingPhotos: 0,
+    pendingVideos: 0, blockedUsers: 0, pendingVerifications: 0, pendingComments: 0,
   })
 
   useEffect(() => {
-    const checkAdminAndLoadStats = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      // Check if user is admin
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.role !== 'admin') {
-        router.push('/dashboard')
-        return
-      }
-
-      // Load statistics
-      const [modelsCount, clubsCount, photosCount, videosCount, blockedCount, verificationsCount, commentsCount] = await Promise.all([
+    const load = async () => {
+      const [models, clubs, photos, videos, blocked, verifications, comments] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company'),
         supabase.from('model_photos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
@@ -59,199 +47,121 @@ export default function AdminDashboard() {
       ])
 
       setStats({
-        totalModels: modelsCount.count || 0,
-        totalClubs: clubsCount.count || 0,
-        pendingPhotos: photosCount.count || 0,
-        pendingVideos: videosCount.count || 0,
-        blockedUsers: blockedCount.count || 0,
-        pendingVerifications: verificationsCount.count || 0,
-        pendingComments: commentsCount.count || 0,
+        totalModels: models.count || 0, totalClubs: clubs.count || 0,
+        pendingPhotos: photos.count || 0, pendingVideos: videos.count || 0,
+        blockedUsers: blocked.count || 0, pendingVerifications: verifications.count || 0,
+        pendingComments: comments.count || 0,
       })
-
       setLoading(false)
     }
+    load()
+  }, [])
 
-    checkAdminAndLoadStats()
-  }, [router])
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-      </div>
-    )
-  }
+  const cards: StatCard[] = [
+    { label: 'Total Models', value: stats.totalModels, icon: <Users className="w-4 h-4" />, href: '/dashboard/admin/models', accent: 'text-brand bg-brand/10' },
+    { label: 'Total Clubs', value: stats.totalClubs, icon: <Building2 className="w-4 h-4" />, href: '/dashboard/admin/clubs', accent: 'text-blue-600 bg-blue-50' },
+    { label: 'Pending Photos', value: stats.pendingPhotos, icon: <Image className="w-4 h-4" />, href: '/dashboard/admin/review-media', accent: 'text-amber-600 bg-amber-50', urgent: stats.pendingPhotos > 0 },
+    { label: 'Pending Videos', value: stats.pendingVideos, icon: <Film className="w-4 h-4" />, href: '/dashboard/admin/review-media', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingVideos > 0 },
+    { label: 'Blocked Users', value: stats.blockedUsers, icon: <UserX className="w-4 h-4" />, href: '/dashboard/admin/blocked', accent: 'text-red-600 bg-red-50' },
+    { label: 'Pending Verifications', value: stats.pendingVerifications, icon: <ShieldCheck className="w-4 h-4" />, href: '/dashboard/admin/verification', accent: 'text-emerald-600 bg-emerald-50', urgent: stats.pendingVerifications > 0 },
+    { label: 'Pending Comments', value: stats.pendingComments, icon: <MessageSquare className="w-4 h-4" />, href: '/dashboard/admin/comments', accent: 'text-orange-600 bg-orange-50', urgent: stats.pendingComments > 0 },
+  ]
+
+  const navItems = [
+    { label: 'Manage Models', sub: `${stats.totalModels} registered`, icon: <Users className="w-4 h-4 text-brand" />, href: '/dashboard/admin/models' },
+    { label: 'Manage Clubs', sub: `${stats.totalClubs} registered`, icon: <Building2 className="w-4 h-4 text-blue-600" />, href: '/dashboard/admin/clubs' },
+    { label: 'Review Media', sub: `${stats.pendingPhotos + stats.pendingVideos} pending`, icon: <Image className="w-4 h-4 text-amber-600" />, href: '/dashboard/admin/review-media' },
+    { label: 'Blocked Users', sub: `${stats.blockedUsers} blocked`, icon: <UserX className="w-4 h-4 text-red-600" />, href: '/dashboard/admin/blocked' },
+    { label: 'Verifications', sub: `${stats.pendingVerifications} pending`, icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />, href: '/dashboard/admin/verification' },
+    { label: 'Review Comments', sub: `${stats.pendingComments} pending`, icon: <MessageSquare className="w-4 h-4 text-orange-600" />, href: '/dashboard/admin/comments' },
+  ]
+
+  const totalPending = stats.pendingPhotos + stats.pendingVideos + stats.pendingVerifications + stats.pendingComments
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Admin Dashboard</h1>
-            <p className="text-gray-600">Manage users, content, and platform settings</p>
+    <div className="min-h-screen bg-gray-50">
+      <div className="py-6 px-6">
+        <div className="max-w-6xl mx-auto space-y-5">
+
+          {/* Top bar */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+                <LayoutDashboard className="w-5 h-5 text-brand" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p className="text-xs text-gray-500">Platform management & content moderation</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <Home className="w-3.5 h-3.5" /> Home
+              </Link>
+              <button onClick={handleLogout}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
+                <LogOut className="w-3.5 h-3.5" /> Logout
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors"
-            >
-              <Home className="w-4 h-4" />
-              Home
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-red-600 bg-red-50 rounded-lg font-medium hover:bg-red-100 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+
+          {/* Urgent notice */}
+          {totalPending > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+              <p className="text-sm text-amber-800">
+                <span className="font-bold">{totalPending} items</span> require your attention &mdash;
+                {stats.pendingPhotos + stats.pendingVideos > 0 && ` ${stats.pendingPhotos + stats.pendingVideos} media,`}
+                {stats.pendingVerifications > 0 && ` ${stats.pendingVerifications} verifications,`}
+                {stats.pendingComments > 0 && ` ${stats.pendingComments} comments`}
+              </p>
+            </div>
+          )}
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            {cards.map(card => (
+              <Link key={card.label} href={card.href}
+                className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-gray-300 hover:shadow-sm transition-all group relative">
+                {card.urgent && (
+                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                )}
+                <div className={`w-7 h-7 rounded-md ${card.accent} flex items-center justify-center mb-2`}>
+                  {card.icon}
+                </div>
+                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
+              </Link>
+            ))}
           </div>
-        </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {/* Total Models */}
-          <Link href="/dashboard/admin/models">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Models</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.totalModels}</p>
-                </div>
-                <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-pink-600" />
-                </div>
-              </div>
+          {/* Navigation */}
+          <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+            <div className="px-4 py-3">
+              <p className="text-sm font-bold text-gray-800">Quick Navigation</p>
             </div>
-          </Link>
-
-          {/* Total Clubs */}
-          <Link href="/dashboard/admin/clubs">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Clubs</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.totalClubs}</p>
+            {navItems.map(item => (
+              <Link key={item.label} href={item.href}
+                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group">
+                <div className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center group-hover:bg-gray-100">
+                  {item.icon}
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-6 h-6 text-blue-600" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand transition-colors">{item.label}</p>
+                  <p className="text-xs text-gray-400">{item.sub}</p>
                 </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* Unapproved Photos */}
-          <Link href="/dashboard/admin/review-media">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Unapproved Photos</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.pendingPhotos}</p>
-                </div>
-                <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Image className="w-6 h-6 text-yellow-600" />
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* Unapproved Videos */}
-          <Link href="/dashboard/admin/review-media">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Unapproved Videos</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.pendingVideos}</p>
-                </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Video className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* Blocked Users */}
-          <Link href="/dashboard/admin/blocked">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Blocked Users</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.blockedUsers}</p>
-                </div>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                  <UserX className="w-6 h-6 text-red-600" />
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* Pending Verifications */}
-          <Link href="/dashboard/admin/verification">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Pending Verifications</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.pendingVerifications}</p>
-                </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <UserCheck className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          {/* Pending Comments */}
-          <Link href="/dashboard/admin/comments">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Pending Comments</p>
-                  <p className="text-3xl font-bold text-gray-900">{stats.pendingComments}</p>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-orange-600" />
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/dashboard/admin/models">
-              <button className="w-full px-4 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all">
-                Manage Models
-              </button>
-            </Link>
-            <Link href="/dashboard/admin/clubs">
-              <button className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all">
-                Manage Clubs
-              </button>
-            </Link>
-            <Link href="/dashboard/admin/review-media">
-              <button className="w-full px-4 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg font-semibold hover:from-yellow-700 hover:to-orange-700 transition-all">
-                Review Media
-              </button>
-            </Link>
-            <Link href="/dashboard/admin/blocked">
-              <button className="w-full px-4 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-lg font-semibold hover:from-gray-700 hover:to-gray-800 transition-all">
-                Blocked Users
-              </button>
-            </Link>
-            <Link href="/dashboard/admin/verification">
-              <button className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all">
-                Verifications
-              </button>
-            </Link>
-            <Link href="/dashboard/admin/comments">
-              <button className="w-full px-4 py-3 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-lg font-semibold hover:from-orange-700 hover:to-amber-700 transition-all">
-                Review Comments
-              </button>
-            </Link>
+                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-brand transition-colors" />
+              </Link>
+            ))}
           </div>
+
         </div>
       </div>
     </div>

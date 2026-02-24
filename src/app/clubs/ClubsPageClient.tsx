@@ -68,10 +68,10 @@ export default function ClubsPageClient() {
             .eq('club_id', club.id)
             .maybeSingle()
 
-          // Detalji (opis)
+          // Detalji (opis iz about_description)
           const { data: details } = await supabase
             .from('club_details')
-            .select('description, display_name, club_name, is_club, area')
+            .select('about_description, display_name, club_name, is_club, area')
             .eq('club_id', club.id)
             .maybeSingle()
 
@@ -83,7 +83,7 @@ export default function ClubsPageClient() {
             area: details?.area || club.area || '',
             city: contact?.city || '',
             is_club: details?.is_club ?? club.is_club ?? true,
-            description: details?.description || '',
+            description: details?.about_description?.trim() || '',
             address: contact?.address || '',
             phone: contact?.phone_number || '',
             website: contact?.website || '',

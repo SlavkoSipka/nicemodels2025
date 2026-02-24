@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Mail, Calendar, User } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
 
 interface Model {
@@ -15,284 +14,182 @@ interface Model {
   is_blocked: boolean
   onboarding_completed: boolean
   is_verified: boolean
-  model_details?: {
-    showname: string
-    city: string
-  }
+  model_details?: { showname: string; city: string }
 }
 
 export default function AdminModelsPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [models, setModels] = useState<Model[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedModel, setSelectedModel] = useState<Model | null>(null)
   const [showPhotoModal, setShowPhotoModal] = useState(false)
 
-  useEffect(() => {
-    loadModels()
-  }, [])
+  useEffect(() => { loadModels() }, [])
 
   const loadModels = async () => {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
-    // Check if user is admin
-    const { data: profile } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      router.push('/dashboard')
-      return
-    }
-
-    // Load all models
-    const { data: modelsData, error } = await supabase
-      .from('profiles')
-      .select(`
-        id,
-        email,
-        username,
-        created_at,
-        is_blocked,
-        onboarding_completed,
-        is_verified,
-        model_details!model_details_model_id_fkey (
-          showname,
-          city
-        )
-      `)
+      .select(`id, email, username, created_at, is_blocked, onboarding_completed, is_verified,
+        model_details!model_details_model_id_fkey (showname, city)`)
       .eq('role', 'model')
       .order('created_at', { ascending: false })
 
-    if (error) {
-      alert('Error loading models: ' + error.message)
-      setLoading(false)
-      return
-    }
+    if (error) { setLoading(false); return }
 
-    // Transform the data to handle model_details as object instead of array
-    const transformedModels = modelsData?.map(model => ({
-      ...model,
-      model_details: Array.isArray(model.model_details) 
-        ? model.model_details[0] 
-        : model.model_details
-    })) || []
-
-    setModels(transformedModels)
+    setModels((data || []).map(m => ({
+      ...m,
+      model_details: Array.isArray(m.model_details) ? m.model_details[0] : m.model_details
+    })))
     setLoading(false)
   }
 
-  const handleBlockUser = async (userId: string, currentlyBlocked: boolean) => {
-    if (!confirm(`Are you sure you want to ${currentlyBlocked ? 'unblock' : 'block'} this user?`)) {
-      return
-    }
-
+  const handleBlock = async (userId: string, blocked: boolean) => {
+    if (!confirm(`${blocked ? 'Unblock' : 'Block'} this user?`)) return
     const supabase = createClient()
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        is_blocked: !currentlyBlocked,
-        blocked_at: !currentlyBlocked ? new Date().toISOString() : null,
-      })
-      .eq('id', userId)
-
-    if (error) {
-      alert('Failed to update user status')
-      return
-    }
-
-    // Refresh list
+    await supabase.from('profiles').update({
+      is_blocked: !blocked,
+      blocked_at: !blocked ? new Date().toISOString() : null,
+    }).eq('id', userId)
     loadModels()
   }
 
-  const filteredModels = models.filter(model =>
-    model.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    model.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    model.model_details?.showname?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filtered = models.filter(m =>
+    m.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    m.model_details?.showname?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-      </div>
-    )
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <Link href="/dashboard/admin" className="inline-flex items-center text-pink-600 hover:text-pink-700 mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Models Management</h1>
-          <p className="text-gray-600">Total Models: {models.length}</p>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="py-6 px-6">
+        <div className="max-w-7xl mx-auto space-y-4">
 
-        {/* Search */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search by email, username, or showname..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Models List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Model
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    City
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Verified
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredModels.map((model) => (
-                  <tr key={model.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center mr-3">
-                          <User className="w-5 h-5 text-pink-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            {model.model_details?.showname || model.username || 'N/A'}
-                          </p>
-                          <p className="text-sm text-gray-500">@{model.username || 'no-username'}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center text-sm text-gray-900">
-                        <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                        {model.email}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {model.model_details?.city || 'N/A'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        {new Date(model.created_at).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {model.is_verified ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          <CheckCircle className="w-3 h-3 mr-1" />
-                          Yes
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          No
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1">
-                        {model.is_blocked ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            <Ban className="w-3 h-3 mr-1" />
-                            Blocked
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Active
-                          </span>
-                        )}
-                        {!model.onboarding_completed && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                            Incomplete
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            setSelectedModel(model)
-                            setShowPhotoModal(true)
-                          }}
-                          className="px-3 py-1 text-sm rounded-lg font-semibold bg-blue-100 text-blue-700 hover:bg-blue-200 transition-all"
-                        >
-                          Photos
-                        </button>
-                        <button
-                          onClick={() => handleBlockUser(model.id, model.is_blocked)}
-                          className={`px-3 py-1 text-sm rounded-lg font-semibold transition-all ${
-                            model.is_blocked
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-red-100 text-red-700 hover:bg-red-200'
-                          }`}
-                        >
-                          {model.is_blocked ? 'Unblock' : 'Block'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Header */}
+          <div>
+            <Link href="/dashboard/admin" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
+              <ArrowLeft className="w-3 h-3" /> Back to Dashboard
+            </Link>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+                  <Users className="w-5 h-5 text-brand" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">Models Management</h1>
+                  <p className="text-xs text-gray-500">{models.length} total models</p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {filteredModels.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No models found</p>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input type="text" placeholder="Search by email, username, or showname..."
+              value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
+          </div>
+
+          {/* Table */}
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    {['Model', 'Email', 'City', 'Joined', 'Verified', 'Status', 'Actions'].map(h => (
+                      <th key={h} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filtered.map(model => (
+                    <tr key={model.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0">
+                            <User className="w-4 h-4 text-brand" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {model.model_details?.showname || model.username || 'N/A'}
+                            </p>
+                            <p className="text-xs text-gray-400 truncate">@{model.username || 'no-username'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate">{model.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{model.model_details?.city || '—'}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">{new Date(model.created_at).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        {model.is_verified ? (
+                          <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                            <CheckCircle className="w-3 h-3" /> Yes
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">No</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-1">
+                          {model.is_blocked ? (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
+                              <Ban className="w-3 h-3" /> Blocked
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                              <CheckCircle className="w-3 h-3" /> Active
+                            </span>
+                          )}
+                          {!model.onboarding_completed && (
+                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Incomplete</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <button onClick={() => { setSelectedModel(model); setShowPhotoModal(true) }}
+                            className="px-2.5 py-1 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1">
+                            <Camera className="w-3 h-3" /> Photos
+                          </button>
+                          <button onClick={() => handleBlock(model.id, model.is_blocked)}
+                            className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
+                              model.is_blocked
+                                ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-red-50 text-red-700 hover:bg-red-100'
+                            }`}>
+                            {model.is_blocked ? 'Unblock' : 'Block'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
+            {filtered.length === 0 && (
+              <div className="text-center py-10">
+                <p className="text-sm text-gray-400">No models found</p>
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
 
-      {/* Photo Gallery Modal */}
       {selectedModel && (
-        <PhotoGalleryModal
-          isOpen={showPhotoModal}
-          onClose={() => {
-            setShowPhotoModal(false)
-            setSelectedModel(null)
-          }}
+        <PhotoGalleryModal isOpen={showPhotoModal}
+          onClose={() => { setShowPhotoModal(false); setSelectedModel(null) }}
           profileId={selectedModel.id}
           profileName={selectedModel.model_details?.showname || selectedModel.username || 'Model'}
-          profileType="model"
-        />
+          profileType="model" />
       )}
     </div>
   )

@@ -6,7 +6,7 @@ export default function Footer() {
   return (
     <footer style={{ backgroundColor: '#1f2126' }} className="text-gray-300">
       {/* Main footer */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 pt-16 pb-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
 
           {/* Logo */}

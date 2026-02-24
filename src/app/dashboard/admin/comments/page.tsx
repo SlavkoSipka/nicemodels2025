@@ -1,28 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 import CommentsReviewClient from './CommentsReviewClient'
 
 export default async function AdminCommentsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
-
-  // Check if user is admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (profile?.role !== 'admin') {
-    redirect('/dashboard')
-  }
-
-  // Fetch all comments with user and model info
-  const { data: comments, error } = await supabase
+  const { data: comments } = await supabase
     .from('model_comments')
     .select(`
       id,
@@ -57,13 +39,10 @@ export default async function AdminCommentsPage() {
     `)
     .order('created_at', { ascending: false })
 
-  console.log('Admin comments query:', { comments, error })
-
-  // Transform nested arrays properly
   const transformedComments = comments?.map(comment => {
     const model = Array.isArray(comment.model) ? comment.model[0] : comment.model
-    const modelDetails = Array.isArray(model?.model_details) 
-      ? model.model_details 
+    const modelDetails = Array.isArray(model?.model_details)
+      ? model.model_details
       : (model?.model_details ? [model.model_details] : [])
     const modelContactDetails = Array.isArray(model?.model_contact_details)
       ? model.model_contact_details
