@@ -126,7 +126,7 @@ export default function VerificationPage() {
 
   const UploadBox = ({ label, desc, preview, setFile, setPreview, inputRef, accept, onFileChange, isVideo = false }: {
     label: string; desc: string; preview: string | null; setFile: (f: File | null) => void; setPreview: (u: string | null) => void;
-    inputRef: React.RefObject<HTMLInputElement>; accept: string; onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void; isVideo?: boolean
+    inputRef: React.RefObject<HTMLInputElement | null>; accept: string; onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void; isVideo?: boolean
   }) => (
     <div>
       <p className={labelCls}>{label}</p>
