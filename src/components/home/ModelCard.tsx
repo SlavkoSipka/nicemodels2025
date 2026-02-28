@@ -50,18 +50,37 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
 
   return (
     <Link href={`/models/${model.id}`} onClick={handleClick} className="block group w-full">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl hover:border-brand/40 transition-all duration-200 flex flex-row w-full">
-
-        {/* Slika - levo, aspect 3:4 */}
-        <div className="relative w-[40%] min-w-[150px] flex-shrink-0 aspect-[3/4] bg-gray-100">
+      <div
+        className="overflow-hidden flex flex-row w-full transition-all duration-200"
+        style={{
+          background: 'white',
+          borderRadius: '6px',
+          border: '1px solid #f0e6ea',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.06), 0 2px 12px rgba(190,24,93,0.05)',
+        }}
+        onMouseEnter={e => {
+          const el = e.currentTarget as HTMLDivElement
+          el.style.boxShadow = '0 6px 24px rgba(0,0,0,0.10), 0 2px 8px rgba(190,24,93,0.08)'
+          el.style.transform = 'translateY(-2px)'
+          el.style.borderColor = '#F9A8D4'
+        }}
+        onMouseLeave={e => {
+          const el = e.currentTarget as HTMLDivElement
+          el.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06), 0 2px 12px rgba(190,24,93,0.05)'
+          el.style.transform = 'translateY(0)'
+          el.style.borderColor = '#f0e6ea'
+        }}
+      >
+        {/* Image - left */}
+        <div className="relative w-[38%] min-w-[140px] flex-shrink-0 aspect-[3/4] overflow-hidden" style={{ background: '#f9f0f3' }}>
           {model.photoUrl ? (
             <Image
               src={model.photoUrl}
               alt={title}
               fill
-              sizes="(max-width: 640px) 45vw, 25vw"
+              sizes="(max-width: 640px) 42vw, 22vw"
               priority={priority}
-              className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
+              className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -70,12 +89,12 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           )}
         </div>
 
-        {/* Sadržaj - desno */}
-        <div className="flex-1 p-4 sm:p-5 flex flex-col gap-2 min-w-0 self-stretch">
+        {/* Content - right */}
+        <div className="flex-1 px-4 py-3 flex flex-col gap-1.5 min-w-0 self-stretch bg-white">
 
-          {/* PREMIUM + vreme */}
+          {/* PREMIUM + time */}
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-bold text-red-600 uppercase tracking-widest">
+            <span className="text-xs font-bold tracking-wide" style={{ color: '#EC4899' }}>
               PREMIUM
             </span>
             {ago && (
@@ -83,30 +102,31 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             )}
           </div>
 
-          {/* Ime */}
-          <h3 className="font-bold text-gray-900 text-lg sm:text-xl leading-tight line-clamp-2 group-hover:text-brand transition-colors">
+          {/* Title */}
+          <h3 className="font-bold text-gray-900 text-base sm:text-lg leading-snug line-clamp-3 group-hover:text-brand transition-colors">
             {title}
           </h3>
 
-          {/* Opis - popunjava slobodan prostor */}
+          {/* Description */}
           {description ? (
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed line-clamp-5 flex-1">
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-4 flex-1">
               {description}
             </p>
           ) : (
             <div className="flex-1" />
           )}
 
-          {/* Tagovi (usluge) */}
+          {/* Tags */}
           {tags.length > 0 && (
-            <div className="flex flex-wrap gap-x-3 gap-y-1">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
               {tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium"
+                  className="inline-flex items-center gap-1 text-sm font-medium"
+                  style={{ color: '#2563eb' }}
                 >
-                  <svg className="w-3 h-3 fill-blue-500 flex-shrink-0" viewBox="0 0 24 24">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                  <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 24 24" fill="#3b82f6">
+                    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
                   </svg>
                   {tag}
                 </span>
@@ -114,11 +134,11 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             </div>
           )}
 
-          {/* Lokacija */}
+          {/* Location */}
           {location && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0" />
-              <span className="truncate font-medium">{location}</span>
+            <div className="flex items-center gap-1 text-sm mt-0.5">
+              <MapPin className="w-4 h-4 flex-shrink-0" style={{ color: '#3b82f6' }} />
+              <span className="truncate font-medium" style={{ color: '#2563eb' }}>{location}</span>
             </div>
           )}
         </div>

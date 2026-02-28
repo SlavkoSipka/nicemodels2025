@@ -236,8 +236,11 @@ export default function HomePageClient() {
     return (
       <>
         <Navbar />
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+        <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F7F3F4' }}>
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-14 h-14 rounded-full border-4 border-pink-200 border-t-pink-500 animate-spin" />
+            <span className="text-sm font-medium text-pink-400 tracking-widest uppercase">Loading…</span>
+          </div>
         </div>
       </>
     )
@@ -246,7 +249,7 @@ export default function HomePageClient() {
   return (
     <>
       <Navbar />
-      <div className="bg-gray-50 min-h-screen">
+      <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
       {/* Story sistem - prikaz i viewer */}
       <StoriesSection />
 
@@ -268,9 +271,9 @@ export default function HomePageClient() {
       <div className="max-w-7xl mx-auto px-4 py-6 w-full">
         <main className="w-full">
           {filteredModels.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-gray-200">
-              <p className="text-2xl font-bold text-gray-400 mb-2">No models found</p>
-              <p className="text-gray-500">Try changing filters</p>
+            <div className="text-center py-20 rounded-xl" style={{ background: 'white', border: '1px solid #f0e6ea', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <p className="text-2xl font-bold text-brand/40 mb-2">No models found</p>
+              <p className="text-gray-400">Try changing filters</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">

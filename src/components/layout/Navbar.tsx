@@ -58,9 +58,9 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 shadow-2xl">
-      {/* Top Bar - Black background */}
-      <div className="border-b border-gray-800" style={{ backgroundColor: '#1f2126' }}>
+    <nav className="sticky top-0 z-50 shadow-lg">
+      {/* Top Bar - Clean dark */}
+      <div style={{ backgroundColor: '#1f2126', borderBottom: '1px solid #2a2d34' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -83,14 +83,13 @@ export default function Navbar() {
                 DE
               </div>
 
-              {/* If user is logged in, show user + logout buttons, otherwise show auth buttons */}
               {user ? (
                 <>
                   <Link
                     href={
-                      profile?.role === 'admin' ? '/dashboard/admin' :
-                      profile?.role === 'model' ? '/dashboard/model' : 
-                      profile?.role === 'company' ? '/dashboard/company' : 
+                      profile?.role === 'admin'   ? '/dashboard/admin'   :
+                      profile?.role === 'model'   ? '/dashboard/model'   :
+                      profile?.role === 'company' ? '/dashboard/company' :
                       '/dashboard'
                     }
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand-hover rounded-md transition-all"
@@ -135,84 +134,54 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Navigation Bar - Pink gradient */}
-      <div className="border-t border-brand/50 bg-brand">
+      {/* Navigation Bar - Vivid pink */}
+      <div style={{ backgroundColor: '#EC4899', borderBottom: '1px solid #DB2777' }}>
         <div className="max-w-7xl mx-auto px-4 w-full">
-          <div className="hidden lg:flex items-center justify-center gap-20 py-0 font-cookie">
-            <Link
-              href="/"
-              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
-            >
-              Girls
-            </Link>
-            <Link
-              href="/clubs"
-              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
-            >
-              Clubs/Agency
-            </Link>
-            <Link
-              href="/comments"
-              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
-            >
-              Comments
-            </Link>
-            <Link
-              href="/contact"
-              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
-            >
-              Contact
-            </Link>
-            <Link
-              href="/blog"
-              className="px-4 py-3 text-sm font-semibold text-white hover:bg-white/20 transition-all rounded"
-            >
-              Blog
-            </Link>
+          <div className="hidden lg:flex items-center justify-center gap-16">
+            {[
+              { href: '/',         label: 'Girls' },
+              { href: '/clubs',    label: 'Clubs / Agency' },
+              { href: '/comments', label: 'Comments' },
+              { href: '/contact',  label: 'Contact' },
+              { href: '/blog',     label: 'Blog' },
+            ].map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="relative px-4 py-3 text-sm font-bold tracking-wide transition-colors duration-200 group"
+                style={{ color: 'rgba(255,255,255,0.92)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#ffffff' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.92)' }}
+              >
+                {label}
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 rounded-full transition-all duration-300 group-hover:w-4/5" style={{ backgroundColor: 'white' }} />
+              </Link>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-gray-900 border-t border-brand/30">
+        <div className="lg:hidden" style={{ backgroundColor: '#1f2126', borderTop: '1px solid #2a2d34' }}>
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
-            <Link
-              href="/"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Girls
-            </Link>
-            <Link
-              href="/clubs"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Clubs/Agency
-            </Link>
-            <Link
-              href="/comments"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Comments
-            </Link>
-            <Link
-              href="/contact"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Contact
-            </Link>
-            <Link
-              href="/blog"
-              className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Blog
-            </Link>
-            
+            {[
+              { href: '/',         label: 'Girls' },
+              { href: '/clubs',    label: 'Clubs / Agency' },
+              { href: '/comments', label: 'Comments' },
+              { href: '/contact',  label: 'Contact' },
+              { href: '/blog',     label: 'Blog' },
+            ].map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {label}
+              </Link>
+            ))}
+
             <div className="border-t border-gray-800 pt-4 mt-4 space-y-2">
               {user ? (
                 <>
@@ -221,24 +190,21 @@ export default function Navbar() {
                   </div>
                   <Link
                     href={
-                      profile?.role === 'admin' ? '/dashboard/admin' :
-                      profile?.role === 'model' ? '/dashboard/model' : 
-                      profile?.role === 'company' ? '/dashboard/company' : 
+                      profile?.role === 'admin'   ? '/dashboard/admin'   :
+                      profile?.role === 'model'   ? '/dashboard/model'   :
+                      profile?.role === 'company' ? '/dashboard/company' :
                       '/dashboard'
                     }
                     className="block w-full px-4 py-3 text-sm font-bold bg-brand text-white text-center hover:bg-brand-hover rounded-lg transition-all shadow-lg"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    📊 Dashboard
+                    Dashboard
                   </Link>
                   <button
-                    onClick={() => {
-                      setMobileMenuOpen(false)
-                      handleLogout()
-                    }}
+                    onClick={() => { setMobileMenuOpen(false); handleLogout() }}
                     className="block w-full px-4 py-3 text-sm font-bold bg-red-600 text-white text-center hover:bg-red-700 rounded-lg transition-all shadow-lg"
                   >
-                    🚪 Logout
+                    Logout
                   </button>
                 </>
               ) : (

@@ -102,18 +102,18 @@ export default function StoriesSection() {
 
   return (
     <>
-      <div className="py-6 bg-gray-50 border-t border-gray-200">
+      <div className="py-6" style={{ backgroundColor: 'transparent' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {/* Add Story button for models */}
             {hasAddButton && (
               <Link href="/dashboard/model/upload-story" className="flex-shrink-0 text-center group">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center border-4 border-gray-200 group-hover:border-pink-500 transition-all">
-                    <Plus className="w-8 h-8 text-gray-600 group-hover:text-pink-600" />
+                    <div className="w-20 h-20 rounded-full flex items-center justify-center border-2 transition-all" style={{ background: 'rgba(255,255,255,0.15)', borderColor: 'rgba(255,255,255,0.5)' }}>
+                    <Plus className="w-8 h-8 text-white" />
                   </div>
                 </div>
-                <p className="text-xs font-semibold text-gray-700 mt-2 truncate w-20">Add Story</p>
+                <p className="text-xs font-semibold mt-2 truncate w-20" style={{ color: 'rgba(255,255,255,0.85)' }}>Add Story</p>
               </Link>
             )}
 
@@ -134,8 +134,8 @@ export default function StoriesSection() {
                     <div
                       className={`w-20 h-20 rounded-full p-[3px] ${
                         hasUnviewed
-                          ? 'bg-gradient-to-tr from-pink-600 via-rose-600 to-orange-500'
-                          : 'bg-gray-300'
+                          ? 'bg-gradient-to-tr from-blue-500 via-blue-400 to-cyan-400'
+                          : 'bg-blue-300/50'
                       }`}
                     >
                       <div className="w-full h-full bg-white rounded-full p-[3px]">
@@ -158,7 +158,7 @@ export default function StoriesSection() {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs font-semibold text-gray-700 mt-2 truncate w-20">
+                  <p className="text-xs font-semibold mt-2 truncate w-20" style={{ color: 'rgba(255,255,255,0.90)' }}>
                     {modelStory.model_showname}
                   </p>
                 </button>
@@ -172,10 +172,10 @@ export default function StoriesSection() {
                 className="flex-shrink-0 text-center pointer-events-none select-none"
                 aria-hidden
               >
-                <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 bg-gray-100 flex items-center justify-center">
-                  <User className="w-8 h-8 text-gray-400" />
+                <div className="w-20 h-20 rounded-full border-2 border-dashed flex items-center justify-center" style={{ borderColor: 'rgba(255,255,255,0.30)', backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                  <User className="w-8 h-8" style={{ color: 'rgba(255,255,255,0.35)' }} />
                 </div>
-                <p className="text-xs font-medium text-gray-400 mt-2 w-20 truncate">—</p>
+                <p className="text-xs font-medium mt-2 w-20 truncate" style={{ color: '#93C5FD' }}>—</p>
               </div>
             ))}
           </div>

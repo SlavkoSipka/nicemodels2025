@@ -146,18 +146,19 @@ export default function CitySelector({
   }, [])
 
   const triggerBase =
-    'flex items-center justify-between gap-2 w-full px-4 py-3 rounded-lg text-sm font-semibold transition-all border cursor-pointer'
+    'flex items-center justify-between gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all border cursor-pointer'
   const triggerDefault =
-    'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:shadow-md'
-  const triggerActive = 'bg-brand text-white border-brand shadow-md'
+    'bg-white text-gray-700 border-gray-200 hover:border-brand hover:shadow-md'
+  const triggerActive =
+    'text-white border-transparent shadow-md'
   const panelClass =
-    'absolute top-full left-0 right-0 mt-2 py-2 rounded-lg bg-white border border-gray-200 shadow-xl z-50 max-h-72 overflow-y-auto overflow-x-hidden'
+    'absolute top-full left-0 right-0 mt-2 py-2 rounded-xl bg-white border border-gray-100 shadow-2xl z-50 max-h-72 overflow-y-auto overflow-x-hidden'
   const optionClass =
-    'block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 cursor-pointer transition-colors truncate min-w-0'
+    'block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 hover:text-brand rounded-lg mx-1 cursor-pointer transition-colors truncate min-w-0'
 
   return (
-    <div className="bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-4 w-full">
+    <div style={{ backgroundColor: 'transparent', padding: '0 0 0 0' }}>
+      <div className="max-w-7xl mx-auto px-4 py-4 w-full pb-5">
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 w-full items-center">
           {/* Region */}
           <div className="relative min-w-0" ref={regionRef}>
@@ -165,6 +166,7 @@ export default function CitySelector({
               type="button"
               onClick={() => setOpenDropdown((v) => (v === 'region' ? null : 'region'))}
               className={`${triggerBase} ${selectedCity !== 'all' ? triggerActive : triggerDefault}`}
+              style={selectedCity !== 'all' ? { backgroundColor: '#EC4899', borderColor: '#EC4899' } : {}}
             >
               <span className="truncate">{selectedCity === 'all' ? 'Region' : selectedCity}</span>
               <ChevronDown className="w-4 h-4 shrink-0 opacity-80" />
@@ -204,6 +206,7 @@ export default function CitySelector({
               type="button"
               onClick={() => setOpenDropdown((v) => (v === 'category' ? null : 'category'))}
               className={`${triggerBase} ${selectedCategory !== 'all' ? triggerActive : triggerDefault}`}
+              style={selectedCategory !== 'all' ? { backgroundColor: '#EC4899', borderColor: '#EC4899' } : {}}
             >
               <span className="truncate">{selectedCategory === 'all' ? 'Category' : selectedCategory}</span>
               <ChevronDown className="w-4 h-4 shrink-0 opacity-80" />
@@ -243,6 +246,7 @@ export default function CitySelector({
               type="button"
               onClick={() => setOpenDropdown((v) => (v === 'offer' ? null : 'offer'))}
               className={`${triggerBase} ${selectedOffer !== 'all' ? triggerActive : triggerDefault}`}
+              style={selectedOffer !== 'all' ? { backgroundColor: '#EC4899', borderColor: '#EC4899' } : {}}
             >
               <span className="truncate">{selectedOffer === 'all' ? 'Offer' : selectedOffer}</span>
               <ChevronDown className="w-4 h-4 shrink-0 opacity-80" />
@@ -278,17 +282,24 @@ export default function CitySelector({
 
           {/* Search by model name */}
           <div className="relative min-w-0 sm:w-44">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#0EA5E9' }} />
             <input
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name"
-              className="w-full pl-9 pr-3 py-3 rounded-lg border border-gray-200 bg-white text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+              className="w-full pl-9 pr-3 py-3 rounded-xl text-sm text-gray-700 placeholder:text-sky-300 focus:outline-none transition-colors"
+              style={{ background: 'white', border: '1px solid #e5e7eb' }}
+              onFocus={e => { e.currentTarget.style.border = '1.5px solid #EC4899'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236,72,153,0.10)' }}
+              onBlur={e => { e.currentTarget.style.border = '1.5px solid #e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
               aria-label="Search models by name"
             />
           </div>
         </div>
+      </div>
+      {/* Centralna razdelna linijica */}
+      <div className="flex justify-center pb-1">
+        <div style={{ width: '120px', height: '2px', borderRadius: '999px', background: '#1f2126' }} />
       </div>
     </div>
   )
