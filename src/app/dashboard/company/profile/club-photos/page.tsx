@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Image as ImageIcon, Upload, Trash2, AlertCircle, CheckCircle } from 'lucide-react'
+import { processImage } from '@/lib/imageProcessor'
 
 interface Photo {
   id: string
@@ -66,18 +67,18 @@ export default function ClubPhotosPage() {
     try {
       const supabase = createClient()
 
-      for (const file of files) {
-        if (file.size > 10 * 1024 * 1024) {
-          setError(`${file.name} is too large. Max size is 10MB.`)
+      for (const rawFile of files) {
+        if (rawFile.size > 10 * 1024 * 1024) {
+          setError(`${rawFile.name} is too large. Max size is 10MB.`)
           continue
         }
-        if (!file.type.startsWith('image/')) {
-          setError(`${file.name} is not a valid image file.`)
+        if (!rawFile.type.startsWith('image/')) {
+          setError(`${rawFile.name} is not a valid image file.`)
           continue
         }
 
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+        const file = await processImage(rawFile)
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
         const filePath = `${user.email}/photos/${fileName}`
 
         const { error: uploadError } = await supabase.storage

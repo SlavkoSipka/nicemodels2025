@@ -43,7 +43,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   // Loading state
   if (isLoggedIn === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
       </div>
     )
@@ -52,7 +52,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   // Not logged in - show login prompt
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
         <div className="bg-white rounded-lg border border-gray-200 p-8 max-w-sm w-full text-center shadow-sm">
           <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-5">
             <Lock className="w-6 h-6 text-gray-500" />
@@ -83,22 +83,22 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   // Logged in - show comments
   return (
     <>
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
       <div className="max-w-7xl mx-auto px-4 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-semibold text-white tracking-tight">
             Reviews & Comments
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-white/70 mt-1">
             Community experiences
           </p>
         </div>
 
         {/* Stats - minimal */}
-        <div className="flex items-baseline gap-2 mb-8 pb-6 border-b border-gray-200">
-          <span className="text-2xl font-semibold text-gray-900">{comments.length}</span>
-          <span className="text-sm text-gray-500">
+        <div className="flex items-baseline gap-2 mb-8 pb-6 border-b border-white/15">
+          <span className="text-2xl font-semibold text-white">{comments.length}</span>
+          <span className="text-sm text-white/60">
             {comments.length === 1 ? 'review' : 'reviews'}
           </span>
         </div>

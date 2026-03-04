@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import ScrollToTop from "@/components/layout/ScrollToTop";
+import PageLoader from "@/components/layout/PageLoader";
 
 const inter = Inter({ subsets: ["latin"] });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -19,8 +20,10 @@ export default function RootLayout({
   return (
     <html lang="de" className={playfair.variable}>
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
-        <ScrollToTop />
-        {children}
+        <PageLoader>
+          <ScrollToTop />
+          {children}
+        </PageLoader>
       </body>
     </html>
   );

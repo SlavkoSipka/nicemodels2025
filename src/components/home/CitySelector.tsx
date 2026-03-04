@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 
 interface ModelDetail {
@@ -14,7 +14,7 @@ interface ModelService {
 }
 
 interface HomeModel {
-  model_details?: ModelDetail
+  model_details?: ModelDetail | null
   model_services_list?: ModelService[]
 }
 
@@ -145,56 +145,59 @@ export default function CitySelector({
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
 
-  const triggerBase =
-    'flex items-center justify-between gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all border cursor-pointer'
-  const triggerDefault =
-    'bg-white text-gray-700 border-gray-200 hover:border-brand hover:shadow-md'
-  const triggerActive =
-    'text-white border-transparent shadow-md'
-  const panelClass =
-    'absolute top-full left-0 right-0 mt-2 py-2 rounded-xl bg-white border border-gray-100 shadow-2xl z-50 max-h-72 overflow-y-auto overflow-x-hidden'
-  const optionClass =
-    'block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 hover:text-brand rounded-lg mx-1 cursor-pointer transition-colors truncate min-w-0'
+  const btnBase: React.CSSProperties = {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    gap: 8, width: '100%', padding: '10px 16px', borderRadius: 12,
+    fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s',
+    border: '1px solid rgba(255,255,255,0.1)',
+    backgroundColor: '#16181d', color: 'rgba(255,255,255,0.7)',
+  }
+  const btnActive: React.CSSProperties = {
+    ...btnBase,
+    background: 'linear-gradient(90deg, #9D174D, #EC4899)',
+    border: '1px solid transparent', color: 'white',
+  }
+  const panelStyle: React.CSSProperties = {
+    position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0,
+    padding: '6px 0', borderRadius: 12, zIndex: 50,
+    maxHeight: 280, overflowY: 'auto', overflowX: 'hidden',
+    background: '#16181d', border: '1px solid rgba(255,255,255,0.1)',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+  }
+  const optStyle: React.CSSProperties = {
+    display: 'block', width: '100%', textAlign: 'left',
+    padding: '9px 16px', fontSize: 13, cursor: 'pointer',
+    color: 'rgba(255,255,255,0.65)', background: 'transparent',
+    border: 'none', transition: 'all 0.12s',
+  }
+
+  const Opt = ({ label, onSel }: { label: string; onSel: () => void }) => (
+    <button
+      type="button"
+      style={optStyle}
+      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(236,72,153,0.15)'; (e.currentTarget as HTMLButtonElement).style.color = '#F472B6' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'rgba(255,255,255,0.65)' }}
+      onClick={onSel}
+    >{label}</button>
+  )
 
   return (
-    <div style={{ backgroundColor: 'transparent', padding: '0 0 0 0' }}>
+    <div style={{ backgroundColor: 'transparent' }}>
       <div className="max-w-7xl mx-auto px-4 py-4 w-full pb-5">
         <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 w-full items-center">
+
           {/* Region */}
           <div className="relative min-w-0" ref={regionRef}>
-            <button
-              type="button"
-              onClick={() => setOpenDropdown((v) => (v === 'region' ? null : 'region'))}
-              className={`${triggerBase} ${selectedCity !== 'all' ? triggerActive : triggerDefault}`}
-              style={selectedCity !== 'all' ? { backgroundColor: '#EC4899', borderColor: '#EC4899' } : {}}
-            >
+            <button type="button" style={selectedCity !== 'all' ? btnActive : btnBase}
+              onClick={() => setOpenDropdown(v => v === 'region' ? null : 'region')}>
               <span className="truncate">{selectedCity === 'all' ? 'Region' : selectedCity}</span>
-              <ChevronDown className="w-4 h-4 shrink-0 opacity-80" />
+              <ChevronDown style={{ width: 16, height: 16, flexShrink: 0, opacity: 0.7 }} />
             </button>
             {openDropdown === 'region' && (
-              <div className={panelClass}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedCity('all')
-                    setOpenDropdown(null)
-                  }}
-                  className={optionClass}
-                >
-                  All ({modelsForRegion.length})
-                </button>
-                {cities.map((c) => (
-                  <button
-                    key={c.name}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCity(c.name)
-                      setOpenDropdown(null)
-                    }}
-                    className={optionClass}
-                  >
-                    {c.name} ({c.count})
-                  </button>
+              <div style={panelStyle}>
+                <Opt label={`All (${modelsForRegion.length})`} onSel={() => { setSelectedCity('all'); setOpenDropdown(null) }} />
+                {cities.map(c => (
+                  <Opt key={c.name} label={`${c.name} (${c.count})`} onSel={() => { setSelectedCity(c.name); setOpenDropdown(null) }} />
                 ))}
               </div>
             )}
@@ -202,39 +205,16 @@ export default function CitySelector({
 
           {/* Category */}
           <div className="relative min-w-0" ref={categoryRef}>
-            <button
-              type="button"
-              onClick={() => setOpenDropdown((v) => (v === 'category' ? null : 'category'))}
-              className={`${triggerBase} ${selectedCategory !== 'all' ? triggerActive : triggerDefault}`}
-              style={selectedCategory !== 'all' ? { backgroundColor: '#EC4899', borderColor: '#EC4899' } : {}}
-            >
+            <button type="button" style={selectedCategory !== 'all' ? btnActive : btnBase}
+              onClick={() => setOpenDropdown(v => v === 'category' ? null : 'category')}>
               <span className="truncate">{selectedCategory === 'all' ? 'Category' : selectedCategory}</span>
-              <ChevronDown className="w-4 h-4 shrink-0 opacity-80" />
+              <ChevronDown style={{ width: 16, height: 16, flexShrink: 0, opacity: 0.7 }} />
             </button>
             {openDropdown === 'category' && (
-              <div className={panelClass}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedCategory('all')
-                    setOpenDropdown(null)
-                  }}
-                  className={optionClass}
-                >
-                  All ({modelsForCategory.length})
-                </button>
-                {categories.map((c) => (
-                  <button
-                    key={c.name}
-                    type="button"
-                    onClick={() => {
-                      setSelectedCategory(c.name)
-                      setOpenDropdown(null)
-                    }}
-                    className={optionClass}
-                  >
-                    {c.name} ({c.count})
-                  </button>
+              <div style={panelStyle}>
+                <Opt label={`All (${modelsForCategory.length})`} onSel={() => { setSelectedCategory('all'); setOpenDropdown(null) }} />
+                {categories.map(c => (
+                  <Opt key={c.name} label={`${c.name} (${c.count})`} onSel={() => { setSelectedCategory(c.name); setOpenDropdown(null) }} />
                 ))}
               </div>
             )}
@@ -242,64 +222,45 @@ export default function CitySelector({
 
           {/* Offer */}
           <div className="relative min-w-0" ref={offerRef}>
-            <button
-              type="button"
-              onClick={() => setOpenDropdown((v) => (v === 'offer' ? null : 'offer'))}
-              className={`${triggerBase} ${selectedOffer !== 'all' ? triggerActive : triggerDefault}`}
-              style={selectedOffer !== 'all' ? { backgroundColor: '#EC4899', borderColor: '#EC4899' } : {}}
-            >
+            <button type="button" style={selectedOffer !== 'all' ? btnActive : btnBase}
+              onClick={() => setOpenDropdown(v => v === 'offer' ? null : 'offer')}>
               <span className="truncate">{selectedOffer === 'all' ? 'Offer' : selectedOffer}</span>
-              <ChevronDown className="w-4 h-4 shrink-0 opacity-80" />
+              <ChevronDown style={{ width: 16, height: 16, flexShrink: 0, opacity: 0.7 }} />
             </button>
             {openDropdown === 'offer' && (
-              <div className={panelClass}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedOffer('all')
-                    setOpenDropdown(null)
-                  }}
-                  className={optionClass}
-                >
-                  All
-                </button>
-                {offers.map((o) => (
-                  <button
-                    key={o.name}
-                    type="button"
-                    onClick={() => {
-                      setSelectedOffer(o.name)
-                      setOpenDropdown(null)
-                    }}
-                    className={optionClass}
-                  >
-                    {o.name} ({o.count})
-                  </button>
+              <div style={panelStyle}>
+                <Opt label="All" onSel={() => { setSelectedOffer('all'); setOpenDropdown(null) }} />
+                {offers.map(o => (
+                  <Opt key={o.name} label={`${o.name} (${o.count})`} onSel={() => { setSelectedOffer(o.name); setOpenDropdown(null) }} />
                 ))}
               </div>
             )}
           </div>
 
-          {/* Search by model name */}
+          {/* Search */}
           <div className="relative min-w-0 sm:w-44">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: '#0EA5E9' }} />
+            <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 15, height: 15, pointerEvents: 'none', color: 'rgba(255,255,255,0.3)' }} />
             <input
               type="search"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search by name"
-              className="w-full pl-9 pr-3 py-3 rounded-xl text-sm text-gray-700 placeholder:text-sky-300 focus:outline-none transition-colors"
-              style={{ background: 'white', border: '1px solid #e5e7eb' }}
-              onFocus={e => { e.currentTarget.style.border = '1.5px solid #EC4899'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236,72,153,0.10)' }}
-              onBlur={e => { e.currentTarget.style.border = '1.5px solid #e5e7eb'; e.currentTarget.style.boxShadow = 'none' }}
               aria-label="Search models by name"
+              style={{
+                width: '100%', paddingLeft: 36, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
+                borderRadius: 12, fontSize: 13, outline: 'none',
+                backgroundColor: '#16181d', border: '1px solid rgba(255,255,255,0.1)',
+                color: 'rgba(255,255,255,0.8)',
+              }}
+              onFocus={e => { e.currentTarget.style.border = '1px solid rgba(236,72,153,0.5)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236,72,153,0.12)' }}
+              onBlur={e => { e.currentTarget.style.border = '1px solid rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none' }}
             />
           </div>
         </div>
       </div>
-      {/* Centralna razdelna linijica */}
+      {/* Divider */}
       <div className="flex justify-center pb-1">
-        <div style={{ width: '120px', height: '2px', borderRadius: '999px', background: '#1f2126' }} />
+        <div style={{ width: '80px', height: '1px', background: 'rgba(255,255,255,0.1)', borderRadius: 999 }} />
       </div>
     </div>
   )

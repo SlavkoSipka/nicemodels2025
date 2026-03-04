@@ -108,18 +108,18 @@ export default function BlogPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
 
         {/* ── Header ── */}
-        <div className="border-b border-gray-100">
+        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
           <div className="max-w-7xl mx-auto px-4 py-12">
-            <p className="text-xs font-semibold uppercase tracking-widest text-brand mb-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-3">
               Blog
             </p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 leading-tight max-w-2xl">
+            <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight max-w-2xl">
               Stories, guides &amp; insights
             </h1>
-            <p className="mt-3 text-gray-500 text-lg max-w-xl">
+            <p className="mt-3 text-white/70 text-lg max-w-xl">
               Tips and industry knowledge for models, agencies and curious readers.
             </p>
           </div>
@@ -128,15 +128,15 @@ export default function BlogPage() {
         <div className="max-w-7xl mx-auto px-4">
 
           {/* ── Category tabs ── */}
-          <div className="flex items-center gap-1 py-5 border-b border-gray-100 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 py-5 border-b border-white/15 overflow-x-auto scrollbar-hide">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === cat
-                    ? 'bg-gray-900 text-white'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                    ? 'bg-white text-gray-900'
+                    : 'text-white/70 hover:text-white hover:bg-white/10'
                 }`}
               >
                 {cat}
@@ -146,8 +146,8 @@ export default function BlogPage() {
 
           {/* ── Featured post ── */}
           {featuredPost && selectedCategory === 'All' && (
-            <div className="py-10 border-b border-gray-100">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-5">
+            <div className="py-10 border-b border-white/15">
+              <p className="text-xs font-semibold uppercase tracking-widest text-white/50 mb-5">
                 Featured
               </p>
               <Link
@@ -206,7 +206,7 @@ export default function BlogPage() {
           <div className="py-10">
             {regularPosts.length > 0 ? (
               <>
-                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-7">
+                <p className="text-xs font-semibold uppercase tracking-widest text-white/50 mb-7">
                   {selectedCategory === 'All' ? 'Latest articles' : selectedCategory}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -240,22 +240,22 @@ export default function BlogPage() {
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-base font-semibold text-gray-900 group-hover:text-brand transition-colors leading-snug mb-2">
+                      <h3 className="text-base font-semibold text-white group-hover:text-white/80 transition-colors leading-snug mb-2">
                         {post.title}
                       </h3>
 
                       {/* Excerpt */}
-                      <p className="text-sm text-gray-500 line-clamp-2 flex-1 mb-4">
+                      <p className="text-sm text-white/60 line-clamp-2 flex-1 mb-4">
                         {post.excerpt}
                       </p>
 
                       {/* Author + date */}
-                      <div className="flex items-center gap-2 text-xs text-gray-400 mt-auto">
-                        <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                          <User className="w-3 h-3 text-gray-500" />
+                      <div className="flex items-center gap-2 text-xs text-white/50 mt-auto">
+                        <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <User className="w-3 h-3 text-white/50" />
                         </div>
                         <span>{post.author}</span>
-                        <span className="text-gray-300">·</span>
+                        <span className="text-white/30">·</span>
                         <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                     </Link>

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { trackModelAction, trackProfileView } from '@/lib/tracking'
+import { usePageLoader } from '@/components/layout/PageLoader'
 import StartChatButton from '@/components/chat/StartChatButton'
 import {
   MapPin,
@@ -37,9 +38,24 @@ import {
 
 interface ModelProfileClientProps {
   modelData: any
+  allModelIds: string[]
+  prevId: string | null
+  nextId: string | null
 }
 
-export default function ModelProfileClient({ modelData }: ModelProfileClientProps) {
+const SHUFFLE_KEY = 'nm_browse_order'
+const SHUFFLE_IDX  = 'nm_browse_index'
+
+function getShuffled(ids: string[]): string[] {
+  const arr = [...ids]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr
+}
+
+export default function ModelProfileClient({ modelData, allModelIds, prevId: serverPrevId, nextId: serverNextId }: ModelProfileClientProps) {
   const {
     profile,
     modelDetails,
@@ -54,6 +70,8 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
   } = modelData
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
   const [showContact, setShowContact] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
   const [isCheckingFavorite, setIsCheckingFavorite] = useState(true)
@@ -71,13 +89,67 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
   const [myComment, setMyComment] = useState<any>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const router = useRouter()
+  const { show: showLoader } = usePageLoader()
+
+  // ── Shuffle-based prev/next navigation ──────────────────────────────────
+  const [browseNav, setBrowseNav] = useState<{ prevId: string | null; nextId: string | null }>({
+    prevId: serverPrevId,
+    nextId: serverNextId,
+  })
+
+  useEffect(() => {
+    if (allModelIds.length < 2) return
+    const currentId = profile.id
+
+    let order: string[] = []
+    let idx = -1
+
+    try {
+      const stored = localStorage.getItem(SHUFFLE_KEY)
+      order = stored ? JSON.parse(stored) : []
+    } catch { order = [] }
+
+    // If stored order doesn't contain all current IDs, rebuild it
+    const activeSet = new Set(allModelIds)
+    const valid = order.length === allModelIds.length &&
+      order.every(id => activeSet.has(id))
+
+    if (!valid) {
+      order = getShuffled(allModelIds)
+      localStorage.setItem(SHUFFLE_KEY, JSON.stringify(order))
+    }
+
+    idx = order.indexOf(currentId)
+    if (idx === -1) {
+      // Current model not in order somehow — reset
+      order = getShuffled(allModelIds)
+      localStorage.setItem(SHUFFLE_KEY, JSON.stringify(order))
+      idx = order.indexOf(currentId)
+    }
+
+    localStorage.setItem(SHUFFLE_IDX, String(idx))
+
+    const total = order.length
+    const pId = order[(idx - 1 + total) % total]
+    const nId = order[(idx + 1) % total]
+    setBrowseNav({ prevId: pId, nextId: nId })
+  }, [profile.id, allModelIds, serverPrevId, serverNextId])
+
+  const goToPrev = () => { if (browseNav.prevId) { showLoader(); router.push(`/models/${browseNav.prevId}`) } }
+  const goToNext = () => { if (browseNav.nextId) { showLoader(); router.push(`/models/${browseNav.nextId}`) } }
+
+  // Prefetch prev/next routes as soon as we know their IDs
+  useEffect(() => {
+    if (browseNav.prevId) router.prefetch(`/models/${browseNav.prevId}`)
+    if (browseNav.nextId) router.prefetch(`/models/${browseNav.nextId}`)
+  }, [browseNav.prevId, browseNav.nextId, router])
+  // ────────────────────────────────────────────────────────────────────────
 
   // Check if model is already favorited and if user has existing comment
   useEffect(() => {
     checkIfFavorite()
     checkExistingComment()
     checkIfLoggedIn()
-    // Track profile view
     trackProfileView(profile.id)
   }, [profile.id])
 
@@ -278,6 +350,32 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
   // Keep photoUrls for backward compat (stats display)
   const photoUrls = mediaItems.filter(m => m.type === 'photo').map(m => m.url)
 
+  // Preload photos adjacent to the current one so flipping feels instant
+  useEffect(() => {
+    const toPreload = [
+      mediaItems[selectedPhotoIndex + 1],
+      mediaItems[selectedPhotoIndex - 1],
+    ].filter(Boolean)
+    toPreload.forEach(item => {
+      if (item?.type === 'photo') {
+        const img = new window.Image()
+        img.src = item.url
+      }
+    })
+  }, [selectedPhotoIndex, mediaItems])
+
+  // Keyboard navigation for lightbox — after mediaItems declaration
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false)
+      if (e.key === 'ArrowRight') setLightboxIndex(i => (i + 1) % mediaItems.length)
+      if (e.key === 'ArrowLeft')  setLightboxIndex(i => (i - 1 + mediaItems.length) % mediaItems.length)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxOpen, mediaItems.length])
+
   const formatLanguageLevel = (level: string) => {
     const levels: Record<string, string> = {
       'basic': 'Basic',
@@ -338,6 +436,52 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
+
+      {/* ── Floating prev/next nav ── */}
+      {allModelIds.length > 1 && (
+        <>
+          {/* PREV */}
+          <button
+            onClick={goToPrev}
+            aria-label="Previous model"
+            className="fixed left-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
+            style={{
+              width: 48, height: 96,
+              background: 'rgba(31,33,38,0.92)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 12,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(8px)',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(31,33,38,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)' }}
+          >
+            <ChevronLeft className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.35)', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>prev</span>
+          </button>
+
+          {/* NEXT */}
+          <button
+            onClick={goToNext}
+            aria-label="Next model"
+            className="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
+            style={{
+              width: 48, height: 96,
+              background: 'rgba(31,33,38,0.92)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 12,
+              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(8px)',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(31,33,38,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)' }}
+          >
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.35)', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>next</span>
+            <ChevronRight className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+          </button>
+        </>
+      )}
+
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Back Button */}
@@ -349,8 +493,466 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
           <span className="font-medium">Back to all models</span>
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[550px_1fr] gap-8">
-          {/* Left Column - sticky media viewer (photos + videos) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-8">
+          {/* Left Column - info */}
+          <div className="space-y-3">
+
+            {/* ── Hero card ── */}
+            <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
+              {/* Dark header */}
+              <div className="px-6 pt-6 pb-5" style={{ background: '#1f2126' }}>
+
+                {/* Name + verified */}
+                <div className="flex items-start justify-between gap-3 mb-1">
+                  <h1 className="text-3xl font-bold leading-tight tracking-tight" style={{ color: '#ffffff' }}>
+                    {modelDetails?.showname || profile.username}
+                  </h1>
+                  {profile.is_verified && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white px-2.5 py-1 rounded-full shrink-0 mt-1" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(16,185,129,0.4)' }}>
+                      <CheckCircle className="w-3 h-3" /> Verified
+                    </span>
+                  )}
+                </div>
+
+                {/* City / age line */}
+                <div className="flex items-center gap-3 mb-3">
+                  {modelDetails?.city && (
+                    <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      {modelDetails.city}
+                    </span>
+                  )}
+                  {modelDetails?.age && modelDetails?.city && (
+                    <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
+                  )}
+                  {modelDetails?.age && (
+                    <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      {modelDetails.age} years
+                    </span>
+                  )}
+                </div>
+
+                {modelDetails?.slogan && (
+                  <p className="text-sm italic mb-4 leading-relaxed" style={{ color: '#F472B6' }}>"{modelDetails.slogan}"</p>
+                )}
+
+                {/* Show Contact */}
+                {!showContact ? (
+                  <button
+                    onClick={handleShowContact}
+                    className="w-full py-3.5 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 mb-3 text-sm tracking-wide"
+                    style={{ background: 'linear-gradient(90deg, #9D174D, #EC4899)', boxShadow: '0 4px 20px rgba(236,72,153,0.4)' }}
+                  >
+                    <Phone className="w-4 h-4" /> Show Contact
+                  </button>
+                ) : (
+                  <div className="mb-3 p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    {contactDetails ? (
+                      <div className="space-y-2.5">
+                        {contactDetails.show_phone_number && contactDetails.phone_number && (
+                          <div>
+                            <a
+                              href={`tel:${contactDetails.country_code || ''}${contactDetails.phone_number}`}
+                              className="text-2xl font-bold transition-colors"
+                              style={{ color: '#F472B6' }}
+                            >
+                              {contactDetails.country_code || ''} {contactDetails.phone_number}
+                            </a>
+                            {(contactDetails.has_whatsapp || contactDetails.has_viber || contactDetails.has_telegram) && (
+                              <div className="flex flex-wrap gap-1.5 mt-2">
+                                {contactDetails.has_whatsapp && <span className="text-xs px-2.5 py-1 font-semibold rounded-full" style={{ background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}>WhatsApp</span>}
+                                {contactDetails.has_viber && <span className="text-xs px-2.5 py-1 font-semibold rounded-full" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)' }}>Viber</span>}
+                                {contactDetails.has_telegram && <span className="text-xs px-2.5 py-1 font-semibold rounded-full" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}>Telegram</span>}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {contactDetails.email && (
+                          <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                            <Mail className="w-4 h-4" style={{ color: '#EC4899' }} /> {contactDetails.email}
+                          </a>
+                        )}
+                        {contactDetails.website && (
+                          <a href={contactDetails.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                            <Globe className="w-4 h-4" style={{ color: '#EC4899' }} /> {contactDetails.website}
+                          </a>
+                        )}
+                        {contactDetails.contact_instruction && (
+                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{contactDetails.contact_instruction.replace(/_/g, ' ')}</p>
+                        )}
+                        {contactDetails.no_withheld_numbers && (
+                          <p className="text-xs font-semibold" style={{ color: '#f87171' }}>No withheld numbers accepted</p>
+                        )}
+                        {!contactDetails.phone_number && !contactDetails.email && !contactDetails.website && (
+                          <p className="text-sm text-center py-1" style={{ color: 'rgba(255,255,255,0.4)' }}>No contact details provided yet</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-center py-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Contact information not available</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Save + Share */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={toggleFavorite}
+                    disabled={isSavingFavorite || isCheckingFavorite}
+                    className="py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    style={isFavorite
+                      ? { background: 'linear-gradient(90deg, #9D174D, #EC4899)', color: 'white', border: '1px solid transparent' }
+                      : { background: 'transparent', color: '#EC4899', border: '1px solid #EC4899' }
+                    }
+                  >
+                    <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
+                    {isSavingFavorite ? 'Saving…' : isFavorite ? 'Saved' : 'Save'}
+                  </button>
+                  <button
+                    onClick={handleShare}
+                    className="py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    style={{ background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.15)' }}
+                  >
+                    <Share2 className="w-4 h-4" /> Share
+                  </button>
+                </div>
+              </div>
+
+              {/* ── Stats row ── */}
+              {modelDetails && (() => {
+                const statRows = [
+                  modelDetails.age         && ['Age',         `${modelDetails.age} yrs`],
+                  modelDetails.height_cm   && ['Height',      `${modelDetails.height_cm} cm`],
+                  modelDetails.weight_kg   && ['Weight',      `${modelDetails.weight_kg} kg`],
+                  modelDetails.bust_cm     && ['Bust',        `${modelDetails.bust_cm} cm`],
+                  modelDetails.waist_cm    && ['Waist',       `${modelDetails.waist_cm} cm`],
+                  modelDetails.hip_cm      && ['Hip',         `${modelDetails.hip_cm} cm`],
+                  modelDetails.hair_color  && ['Hair',        formatHairColor(modelDetails.hair_color)],
+                  modelDetails.eye_color   && ['Eyes',        formatEyeColor(modelDetails.eye_color)],
+                  modelDetails.ethnicity   && ['Ethnicity',   formatEthnicity(modelDetails.ethnicity)],
+                  modelDetails.nationality && ['Nationality', modelDetails.nationality],
+                  modelDetails.dress_size  && ['Dress',       modelDetails.dress_size.toUpperCase()],
+                  modelDetails.gender      && ['Gender',      formatGender(modelDetails.gender)],
+                ].filter(Boolean)
+                if (!statRows.length) return null
+                return (
+                  <div style={{ background: '#16181d', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="grid grid-cols-2">
+                      {statRows.map(([label, val]: any, idx: number) => (
+                        <div key={label} className="flex items-center justify-between px-5 py-2.5" style={{
+                          borderBottom: idx < statRows.length - 2 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                          borderRight: idx % 2 === 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                        }}>
+                          <span className="text-[11px] uppercase tracking-widest font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+                          <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{val}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {modelDetails.special_characteristics && (
+                      <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                        <span className="text-[11px] uppercase tracking-widest font-medium block mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Special</span>
+                        <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>{modelDetails.special_characteristics}</p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
+            </div>
+
+            {/* ── Rates ── */}
+            {rates.length > 0 && (() => {
+              const incallRates = rates.filter((r: any) => r.rate_type === 'incall')
+              const outcallRates = rates.filter((r: any) => r.rate_type === 'outcall')
+              return (
+                <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Rates</span>
+                  </div>
+                  <div className="grid grid-cols-2 divide-x" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+                    {/* Incall */}
+                    <div>
+                      <div className="px-4 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                        <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#EC4899' }}>Incall</span>
+                      </div>
+                      {incallRates.length > 0 ? incallRates.map((rate: any) => (
+                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{formatDuration(rate.duration)}</span>
+                          <span className="text-sm font-bold" style={{ color: 'white' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>{rate.currency || 'CHF'}</span></span>
+                        </div>
+                      )) : (
+                        <div className="px-4 py-4 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>—</div>
+                      )}
+                    </div>
+                    {/* Outcall */}
+                    <div>
+                      <div className="px-4 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                        <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#818CF8' }}>Outcall</span>
+                      </div>
+                      {outcallRates.length > 0 ? outcallRates.map((rate: any) => (
+                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{formatDuration(rate.duration)}</span>
+                          <span className="text-sm font-bold" style={{ color: 'white' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>{rate.currency || 'CHF'}</span></span>
+                        </div>
+                      )) : (
+                        <div className="px-4 py-4 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>—</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* ── About Me ── */}
+            {modelDetails?.about_me && (
+              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>About me</span>
+                </div>
+                <div className="px-5 py-4">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'rgba(255,255,255,0.72)' }}>{modelDetails.about_me}</p>
+                </div>
+              </div>
+            )}
+
+            {/* ── Services ── */}
+            {services.length > 0 && (
+              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Services</span>
+                </div>
+                <div className="px-5 py-4">
+                  <div className="flex flex-wrap gap-2">
+                    {services.map((service: any) => (
+                      <span key={service.id} className="text-xs px-3 py-1.5 font-medium rounded-md" style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.2)' }}>
+                        {service.service?.name || 'Service'}
+                      </span>
+                    ))}
+                  </div>
+                  {modelDetails?.services_for?.length > 0 && (
+                    <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>For</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {modelDetails.services_for.map((sf: string, i: number) => (
+                          <span key={i} className="text-xs px-3 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.2)' }}>{sf}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── Languages ── */}
+            {languages.length > 0 && (
+              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Languages</span>
+                </div>
+                <div className="px-5 py-4 flex flex-wrap gap-2">
+                  {languages.map((lang: any) => (
+                    <div key={lang.id} className="flex items-center gap-2 px-3 py-1.5 rounded-md" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
+                      <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{lang.language}</span>
+                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>{formatLanguageLevel(lang.level)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── Location & Availability ── */}
+            {modelDetails?.city && (
+              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Location</span>
+                </div>
+                <div className="px-5 py-4">
+                  <p className="text-sm font-bold mb-3" style={{ color: 'rgba(255,255,255,0.85)' }}>{modelDetails.city}</p>
+                  {modelDetails?.incall_options?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mb-1.5">
+                      {formatIncallOptions(modelDetails.incall_options).map((opt: string, i: number) => (
+                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.2)' }}>Incall: {opt}</span>
+                      ))}
+                    </div>
+                  )}
+                  {modelDetails?.outcall_options?.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {formatIncallOptions(modelDetails.outcall_options).map((opt: string, i: number) => (
+                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.2)' }}>Outcall: {opt}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── Working Hours ── */}
+            {workingHours.length > 0 && (
+              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Availability</span>
+                </div>
+                <div className="px-5 py-3">
+                  {(() => {
+                    const is24_7 = workingHours.length === 7 && workingHours.every((wh: any) =>
+                      wh.start_time === '00:00:00' && wh.end_time === '23:59:00'
+                    )
+                    if (is24_7) return (
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                        <span className="text-sm font-bold" style={{ color: '#4ade80' }}>Available 24 / 7</span>
+                      </div>
+                    )
+                    return (
+                      <div>
+                        {workingHours.map((wh: any) => (
+                          <div key={wh.id} className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{formatDayOfWeek(wh.day_of_week)}</span>
+                            <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                              {wh.start_time && wh.end_time ? `${wh.start_time.slice(0, 5)} – ${wh.end_time.slice(0, 5)}` : 'Closed'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* ── Reviews ── */}
+            {(() => {
+              const otherComments = comments?.filter((c: any) => c.user?.id !== currentUserId) || []
+              return isLoggedIn && otherComments.length > 0 && (
+                <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Reviews</span>
+                    <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>({otherComments.length})</span>
+                  </div>
+                  <div className="px-5 py-4 space-y-4">
+                    {otherComments.map((comment: any) => (
+                      <div key={comment.id} className="pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div className="flex items-start justify-between mb-1.5">
+                          <span className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.8)' }}>{comment.user.username || 'Anonymous'}</span>
+                          {comment.rating && (
+                            <div className="flex gap-0.5">
+                              {Array.from({ length: comment.rating }).map((_: any, i: number) => (
+                                <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[11px] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                          {new Date(comment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </p>
+                        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>{comment.comment_text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* ── Leave a review ── */}
+            <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+              <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  {myComment ? 'Your review' : 'Leave a review'}
+                </span>
+              </div>
+              <div className="px-5 py-4">
+              {myComment ? (
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                      myComment.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
+                      myComment.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      {myComment.status === 'pending' ? 'Pending review' : myComment.status === 'approved' ? 'Approved' : 'Not approved'}
+                    </span>
+                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                      {new Date(myComment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </p>
+                  </div>
+                  {myComment.rating && (
+                    <div className="flex gap-0.5 mb-2">
+                      {Array.from({ length: myComment.rating }).map((_: any, i: number) => (
+                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>{myComment.comment_text}</p>
+                </div>
+              ) : (
+                <div>
+                  {commentSuccess && (
+                    <div className="mb-3 p-3 rounded-md text-sm font-medium" style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#4ade80' }}>
+                      Comment submitted — pending review.
+                    </div>
+                  )}
+                  {!showCommentForm ? (
+                    <>
+                      <p className="text-sm mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Share your experience with this model.</p>
+                      <button
+                        onClick={() => {
+                          const supabase = createClient()
+                          supabase.auth.getUser().then(({ data: { user } }) => {
+                            if (!user) setShowCommentLoginModal(true)
+                            else setShowCommentForm(true)
+                          })
+                        }}
+                        className="w-full py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                        style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
+                      >
+                        <MessageCircle className="w-4 h-4" /> Write a review
+                      </button>
+                    </>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button key={star} onClick={() => setCommentRating(star)}
+                            className={`text-2xl transition-colors ${star <= commentRating ? 'text-amber-400' : 'text-gray-600 hover:text-amber-300'}`}>
+                            ★
+                          </button>
+                        ))}
+                      </div>
+                      <textarea
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        placeholder="Share your experience…"
+                        rows={4}
+                        maxLength={1000}
+                        className="w-full px-3 py-2.5 text-sm rounded-md focus:outline-none resize-none"
+                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.8)' }}
+                      />
+                      <p className="text-xs text-right" style={{ color: 'rgba(255,255,255,0.3)' }}>{commentText.length} / 1000</p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={submitComment}
+                          disabled={submittingComment || !commentText.trim()}
+                          className="flex-1 py-2.5 text-sm font-bold rounded-md transition-all disabled:opacity-50"
+                          style={{ background: 'linear-gradient(90deg, #9D174D, #EC4899)', color: 'white' }}
+                        >
+                          {submittingComment ? 'Submitting…' : 'Submit'}
+                        </button>
+                        <button
+                          onClick={() => { setShowCommentForm(false); setCommentText(''); setCommentRating(0) }}
+                          className="px-4 py-2.5 text-sm font-semibold rounded-md transition-colors"
+                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>All reviews are verified before publishing.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Column - sticky media viewer (photos + videos) */}
           <div>
             <div
               className="sticky top-[125px] relative overflow-hidden rounded-lg bg-black"
@@ -358,7 +960,6 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
             >
               {mediaItems.length > 0 ? (
                 <>
-                  {/* Current media item */}
                   {mediaItems[selectedPhotoIndex]?.type === 'video' ? (
                     <video
                       key={mediaItems[selectedPhotoIndex].url}
@@ -373,12 +974,15 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
                       alt={modelDetails?.showname || profile.username}
                       fill
                       sizes="(max-width: 768px) 100vw, 550px"
-                      className="object-cover object-top"
+                      className="object-cover object-top cursor-zoom-in transition-opacity duration-300"
                       priority
+                      quality={82}
+                      placeholder="blur"
+                      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z"
+                      onClick={() => { setLightboxIndex(selectedPhotoIndex); setLightboxOpen(true) }}
                     />
                   )}
 
-                  {/* Navigation arrows */}
                   {mediaItems.length > 1 && (
                     <>
                       <button
@@ -396,7 +1000,6 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
                     </>
                   )}
 
-                  {/* Counter + video badge */}
                   <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
                     {mediaItems[selectedPhotoIndex]?.type === 'video' && (
                       <span className="bg-black/60 text-white text-xs font-semibold px-2 py-1 rounded-full">
@@ -418,455 +1021,6 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className="space-y-4">
-
-            {/* ── Hero info card ── */}
-            <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
-              {/* colored top bar */}
-              <div className="h-1.5 bg-gradient-to-r from-brand via-rose-400 to-pink-300" />
-              <div className="p-5">
-                <div className="flex items-start justify-between gap-3 mb-1">
-                  <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-                    {modelDetails?.showname || profile.username}
-                  </h1>
-                  {profile.is_verified && (
-                    <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-500 px-2.5 py-1 rounded-full shrink-0 shadow-sm">
-                      <CheckCircle className="w-3.5 h-3.5" /> Verified
-                    </span>
-                  )}
-                </div>
-                {modelDetails?.slogan && (
-                  <p className="text-sm text-brand/80 italic mb-3">"{modelDetails.slogan}"</p>
-                )}
-
-                {/* key stats row */}
-                <div className="flex flex-wrap gap-3 mb-5">
-                  {modelDetails?.city && (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1">
-                      <MapPin className="w-3.5 h-3.5 text-brand" /> {modelDetails.city}
-                    </span>
-                  )}
-                  {modelDetails?.age && (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1">
-                      <Calendar className="w-3.5 h-3.5 text-blue-500" /> {modelDetails.age} yrs
-                    </span>
-                  )}
-                  {photos.length > 0 && (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1">
-                      <ImageIcon className="w-3.5 h-3.5 text-purple-500" /> {photos.length} photos
-                    </span>
-                  )}
-                </div>
-
-                {/* Contact reveal */}
-                {!showContact ? (
-                  <button
-                    onClick={handleShowContact}
-                    className="w-full py-3 bg-gradient-to-r from-brand to-rose-500 hover:from-brand-hover hover:to-rose-600 text-white font-bold rounded-md transition-all shadow-md flex items-center justify-center gap-2 mb-3"
-                  >
-                    <Phone className="w-4 h-4" /> Show Contact
-                  </button>
-                ) : (
-                  <div className="mb-3 p-4 bg-emerald-50 border border-emerald-200 rounded-md">
-                    {contactDetails ? (
-                      <div className="space-y-2.5">
-                        {contactDetails.show_phone_number && contactDetails.phone_number && (
-                          <div>
-                            <a
-                              href={`tel:${contactDetails.country_code || ''}${contactDetails.phone_number}`}
-                              className="text-2xl font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
-                            >
-                              {contactDetails.country_code || ''} {contactDetails.phone_number}
-                            </a>
-                            {(contactDetails.has_whatsapp || contactDetails.has_viber || contactDetails.has_telegram) && (
-                              <div className="flex flex-wrap gap-1.5 mt-2">
-                                {contactDetails.has_whatsapp && <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">WhatsApp</span>}
-                                {contactDetails.has_viber && <span className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 font-semibold rounded-full">Viber</span>}
-                                {contactDetails.has_telegram && <span className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 font-semibold rounded-full">Telegram</span>}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {contactDetails.email && (
-                          <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-brand">
-                            <Mail className="w-4 h-4 text-brand" /> {contactDetails.email}
-                          </a>
-                        )}
-                        {contactDetails.website && (
-                          <a href={contactDetails.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-700 hover:text-brand">
-                            <Globe className="w-4 h-4 text-brand" /> {contactDetails.website}
-                          </a>
-                        )}
-                        {contactDetails.contact_instruction && (
-                          <p className="text-xs text-gray-500">{contactDetails.contact_instruction.replace(/_/g, ' ')}</p>
-                        )}
-                        {contactDetails.no_withheld_numbers && (
-                          <p className="text-xs text-red-600 font-semibold">No withheld numbers accepted</p>
-                        )}
-                        {!contactDetails.phone_number && !contactDetails.email && !contactDetails.website && (
-                          <p className="text-sm text-gray-500 text-center py-1">No contact details provided yet</p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500 text-center py-1">Contact information not available</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Save + Share */}
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={toggleFavorite}
-                    disabled={isSavingFavorite || isCheckingFavorite}
-                    className={`py-2.5 text-sm font-bold rounded-md border-2 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 ${
-                      isFavorite
-                        ? 'bg-brand border-brand text-white shadow-md'
-                        : 'border-brand text-brand hover:bg-brand hover:text-white'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-                    {isSavingFavorite ? 'Saving…' : isFavorite ? 'Saved' : 'Save'}
-                  </button>
-                  <button
-                    onClick={handleShare}
-                    className="py-2.5 text-sm font-bold rounded-md border-2 border-gray-200 text-gray-600 hover:border-gray-400 hover:text-gray-900 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <Share2 className="w-4 h-4" /> Share
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* ── Reviews ── */}
-            {(() => {
-              const otherComments = comments?.filter((c: any) => c.user?.id !== currentUserId) || []
-              return isLoggedIn && otherComments.length > 0 && (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
-                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                    </div>
-                    <p className="text-sm font-bold text-gray-800">Reviews <span className="text-gray-400 font-normal">({otherComments.length})</span></p>
-                  </div>
-                  <div className="space-y-4">
-                    {otherComments.map((comment: any) => (
-                      <div key={comment.id} className="bg-gray-50 rounded-md p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <span className="text-sm font-bold text-gray-900">{comment.user.username || 'Anonymous'}</span>
-                          {comment.rating && (
-                            <div className="flex gap-0.5">
-                              {Array.from({ length: comment.rating }).map((_: any, i: number) => (
-                                <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-400 mb-2">
-                          {new Date(comment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                        </p>
-                        <p className="text-sm text-gray-700 leading-relaxed">{comment.comment_text}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )
-            })()}
-
-            {/* ── Leave a review ── */}
-            <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-4">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5 text-white/80" />
-                  <p className="text-sm font-bold text-white">
-                    {myComment ? 'Your review' : 'Leave a review'}
-                  </p>
-                </div>
-              </div>
-              <div className="p-5">
-              {myComment ? (
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                      myComment.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                      myComment.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {myComment.status === 'pending' ? 'Pending review' : myComment.status === 'approved' ? 'Approved' : 'Not approved'}
-                    </span>
-                    <p className="text-xs text-gray-400">
-                      {new Date(myComment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </p>
-                  </div>
-                  {myComment.rating && (
-                    <div className="flex gap-0.5 mb-2">
-                      {Array.from({ length: myComment.rating }).map((_: any, i: number) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                  )}
-                  <p className="text-sm text-gray-700 leading-relaxed">{myComment.comment_text}</p>
-                </div>
-              ) : (
-                <div>
-                  {commentSuccess && (
-                    <div className="mb-3 p-3 bg-emerald-50 border border-emerald-200 rounded-md text-sm text-emerald-700 font-medium">
-                      Comment submitted — pending review.
-                    </div>
-                  )}
-                  {!showCommentForm ? (
-                    <>
-                      <p className="text-sm text-gray-500 mb-3">Share your experience with this model to help others.</p>
-                      <button
-                        onClick={() => {
-                          const supabase = createClient()
-                          supabase.auth.getUser().then(({ data: { user } }) => {
-                            if (!user) setShowCommentLoginModal(true)
-                            else setShowCommentForm(true)
-                          })
-                        }}
-                        className="w-full py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-md transition-all shadow-sm flex items-center justify-center gap-2"
-                      >
-                        <MessageCircle className="w-4 h-4" /> Write a review
-                      </button>
-                    </>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button key={star} onClick={() => setCommentRating(star)}
-                            className={`text-2xl transition-colors ${star <= commentRating ? 'text-amber-400' : 'text-gray-200 hover:text-amber-300'}`}>
-                            ★
-                          </button>
-                        ))}
-                      </div>
-                      <textarea
-                        value={commentText}
-                        onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="Share your experience…"
-                        rows={4}
-                        maxLength={1000}
-                        className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      />
-                      <p className="text-xs text-gray-400 text-right">{commentText.length} / 1000</p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={submitComment}
-                          disabled={submittingComment || !commentText.trim()}
-                          className="flex-1 py-2.5 text-sm font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-md transition-all disabled:opacity-50"
-                        >
-                          {submittingComment ? 'Submitting…' : 'Submit'}
-                        </button>
-                        <button
-                          onClick={() => { setShowCommentForm(false); setCommentText(''); setCommentRating(0) }}
-                          className="px-4 py-2.5 text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-md transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-400">All reviews are verified before publishing.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-              </div>
-            </div>
-
-            {/* ── About Me ── */}
-            {modelDetails?.about_me && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
-                    <User className="w-4 h-4 text-violet-600" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">About me</p>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{modelDetails.about_me}</p>
-              </div>
-            )}
-
-            {/* ── Details ── */}
-            {modelDetails && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
-                    <Info className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Details</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  {[
-                    modelDetails.age && ['Age', `${modelDetails.age} yrs`],
-                    modelDetails.gender && ['Gender', formatGender(modelDetails.gender)],
-                    modelDetails.ethnicity && ['Ethnicity', formatEthnicity(modelDetails.ethnicity)],
-                    modelDetails.nationality && ['Nationality', modelDetails.nationality],
-                    modelDetails.height_cm && ['Height', `${modelDetails.height_cm} cm`],
-                    modelDetails.weight_kg && ['Weight', `${modelDetails.weight_kg} kg`],
-                    modelDetails.hair_color && ['Hair', formatHairColor(modelDetails.hair_color)],
-                    modelDetails.eye_color && ['Eyes', formatEyeColor(modelDetails.eye_color)],
-                    modelDetails.bust_cm && ['Bust', `${modelDetails.bust_cm} cm`],
-                    modelDetails.waist_cm && ['Waist', `${modelDetails.waist_cm} cm`],
-                    modelDetails.hip_cm && ['Hip', `${modelDetails.hip_cm} cm`],
-                    modelDetails.dress_size && ['Dress', modelDetails.dress_size.toUpperCase()],
-                    modelDetails.sexual_orientation && ['Orientation', formatEthnicity(modelDetails.sexual_orientation)],
-                    modelDetails.smoking && ['Smoking', formatEthnicity(modelDetails.smoking)],
-                    modelDetails.drinking && ['Drinking', formatEthnicity(modelDetails.drinking)],
-                  ].filter(Boolean).map(([label, value]) => (
-                    <div key={label as string} className="bg-gray-50 rounded-md p-3">
-                      <span className="text-xs text-gray-400 font-medium">{label as string}</span>
-                      <p className="text-sm font-semibold text-gray-900 mt-0.5">{value as string}</p>
-                    </div>
-                  ))}
-                </div>
-                {modelDetails.special_characteristics && (
-                  <div className="mt-3 p-3 bg-amber-50 border border-amber-100 rounded-md">
-                    <span className="text-xs font-semibold text-amber-700">Special characteristics</span>
-                    <p className="text-sm text-gray-700 mt-0.5">{modelDetails.special_characteristics}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── Services ── */}
-            {services.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-brand" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Services</p>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {services.map((service: any) => (
-                    <div key={service.id} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-md px-3 py-2">
-                      <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <span className="text-xs font-medium text-gray-800 leading-tight">{service.service?.name || 'Service'}</span>
-                    </div>
-                  ))}
-                </div>
-                {modelDetails?.services_for?.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs font-semibold text-gray-500 mb-2">Services for</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {modelDetails.services_for.map((sf: string, i: number) => (
-                        <span key={i} className="text-xs px-3 py-1 bg-blue-50 text-blue-700 font-medium rounded-full">{sf}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── Languages ── */}
-            {languages.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
-                    <LanguagesIcon className="w-4 h-4 text-indigo-600" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Languages</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {languages.map((lang: any) => (
-                    <div key={lang.id} className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 rounded-md px-3 py-1.5">
-                      <span className="text-sm font-semibold text-indigo-800">{lang.language}</span>
-                      <span className="text-xs text-indigo-500">{formatLanguageLevel(lang.level)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ── Location & Availability ── */}
-            {modelDetails?.city && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
-                    <Home className="w-4 h-4 text-rose-600" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Location</p>
-                </div>
-                <div className="flex items-center gap-2 font-semibold text-gray-900 mb-3">
-                  <MapPin className="w-4 h-4 text-brand" /> {modelDetails.city}
-                </div>
-                {modelDetails?.incall_options?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-1.5">
-                    {formatIncallOptions(modelDetails.incall_options).map((opt: string, i: number) => (
-                      <span key={i} className="text-xs px-2.5 py-1 bg-pink-50 text-pink-700 font-medium border border-pink-100 rounded-full">Incall: {opt}</span>
-                    ))}
-                  </div>
-                )}
-                {modelDetails?.outcall_options?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {formatIncallOptions(modelDetails.outcall_options).map((opt: string, i: number) => (
-                      <span key={i} className="text-xs px-2.5 py-1 bg-purple-50 text-purple-700 font-medium border border-purple-100 rounded-full">Outcall: {opt}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── Rates ── */}
-            {rates.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center">
-                    <DollarSign className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Rates</p>
-                </div>
-                <div className="space-y-2">
-                  {rates.map((rate: any) => (
-                    <div key={rate.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${rate.rate_type === 'incall' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                          {rate.rate_type === 'incall' ? 'Incall' : 'Outcall'}
-                        </span>
-                        <span className="text-sm text-gray-700">{formatDuration(rate.duration)}</span>
-                      </div>
-                      <span className="text-base font-bold text-brand">{rate.amount} {rate.currency || 'CHF'}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ── Working Hours ── */}
-            {workingHours.length > 0 && (
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-amber-600" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">Working hours</p>
-                </div>
-                {(() => {
-                  const is24_7 = workingHours.length === 7 && workingHours.every((wh: any) =>
-                    wh.start_time === '00:00:00' && wh.end_time === '23:59:00'
-                  )
-                  if (is24_7) return (
-                    <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-md">
-                      <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                      <span className="text-sm font-bold text-emerald-700">Available 24 / 7</span>
-                    </div>
-                  )
-                  return (
-                    <div className="space-y-1.5">
-                      {workingHours.map((wh: any) => (
-                        <div key={wh.id} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
-                          <span className="text-sm text-gray-600">{formatDayOfWeek(wh.day_of_week)}</span>
-                          <span className="text-sm font-semibold text-gray-900">
-                            {wh.start_time && wh.end_time ? `${wh.start_time.slice(0, 5)} – ${wh.end_time.slice(0, 5)}` : 'Closed'}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )
-                })()}
-              </div>
-            )}
-
-          </div>
         </div>
       </div>
 
@@ -981,6 +1135,107 @@ export default function ModelProfileClient({ modelData }: ModelProfileClientProp
               Create a free account to access favorites, leave comments, and more.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* ── Lightbox ── */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.92)' }}
+          onClick={() => setLightboxOpen(false)}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full text-white transition-all z-10"
+            style={{ background: 'rgba(255,255,255,0.12)' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+
+          {/* Counter */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/60 text-sm font-medium">
+            {lightboxIndex + 1} / {mediaItems.length}
+          </div>
+
+          {/* Prev arrow */}
+          {mediaItems.length > 1 && (
+            <button
+              onClick={e => { e.stopPropagation(); setLightboxIndex(i => (i - 1 + mediaItems.length) % mediaItems.length) }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full text-white transition-all z-10"
+              style={{ background: 'rgba(255,255,255,0.12)' }}
+            >
+              <ChevronLeft className="w-7 h-7" />
+            </button>
+          )}
+
+          {/* Image */}
+          <div
+            className="relative w-full h-full flex items-center justify-center px-20"
+            onClick={e => e.stopPropagation()}
+          >
+            {mediaItems[lightboxIndex]?.type === 'video' ? (
+              <video
+                src={mediaItems[lightboxIndex].url}
+                className="max-h-[90vh] max-w-full rounded-lg"
+                controls
+                autoPlay
+              />
+            ) : (
+              <div className="relative" style={{ maxWidth: '90vw', maxHeight: '90vh', width: '100%', height: '90vh' }}>
+                <Image
+                  src={mediaItems[lightboxIndex]?.url || ''}
+                  alt={modelDetails?.showname || profile.username}
+                  fill
+                  sizes="90vw"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Next arrow */}
+          {mediaItems.length > 1 && (
+            <button
+              onClick={e => { e.stopPropagation(); setLightboxIndex(i => (i + 1) % mediaItems.length) }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full text-white transition-all z-10"
+              style={{ background: 'rgba(255,255,255,0.12)' }}
+            >
+              <ChevronRight className="w-7 h-7" />
+            </button>
+          )}
+
+          {/* Thumbnail strip */}
+          {mediaItems.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: 'rgba(0,0,0,0.5)' }}>
+              {mediaItems.map((item, i) => (
+                <button
+                  key={i}
+                  onClick={e => { e.stopPropagation(); setLightboxIndex(i) }}
+                  className="transition-all rounded overflow-hidden flex-shrink-0"
+                  style={{
+                    width: i === lightboxIndex ? '40px' : '28px',
+                    height: i === lightboxIndex ? '40px' : '28px',
+                    opacity: i === lightboxIndex ? 1 : 0.5,
+                    border: i === lightboxIndex ? '2px solid white' : '2px solid transparent',
+                    position: 'relative',
+                  }}
+                >
+                  {item.type === 'video' ? (
+                    <div className="w-full h-full bg-gray-700 flex items-center justify-center">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M5 3l14 9-14 9V3z"/></svg>
+                    </div>
+                  ) : (
+                    <img src={item.url} alt="" className="w-full h-full object-cover" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

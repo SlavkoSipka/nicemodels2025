@@ -40,14 +40,14 @@ export default function ContactPage() {
   return (
     <>
       <Navbar />
-      <div className="bg-gray-50">
+      <div style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)', minHeight: '100vh' }}>
         {/* Minimal header */}
-        <div className="bg-gray-50 border-b border-gray-200">
+        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-semibold text-gray-900">Contact</h1>
-            <p className="text-sm text-gray-500 mt-1">Reach out anytime.</p>
-            <p className="text-sm text-gray-500 mt-3 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200/80 max-w-2xl">
-              <span className="font-medium text-amber-800">Beta:</span> We're still improving the site. If you notice any issues or have feedback, please get in touch — we'd love to hear from you.
+            <h1 className="text-2xl font-semibold text-white">Contact</h1>
+            <p className="text-sm text-white/70 mt-1">Reach out anytime.</p>
+            <p className="text-sm text-white/70 mt-3 px-3 py-2 rounded-lg max-w-2xl" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.20)' }}>
+              <span className="font-medium text-white">Beta:</span> We're still improving the site. If you notice any issues or have feedback, please get in touch — we'd love to hear from you.
             </p>
           </div>
         </div>

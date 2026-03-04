@@ -132,7 +132,7 @@ export default function ClubsPageClient() {
     return (
       <>
         <Navbar />
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex items-center justify-center min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand" />
         </div>
       </>
@@ -142,28 +142,28 @@ export default function ClubsPageClient() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
         <div className="max-w-7xl mx-auto px-4 py-6">
 
           {/* Breadcrumb */}
-          <div className="text-sm text-gray-400 mb-4 flex items-center gap-1">
-            <Link href="/" className="hover:text-brand transition-colors">Home</Link>
+          <div className="text-sm text-white/50 mb-4 flex items-center gap-1">
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
             <span>›</span>
-            <span className="text-gray-700 font-medium">Clubs</span>
+            <span className="text-white/80 font-medium">Clubs</span>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl font-bold text-gray-900 mb-5 flex items-center gap-2">
-            <Building2 className="w-8 h-8 text-gray-400" />
+          <h1 className="text-3xl font-bold text-white mb-5 flex items-center gap-2">
+            <Building2 className="w-8 h-8 text-white/50" />
             Clubs
           </h1>
-          <hr className="border-gray-200 mb-6" />
+          <hr className="border-white/15 mb-6" />
 
           {/* Area pills grid */}
           <div className="grid grid-cols-3 gap-x-8 gap-y-1 mb-6 text-sm">
             <button
               onClick={() => setSelectedArea('all')}
-              className={`text-left py-0.5 ${selectedArea === 'all' ? 'text-brand font-semibold' : 'text-gray-700 hover:text-brand'}`}
+              className={`text-left py-0.5 ${selectedArea === 'all' ? 'text-white font-semibold' : 'text-white/60 hover:text-white'}`}
             >
               All areas ({clubs.length})
             </button>
@@ -171,14 +171,14 @@ export default function ClubsPageClient() {
               <button
                 key={area}
                 onClick={() => setSelectedArea(area)}
-                className={`text-left py-0.5 ${selectedArea === area ? 'text-brand font-semibold' : 'text-gray-700 hover:text-brand'}`}
+                className={`text-left py-0.5 ${selectedArea === area ? 'text-white font-semibold' : 'text-white/60 hover:text-white'}`}
               >
                 {area}{' '}
-                <span className="text-gray-400">({areaCounts[area] || 0})</span>
+                <span className="text-white/40">({areaCounts[area] || 0})</span>
               </button>
             ))}
           </div>
-          <hr className="border-gray-200 mb-6" />
+          <hr className="border-white/15 mb-6" />
 
           {/* Filters row */}
           <div className="flex flex-wrap items-center gap-3 mb-6">

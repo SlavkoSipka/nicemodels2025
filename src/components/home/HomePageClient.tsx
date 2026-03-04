@@ -1,24 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useState, useMemo } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ModelCard from './ModelCard'
-import BannerAd from './BannerAd'
 import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
 
-interface ModelService {
-  id: number
-  name: string
-}
+interface ModelService { id: number; name: string }
 
 interface Model {
   id: string
   username: string
   created_at?: string
+  photoUrl?: string | null
   model_details: {
+    model_id?: string
     showname: string
     city: string
     age: number
@@ -26,264 +23,65 @@ interface Model {
     hair_color: string
     about_me?: string
     services_for?: string[]
-  }
+  } | null
   model_services_list?: ModelService[]
-  model_photos: Array<{
-    file_path: string
-  }>
 }
 
-interface Banner {
-  id: string
-  banner_file_path: string
-  bannerUrl: string
-  advertising_text: string
-  contact_info: any
+interface HomePageClientProps {
+  initialModels: Model[]
 }
 
-export default function HomePageClient() {
-  const [loading, setLoading] = useState(true)
-  const [models, setModels] = useState<Model[]>([])
-  const [banners, setBanners] = useState<Banner[]>([])
-  const [filteredModels, setFilteredModels] = useState<Model[]>([])
-  
-  // Filters
-  const [selectedCity, setSelectedCity] = useState<string>('all')
+export default function HomePageClient({ initialModels }: HomePageClientProps) {
+  const [selectedCity,     setSelectedCity]     = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [selectedOffer, setSelectedOffer] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState<string>('')
+  const [selectedOffer,    setSelectedOffer]    = useState<string>('all')
+  const [searchQuery,      setSearchQuery]      = useState<string>('')
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  useEffect(() => {
-    applyFilters()
-  }, [selectedCity, selectedCategory, selectedOffer, searchQuery, models])
-
-  const loadData = async () => {
-    try {
-      const supabase = createClient()
-
-      // 1) Direktno pozovi funkciju iz baze koja vraća modele sa aktivnim ads-om
-      //    (funkcija je SECURITY DEFINER i zaobilazi RLS komplikacije)
-      const { data: modelsData, error: modelsError } = await supabase
-        .rpc('models_with_active_ads')
-
-      if (modelsError) {
-        console.error('Models error (RPC models_with_active_ads):', modelsError)
-        setModels([])
-        setFilteredModels([])
-      } else if (modelsData && modelsData.length > 0) {
-        await processModels(supabase, modelsData)
-      } else {
-        setModels([])
-        setFilteredModels([])
-      }
-
-      // 2) Učitaj aktivne bannere (nezavisno od modela)
-      await loadBanners(supabase)
-    } catch (error) {
-      console.error('Error loading data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const processModels = async (supabase: any, modelsData: any[]) => {
-    try {
-
-      // Get model details and photos for each
-      const modelsWithDetails = await Promise.all(
-        modelsData.map(async (model: any) => {
-          // Get model details
-          const { data: details, error: detailsError } = await supabase
-            .from('model_details')
-            .select('showname, city, age, ethnicity, hair_color, about_me, services_for')
-            .eq('model_id', model.id)
-            .maybeSingle()
-
-          if (detailsError) {
-            console.error(`Error fetching details for model ${model.id}:`, detailsError)
-          }
-
-          // Get services from model_services + services table
-          const { data: modelServicesData, error: msError } = await supabase
-            .from('model_services')
-            .select('service_id, services(id, name)')
-            .eq('model_id', model.id)
-          if (msError) {
-            console.error(`model_services error for ${model.id}:`, msError)
-          }
-          const model_services_list: ModelService[] = (modelServicesData || [])
-            .map((row: any) => row.services)
-            .filter(Boolean)
-
-          // Get first photo
-          const { data: photos } = await supabase
-            .from('model_photos')
-            .select('file_path')
-            .eq('model_id', model.id)
-            .eq('is_approved', true)
-            .limit(1)
-
-          let photoUrl = null
-          if (photos && photos.length > 0) {
-            const { data: urlData } = supabase.storage
-              .from('model-photos')
-              .getPublicUrl(photos[0].file_path)
-            photoUrl = urlData.publicUrl
-          }
-
-          return {
-            ...model,
-            model_details: details,
-            model_services_list,
-            photoUrl,
-            created_at: model.created_at || new Date().toISOString()
-          }
-        })
-      )
-
-      setModels(modelsWithDetails)
-      setFilteredModels(modelsWithDetails)
-    } catch (error) {
-      console.error('Error processing models:', error)
-    }
-  }
-
-  const loadBanners = async (supabase: any) => {
-    try {
-      // Load active banners - simplified query
-      // Note: This might fail for anonymous users if RLS is enabled
-      // We'll silently fail and continue without banners
-      const { data: bannerOrders, error: bannersError } = await supabase
-        .from('order_items')
-        .select('id, banner_file_path, advertising_text, contact_phone, contact_email, contact_website, order_id')
-        .not('banner_file_path', 'is', null)
-        .limit(20)
-
-      if (bannersError) {
-        // Silently fail for banners - not critical
-        return
-      }
-
-      if (!bannerOrders || bannerOrders.length === 0) {
-        return
-      }
-
-      // Try to get paid orders - might fail for anon users
-      const { data: paidOrders } = await supabase
-        .from('orders')
-        .select('id')
-        .eq('status', 'paid')
-        .in('id', bannerOrders.map((b: any) => b.order_id))
-
-      const paidOrderIds = paidOrders?.map((o: any) => o.id) || []
-      const paidBanners = bannerOrders.filter((b: any) => paidOrderIds.includes(b.order_id))
-
-      // Get banner URLs
-      const bannersWithUrls = await Promise.all(
-        paidBanners.slice(0, 6).map(async (banner: any) => {
-          const { data: urlData } = supabase.storage
-            .from('banner-images')
-            .getPublicUrl(banner.banner_file_path)
-          
-          return {
-            ...banner,
-            bannerUrl: urlData.publicUrl,
-            contact_info: {
-              phoneNumber: banner.contact_phone,
-              email: banner.contact_email,
-              website: banner.contact_website
-            }
-          }
-        })
-      )
-
-      setBanners(bannersWithUrls)
-    } catch (error) {
-      // Silently fail for banners - not critical
-    }
-  }
-
-  const applyFilters = () => {
-    let filtered = [...models]
-
-    if (selectedCity !== 'all') {
-      filtered = filtered.filter(m => m.model_details?.city === selectedCity)
-    }
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(m => m.model_details?.ethnicity === selectedCategory)
-    }
-    if (selectedOffer !== 'all') {
-      filtered = filtered.filter(m =>
-        m.model_services_list?.some((s) => s.name === selectedOffer)
-      )
-    }
+  const filteredModels = useMemo(() => {
+    let result = initialModels
+    if (selectedCity !== 'all')
+      result = result.filter(m => m.model_details?.city === selectedCity)
+    if (selectedCategory !== 'all')
+      result = result.filter(m => m.model_details?.ethnicity === selectedCategory)
+    if (selectedOffer !== 'all')
+      result = result.filter(m => m.model_services_list?.some(s => s.name === selectedOffer))
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
-      filtered = filtered.filter(m => {
+      result = result.filter(m => {
         const name = m.model_details?.showname ?? m.username ?? ''
         return name.toLowerCase().includes(q)
       })
     }
-
-    setFilteredModels(filtered)
-  }
-
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F7F3F4' }}>
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-14 h-14 rounded-full border-4 border-pink-200 border-t-pink-500 animate-spin" />
-            <span className="text-sm font-medium text-pink-400 tracking-widest uppercase">Loading…</span>
-          </div>
-        </div>
-      </>
-    )
-  }
+    return result
+  }, [initialModels, selectedCity, selectedCategory, selectedOffer, searchQuery])
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
-      {/* Story sistem - prikaz i viewer */}
-      <StoriesSection />
-
-      {/* Filter bar: Region, Category, Offer */}
-      <CitySelector
-        selectedCity={selectedCity}
-        setSelectedCity={setSelectedCity}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        selectedOffer={selectedOffer}
-        setSelectedOffer={setSelectedOffer}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        totalModels={models.length}
-        models={models}
-      />
-
-      {/* Main Content - grid puni celu širinu */}
-      <div className="max-w-7xl mx-auto px-4 py-6 w-full">
-        <main className="w-full">
+        <StoriesSection />
+        <CitySelector
+          selectedCity={selectedCity}       setSelectedCity={setSelectedCity}
+          selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
+          selectedOffer={selectedOffer}     setSelectedOffer={setSelectedOffer}
+          searchQuery={searchQuery}         setSearchQuery={setSearchQuery}
+          totalModels={initialModels.length}
+          models={initialModels}
+        />
+        <div className="max-w-7xl mx-auto px-4 py-6 w-full">
           {filteredModels.length === 0 ? (
-            <div className="text-center py-20 rounded-xl" style={{ background: 'white', border: '1px solid #f0e6ea', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-              <p className="text-2xl font-bold text-brand/40 mb-2">No models found</p>
-              <p className="text-gray-400">Try changing filters</p>
+            <div className="text-center py-20 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-2xl font-bold mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>No models found</p>
+              <p style={{ color: 'rgba(255,255,255,0.2)' }}>Try changing filters</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               {filteredModels.map((model, index) => (
-                <ModelCard key={model.id} model={model} priority={index < 3} />
+                <ModelCard key={model.id} model={model} priority={index < 4} />
               ))}
             </div>
           )}
-        </main>
-      </div>
+        </div>
       </div>
       <Footer />
     </>

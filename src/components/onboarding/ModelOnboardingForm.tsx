@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react'
+import { processImage } from '@/lib/imageProcessor'
 
 // Countries list (abbreviated)
 const COUNTRIES = [
@@ -503,16 +504,16 @@ export default function ModelOnboardingForm() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      for (const file of files) {
+      for (const rawFile of files) {
         // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          alert(`${file.name} is too large. Max size is 10MB.`)
+        if (rawFile.size > 10 * 1024 * 1024) {
+          alert(`${rawFile.name} is too large. Max size is 10MB.`)
           continue
         }
 
-        // Upload to storage
-        const fileExt = file.name.split('.').pop()
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+        // Compress + watermark
+        const file = await processImage(rawFile)
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
         const filePath = `${user.email}/photos/${fileName}`
 
         const { error: uploadError } = await supabase.storage

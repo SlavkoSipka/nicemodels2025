@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Camera, Upload, Trash2, AlertCircle, Film } from 'lucide-react'
+import { processImage } from '@/lib/imageProcessor'
 
 interface Photo { id: string; file_name: string; file_path: string; is_verified: boolean }
 interface Video { id: string; file_name: string; file_path: string; is_verified: boolean }
@@ -52,10 +53,10 @@ export default function PicturesVideoPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
-      for (const file of files) {
-        if (file.size > 10 * 1024 * 1024) { setError(`${file.name} is too large. Max 10MB.`); continue }
-        const ext = file.name.split('.').pop()
-        const path = `${user.email}/photos/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
+      for (const rawFile of files) {
+        if (rawFile.size > 10 * 1024 * 1024) { setError(`${rawFile.name} is too large. Max 10MB.`); continue }
+        const file = await processImage(rawFile)
+        const path = `${user.email}/photos/${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
         const { error: ue } = await supabase.storage.from('model-photos').upload(path, file)
         if (ue) throw ue
         const { data: pd, error: de } = await supabase.from('model_photos').insert({ model_id: user.id, file_path: path, file_name: file.name, is_approved: true }).select().single()

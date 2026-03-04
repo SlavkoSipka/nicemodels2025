@@ -24,7 +24,7 @@ export default function Footer() {
                 className="h-10 w-auto"
               />
             </Link>
-            <p className="text-sm leading-relaxed" style={{ color: '#7DD3FC', opacity: 0.7 }}>
+            <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>
               The premium portal for Switzerland. Discreet, safe and professional.
             </p>
           </div>
@@ -43,7 +43,7 @@ export default function Footer() {
                 { href: '/contact', label: 'Contact' },
               ].map(({ href, label }) => (
                 <li key={href}>
-                  <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: '#94A3B8' }}>
+                  <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.70)' }}>
                     {label}
                   </Link>
                 </li>
@@ -62,7 +62,7 @@ export default function Footer() {
                 { href: '/terms',   label: 'Terms of Service' },
               ].map(({ href, label }) => (
                 <li key={href}>
-                  <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: '#94A3B8' }}>
+                  <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.70)' }}>
                     {label}
                   </Link>
                 </li>
@@ -75,13 +75,13 @@ export default function Footer() {
             <h4 className="text-xs font-bold uppercase tracking-widest mb-5" style={{ color: '#F9A8D4' }}>
               Support
             </h4>
-            <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(186,230,253,0.06)', border: '1px solid rgba(186,230,253,0.10)' }}>
+            <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.10)' }}>
               <a
                 href="https://wa.me/41000000000"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-sm transition-colors group hover:text-white"
-                style={{ color: '#94A3B8' }}
+                style={{ color: 'rgba(255,255,255,0.70)' }}
               >
                 <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#25D366' }}>
                   <MessageCircle className="w-4 h-4 text-white" />
@@ -91,7 +91,7 @@ export default function Footer() {
               <a
                 href="/contact"
                 className="flex items-center gap-3 text-sm transition-colors hover:text-white"
-                style={{ color: '#94A3B8' }}
+                style={{ color: 'rgba(255,255,255,0.70)' }}
               >
                 <span
                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"

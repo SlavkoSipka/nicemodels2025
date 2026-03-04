@@ -76,11 +76,11 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Auth Section */}
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden lg:flex items-stretch h-16 self-stretch">
               {/* Language Selector */}
-              <div className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-400 border border-gray-600 rounded-md">
-                <span className="text-sm">🇩🇪</span>
-                DE
+              <div className="flex items-center justify-center gap-1.5 px-5 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer select-none border-l border-white/10">
+                <span>🇩🇪</span>
+                <span>DE</span>
               </div>
 
               {user ? (
@@ -92,7 +92,8 @@ export default function Navbar() {
                       profile?.role === 'company' ? '/dashboard/company' :
                       '/dashboard'
                     }
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-brand hover:bg-brand-hover rounded-md transition-all"
+                    className="flex items-center justify-center gap-2 px-6 text-xs font-bold text-white transition-all border-l border-white/10 hover:brightness-110"
+                    style={{ background: 'linear-gradient(180deg, #1D4ED8, #3B82F6)' }}
                   >
                     <User className="w-3.5 h-3.5" />
                     <span>{profile?.username || 'User'}</span>
@@ -100,7 +101,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="px-3 py-1.5 text-xs font-medium text-gray-300 border border-gray-600 rounded-md hover:bg-gray-700 hover:text-white transition-all"
+                    className="flex items-center justify-center px-6 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-all border-l border-white/10"
                   >
                     Logout
                   </button>
@@ -109,15 +110,17 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/register"
-                    className="px-3 py-1.5 text-xs font-semibold bg-brand text-white hover:bg-brand-hover rounded-md transition-all"
+                    className="flex items-center justify-center px-6 text-xs font-bold text-white transition-all border-l border-white/10 hover:brightness-110"
+                    style={{ background: 'linear-gradient(180deg, #BE185D, #EC4899)' }}
                   >
-                    REGISTER
+                    Register
                   </Link>
                   <Link
                     href="/login"
-                    className="px-3 py-1.5 text-xs font-semibold bg-white/10 text-white border border-gray-600 rounded-md hover:bg-white/20 transition-all"
+                    className="flex items-center justify-center px-6 text-xs font-bold text-white transition-all border-l border-r border-white/10 hover:brightness-110"
+                    style={{ background: 'linear-gradient(180deg, #1D4ED8, #3B82F6)' }}
                   >
-                    LOG IN
+                    Log in
                   </Link>
                 </>
               )}
