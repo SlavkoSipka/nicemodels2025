@@ -72,7 +72,7 @@ export default function ClubOnboardingForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
-  const totalSteps = 4
+  const totalSteps = 1
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [cities, setCities] = useState<any[]>([])
 
@@ -386,22 +386,12 @@ export default function ClubOnboardingForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    if (currentStep < totalSteps) {
-      // Validate before moving to next step
-      if (currentStep === 2 && !formData.phone_number) {
-        setError('Phone number is required')
-        return
-      }
-      
-      setError('')
-      // Move to next step
-      setCurrentStep(currentStep + 1)
-      window.scrollTo(0, 0)
+
+    if (!formData.club_name) {
+      setError('Club Name is required')
       return
     }
 
-    // Final submission
     setLoading(true)
     setError('')
 
@@ -411,7 +401,6 @@ export default function ClubOnboardingForm() {
 
       if (!user) throw new Error('Not authenticated')
 
-      // Insert club details
       const { error: insertError } = await supabase
         .from('club_details')
         .insert({
@@ -425,85 +414,10 @@ export default function ClubOnboardingForm() {
           wellness: formData.wellness,
           food_and_drinks: formData.food_and_drinks,
           outdoor_area: formData.outdoor_area,
-          street: formData.street,
-          street_number: formData.street_number,
-          city: formData.city,
-          zip_code: formData.zip_code
         })
 
       if (insertError) throw insertError
 
-      // Insert contact details
-      const { error: contactError } = await supabase
-        .from('club_contact_details')
-        .insert({
-          club_id: user.id,
-          country_code: formData.country_code,
-          phone_number: formData.phone_number,
-          has_viber: formData.has_viber,
-          has_whatsapp: formData.has_whatsapp,
-          has_telegram: formData.has_telegram,
-          contact_instruction: formData.contact_instruction,
-          email: formData.email,
-          website: formData.website,
-          show_phone_number: !formData.hide_contact_info
-        })
-
-      if (contactError) throw contactError
-
-      // Insert working hours
-      const workingHoursToInsert: any[] = []
-      
-      if (scheduleType === '24_7') {
-        // 24/7 - all days, all hours
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        days.forEach(day => {
-          workingHoursToInsert.push({
-            club_id: user.id,
-            day_of_week: day,
-            opens_at: '00:00',
-            closes_at: '23:59',
-            is_closed: false
-          })
-        })
-      } else if (scheduleType === 'same_every_day') {
-        // Same hours every day
-        if (sameEveryDayHours.from && sameEveryDayHours.to) {
-          const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-          days.forEach(day => {
-            workingHoursToInsert.push({
-              club_id: user.id,
-              day_of_week: day,
-              opens_at: sameEveryDayHours.from,
-              closes_at: sameEveryDayHours.to,
-              is_closed: false
-            })
-          })
-        }
-      } else if (scheduleType === 'custom') {
-        // Custom schedule
-        Object.entries(customHours).forEach(([day, hours]) => {
-          if (hours.from && hours.to) {
-            workingHoursToInsert.push({
-              club_id: user.id,
-              day_of_week: day,
-              opens_at: hours.from,
-              closes_at: hours.to,
-              is_closed: false
-            })
-          }
-        })
-      }
-
-      if (workingHoursToInsert.length > 0) {
-        const { error: workingHoursError } = await supabase
-          .from('club_working_hours')
-          .insert(workingHoursToInsert)
-
-        if (workingHoursError) throw workingHoursError
-      }
-
-      // Mark onboarding as completed
       await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
@@ -538,10 +452,7 @@ export default function ClubOnboardingForm() {
               Club / Agency onboarding
             </p>
             <h2 className="text-lg md:text-xl font-bold text-gray-900">
-              {currentStep === 1 && 'Basic Info'}
-              {currentStep === 2 && 'Contact & Address'}
-              {currentStep === 3 && 'Working Hours'}
-              {currentStep === 4 && 'Photos'}
+              Basic Info
             </h2>
           </div>
           <div className="text-right">
@@ -1230,7 +1141,7 @@ export default function ClubOnboardingForm() {
             }
             className="ml-auto px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg font-medium hover:from-pink-600 hover:to-pink-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Saving...' : currentStep === totalSteps ? 'Complete' : 'NEXT STEP'}
+            {loading ? 'Saving...' : 'FINISH'}
           </button>
         </div>
       </form>

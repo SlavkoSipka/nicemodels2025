@@ -714,14 +714,9 @@ export default function ModelOnboardingForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Form submitted at step:', currentStep)
-    
-    // Only submit if we're on the final step
-    if (currentStep !== 11) {
-      console.log('Not on final step, preventing submit')
-      return
-    }
-    
+
+    if (!validateStep1()) return
+
     setLoading(true)
     setError('')
 
@@ -731,7 +726,6 @@ export default function ModelOnboardingForm() {
 
       if (!user) throw new Error('Not authenticated')
 
-      // Prepare model details data
       const modelDetailsData = {
         model_id: user.id,
         showname: formData.showname || null,
@@ -740,209 +734,14 @@ export default function ModelOnboardingForm() {
         ethnicity: formData.ethnicity || null,
         nationality: formData.nationality || null,
         age: formData.age ? parseInt(formData.age) : null,
-        hair_color: formData.hair_color || null,
-        eye_color: formData.eye_color || null,
-        height_cm: formData.height_cm ? parseInt(formData.height_cm) : null,
-        weight_kg: formData.weight_kg ? parseFloat(formData.weight_kg) : null,
-        dress_size: formData.dress_size || null,
-        bust_cm: formData.bust_cm ? parseInt(formData.bust_cm) : null,
-        waist_cm: formData.waist_cm ? parseInt(formData.waist_cm) : null,
-        hip_cm: formData.hip_cm ? parseInt(formData.hip_cm) : null,
-        pubic_hair: formData.pubic_hair || null,
-        smoking: formData.smoking || null,
-        drinking: formData.drinking || null,
-        special_characteristics: formData.special_characteristics || null,
-        about_me: formData.about_me || null,
-        city: formData.city || null,
-        incall_options: formData.incall_options.length > 0 ? formData.incall_options : null,
-        outcall_options: formData.outcall_options.length > 0 ? formData.outcall_options : null,
-        sexual_orientation: formData.sexual_orientation || null,
-        services_for: formData.services_for.length > 0 ? formData.services_for : null,
       }
 
-      // Insert or update model details (UPSERT)
       const { error: detailsError } = await supabase
         .from('model_details')
         .upsert(modelDetailsData, { onConflict: 'model_id' })
 
       if (detailsError) throw detailsError
 
-      // Insert languages
-      const languagesToInsert = []
-      
-      // If user selected a simple language (without clicking Add More)
-      if (primaryLanguage && !showAdvancedLanguages) {
-        languagesToInsert.push({
-          model_id: user.id,
-          language: primaryLanguage,
-          level: 'good', // Default level when not specified
-        })
-      }
-      
-      // Add languages from the advanced list (with levels)
-      if (showAdvancedLanguages && languages.length > 0) {
-        languages.forEach(lang => {
-          languagesToInsert.push({
-            model_id: user.id,
-            language: lang.language,
-            level: lang.level,
-          })
-        })
-      }
-
-      // Delete old languages first
-      await supabase.from('model_languages').delete().eq('model_id', user.id)
-      
-      if (languagesToInsert.length > 0) {
-        const { error: languagesError } = await supabase
-          .from('model_languages')
-          .insert(languagesToInsert)
-
-        if (languagesError) throw languagesError
-      }
-
-      // Delete old services first
-      await supabase.from('model_services').delete().eq('model_id', user.id)
-      
-      // Insert selected services
-      if (selectedServices.length > 0) {
-        const servicesToInsert = selectedServices.map(serviceId => ({
-          model_id: user.id,
-          service_id: serviceId,
-        }))
-
-        const { error: servicesError } = await supabase
-          .from('model_services')
-          .insert(servicesToInsert)
-
-        if (servicesError) throw servicesError
-      }
-
-      // Insert working hours
-      const workingHoursToInsert: any[] = []
-      
-      if (scheduleType === '24_7') {
-        // 24/7 - all days, all hours
-        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-        days.forEach(day => {
-          workingHoursToInsert.push({
-            model_id: user.id,
-            day_of_week: day,
-            start_time: '00:00',
-            end_time: '23:59',
-          })
-        })
-      } else if (scheduleType === 'same_every_day') {
-        // Same hours every day
-        if (sameEveryDayHours.from && sameEveryDayHours.to) {
-          const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-          days.forEach(day => {
-            workingHoursToInsert.push({
-              model_id: user.id,
-              day_of_week: day,
-              start_time: sameEveryDayHours.from,
-              end_time: sameEveryDayHours.to,
-            })
-          })
-        }
-      } else if (scheduleType === 'custom') {
-        // Custom schedule
-        Object.entries(customHours).forEach(([day, hours]) => {
-          if (hours.from && hours.to) {
-            workingHoursToInsert.push({
-              model_id: user.id,
-              day_of_week: day,
-              start_time: hours.from,
-              end_time: hours.to,
-            })
-          }
-        })
-      }
-
-      // Delete old working hours first
-      await supabase.from('model_working_hours').delete().eq('model_id', user.id)
-      
-      if (workingHoursToInsert.length > 0) {
-        const { error: workingHoursError } = await supabase
-          .from('model_working_hours')
-          .insert(workingHoursToInsert)
-
-        if (workingHoursError) throw workingHoursError
-      }
-
-      // Insert rates
-      const ratesToInsert: any[] = []
-      
-      // Add incall rates
-      incallRates.forEach(rate => {
-        const rateData: any = {
-          model_id: user.id,
-          rate_type: 'incall',
-          duration: rate.duration,
-          amount: parseFloat(rate.amount),
-          currency: 'CHF',
-        }
-        
-        // Add custom time fields for specific_time
-        if (rate.duration === 'specific_time' && rate.customTime && rate.customUnit) {
-          rateData.custom_time_value = parseInt(rate.customTime)
-          rateData.custom_time_unit = rate.customUnit
-        }
-        
-        ratesToInsert.push(rateData)
-      })
-      
-      // Add outcall rates
-      outcallRates.forEach(rate => {
-        const rateData: any = {
-          model_id: user.id,
-          rate_type: 'outcall',
-          duration: rate.duration,
-          amount: parseFloat(rate.amount),
-          currency: 'CHF',
-        }
-        
-        // Add custom time fields for specific_time
-        if (rate.duration === 'specific_time' && rate.customTime && rate.customUnit) {
-          rateData.custom_time_value = parseInt(rate.customTime)
-          rateData.custom_time_unit = rate.customUnit
-        }
-        
-        ratesToInsert.push(rateData)
-      })
-
-      // Delete old rates first
-      await supabase.from('model_rates').delete().eq('model_id', user.id)
-      
-      if (ratesToInsert.length > 0) {
-        const { error: ratesError } = await supabase
-          .from('model_rates')
-          .insert(ratesToInsert)
-
-        if (ratesError) throw ratesError
-      }
-
-      // Insert contact details
-      const contactDetailsData = {
-        model_id: user.id,
-        show_phone_number: showPhoneNumber,
-        country_code: countryCode,
-        phone_number: phoneNumber || null,
-        has_viber: hasViber,
-        has_whatsapp: hasWhatsApp,
-        has_telegram: hasTelegram,
-        contact_instruction: contactInstruction,
-        no_withheld_numbers: noWithheldNumbers,
-        other_instructions: otherInstructions || null,
-      }
-
-      const { error: contactDetailsError } = await supabase
-        .from('model_contact_details')
-        .upsert(contactDetailsData, { onConflict: 'model_id' })
-
-      if (contactDetailsError) throw contactDetailsError
-
-      // Mark onboarding as completed
       await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
@@ -958,7 +757,7 @@ export default function ModelOnboardingForm() {
     }
   }
 
-  const totalSteps = 11
+  const totalSteps = 1
 
   return (
     <div className="max-w-3xl mx-auto">

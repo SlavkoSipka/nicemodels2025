@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera } from 'lucide-react'
+import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardSidebarProps {
@@ -484,6 +484,18 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span>Activate Ads</span>
+              </Link>
+
+              <Link
+                href="/dashboard/company/buy-banner"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/company/buy-banner')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Megaphone className="w-5 h-5" />
+                <span>Buy Banner</span>
               </Link>
 
               <Link

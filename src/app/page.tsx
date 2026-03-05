@@ -16,7 +16,6 @@ export default async function HomePage() {
   let models: any[] = []
 
   if (modelIds.length > 0) {
-    // 2-4. Three parallel batch queries — replaces N×3 per-model queries
     const [
       { data: allDetails },
       { data: allServices },
@@ -38,7 +37,6 @@ export default async function HomePage() {
         .order('uploaded_at', { ascending: false }),
     ])
 
-    // Build lookup maps for O(1) access
     const detailsMap = new Map<string, any>()
     for (const d of allDetails ?? []) detailsMap.set(d.model_id, d)
 
@@ -48,7 +46,6 @@ export default async function HomePage() {
       if (s.services) servicesMap.get(s.model_id)!.push(s.services)
     }
 
-    // Only keep first approved photo per model
     const photosMap = new Map<string, string>()
     for (const p of allPhotos ?? []) {
       if (!photosMap.has(p.model_id) && p.file_path) {
@@ -67,5 +64,21 @@ export default async function HomePage() {
     }))
   }
 
-  return <HomePageClient initialModels={models} />
+  // Fetch active banners
+  const { data: bannersRaw } = await supabase
+    .from('banners')
+    .select('*')
+    .eq('status', 'active')
+    .order('display_order')
+
+  const banners = (bannersRaw ?? []).map((b: any) => ({
+    id: b.id,
+    owner_type: b.owner_type,
+    owner_id: b.owner_id,
+    title: b.title,
+    image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,
+    cta_url: b.cta_url,
+  }))
+
+  return <HomePageClient initialModels={models} initialBanners={banners} />
 }

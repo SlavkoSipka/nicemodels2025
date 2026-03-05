@@ -12,7 +12,7 @@ export default function LanguagesPage() {
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
   const [user, setUser] = useState<any>(null)
-  const [languages, setLanguages] = useState<{ language: string; level: string }[]>([])
+  const [languages, setLanguages] = useState<{ language: string; level: string; stars: number }[]>([])
 
   const availableLanguages = [
     'English', 'German', 'French', 'Italian', 'Spanish', 'Portuguese',
@@ -23,12 +23,26 @@ export default function LanguagesPage() {
     'Arabic', 'Chinese', 'Japanese', 'Korean', 'Turkish', 'Other'
   ]
 
-  const levels = [
-    { value: 'basic', label: 'Basic' },
-    { value: 'fair', label: 'Fair' },
-    { value: 'good', label: 'Good' },
-    { value: 'excellent_native', label: 'Excellent / Native' }
-  ]
+  const starToLevel = (stars: number) => {
+    if (stars <= 2) return 'basic'
+    if (stars === 3) return 'fair'
+    if (stars === 4) return 'good'
+    return 'excellent_native'
+  }
+
+  const levelToDefaultStars = (level: string) => {
+    if (level === 'basic') return 2
+    if (level === 'fair') return 3
+    if (level === 'good') return 4
+    return 5
+  }
+
+  const starLabel = (stars: number) => {
+    if (stars <= 2) return 'Basic'
+    if (stars === 3) return 'Fair'
+    if (stars === 4) return 'Good'
+    return 'Excellent'
+  }
 
   useEffect(() => {
     const loadData = async () => {
@@ -38,18 +52,27 @@ export default function LanguagesPage() {
         if (!user) { router.push('/login'); return }
         setUser(user)
         const { data } = await supabase.from('model_languages').select('*').eq('model_id', user.id)
-        setLanguages(data && data.length > 0 ? data : [{ language: '', level: 'good' }])
+        const mapped = data && data.length > 0
+          ? data.map((l: any) => ({ language: l.language, level: l.level, stars: levelToDefaultStars(l.level) }))
+          : [{ language: '', level: 'excellent_native', stars: 5 }]
+        setLanguages(mapped)
         setLoading(false)
       } catch { setLoading(false) }
     }
     loadData()
   }, [router])
 
-  const addLanguage = () => setLanguages([...languages, { language: '', level: 'good' }])
+  const addLanguage = () => setLanguages([...languages, { language: '', level: 'excellent_native', stars: 5 }])
   const removeLanguage = (i: number) => setLanguages(languages.filter((_, idx) => idx !== i))
-  const updateLanguage = (i: number, field: 'language' | 'level', value: string) => {
+  const updateLanguageField = (i: number, value: string) => {
     const updated = [...languages]
-    updated[i][field] = value
+    updated[i].language = value
+    setLanguages(updated)
+  }
+  const updateLanguageStars = (i: number, stars: number) => {
+    const updated = [...languages]
+    updated[i].stars = stars
+    updated[i].level = starToLevel(stars)
     setLanguages(updated)
   }
 
@@ -114,15 +137,31 @@ export default function LanguagesPage() {
           <div className="space-y-2.5 mb-4">
             {languages.map((lang, i) => (
               <div key={i} className="flex gap-2 items-center">
-                <select value={lang.language} onChange={e => updateLanguage(i, 'language', e.target.value)}
+                <select value={lang.language} onChange={e => updateLanguageField(i, e.target.value)}
                   className={selectCls + ' flex-1'}>
                   <option value="">Select language...</option>
                   {availableLanguages.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
-                <select value={lang.level} onChange={e => updateLanguage(i, 'level', e.target.value)}
-                  className={selectCls + ' w-40'}>
-                  {levels.map(lv => <option key={lv.value} value={lv.value}>{lv.label}</option>)}
-                </select>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => updateLanguageStars(i, star)}
+                      title={starLabel(star)}
+                      className="focus:outline-none"
+                    >
+                      <svg
+                        className={`w-6 h-6 transition-colors ${star <= lang.stars ? 'text-yellow-400' : 'text-gray-200'}`}
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </button>
+                  ))}
+                  <span className="text-xs text-gray-400 ml-1 w-14">{starLabel(lang.stars)}</span>
+                </div>
                 {languages.length > 1 && (
                   <button onClick={() => removeLanguage(i)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove">

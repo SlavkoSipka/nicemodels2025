@@ -4,8 +4,11 @@ import { useState, useMemo } from 'react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ModelCard from './ModelCard'
+import BannerCard, { BannerData } from './BannerCard'
 import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
+
+const BANNER_INTERVAL = 2
 
 interface ModelService { id: number; name: string }
 
@@ -29,9 +32,10 @@ interface Model {
 
 interface HomePageClientProps {
   initialModels: Model[]
+  initialBanners?: BannerData[]
 }
 
-export default function HomePageClient({ initialModels }: HomePageClientProps) {
+export default function HomePageClient({ initialModels, initialBanners = [] }: HomePageClientProps) {
   const [selectedCity,     setSelectedCity]     = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedOffer,    setSelectedOffer]    = useState<string>('all')
@@ -76,9 +80,20 @@ export default function HomePageClient({ initialModels }: HomePageClientProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-              {filteredModels.map((model, index) => (
-                <ModelCard key={model.id} model={model} priority={index < 4} />
-              ))}
+              {(() => {
+                const items: React.ReactNode[] = []
+                let bannerIndex = 0
+                filteredModels.forEach((model, index) => {
+                  // Insert banner after every BANNER_INTERVAL models
+                  if (initialBanners.length > 0 && index > 0 && index % BANNER_INTERVAL === 0) {
+                    const banner = initialBanners[bannerIndex % initialBanners.length]
+                    items.push(<BannerCard key={`banner-${index}`} banner={banner} />)
+                    bannerIndex++
+                  }
+                  items.push(<ModelCard key={model.id} model={model} priority={index < 4} />)
+                })
+                return items
+              })()}
             </div>
           )}
         </div>

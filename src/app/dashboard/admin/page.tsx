@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
   LayoutDashboard, Users, Building2, Image, Film, UserX,
-  ShieldCheck, MessageSquare, Home, LogOut, ChevronRight, AlertCircle
+  ShieldCheck, MessageSquare, Home, LogOut, ChevronRight, AlertCircle, Megaphone
 } from 'lucide-react'
 
 interface StatCard {
@@ -32,11 +32,12 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalModels: 0, totalClubs: 0, pendingPhotos: 0,
     pendingVideos: 0, blockedUsers: 0, pendingVerifications: 0, pendingComments: 0,
+    pendingBanners: 0,
   })
 
   useEffect(() => {
     const load = async () => {
-      const [models, clubs, photos, videos, blocked, verifications, comments] = await Promise.all([
+      const [models, clubs, photos, videos, blocked, verifications, comments, banners] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company'),
         supabase.from('model_photos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
@@ -44,6 +45,7 @@ export default function AdminDashboard() {
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_blocked', true),
         supabase.from('verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('banners').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ])
 
       setStats({
@@ -51,6 +53,7 @@ export default function AdminDashboard() {
         pendingPhotos: photos.count || 0, pendingVideos: videos.count || 0,
         blockedUsers: blocked.count || 0, pendingVerifications: verifications.count || 0,
         pendingComments: comments.count || 0,
+        pendingBanners: banners.count || 0,
       })
       setLoading(false)
     }
@@ -71,6 +74,7 @@ export default function AdminDashboard() {
     { label: 'Blocked Users', value: stats.blockedUsers, icon: <UserX className="w-4 h-4" />, href: '/dashboard/admin/blocked', accent: 'text-red-600 bg-red-50' },
     { label: 'Pending Verifications', value: stats.pendingVerifications, icon: <ShieldCheck className="w-4 h-4" />, href: '/dashboard/admin/verification', accent: 'text-emerald-600 bg-emerald-50', urgent: stats.pendingVerifications > 0 },
     { label: 'Pending Comments', value: stats.pendingComments, icon: <MessageSquare className="w-4 h-4" />, href: '/dashboard/admin/comments', accent: 'text-orange-600 bg-orange-50', urgent: stats.pendingComments > 0 },
+    { label: 'Pending Banners', value: stats.pendingBanners, icon: <Megaphone className="w-4 h-4" />, href: '/dashboard/admin/banners', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingBanners > 0 },
   ]
 
   const navItems = [
@@ -80,6 +84,7 @@ export default function AdminDashboard() {
     { label: 'Blocked Users', sub: `${stats.blockedUsers} blocked`, icon: <UserX className="w-4 h-4 text-red-600" />, href: '/dashboard/admin/blocked' },
     { label: 'Verifications', sub: `${stats.pendingVerifications} pending`, icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />, href: '/dashboard/admin/verification' },
     { label: 'Review Comments', sub: `${stats.pendingComments} pending`, icon: <MessageSquare className="w-4 h-4 text-orange-600" />, href: '/dashboard/admin/comments' },
+    { label: 'Manage Banners', sub: `${stats.pendingBanners} pending`, icon: <Megaphone className="w-4 h-4 text-purple-600" />, href: '/dashboard/admin/banners' },
   ]
 
   const totalPending = stats.pendingPhotos + stats.pendingVideos + stats.pendingVerifications + stats.pendingComments
