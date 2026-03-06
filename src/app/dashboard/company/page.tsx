@@ -243,7 +243,7 @@ export default function CompanyDashboardPage() {
                   {
                     step: '4',
                     title: 'Activate your ad',
-                    desc: 'Go to Activate Ad and claim your free Unlimited Pass. During beta, this is 100% free — your club will appear in search results.',
+                    desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your club will appear in search results.',
                     action: 'Activate Ad',
                     href: '/dashboard/company/activate-ad',
                   },

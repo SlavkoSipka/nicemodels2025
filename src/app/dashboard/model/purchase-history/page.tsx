@@ -112,11 +112,11 @@ export default function PurchaseHistoryPage() {
                             {item.product.product_type === 'ad_package' ? 'AD PACKAGE' : 'BANNER'}
                           </span>
                           <p className="text-sm font-semibold text-gray-900">
-                            {item.product.product_type === 'ad_package' ? 'Unlimited Pass' : item.product.name}
+                            {item.product.name}
                           </p>
                         </div>
                         <p className="text-xs text-gray-500">
-                          {item.product.product_type === 'ad_package' ? 'Active for entire beta phase' : item.product.description}
+                          {item.product.description}
                         </p>
                       </div>
                       <div className="text-right ml-4">

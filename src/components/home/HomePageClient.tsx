@@ -8,8 +8,6 @@ import BannerCard, { BannerData } from './BannerCard'
 import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
 
-const BANNER_INTERVAL = 2
-
 interface ModelService { id: number; name: string }
 
 interface Model {
@@ -81,17 +79,31 @@ export default function HomePageClient({ initialModels, initialBanners = [] }: H
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               {(() => {
+                const BANNER_GAP = 6
                 const items: React.ReactNode[] = []
-                let bannerIndex = 0
-                filteredModels.forEach((model, index) => {
-                  // Insert banner after every BANNER_INTERVAL models
-                  if (initialBanners.length > 0 && index > 0 && index % BANNER_INTERVAL === 0) {
-                    const banner = initialBanners[bannerIndex % initialBanners.length]
-                    items.push(<BannerCard key={`banner-${index}`} banner={banner} />)
-                    bannerIndex++
+                let bannerIdx = 0
+
+                if (initialBanners.length > 0 && bannerIdx < initialBanners.length) {
+                  items.push(
+                    <BannerCard key={`banner-${initialBanners[bannerIdx].id}`} banner={initialBanners[bannerIdx]} />
+                  )
+                  bannerIdx++
+                }
+
+                filteredModels.forEach((model, i) => {
+                  items.push(<ModelCard key={model.id} model={model} priority={i < 4} />)
+
+                  if (
+                    bannerIdx < initialBanners.length &&
+                    (i + 1) % BANNER_GAP === 0
+                  ) {
+                    items.push(
+                      <BannerCard key={`banner-${initialBanners[bannerIdx].id}`} banner={initialBanners[bannerIdx]} />
+                    )
+                    bannerIdx++
                   }
-                  items.push(<ModelCard key={model.id} model={model} priority={index < 4} />)
                 })
+
                 return items
               })()}
             </div>

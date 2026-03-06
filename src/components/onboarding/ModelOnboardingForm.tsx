@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
+import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 // Countries list (abbreviated)
 const COUNTRIES = [
@@ -171,8 +172,7 @@ export default function ModelOnboardingForm() {
   const [selectedServices, setSelectedServices] = useState<string[]>([])
   const [expandedCategories, setExpandedCategories] = useState<string[]>([])
   
-  // Cities (Step 6)
-  const [cities, setCities] = useState<any[]>([])
+  // Cities (Step 6) - handled by CitySearch component
   
   // Working Hours (Step 8)
   const [scheduleType, setScheduleType] = useState<'custom' | 'same_every_day' | '24_7'>('24_7')
@@ -242,15 +242,7 @@ export default function ModelOnboardingForm() {
         setServices(servicesData)
       }
       
-      // Fetch cities
-      const { data: citiesData, error: citiesError } = await supabase
-        .from('cities')
-        .select('*')
-        .order('name')
-      
-      if (!citiesError && citiesData) {
-        setCities(citiesData)
-      }
+      // Cities are now handled by the CitySearch component
     }
     
     fetchData()
@@ -1261,19 +1253,13 @@ export default function ModelOnboardingForm() {
             
             {/* City */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                City
-              </label>
-              <select
+              <CitySearch
                 value={formData.city}
-                onChange={(e) => handleChange('city', e.target.value)}
-                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
-              >
-                <option value="">Select city...</option>
-                {cities.map((city) => (
-                  <option key={city.id} value={city.name}>{city.name}</option>
-                ))}
-              </select>
+                onChange={(city) => handleChange('city', city?.name || '')}
+                label="City"
+                placeholder="Search city or PLZ..."
+                inputClassName="border-2 border-gray-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-200"
+              />
             </div>
 
             {/* Incall Options */}

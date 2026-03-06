@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { User, MapPin, Phone, DollarSign, Calendar, Ruler, Upload, X } from 'lucide-react'
+import CitySearch from '@/components/ui/CitySearch'
 
 export default function EditProfilePage() {
   const router = useRouter()
@@ -195,15 +196,23 @@ export default function EditProfilePage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City
-                  </label>
-                  <input
-                    type="text"
+                  <CitySearch
                     value={profileData.location_city}
-                    onChange={(e) => setProfileData({ ...profileData, location_city: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all shadow-soft hover:shadow-md"
-                    placeholder="Zurich, Geneva, Basel..."
+                    postalCode={profileData.postal_code}
+                    onChange={(city) => {
+                      if (city) {
+                        setProfileData(prev => ({
+                          ...prev,
+                          location_city: city.name,
+                          postal_code: city.postal_code || prev.postal_code
+                        }))
+                      } else {
+                        setProfileData(prev => ({ ...prev, location_city: '', postal_code: '' }))
+                      }
+                    }}
+                    label="City"
+                    placeholder="Search city or PLZ..."
+                    inputClassName="border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 shadow-soft hover:shadow-md"
                   />
                 </div>
 
@@ -216,7 +225,7 @@ export default function EditProfilePage() {
                     value={profileData.postal_code}
                     onChange={(e) => setProfileData({ ...profileData, postal_code: e.target.value })}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all shadow-soft hover:shadow-md"
-                    placeholder="8000"
+                    placeholder="Auto-filled from city"
                   />
                 </div>
 

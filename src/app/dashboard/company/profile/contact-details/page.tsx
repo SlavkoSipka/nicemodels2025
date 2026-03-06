@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Phone, Save, AlertCircle, CheckCircle } from 'lucide-react'
+import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 interface FormData {
   country_code: string
@@ -37,8 +38,6 @@ export default function ContactDetailsPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [user, setUser] = useState<any>(null)
-  const [cities, setCities] = useState<any[]>([])
-
   const [formData, setFormData] = useState<FormData>({
     country_code: '+41',
     phone_number: '',
@@ -69,14 +68,6 @@ export default function ContactDetailsPage() {
       }
 
       setUser(user)
-
-      const { data: citiesData } = await supabase
-        .from('cities')
-        .select('id, name, canton')
-        .eq('is_active', true)
-        .order('display_order')
-
-      if (citiesData) setCities(citiesData)
 
       const { data: contactData } = await supabase
         .from('club_contact_details')
@@ -364,25 +355,29 @@ export default function ContactDetailsPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">City</label>
-                  <select
+                  <CitySearch
                     value={formData.city}
-                    onChange={(e) => handleChange('city', e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
-                  >
-                    <option value="">Select city...</option>
-                    {cities.map((city) => (
-                      <option key={city.id} value={city.id}>{city.name} ({city.canton})</option>
-                    ))}
-                  </select>
+                    postalCode={formData.zip_code}
+                    onChange={(city) => {
+                      if (city) {
+                        handleChange('city', city.name)
+                        if (city.postal_code) handleChange('zip_code', city.postal_code)
+                      } else {
+                        handleChange('city', '')
+                        handleChange('zip_code', '')
+                      }
+                    }}
+                    label="City"
+                    placeholder="Search city or PLZ..."
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">ZIP Code</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">ZIP Code</label>
                   <input
                     type="text"
                     value={formData.zip_code}
                     onChange={(e) => handleChange('zip_code', e.target.value)}
-                    placeholder="8001"
+                    placeholder="Auto-filled from city"
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
                   />
                 </div>

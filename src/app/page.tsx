@@ -64,21 +64,32 @@ export default async function HomePage() {
     }))
   }
 
-  // Fetch active banners
+  // Fetch active banners (not expired)
+  const now = new Date().toISOString()
   const { data: bannersRaw } = await supabase
     .from('banners')
     .select('*')
     .eq('status', 'active')
+    .or(`starts_at.is.null,starts_at.lte.${now}`)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('display_order')
 
-  const banners = (bannersRaw ?? []).map((b: any) => ({
-    id: b.id,
-    owner_type: b.owner_type,
-    owner_id: b.owner_id,
-    title: b.title,
-    image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,
-    cta_url: b.cta_url,
-  }))
+  // One banner per owner — deduplicate by owner_id, keep the most recent (first after ordering)
+  const seenOwners = new Set<string>()
+  const banners = (bannersRaw ?? [])
+    .filter((b: any) => {
+      if (seenOwners.has(b.owner_id)) return false
+      seenOwners.add(b.owner_id)
+      return true
+    })
+    .map((b: any) => ({
+      id: b.id,
+      owner_type: b.owner_type,
+      owner_id: b.owner_id,
+      title: b.title,
+      image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,
+      cta_url: b.cta_url,
+    }))
 
   return <HomePageClient initialModels={models} initialBanners={banners} />
 }

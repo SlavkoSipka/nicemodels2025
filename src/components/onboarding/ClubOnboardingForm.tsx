@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { processImage } from '@/lib/imageProcessor'
+import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 interface ClubFormData {
   // Step 1: Basic Info
@@ -74,8 +75,6 @@ export default function ClubOnboardingForm() {
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 1
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [cities, setCities] = useState<any[]>([])
-
   const [formData, setFormData] = useState<ClubFormData>({
     club_name: '',
     display_name: '',
@@ -129,23 +128,17 @@ export default function ClubOnboardingForm() {
   const [charCount, setCharCount] = useState(0)
   const maxChars = 3000
 
-  // Load cities from database
-  useEffect(() => {
-    const loadCities = async () => {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('cities')
-        .select('id, name, canton')
-        .eq('is_active', true)
-        .order('display_order')
-      
-      if (data) {
-        setCities(data)
+  const handleCitySelect = (field: 'area' | 'city', city: CityResult | null) => {
+    if (city) {
+      handleChange(field, city.name)
+      if (field === 'city' && city.postal_code) {
+        handleChange('zip_code', city.postal_code)
       }
+    } else {
+      handleChange(field, '')
+      if (field === 'city') handleChange('zip_code', '')
     }
-    
-    loadCities()
-  }, [])
+  }
 
   const handleChange = (field: keyof ClubFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -515,28 +508,12 @@ export default function ClubOnboardingForm() {
 
                 {/* Area */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Area
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={formData.area}
-                      onChange={(e) => handleChange('area', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 bg-gray-50 appearance-none cursor-pointer"
-                    >
-                      <option value="">Select area</option>
-                      {cities.map(city => (
-                        <option key={city.id} value={city.name}>
-                          {city.name}{city.canton ? ` (${city.canton})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
+                  <CitySearch
+                    value={formData.area}
+                    onChange={(city) => handleCitySelect('area', city)}
+                    label="Area"
+                    placeholder="Search area..."
+                  />
                 </div>
               </div>
             </div>
@@ -890,36 +867,23 @@ export default function ClubOnboardingForm() {
               {/* City and ZIP */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">City <span className="text-pink-600">*</span></label>
-                  <div className="relative">
-                    <select
-                      value={formData.city || ''}
-                      onChange={(e) => handleChange('city', e.target.value)}
-                      required
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 bg-gray-50 appearance-none cursor-pointer"
-                    >
-                      <option value="">Select city</option>
-                      {cities.map(city => (
-                        <option key={city.id} value={city.name}>
-                          {city.name}{city.canton ? ` (${city.canton})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                      <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                      </svg>
-                    </div>
-                  </div>
+                  <CitySearch
+                    value={formData.city || ''}
+                    postalCode={formData.zip_code || ''}
+                    onChange={(city) => handleCitySelect('city', city)}
+                    label="City"
+                    required
+                    placeholder="Search city or PLZ..."
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">ZIP</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">ZIP</label>
                   <input
                     type="text"
                     value={formData.zip_code || ''}
                     onChange={(e) => handleChange('zip_code', e.target.value)}
-                    placeholder="ZIP"
+                    placeholder="Auto-filled from city"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 bg-gray-50"
                   />
                 </div>

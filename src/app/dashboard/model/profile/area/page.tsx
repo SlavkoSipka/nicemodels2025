@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { MapPin, Save, CheckCircle, AlertCircle } from 'lucide-react'
+import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 export default function AreaPage() {
   const router = useRouter()
@@ -13,7 +14,6 @@ export default function AreaPage() {
   const [error, setError] = useState('')
   const [user, setUser] = useState<any>(null)
   const [city, setCity] = useState('')
-  const [cities, setCities] = useState<any[]>([])
   const [incallOptions, setIncallOptions] = useState<string[]>([])
   const [outcallOptions, setOutcallOptions] = useState<string[]>([])
 
@@ -24,11 +24,11 @@ export default function AreaPage() {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { router.push('/login'); return }
         setUser(user)
-        const [{ data: citiesData }, { data: md }] = await Promise.all([
-          supabase.from('cities').select('*').order('name'),
-          supabase.from('model_details').select('*').eq('model_id', user.id).single()
-        ])
-        if (citiesData) setCities(citiesData)
+        const { data: md } = await supabase
+          .from('model_details')
+          .select('*')
+          .eq('model_id', user.id)
+          .single()
         if (md) {
           setCity(md.city || '')
           setIncallOptions(md.incall_options || [])
@@ -107,14 +107,13 @@ export default function AreaPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
           {/* City */}
           <div>
-            <label className="block text-xs font-bold text-gray-800 mb-1">
-              City <span className="text-red-500">*</span>
-            </label>
-            <select value={city} onChange={e => setCity(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand">
-              <option value="">Select city...</option>
-              {cities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-            </select>
+            <CitySearch
+              value={city}
+              onChange={(c) => setCity(c?.name || '')}
+              label="City"
+              required
+              placeholder="Search city or PLZ..."
+            />
           </div>
 
           {/* Incall */}

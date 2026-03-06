@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Upload, ShoppingCart } from 'lucide-react'
-import Image from 'next/image'
+import {
+  Megaphone, Upload, X, CheckCircle, AlertCircle, Trash2,
+  ShoppingCart,
+} from 'lucide-react'
 
 interface Product {
   id: string
@@ -13,362 +15,424 @@ interface Product {
   description: string
   price_chf: number
   duration_days: number
-  banner_type: string
-  is_popular: boolean
+  duration_hours: number
+  discount_percent: number
+  is_active: boolean
 }
 
-interface BannerCartItem {
-  product: Product
-  bannerFile: File
-  bannerPreview: string
-  advertisingText: string
-  contactInfo: {
-    countryCode: string
-    phoneNumber: string
-    email: string
-    website: string
-  }
+interface BannerRow {
+  id: string
+  title: string
+  image_path: string | null
+  cta_url: string | null
+  status: string
+  starts_at: string | null
+  expires_at: string | null
+  created_at: string
 }
 
-export default function BuyBannerPage() {
+export default function ModelBuyBannerPage() {
   const router = useRouter()
   const supabase = createClient()
-  
+
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  const [user, setUser] = useState<any>(null)
   const [packages, setPackages] = useState<Product[]>([])
   const [selectedPackage, setSelectedPackage] = useState<Product | null>(null)
-  
-  // Form data
-  const [bannerFile, setBannerFile] = useState<File | null>(null)
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null)
-  const [advertisingText, setAdvertisingText] = useState('')
-  const [countryCode, setCountryCode] = useState('+41')
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [email, setEmail] = useState('')
-  const [website, setWebsite] = useState('')
+  const [hasActiveBanner, setHasActiveBanner] = useState(false)
+  const [activeBannerExpiry, setActiveBannerExpiry] = useState<string | null>(null)
+  const [banners, setBanners] = useState<BannerRow[]>([])
+
+  const [ctaUrl, setCtaUrl] = useState('')
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
   useEffect(() => {
-    loadPackages()
-    loadUserData()
+    load()
   }, [])
 
-  const loadPackages = async () => {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .eq('product_type', 'banner_package')
-      .eq('is_active', true)
-      .order('display_order')
+  const load = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
+      setUser(user)
 
-    if (error) {
-      console.error('Error loading packages:', error)
-    } else {
-      setPackages(data || [])
-    }
-    setLoading(false)
-  }
+      const [{ data: bannersData }, { data: pkgData }] = await Promise.all([
+        supabase.from('banners').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('products').select('*').eq('product_type', 'banner_package').eq('is_active', true).order('display_order'),
+      ])
 
-  const loadUserData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('id', user.id)
-      .single()
-
-    if (profile) {
-      setEmail(profile.email || '')
-    }
-
-    // Load contact details if exists
-    const { data: contactDetails } = await supabase
-      .from('model_contact_details')
-      .select('country_code, phone_number')
-      .eq('model_id', user.id)
-      .single()
-
-    if (contactDetails) {
-      setCountryCode(contactDetails.country_code || '+41')
-      setPhoneNumber(contactDetails.phone_number || '')
+      if (bannersData) {
+        setBanners(bannersData)
+        const now = new Date()
+        const active = bannersData.find((b: BannerRow) => {
+          if (b.status !== 'active') return false
+          if (b.expires_at && new Date(b.expires_at) <= now) return false
+          return true
+        })
+        if (active) {
+          setHasActiveBanner(true)
+          if (active.expires_at) {
+            setActiveBannerExpiry(new Date(active.expires_at).toLocaleDateString('en-CH', {
+              day: 'numeric', month: 'long', year: 'numeric',
+            }))
+          }
+        }
+      }
+      if (pkgData) setPackages(pkgData)
+    } catch { /* ignore */ } finally {
+      setLoading(false)
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file')
-      return
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB')
-      return
-    }
-
-    setBannerFile(file)
-    
-    // Create preview
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setBannerPreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
+    if (file.size > 10 * 1024 * 1024) { setError('Image too large. Max 10MB.'); return }
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
   }
 
-  const handleAddToCart = () => {
-    // Validation
-    if (!bannerFile) {
-      alert('Please upload a banner image')
-      return
-    }
+  const clearImage = () => {
+    setImageFile(null)
+    setImagePreview(null)
+    if (imageInputRef.current) imageInputRef.current.value = ''
+  }
 
-    if (!advertisingText.trim()) {
-      alert('Please enter advertising text')
-      return
-    }
+  const handleActivate = async () => {
+    setError(''); setSuccess('')
+    if (!selectedPackage) { setError('Please select a package'); return }
+    if (!imageFile) { setError('Please upload a banner image'); return }
 
-    if (!selectedPackage) {
-      alert('Please select a banner package')
-      return
-    }
+    setSaving(true)
+    try {
+      const ext = imageFile.name.split('.').pop()
+      const path = `${user.id}/banner-${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage
+        .from('banners')
+        .upload(path, imageFile, { cacheControl: '3600', upsert: true })
+      if (upErr) throw upErr
 
-    if (!phoneNumber.trim() && !email.trim() && !website.trim()) {
-      alert('Please provide at least one contact method')
-      return
-    }
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({ user_id: user.id, status: 'paid', total_amount: 0, payment_method: 'card' })
+        .select()
+        .single()
+      if (orderError || !order) throw orderError || new Error('Failed to create order')
 
-    // Create cart item
-    const cartItem: BannerCartItem = {
-      product: selectedPackage,
-      bannerFile: bannerFile,
-      bannerPreview: bannerPreview || '',
-      advertisingText: advertisingText,
-      contactInfo: {
-        countryCode: countryCode,
-        phoneNumber: phoneNumber,
-        email: email,
-        website: website
+      const { error: itemError } = await supabase
+        .from('order_items')
+        .insert({
+          order_id: order.id,
+          product_id: selectedPackage.id,
+          price_chf: 0,
+          activation_type: 'immediately',
+          activation_date: null,
+        })
+      if (itemError) throw itemError
+
+      const now = new Date()
+      const expiresAt = new Date(now.getTime() + selectedPackage.duration_days * 86400000).toISOString()
+
+      const { data: profile } = await supabase
+        .from('model_details')
+        .select('showname')
+        .eq('model_id', user.id)
+        .single()
+      const title = profile?.showname || 'Banner'
+
+      const { data: newBanner, error: dbErr } = await supabase
+        .from('banners')
+        .insert({
+          owner_id: user.id,
+          owner_type: 'model',
+          title,
+          image_path: path,
+          cta_url: ctaUrl.trim() || null,
+          status: 'active',
+          starts_at: now.toISOString(),
+          expires_at: expiresAt,
+        })
+        .select()
+        .single()
+      if (dbErr) throw dbErr
+
+      setBanners([newBanner, ...banners])
+      setHasActiveBanner(true)
+      setActiveBannerExpiry(new Date(expiresAt).toLocaleDateString('en-CH', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      }))
+      setSuccess('Banner activated successfully!')
+      setSelectedPackage(null)
+      clearImage()
+      setCtaUrl('')
+      setTimeout(() => setSuccess(''), 5000)
+    } catch (e: any) {
+      setError(e?.message || 'Failed to activate banner')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async (banner: BannerRow) => {
+    if (!confirm('Delete this banner?')) return
+    try {
+      if (banner.image_path) await supabase.storage.from('banners').remove([banner.image_path])
+      await supabase.from('banners').delete().eq('id', banner.id)
+      const updated = banners.filter(b => b.id !== banner.id)
+      setBanners(updated)
+      if (banner.status === 'active') {
+        const now = new Date()
+        const stillActive = updated.some(b =>
+          b.status === 'active' && (!b.expires_at || new Date(b.expires_at) > now)
+        )
+        if (!stillActive) {
+          setHasActiveBanner(false)
+          setActiveBannerExpiry(null)
+        }
       }
+    } catch (e: any) {
+      setError(e?.message || 'Failed to delete banner')
     }
-
-    // Get existing cart
-    const savedCart = localStorage.getItem('unified_cart_banners')
-    const cart = savedCart ? JSON.parse(savedCart) : []
-    cart.push(cartItem)
-    
-    // Save banner data separately (Files can't be stringified)
-    localStorage.setItem('unified_cart_banners', JSON.stringify(cart.map((item: BannerCartItem) => ({
-      product: item.product,
-      bannerPreview: item.bannerPreview,
-      advertisingText: item.advertisingText,
-      contactInfo: item.contactInfo,
-      fileName: item.bannerFile.name
-    }))))
-    
-    // Store file separately in session
-    sessionStorage.setItem(`banner_file_${cart.length - 1}`, bannerPreview || '')
-    
-    alert('Banner added to cart!')
-    router.push('/dashboard/model/checkout')
   }
 
-  if (loading) {
-    return (
-      <div className="flex-1 flex items-center justify-center min-h-screen bg-gray-50 ml-[280px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
-      </div>
-    )
+  const storageUrl = (path: string | null) =>
+    path ? `${SUPA_URL}/storage/v1/object/public/banners/${path}` : null
+
+  const statusBadge = (status: string) => {
+    const map: Record<string, { cls: string; label: string }> = {
+      pending:  { cls: 'bg-yellow-100 text-yellow-800', label: 'Pending Review' },
+      active:   { cls: 'bg-emerald-100 text-emerald-800', label: 'Active' },
+      expired:  { cls: 'bg-gray-100 text-gray-600', label: 'Expired' },
+      rejected: { cls: 'bg-red-100 text-red-800', label: 'Rejected' },
+    }
+    const s = map[status] || map.pending
+    return <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span>
   }
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
+      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
-    <div className="flex-1 p-8 ml-[280px] bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+      <div className="max-w-6xl mx-auto space-y-4">
+
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <ShoppingCart className="w-8 h-8" />
-            Setup Your Banner
-          </h1>
-          <p className="text-sm text-gray-600 mt-2">
-            Required fields are marked with <span className="text-red-500">*</span>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-md bg-purple-100 flex items-center justify-center">
+            <Megaphone className="w-4 h-4 text-purple-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Buy Banner</h1>
+            <p className="text-xs text-gray-500">
+              Beta phase — banners are <span className="font-semibold text-emerald-600">100% free</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Beta info */}
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+          <p className="text-sm text-emerald-900">
+            <span className="font-bold">Beta Info:</span> Banner placement is currently{' '}
+            <span className="font-semibold">free for early users</span>.
+            No payment required. We will clearly inform you before any pricing starts.
           </p>
         </div>
 
-        {/* File Upload */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-          <label className="block text-sm font-semibold text-gray-900 mb-3">
-            File Upload <span className="text-red-500">*</span>
-          </label>
-          
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-              id="banner-upload"
-            />
-            <label
-              htmlFor="banner-upload"
-              className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-pink-300 rounded-lg cursor-pointer hover:border-pink-500 transition-all bg-pink-50"
-            >
-              {bannerPreview ? (
-                <div className="relative w-full h-full p-4">
-                  <Image
-                    src={bannerPreview}
-                    alt="Banner preview"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <Upload className="w-12 h-12 text-pink-500 mb-2" />
-                  <span className="text-pink-600 font-semibold">UPLOAD</span>
-                  <span className="text-sm text-gray-500 mt-2">Click to select banner image</span>
-                </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-red-800">{error}</p>
+          </div>
+        )}
+        {success && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-emerald-800">{success}</p>
+          </div>
+        )}
+
+        {/* Active banner status */}
+        {hasActiveBanner && (
+          <div className="bg-white border border-emerald-200 rounded-lg p-5 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
+              <CheckCircle className="w-5 h-5 text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-emerald-800 mb-1">Your banner is currently active</p>
+              <p className="text-sm text-gray-600">
+                Your banner is live on the homepage.
+              </p>
+              {activeBannerExpiry && (
+                <p className="text-xs text-gray-400 mt-1">Active until: {activeBannerExpiry}</p>
               )}
-            </label>
-          </div>
-          {bannerFile && (
-            <p className="text-sm text-gray-600 mt-2">Selected: {bannerFile.name}</p>
-          )}
-        </div>
-
-        {/* Advertising Text */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-          <label className="block text-sm font-semibold text-gray-900 mb-3">
-            Advertising text / advertising slogan / banner text <span className="text-red-500">*</span>
-          </label>
-          
-          <textarea
-            value={advertisingText}
-            onChange={(e) => setAdvertisingText(e.target.value)}
-            placeholder="Advertising text *"
-            maxLength={5000}
-            rows={6}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
-          />
-          
-          <div className="flex justify-end items-center mt-2">
-            <span className="text-sm text-gray-500">{advertisingText.length} / 5000</span>
-          </div>
-        </div>
-
-        {/* Contacts */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
-          <label className="block text-sm font-semibold text-gray-900 mb-4">Contacts</label>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <select
-                value={countryCode}
-                onChange={(e) => setCountryCode(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              >
-                <option value="+41">Switzerland (+41)</option>
-                <option value="+43">Austria (+43)</option>
-                <option value="+49">Germany (+49)</option>
-              </select>
-            </div>
-            
-            <div>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="Phone Number *"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="E-mail Address"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div>
-              <input
-                type="url"
-                value={website}
-                onChange={(e) => setWebsite(e.target.value)}
-                placeholder="Website"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-              />
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Banner Type Selection */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-gray-900 mb-4">
-            Banner type <span className="text-red-500">*</span>
-          </label>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {packages.map((pkg) => (
-              <div
-                key={pkg.id}
-                onClick={() => setSelectedPackage(pkg)}
-                className={`relative bg-white rounded-xl border-2 cursor-pointer transition-all hover:shadow-lg ${
-                  selectedPackage?.id === pkg.id
-                    ? 'border-pink-600 shadow-lg'
-                    : 'border-gray-200'
-                }`}
-              >
-                {/* Popular Badge */}
-                {pkg.is_popular && (
-                  <div className="absolute -top-3 -right-3 bg-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold transform rotate-12">
-                    POPULAR
-                  </div>
-                )}
+        {/* Package selection */}
+        {!hasActiveBanner && (
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <p className="text-sm font-bold text-gray-800 mb-4">1. Select duration:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {packages.map((pkg) => {
+                const isSelected = selectedPackage?.id === pkg.id
 
-                <div className="p-4">
-                  <h3 className="text-base font-bold text-pink-600 mb-1">{pkg.name}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{pkg.description}</p>
-                  
-                  {/* Preview Image */}
-                  <div className="bg-gray-100 rounded-lg p-2 mb-3">
-                    <div className="bg-white rounded p-2">
-                      <div className="grid grid-cols-3 gap-1">
-                        {[...Array(9)].map((_, i) => (
-                          <div key={i} className={`aspect-square ${i === 4 ? 'bg-pink-500' : 'bg-gray-200'} rounded`}></div>
-                        ))}
+                return (
+                  <div
+                    key={pkg.id}
+                    onClick={() => setSelectedPackage(pkg)}
+                    className={`relative rounded-lg border-2 transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-brand bg-brand/5 shadow-sm'
+                        : 'border-gray-200 bg-white hover:border-brand/50'
+                    }`}
+                  >
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white bg-emerald-500">
+                      Beta — Free
+                    </div>
+                    <div className="p-5 text-center">
+                      <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
+                      <p className="text-xs text-gray-400">{pkg.description}</p>
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <p className="text-sm font-bold text-emerald-600">Free</p>
+                        <p className="text-xs text-gray-400 mt-0.5">No payment needed</p>
                       </div>
                     </div>
+                    {isSelected && (
+                      <div className="absolute bottom-2.5 right-2.5 w-5 h-5 bg-brand rounded-full flex items-center justify-center">
+                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* Price */}
-                  <div className="bg-pink-600 text-white text-center py-2 rounded-lg font-bold">
-                    CHF {pkg.price_chf}
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Banner image upload */}
+        {!hasActiveBanner && selectedPackage && (
+          <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <p className="text-sm font-bold text-gray-800">2. Upload banner image:</p>
+            <p className="text-xs text-gray-400">
+              Recommended: wide landscape ratio (4:1). Max 10MB. JPG, PNG, WebP.
+            </p>
+            {imagePreview ? (
+              <div className="relative rounded-xl overflow-hidden border border-gray-200 max-w-lg">
+                <img src={imagePreview} alt="Preview" className="w-full aspect-[4/1] object-cover" />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                className="w-full max-w-lg aspect-[4/1] border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-brand hover:text-brand transition-colors flex flex-col items-center justify-center gap-2"
+              >
+                <Upload className="w-8 h-8" />
+                <span className="text-sm font-medium">Click to upload banner</span>
+                <span className="text-xs">JPG, PNG, WebP</span>
+              </button>
+            )}
+            <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-1">Link (optional)</label>
+              <input
+                type="url"
+                value={ctaUrl}
+                onChange={e => setCtaUrl(e.target.value)}
+                placeholder="https://... or leave empty for your profile"
+                className="w-full max-w-lg px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Confirm activation */}
+        {!hasActiveBanner && selectedPackage && imageFile && (
+          <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-bold text-gray-800">3. Confirm:</p>
+              <div className="text-right">
+                <p className="text-sm font-bold text-gray-900">Total (beta):</p>
+                <p className="text-base font-bold text-emerald-600">Free</p>
+              </div>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">{selectedPackage.name} — Banner</p>
+                  <p className="text-xs text-gray-500">Activate immediately</p>
+                </div>
+                <span className="text-sm font-bold text-emerald-600">Free</span>
+              </div>
+            </div>
+            <button
+              onClick={handleActivate}
+              disabled={saving}
+              className="w-full py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {saving ? 'Activating...' : 'Confirm free activation (beta)'}
+            </button>
+          </div>
+        )}
+
+        {/* Existing banners */}
+        {banners.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+            <h2 className="text-lg font-bold text-gray-900">Your Banners</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {banners.map(banner => (
+                <div key={banner.id} className="border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
+                  {banner.image_path && (
+                    <img src={storageUrl(banner.image_path)!} alt="Banner" className="w-full aspect-[4/1] object-cover" />
+                  )}
+                  <div className="p-3 flex items-center justify-between">
+                    <div>
+                      {statusBadge(banner.status)}
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(banner.created_at).toLocaleDateString()}
+                      </p>
+                      {banner.expires_at && (
+                        <p className="text-xs text-gray-400">
+                          Expires: {new Date(banner.expires_at).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleDelete(banner)}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Add to Cart Button */}
-        <div className="flex justify-start">
-          <button
-            onClick={handleAddToCart}
-            disabled={!bannerFile || !advertisingText || !selectedPackage}
-            className="px-8 py-4 bg-pink-600 text-white rounded-lg font-bold hover:bg-pink-700 transition-all shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed text-lg"
-          >
-            ADD TO CART
-          </button>
-        </div>
       </div>
     </div>
   )

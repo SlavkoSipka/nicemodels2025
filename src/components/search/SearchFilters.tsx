@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Filter, X } from 'lucide-react'
+import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 export default function SearchFilters() {
   const [isOpen, setIsOpen] = useState(true)
@@ -17,7 +18,6 @@ export default function SearchFilters() {
   })
 
   const categories = ['Escort', 'Trans', 'Couples', 'VIP']
-  const cities = ['Zurich', 'Geneva', 'Basel', 'Bern', 'Lausanne', 'Lucerne', 'St. Gallen']
   const services = [
     'GFE (Girlfriend Experience)',
     'Massage',
@@ -75,19 +75,12 @@ export default function SearchFilters() {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Location
-            </label>
-            <select
+            <CitySearch
               value={filters.city}
-              onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-            >
-              <option value="">All Cities</option>
-              {cities.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
+              onChange={(city) => setFilters({ ...filters, city: city?.name || '' })}
+              label="Location"
+              placeholder="Search city or PLZ..."
+            />
           </div>
 
           {/* Age Range */}

@@ -272,7 +272,7 @@ export default function ModelDashboardPage() {
                     {
                       step: '3',
                       title: 'Activate your ad',
-                      desc: 'Go to Activate Ad and claim your free Unlimited Pass. During beta, this is 100% free — your profile will appear in search results.',
+                      desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your profile will appear in search results.',
                       action: 'Activate Ad',
                       href: '/dashboard/model/activate-ad',
                     },

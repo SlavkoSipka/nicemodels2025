@@ -34,12 +34,17 @@ export default function CompanyActivateAdPage() {
   const [activationDate, setActivationDate] = useState<string>('')
   const [hasActiveAd, setHasActiveAd] = useState(false)
   const [activeAdExpiry, setActiveAdExpiry] = useState<string | null>(null)
+  const [checkoutError, setCheckoutError] = useState<string>('')
 
   useEffect(() => {
-    loadPackages()
-    loadCart()
-    checkActiveAd()
+    loadAll()
   }, [])
+
+  const loadAll = async () => {
+    const pkgData = await loadPackages()
+    loadCart(pkgData)
+    checkActiveAd()
+  }
 
   const checkActiveAd = async () => {
     try {
@@ -52,7 +57,7 @@ export default function CompanyActivateAdPage() {
           id,
           activation_date,
           orders!inner(user_id, status, created_at),
-          products!inner(product_type, duration_hours)
+          products!inner(product_type, duration_days, duration_hours)
         `)
         .eq('orders.user_id', user.id)
         .eq('orders.status', 'paid')
@@ -67,7 +72,8 @@ export default function CompanyActivateAdPage() {
         const startDate = item.activation_date
           ? new Date(item.activation_date)
           : new Date(order.created_at)
-        const expiryDate = new Date(startDate.getTime() + product.duration_hours * 3600000)
+        const durationMs = (product.duration_days * 86400000) + (product.duration_hours * 3600000)
+        const expiryDate = new Date(startDate.getTime() + durationMs)
 
         if (startDate <= now && expiryDate > now) {
           setHasActiveAd(true)
@@ -83,7 +89,7 @@ export default function CompanyActivateAdPage() {
     }
   }
 
-  const loadPackages = async () => {
+  const loadPackages = async (): Promise<Product[]> => {
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -93,18 +99,26 @@ export default function CompanyActivateAdPage() {
 
     if (error) {
       console.error('Error loading packages:', error)
-    } else {
-      setPackages(data || [])
     }
+    const pkgList = data || []
+    setPackages(pkgList)
     setLoading(false)
+    return pkgList
   }
 
-  const loadCart = () => {
+  const loadCart = (validPackages: Product[]) => {
     const savedCart = localStorage.getItem('company_unified_cart')
-    if (savedCart) {
-      const allCart = JSON.parse(savedCart)
-      setCart(allCart.filter((item: CartItem) => item.product.product_type === 'ad_package'))
+    if (!savedCart) return
+    const allCart = JSON.parse(savedCart)
+    const validIds = new Set(validPackages.map(p => p.id))
+    const filtered = allCart.filter(
+      (item: CartItem) =>
+        item.product?.product_type === 'ad_package' && validIds.has(item.product?.id)
+    )
+    if (filtered.length !== allCart.filter((i: CartItem) => i.product?.product_type === 'ad_package').length) {
+      localStorage.setItem('company_unified_cart', JSON.stringify(filtered))
     }
+    setCart(filtered)
   }
 
   const saveCart = (newCart: CartItem[]) => {
@@ -134,10 +148,19 @@ export default function CompanyActivateAdPage() {
 
   const goToCheckout = async () => {
     if (cart.length === 0) return
+    setCheckoutError('')
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
+
+      const validIds = new Set(packages.map(p => p.id))
+      const validCart = cart.filter(item => validIds.has(item.product.id))
+      if (validCart.length !== cart.length) {
+        saveCart(validCart)
+        setCheckoutError('Your cart had outdated items. Please try again.')
+        return
+      }
 
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -151,7 +174,7 @@ export default function CompanyActivateAdPage() {
         .single()
 
       if (orderError || !order) {
-        console.error('Error creating order:', orderError)
+        setCheckoutError(orderError?.message || 'Failed to create order')
         return
       }
 
@@ -167,14 +190,20 @@ export default function CompanyActivateAdPage() {
           })
 
         if (itemError) {
-          console.error('Error creating order item:', itemError)
+          if (itemError.code === '23503') {
+            saveCart([])
+            setCheckoutError('Your cart contained outdated items. Please select packages again and try checkout.')
+          } else {
+            setCheckoutError(itemError.message || 'Failed to create order item')
+          }
+          return
         }
       }
 
       saveCart([])
       router.push('/dashboard/company')
     } catch (error) {
-      console.error('Error processing order:', error)
+      setCheckoutError(error instanceof Error ? error.message : 'An error occurred')
     }
   }
 
@@ -227,6 +256,12 @@ export default function CompanyActivateAdPage() {
           </p>
         </div>
 
+        {checkoutError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <p className="text-sm text-red-800">{checkoutError}</p>
+          </div>
+        )}
+
         {/* Active ad status */}
         {hasActiveAd && (
           <div className="bg-white border border-emerald-200 rounded-lg p-5 flex items-start gap-3">
@@ -236,7 +271,7 @@ export default function CompanyActivateAdPage() {
             <div>
               <p className="text-sm font-bold text-emerald-800 mb-1">Your club ad is currently active</p>
               <p className="text-sm text-gray-600">
-                Your club has an active Unlimited Pass. Your profile is visible in search results.
+                Your club profile is visible in search results.
               </p>
               {activeAdExpiry && (
                 <p className="text-xs text-gray-400 mt-1">Active until: {activeAdExpiry}</p>
@@ -249,31 +284,10 @@ export default function CompanyActivateAdPage() {
         {!hasActiveAd && (
           <div className="bg-white border border-gray-200 rounded-lg p-5">
             <p className="text-sm font-bold text-gray-800 mb-4">Select duration:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {packages.map((pkg, idx) => {
-                const isBetaAvailable = idx === 0
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
                 const isInCart = cart.some(item => item.product.id === pkg.id)
-
-                if (!isBetaAvailable) {
-                  return (
-                    <div
-                      key={pkg.id}
-                      className="relative bg-gray-50 rounded-lg border border-gray-200 opacity-50 cursor-not-allowed"
-                    >
-                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gray-400 text-white px-2.5 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap">
-                        Coming soon
-                      </div>
-                      <div className="p-5 text-center">
-                        <p className="text-base font-bold text-gray-400 mb-1">{pkg.name}</p>
-                        <p className="text-xs text-gray-400">{pkg.duration_hours}h</p>
-                        <div className="mt-4 pt-3 border-t border-gray-200">
-                          <p className="text-xs text-gray-400">Not available in beta</p>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                }
 
                 return (
                   <div
@@ -291,10 +305,10 @@ export default function CompanyActivateAdPage() {
                       {isInCart ? 'Added to cart' : 'Beta — Free'}
                     </div>
                     <div className="p-5 text-center">
-                      <p className="text-base font-bold text-gray-900 mb-1">Unlimited Pass</p>
-                      <p className="text-xs text-gray-400">Active for the entire beta phase</p>
+                      <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
+                      <p className="text-xs text-gray-400">{pkg.description}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
-                        <p className="text-sm font-bold text-emerald-600">100% Free</p>
+                        <p className="text-sm font-bold text-emerald-600">Free</p>
                         <p className="text-xs text-gray-400 mt-0.5">No payment needed</p>
                       </div>
                     </div>
@@ -375,7 +389,7 @@ export default function CompanyActivateAdPage() {
               {cart.map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Unlimited Pass</p>
+                    <p className="text-sm font-semibold text-gray-900">{item.product.name}</p>
                     <p className="text-xs text-gray-500">
                       {item.activationType === 'immediately' ? 'Activate immediately'
                         : item.activationType === 'after_current' ? 'After current ad'

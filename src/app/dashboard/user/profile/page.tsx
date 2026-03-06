@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Save, CheckCircle } from 'lucide-react'
+import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 export default function UserProfile() {
   const [profile, setProfile] = useState<any>(null)
@@ -12,19 +13,11 @@ export default function UserProfile() {
   const [phone, setPhone] = useState('')
   const [city, setCity] = useState('')
   const [description, setDescription] = useState('')
-  const [cities, setCities] = useState<any[]>([])
   const [success, setSuccess] = useState('')
 
   useEffect(() => {
     loadProfile()
-    loadCities()
   }, [])
-
-  const loadCities = async () => {
-    const supabase = createClient()
-    const { data } = await supabase.from('cities').select('*').eq('is_active', true).order('display_order', { ascending: true })
-    if (data) setCities(data)
-  }
 
   const loadProfile = async () => {
     const supabase = createClient()
@@ -116,11 +109,12 @@ export default function UserProfile() {
             </div>
 
             <div>
-              <label className={labelCls}>City / Area</label>
-              <select value={city} onChange={e => setCity(e.target.value)} className={inputCls}>
-                <option value="">Select your city</option>
-                {cities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-              </select>
+              <CitySearch
+                value={city}
+                onChange={(c) => setCity(c?.name || '')}
+                label="City / Area"
+                placeholder="Search city or PLZ..."
+              />
             </div>
 
             <div>

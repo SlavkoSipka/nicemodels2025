@@ -125,7 +125,13 @@ export interface Database {
         Row: {
           id: string
           name: string
+          postal_code: string | null
           canton: string | null
+          municipality: string | null
+          bfs_nr: number | null
+          coordinates_e: number | null
+          coordinates_n: number | null
+          language: string | null
           display_order: number
           is_active: boolean
           created_at: string
@@ -133,7 +139,13 @@ export interface Database {
         Insert: {
           id?: string
           name: string
+          postal_code?: string | null
           canton?: string | null
+          municipality?: string | null
+          bfs_nr?: number | null
+          coordinates_e?: number | null
+          coordinates_n?: number | null
+          language?: string | null
           display_order?: number
           is_active?: boolean
           created_at?: string
@@ -141,7 +153,13 @@ export interface Database {
         Update: {
           id?: string
           name?: string
+          postal_code?: string | null
           canton?: string | null
+          municipality?: string | null
+          bfs_nr?: number | null
+          coordinates_e?: number | null
+          coordinates_n?: number | null
+          language?: string | null
           display_order?: number
           is_active?: boolean
           created_at?: string
