@@ -17,6 +17,7 @@ interface Conversation {
     id: string;
     username: string;
     role: string;
+    photo_url?: string | null;
   };
   is_online: boolean;
 }
@@ -40,6 +41,7 @@ export default function ChatWidget() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [shouldTrackPresence, setShouldTrackPresence] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [startingChat, setStartingChat] = useState<string | null>(null);
@@ -52,9 +54,63 @@ export default function ChatWidget() {
       await loadUser();
       await loadConversations();
     };
-    
     init();
   }, []);
+
+  // Listen for external events (from AvailableForChat sidebar widget)
+  useEffect(() => {
+    function handleOpenWidget(e: Event) {
+      const tab = (e as CustomEvent).detail?.tab as 'conversations' | 'online' | undefined;
+      setIsOpen(true);
+      if (tab) setActiveTab(tab);
+    }
+
+    async function handleOpenWithModel(e: Event) {
+      const { modelId, modelName, modelPhoto } = (e as CustomEvent).detail || {};
+      if (!modelId || !currentUserId) return;
+
+      setStartingChat(modelId);
+      try {
+        const { data: conversationId, error } = await supabase.rpc('get_or_create_conversation', {
+          p_user_id: currentUserId,
+          p_other_user_id: modelId,
+        });
+        if (error || !conversationId) return;
+
+        const otherUser: OnlineUser = {
+          id: modelId,
+          username: modelName || 'Model',
+          role: 'model',
+          photo_url: modelPhoto || null,
+        };
+
+        setOpenChats(prev => {
+          const existing = prev.find(c => c.conversationId === conversationId);
+          if (existing) {
+            return prev.map(c => c.conversationId === conversationId ? { ...c, isMinimized: false } : c);
+          }
+          return [...prev, { conversationId, otherUser, isMinimized: false }];
+        });
+        setIsOpen(false);
+      } finally {
+        setStartingChat(null);
+      }
+    }
+
+    function handleChatAvailableChanged(e: Event) {
+      const available = (e as CustomEvent).detail?.available as boolean;
+      setShouldTrackPresence(available);
+    }
+
+    window.addEventListener('open-chat-widget', handleOpenWidget);
+    window.addEventListener('open-chat-with-model', handleOpenWithModel);
+    window.addEventListener('chat-available-changed', handleChatAvailableChanged);
+    return () => {
+      window.removeEventListener('open-chat-widget', handleOpenWidget);
+      window.removeEventListener('open-chat-with-model', handleOpenWithModel);
+      window.removeEventListener('chat-available-changed', handleChatAvailableChanged);
+    };
+  }, [currentUserId]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -68,23 +124,18 @@ export default function ChatWidget() {
       },
     });
 
-    // Track this user's presence
     presenceChannel
       .on('presence', { event: 'sync' }, () => {
-        const presenceState = presenceChannel.presenceState();
-        updateOnlineUsers(presenceState);
+        updateOnlineUsers(presenceChannel.presenceState());
       })
       .on('presence', { event: 'join' }, () => {
-        const presenceState = presenceChannel.presenceState();
-        updateOnlineUsers(presenceState);
+        updateOnlineUsers(presenceChannel.presenceState());
       })
       .on('presence', { event: 'leave' }, () => {
-        const presenceState = presenceChannel.presenceState();
-        updateOnlineUsers(presenceState);
+        updateOnlineUsers(presenceChannel.presenceState());
       })
       .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          // Track current user
+        if (status === 'SUBSCRIBED' && shouldTrackPresence) {
           await presenceChannel.track({
             user_id: currentUserId,
             online_at: new Date().toISOString(),
@@ -113,24 +164,41 @@ export default function ChatWidget() {
       supabase.removeChannel(presenceChannel);
       supabase.removeChannel(messagesChannel);
     };
-  }, [currentUserId]);
+  }, [currentUserId, shouldTrackPresence]);
 
   async function loadUser() {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setCurrentUserId(user.id);
-      // Update online status in database (for non-realtime queries)
-      await supabase
-        .from('online_status')
-        .upsert({
-          user_id: user.id,
-          is_online: true,
-          is_available_for_chat: true,
-          last_seen_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
-        });
+    if (!user) return;
+
+    setCurrentUserId(user.id);
+
+    // Check role and chat_available flag for models
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    let trackable = true;
+    if (profile?.role === 'model') {
+      const { data: details } = await supabase
+        .from('model_details')
+        .select('chat_available')
+        .eq('model_id', user.id)
+        .single();
+      trackable = details?.chat_available === true;
     }
+
+    setShouldTrackPresence(trackable);
+
+    await supabase
+      .from('online_status')
+      .upsert({
+        user_id: user.id,
+        is_online: trackable,
+        is_available_for_chat: trackable,
+        last_seen_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
   }
 
   async function updateOnlineUsers(presenceState: any) {
@@ -155,44 +223,44 @@ export default function ChatWidget() {
       return;
     }
 
-    // Get primary photos for models
-    const usersWithPhotos = await Promise.all(
-      profiles.map(async (profile) => {
-        if (profile.role === 'model') {
-          const { data: photo } = await supabase
-            .from('model_photos')
-            .select('file_path')
-            .eq('model_id', profile.id)
-            .eq('is_approved', true)
-            .order('uploaded_at', { ascending: true })
-            .limit(1)
-            .single();
+    const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 
-          return {
-            ...profile,
-            photo_url: photo?.file_path || null,
-          };
-        } else if (profile.role === 'company') {
-          const { data: photo } = await supabase
-            .from('club_photos')
-            .select('file_path')
-            .eq('club_id', profile.id)
-            .eq('is_approved', true)
-            .order('uploaded_at', { ascending: true })
-            .limit(1)
-            .single();
+    // Batch fetch model photos and club photos
+    const modelIds = profiles.filter(p => p.role === 'model').map(p => p.id);
+    const clubIds = profiles.filter(p => p.role === 'company').map(p => p.id);
 
-          return {
-            ...profile,
-            photo_url: photo?.file_path || null,
-          };
-        }
-        return {
-          ...profile,
-          photo_url: null,
-        };
-      })
-    );
+    const [{ data: modelPhotos }, { data: clubPhotos }] = await Promise.all([
+      modelIds.length
+        ? supabase.from('model_photos').select('model_id, file_path')
+            .in('model_id', modelIds).eq('is_approved', true)
+            .order('uploaded_at', { ascending: false })
+        : Promise.resolve({ data: [] }),
+      clubIds.length
+        ? supabase.from('club_photos').select('club_id, file_path')
+            .in('club_id', clubIds).eq('is_approved', true)
+            .order('uploaded_at', { ascending: false })
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const modelPhotoMap = new Map<string, string>();
+    for (const p of modelPhotos || []) {
+      if (!modelPhotoMap.has(p.model_id) && p.file_path)
+        modelPhotoMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`);
+    }
+    const clubPhotoMap = new Map<string, string>();
+    for (const p of clubPhotos || []) {
+      if (!clubPhotoMap.has(p.club_id) && p.file_path)
+        clubPhotoMap.set(p.club_id, `${SUPA_URL}/storage/v1/object/public/club-photos/${p.file_path}`);
+    }
+
+    const usersWithPhotos = profiles.map(profile => ({
+      ...profile,
+      photo_url: profile.role === 'model'
+        ? (modelPhotoMap.get(profile.id) || null)
+        : profile.role === 'company'
+          ? (clubPhotoMap.get(profile.id) || null)
+          : null,
+    }));
 
     setOnlineUsers(usersWithPhotos);
   }
@@ -221,32 +289,40 @@ export default function ChatWidget() {
       return;
     }
 
-    // Fetch other user details and online status
-    const conversationsWithUsers = await Promise.all(
-      (data || []).map(async (conv) => {
-        const otherUserId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
-        
-        // Get user profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('id, username, role')
-          .eq('id', otherUserId)
-          .single();
-
-        // Get online status
-        const { data: onlineStatus } = await supabase
-          .from('online_status')
-          .select('is_online')
-          .eq('user_id', otherUserId)
-          .single();
-
-        return {
-          ...conv,
-          other_user: profile || { id: otherUserId, username: 'Unknown', role: 'user' },
-          is_online: onlineStatus?.is_online || false,
-        };
-      })
+    // Collect all other user IDs at once
+    const otherUserIds = (data || []).map(conv =>
+      conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id
     );
+
+    // Batch fetch profiles, online status, and model photos
+    const [{ data: profiles }, { data: onlineStatuses }, { data: modelPhotos }] = await Promise.all([
+      supabase.from('profiles').select('id, username, role').in('id', otherUserIds),
+      supabase.from('online_status').select('user_id, is_online').in('user_id', otherUserIds),
+      supabase.from('model_photos').select('model_id, file_path')
+        .in('model_id', otherUserIds).eq('is_approved', true)
+        .order('uploaded_at', { ascending: false }),
+    ]);
+
+    const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+    const onlineMap = new Map((onlineStatuses || []).map(s => [s.user_id, s.is_online]));
+    const photoMap = new Map<string, string>();
+    for (const p of modelPhotos || []) {
+      if (!photoMap.has(p.model_id) && p.file_path) {
+        photoMap.set(p.model_id, `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${p.file_path}`);
+      }
+    }
+
+    const conversationsWithUsers = (data || []).map(conv => {
+      const otherUserId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
+      const profile = profileMap.get(otherUserId);
+      return {
+        ...conv,
+        other_user: profile
+          ? { ...profile, photo_url: photoMap.get(otherUserId) || null }
+          : { id: otherUserId, username: 'Unknown', role: 'user', photo_url: null },
+        is_online: onlineMap.get(otherUserId) || false,
+      };
+    });
 
     setConversations(conversationsWithUsers);
     setLoading(false);
@@ -321,7 +397,7 @@ export default function ChatWidget() {
             id: conversation.other_user.id,
             username: conversation.other_user.username,
             role: conversation.other_user.role,
-            photo_url: null, // We'll need to fetch this
+            photo_url: conversation.other_user.photo_url || null,
           },
           isMinimized: false,
         },
@@ -480,9 +556,17 @@ export default function ChatWidget() {
                       >
                         {/* Avatar */}
                         <div className="relative flex-shrink-0">
-                          <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {conversation.other_user.username.charAt(0).toUpperCase()}
-                          </div>
+                          {conversation.other_user.photo_url ? (
+                            <img
+                              src={conversation.other_user.photo_url}
+                              alt={conversation.other_user.username}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold">
+                              {conversation.other_user.username.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           {conversation.is_online && (
                             <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
                           )}

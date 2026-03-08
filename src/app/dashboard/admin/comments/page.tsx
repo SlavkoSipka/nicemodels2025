@@ -12,6 +12,8 @@ export default async function AdminCommentsPage() {
       rating,
       status,
       created_at,
+      reply_text,
+      replied_at,
       user:profiles!model_comments_user_id_fkey (
         id,
         username,

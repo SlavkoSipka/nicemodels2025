@@ -70,6 +70,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     contactDetails,
     comments,
     collabModels = [],
+    likeCounts: initialLikeCounts = {},
+    userLikedPhotoIds: initialUserLiked = [],
   } = modelData
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
@@ -91,6 +93,10 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [myComment, setMyComment] = useState<any>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [photoLikeCounts, setPhotoLikeCounts] = useState<Record<string, number>>(initialLikeCounts)
+  const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set(initialUserLiked))
+  const [likingPhoto, setLikingPhoto] = useState<string | null>(null)
+  const [heartPop, setHeartPop] = useState(false)
   const router = useRouter()
   const { show: showLoader } = usePageLoader()
 
@@ -228,7 +234,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
         model_id: profile.id,
         comment_text: commentText.trim(),
         rating: commentRating || null,
-        status: 'pending'
+        status: 'approved'
       })
 
     if (!error) {
@@ -238,10 +244,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
       setShowCommentForm(false)
       setHasExistingComment(true)
       
-      // Refetch user's comment to display it
       await checkExistingComment()
       
-      // Hide success message after 5 seconds
       setTimeout(() => setCommentSuccess(false), 5000)
     }
 
@@ -328,13 +332,55 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     }
   }
 
+  const togglePhotoLike = async (photoId: string) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      setShowLoginModal(true)
+      return
+    }
+
+    if (likingPhoto) return
+    setLikingPhoto(photoId)
+
+    const alreadyLiked = likedPhotos.has(photoId)
+
+    if (alreadyLiked) {
+      const { error } = await supabase
+        .from('photo_likes')
+        .delete()
+        .eq('photo_id', photoId)
+        .eq('user_id', user.id)
+
+      if (!error) {
+        setLikedPhotos(prev => { const s = new Set(prev); s.delete(photoId); return s })
+        setPhotoLikeCounts(prev => ({ ...prev, [photoId]: Math.max((prev[photoId] || 1) - 1, 0) }))
+      }
+    } else {
+      const { error } = await supabase
+        .from('photo_likes')
+        .insert({ photo_id: photoId, user_id: user.id })
+
+      if (!error) {
+        setLikedPhotos(prev => new Set(prev).add(photoId))
+        setPhotoLikeCounts(prev => ({ ...prev, [photoId]: (prev[photoId] || 0) + 1 }))
+        setHeartPop(true)
+        setTimeout(() => setHeartPop(false), 600)
+      }
+    }
+
+    setLikingPhoto(null)
+  }
+
   // Build unified media list: photos first, then videos
-  const mediaItems: { type: 'photo' | 'video'; url: string }[] = [
+  const mediaItems: { type: 'photo' | 'video'; url: string; id?: string }[] = [
     ...photos
       .map((photo: any) => {
         if (!photo.file_path) return null
         return {
           type: 'photo' as const,
+          id: photo.id,
           url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${photo.file_path}`
         }
       })
@@ -900,6 +946,23 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           {new Date(comment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
                         <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>{comment.comment_text}</p>
+
+                        {/* Model reply */}
+                        {comment.reply_text && (
+                          <div className="mt-3 ml-4 pl-3" style={{ borderLeft: '2px solid rgba(236,72,153,0.3)' }}>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#EC4899' }}>
+                                {modelDetails?.showname || profile?.username || 'Model'} replied
+                              </span>
+                              {comment.replied_at && (
+                                <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                                  · {new Date(comment.replied_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>{comment.reply_text}</p>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -919,11 +982,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                      myComment.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
                       myComment.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
-                      'bg-red-500/20 text-red-400'
+                      myComment.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
+                      'bg-amber-500/20 text-amber-400'
                     }`}>
-                      {myComment.status === 'pending' ? 'Pending review' : myComment.status === 'approved' ? 'Approved' : 'Not approved'}
+                      {myComment.status === 'approved' ? 'Published' : myComment.status === 'rejected' ? 'Removed' : 'Published'}
                     </span>
                     <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
                       {new Date(myComment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
@@ -942,7 +1005,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 <div>
                   {commentSuccess && (
                     <div className="mb-3 p-3 rounded-md text-sm font-medium" style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#4ade80' }}>
-                      Comment submitted — pending review.
+                      Your review has been published!
                     </div>
                   )}
                   {!showCommentForm ? (
@@ -999,7 +1062,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           Cancel
                         </button>
                       </div>
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>All reviews are verified before publishing.</p>
+                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>Your review will be published immediately.</p>
                     </div>
                   )}
                 </div>
@@ -1055,6 +1118,33 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         <ChevronRight className="w-5 h-5" />
                       </button>
                     </>
+                  )}
+
+                  {/* Like button for photos */}
+                  {mediaItems[selectedPhotoIndex]?.type === 'photo' && mediaItems[selectedPhotoIndex]?.id && (
+                    <button
+                      onClick={() => togglePhotoLike(mediaItems[selectedPhotoIndex].id!)}
+                      disabled={likingPhoto === mediaItems[selectedPhotoIndex].id}
+                      className="absolute bottom-4 left-4 z-10 flex items-center gap-1.5 px-3 py-2 rounded-full transition-all group/like"
+                      style={{
+                        background: likedPhotos.has(mediaItems[selectedPhotoIndex].id!)
+                          ? 'rgba(236,72,153,0.85)'
+                          : 'rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(8px)',
+                      }}
+                    >
+                      <Heart
+                        className={`w-5 h-5 transition-all ${
+                          likedPhotos.has(mediaItems[selectedPhotoIndex].id!)
+                            ? 'fill-white text-white'
+                            : 'text-white group-hover/like:text-pink-300'
+                        } ${heartPop && likedPhotos.has(mediaItems[selectedPhotoIndex].id!) ? 'scale-125' : 'scale-100'}`}
+                        style={{ transition: 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
+                      />
+                      <span className="text-white text-sm font-semibold min-w-[1ch]">
+                        {photoLikeCounts[mediaItems[selectedPhotoIndex].id!] || 0}
+                      </span>
+                    </button>
                   )}
 
                   <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
@@ -1263,6 +1353,31 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               style={{ background: 'rgba(255,255,255,0.12)' }}
             >
               <ChevronRight className="w-7 h-7" />
+            </button>
+          )}
+
+          {/* Like button in lightbox */}
+          {mediaItems[lightboxIndex]?.type === 'photo' && mediaItems[lightboxIndex]?.id && (
+            <button
+              onClick={e => { e.stopPropagation(); togglePhotoLike(mediaItems[lightboxIndex].id!) }}
+              disabled={likingPhoto === mediaItems[lightboxIndex].id}
+              className="absolute top-4 left-4 z-10 flex items-center gap-2 px-4 py-2.5 rounded-full transition-all"
+              style={{
+                background: likedPhotos.has(mediaItems[lightboxIndex].id!)
+                  ? 'rgba(236,72,153,0.85)'
+                  : 'rgba(255,255,255,0.12)',
+              }}
+            >
+              <Heart
+                className={`w-5 h-5 transition-all ${
+                  likedPhotos.has(mediaItems[lightboxIndex].id!)
+                    ? 'fill-white text-white'
+                    : 'text-white/70 hover:text-pink-300'
+                }`}
+              />
+              <span className="text-white text-sm font-semibold">
+                {photoLikeCounts[mediaItems[lightboxIndex].id!] || 0}
+              </span>
             </button>
           )}
 

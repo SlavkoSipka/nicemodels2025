@@ -44,7 +44,7 @@ export default function AdminDashboard() {
         supabase.from('model_videos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_blocked', true),
         supabase.from('verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('model_comments').select('id', { count: 'exact', head: true }),
         supabase.from('banners').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ])
 
@@ -73,7 +73,7 @@ export default function AdminDashboard() {
     { label: 'Pending Videos', value: stats.pendingVideos, icon: <Film className="w-4 h-4" />, href: '/dashboard/admin/review-media', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingVideos > 0 },
     { label: 'Blocked Users', value: stats.blockedUsers, icon: <UserX className="w-4 h-4" />, href: '/dashboard/admin/blocked', accent: 'text-red-600 bg-red-50' },
     { label: 'Pending Verifications', value: stats.pendingVerifications, icon: <ShieldCheck className="w-4 h-4" />, href: '/dashboard/admin/verification', accent: 'text-emerald-600 bg-emerald-50', urgent: stats.pendingVerifications > 0 },
-    { label: 'Pending Comments', value: stats.pendingComments, icon: <MessageSquare className="w-4 h-4" />, href: '/dashboard/admin/comments', accent: 'text-orange-600 bg-orange-50', urgent: stats.pendingComments > 0 },
+    { label: 'Total Comments', value: stats.pendingComments, icon: <MessageSquare className="w-4 h-4" />, href: '/dashboard/admin/comments', accent: 'text-orange-600 bg-orange-50' },
     { label: 'Pending Banners', value: stats.pendingBanners, icon: <Megaphone className="w-4 h-4" />, href: '/dashboard/admin/banners', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingBanners > 0 },
   ]
 
@@ -83,11 +83,11 @@ export default function AdminDashboard() {
     { label: 'Review Media', sub: `${stats.pendingPhotos + stats.pendingVideos} pending`, icon: <Image className="w-4 h-4 text-amber-600" />, href: '/dashboard/admin/review-media' },
     { label: 'Blocked Users', sub: `${stats.blockedUsers} blocked`, icon: <UserX className="w-4 h-4 text-red-600" />, href: '/dashboard/admin/blocked' },
     { label: 'Verifications', sub: `${stats.pendingVerifications} pending`, icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />, href: '/dashboard/admin/verification' },
-    { label: 'Review Comments', sub: `${stats.pendingComments} pending`, icon: <MessageSquare className="w-4 h-4 text-orange-600" />, href: '/dashboard/admin/comments' },
+    { label: 'Manage Comments', sub: `${stats.pendingComments} total`, icon: <MessageSquare className="w-4 h-4 text-orange-600" />, href: '/dashboard/admin/comments' },
     { label: 'Manage Banners', sub: `${stats.pendingBanners} pending`, icon: <Megaphone className="w-4 h-4 text-purple-600" />, href: '/dashboard/admin/banners' },
   ]
 
-  const totalPending = stats.pendingPhotos + stats.pendingVideos + stats.pendingVerifications + stats.pendingComments
+  const totalPending = stats.pendingPhotos + stats.pendingVideos + stats.pendingVerifications
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -124,8 +124,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-amber-800">
                 <span className="font-bold">{totalPending} items</span> require your attention &mdash;
                 {stats.pendingPhotos + stats.pendingVideos > 0 && ` ${stats.pendingPhotos + stats.pendingVideos} media,`}
-                {stats.pendingVerifications > 0 && ` ${stats.pendingVerifications} verifications,`}
-                {stats.pendingComments > 0 && ` ${stats.pendingComments} comments`}
+                {stats.pendingVerifications > 0 && ` ${stats.pendingVerifications} verifications`}
               </p>
             </div>
           )}

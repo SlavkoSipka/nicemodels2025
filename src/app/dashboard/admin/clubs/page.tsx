@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, Building2, Camera } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle, Search, Building2, Camera, Pencil } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
 
 interface Club {
@@ -15,6 +16,7 @@ interface Club {
   onboarding_completed: boolean
   is_verified: boolean
   club_details?: { club_name: string; display_name: string; city: string }
+  photoUrl?: string | null
 }
 
 export default function AdminClubsPage() {
@@ -38,9 +40,26 @@ export default function AdminClubsPage() {
 
     if (error) { setLoading(false); return }
 
-    setClubs((data || []).map(c => ({
+    const clubIds = (data || []).map((c: any) => c.id)
+    const { data: photos } = await supabase
+      .from('club_photos')
+      .select('club_id, file_path')
+      .in('club_id', clubIds)
+      .eq('is_approved', true)
+      .order('uploaded_at', { ascending: false })
+
+    const photoMap: Record<string, string> = {}
+    const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+    for (const p of photos || []) {
+      if (!photoMap[p.club_id] && p.file_path) {
+        photoMap[p.club_id] = `${SUPA_URL}/storage/v1/object/public/club-photos/${p.file_path}`
+      }
+    }
+
+    setClubs((data || []).map((c: any) => ({
       ...c,
-      club_details: Array.isArray(c.club_details) ? c.club_details[0] : c.club_details
+      club_details: Array.isArray(c.club_details) ? c.club_details[0] : c.club_details,
+      photoUrl: photoMap[c.id] || null,
     })))
     setLoading(false)
   }
@@ -112,17 +131,22 @@ export default function AdminClubsPage() {
                   {filtered.map(club => (
                     <tr key={club.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                            <Building2 className="w-4 h-4 text-blue-600" />
+                        <Link href={`/dashboard/admin/clubs/${club.id}`}
+                          className="flex items-center gap-2.5 group">
+                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden relative">
+                            {club.photoUrl ? (
+                              <Image src={club.photoUrl} alt={club.club_details?.display_name || club.username} fill sizes="32px" className="object-cover" />
+                            ) : (
+                              <Building2 className="w-4 h-4 text-blue-600" />
+                            )}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-brand transition-colors">
                               {club.club_details?.club_name || club.club_details?.display_name || club.username || 'N/A'}
                             </p>
                             <p className="text-xs text-gray-400 truncate">@{club.username || 'no-username'}</p>
                           </div>
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate">{club.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{club.club_details?.city || '—'}</td>
@@ -154,6 +178,10 @@ export default function AdminClubsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
+                          <Link href={`/dashboard/admin/clubs/${club.id}`}
+                            className="px-2.5 py-1 text-xs font-semibold rounded-md bg-brand/10 text-brand hover:bg-brand/20 transition-colors flex items-center gap-1">
+                            <Pencil className="w-3 h-3" /> Edit
+                          </Link>
                           <button onClick={() => { setSelectedClub(club); setShowPhotoModal(true) }}
                             className="px-2.5 py-1 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1">
                             <Camera className="w-3 h-3" /> Photos

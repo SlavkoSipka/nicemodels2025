@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera, Pencil } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
 
 interface Model {
@@ -15,6 +16,7 @@ interface Model {
   onboarding_completed: boolean
   is_verified: boolean
   model_details?: { showname: string; city: string }
+  photoUrl?: string | null
 }
 
 export default function AdminModelsPage() {
@@ -38,9 +40,26 @@ export default function AdminModelsPage() {
 
     if (error) { setLoading(false); return }
 
-    setModels((data || []).map(m => ({
+    const modelIds = (data || []).map((m: any) => m.id)
+    const { data: photos } = await supabase
+      .from('model_photos')
+      .select('model_id, file_path')
+      .in('model_id', modelIds)
+      .eq('is_approved', true)
+      .order('uploaded_at', { ascending: false })
+
+    const photoMap: Record<string, string> = {}
+    const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+    for (const p of photos || []) {
+      if (!photoMap[p.model_id] && p.file_path) {
+        photoMap[p.model_id] = `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`
+      }
+    }
+
+    setModels((data || []).map((m: any) => ({
       ...m,
-      model_details: Array.isArray(m.model_details) ? m.model_details[0] : m.model_details
+      model_details: Array.isArray(m.model_details) ? m.model_details[0] : m.model_details,
+      photoUrl: photoMap[m.id] || null,
     })))
     setLoading(false)
   }
@@ -113,17 +132,28 @@ export default function AdminModelsPage() {
                   {filtered.map(model => (
                     <tr key={model.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0">
-                            <User className="w-4 h-4 text-brand" />
+                        <Link href={`/dashboard/admin/models/${model.id}`}
+                          className="flex items-center gap-2.5 group">
+                          <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0 overflow-hidden relative">
+                            {model.photoUrl ? (
+                              <Image
+                                src={model.photoUrl}
+                                alt={model.model_details?.showname || model.username}
+                                fill
+                                sizes="32px"
+                                className="object-cover object-top"
+                              />
+                            ) : (
+                              <User className="w-4 h-4 text-brand" />
+                            )}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
+                            <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-brand transition-colors">
                               {model.model_details?.showname || model.username || 'N/A'}
                             </p>
                             <p className="text-xs text-gray-400 truncate">@{model.username || 'no-username'}</p>
                           </div>
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate">{model.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{model.model_details?.city || '—'}</td>
@@ -155,6 +185,10 @@ export default function AdminModelsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5">
+                          <Link href={`/dashboard/admin/models/${model.id}`}
+                            className="px-2.5 py-1 text-xs font-semibold rounded-md bg-brand/10 text-brand hover:bg-brand/20 transition-colors flex items-center gap-1">
+                            <Pencil className="w-3 h-3" /> Edit
+                          </Link>
                           <button onClick={() => { setSelectedModel(model); setShowPhotoModal(true) }}
                             className="px-2.5 py-1 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1">
                             <Camera className="w-3 h-3" /> Photos

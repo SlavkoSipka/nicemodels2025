@@ -145,6 +145,10 @@ export default function ModelNotificationsPage() {
         return '✨'
       case 'verification_approved':
         return '✅'
+      case 'new_comment':
+        return '💬'
+      case 'photo_like':
+        return '❤️'
       case 'system_message':
         return '📢'
       default:

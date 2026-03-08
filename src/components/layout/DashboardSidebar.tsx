@@ -324,6 +324,18 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
           </Link>
 
           <Link
+            href="/dashboard/model/comments"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+              isActive('/dashboard/model/comments')
+                ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+            }`}
+          >
+            <MessageSquare className="w-5 h-5" />
+            <span>Reviews</span>
+          </Link>
+
+          <Link
             href="/dashboard/model/collaborations"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
               isActive('/dashboard/model/collaborations')

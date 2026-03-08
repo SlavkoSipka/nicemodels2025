@@ -8,6 +8,7 @@ import BannerCard, { BannerData } from './BannerCard'
 import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
+import AvailableForChat, { type ChatModel } from './AvailableForChat'
 
 interface ModelService { id: number; name: string }
 
@@ -42,9 +43,10 @@ interface HomePageClientProps {
   initialModels: Model[]
   initialBanners?: BannerData[]
   statusMessages?: StatusMessage[]
+  chatModels?: ChatModel[]
 }
 
-export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [] }: HomePageClientProps) {
+export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [] }: HomePageClientProps) {
   const [selectedCity,     setSelectedCity]     = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedOffer,    setSelectedOffer]    = useState<string>('all')
@@ -68,7 +70,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     return result
   }, [initialModels, selectedCity, selectedCategory, selectedOffer, searchQuery])
 
-  const hasSidebar = statusMessages.length > 0
+  const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
   return (
     <>
@@ -130,7 +132,10 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
           {/* Right: sticky sidebar - desktop only */}
           {hasSidebar && (
             <div className="hidden xl:block w-[280px] shrink-0 pr-4 pt-4">
-              <LatestStatusMessages messages={statusMessages} />
+              <div className="sticky top-[115px] space-y-4">
+                {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
+                {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
+              </div>
             </div>
           )}
         </div>

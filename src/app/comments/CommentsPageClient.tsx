@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MessageSquare, Star, Calendar, User, MapPin, Lock, ChevronRight } from 'lucide-react'
+import { MessageSquare, Star, Calendar, User, MapPin, Lock, ChevronRight, Reply } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import Footer from '@/components/layout/Footer'
 
@@ -12,6 +12,8 @@ interface Comment {
   comment_text: string
   rating: number | null
   created_at: string
+  reply_text: string | null
+  replied_at: string | null
   modelPhoto: string | null
   user: {
     id: string
@@ -177,7 +179,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                         </div>
 
                         {/* MIDDLE – comment text with quote accent */}
-                        <div className="flex-1 flex flex-col justify-center">
+                        <div className="flex-1 flex flex-col justify-center gap-3">
                           <div className="border-l-2 border-brand/40 pl-4">
                             <svg className="w-6 h-6 text-brand/30 mb-1" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
@@ -186,6 +188,22 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                               {comment.comment_text}
                             </p>
                           </div>
+
+                          {/* Model reply */}
+                          {comment.reply_text && (
+                            <div className="bg-brand/5 border border-brand/10 rounded-lg px-4 py-3 ml-4">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Reply className="w-3.5 h-3.5 text-brand" />
+                                <span className="text-xs font-bold text-brand">{modelName} replied</span>
+                                {comment.replied_at && (
+                                  <span className="text-[11px] text-gray-400 ml-1">
+                                    · {new Date(comment.replied_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-700 leading-relaxed">{comment.reply_text}</p>
+                            </div>
+                          )}
                         </div>
 
                         {/* BOTTOM – author, date, profile link */}

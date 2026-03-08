@@ -130,5 +130,35 @@ export default async function HomePage() {
     }))
   }
 
-  return <HomePageClient initialModels={models} initialBanners={banners} statusMessages={statusMessages} />
+  // Fetch models available for chat (have active ad + chat_available toggle on)
+  const { data: chatRaw } = await admin
+    .from('model_details')
+    .select('model_id, showname, city')
+    .eq('chat_available', true)
+    .limit(10)
+
+  let chatModels: any[] = []
+  if (chatRaw?.length) {
+    const chatModelIds = chatRaw.map(m => m.model_id)
+    const [{ data: chatProfiles }, { data: chatPhotos }] = await Promise.all([
+      admin.from('profiles').select('id, username').in('id', chatModelIds),
+      admin.from('model_photos').select('model_id, file_path').in('model_id', chatModelIds)
+        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+    ])
+    const cpMap = new Map((chatProfiles || []).map(p => [p.id, p]))
+    const photoMapChat = new Map<string, string>()
+    for (const p of chatPhotos || []) {
+      if (!photoMapChat.has(p.model_id) && p.file_path) {
+        photoMapChat.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
+      }
+    }
+    chatModels = chatRaw.map(m => ({
+      id: m.model_id,
+      model_name: m.showname || cpMap.get(m.model_id)?.username || 'Model',
+      city: m.city || null,
+      model_photo: photoMapChat.get(m.model_id) || null,
+    }))
+  }
+
+  return <HomePageClient initialModels={models} initialBanners={banners} statusMessages={statusMessages} chatModels={chatModels} />
 }

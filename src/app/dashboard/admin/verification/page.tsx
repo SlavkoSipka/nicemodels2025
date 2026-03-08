@@ -60,7 +60,7 @@ export default function AdminVerificationPage() {
     const { data: vData } = await supabase.from('verifications').select('*').order('submitted_at', { ascending: false })
     if (vData && vData.length > 0) {
       const withProfiles = await Promise.all(vData.map(async v => {
-        const { data: p } = await supabase.from('profiles').select('email, username, role, model_details (showname), club_details (club_name)').eq('id', v.user_id).single()
+        const { data: p } = await supabase.from('profiles').select('email, username, role, model_details!model_details_model_id_fkey (showname), club_details!club_details_club_id_fkey (club_name)').eq('id', v.user_id).single()
         const tp = p ? { ...p, model_details: Array.isArray(p.model_details) ? p.model_details[0] : p.model_details, club_details: Array.isArray(p.club_details) ? p.club_details[0] : p.club_details } : null
         return { ...v, profile: tp }
       }))
@@ -266,16 +266,25 @@ export default function AdminVerificationPage() {
                 )}
               </div>
 
-              {/* Rejection reason display */}
-              {selected.status === 'rejected' && selected.rejection_reason && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-xs font-bold text-red-800 mb-1">Rejection Reason</p>
-                  <p className="text-sm text-red-700">{selected.rejection_reason}</p>
+              {/* Current status banner */}
+              {selected.status !== 'pending' && (
+                <div className={`rounded-lg p-3 ${selected.status === 'approved' ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
+                  <p className={`text-xs font-bold mb-1 ${selected.status === 'approved' ? 'text-emerald-800' : 'text-red-800'}`}>
+                    Currently {selected.status === 'approved' ? 'Approved' : 'Rejected'}
+                  </p>
+                  {selected.reviewed_at && (
+                    <p className={`text-xs ${selected.status === 'approved' ? 'text-emerald-600' : 'text-red-600'}`}>
+                      Reviewed on {new Date(selected.reviewed_at).toLocaleDateString()}
+                    </p>
+                  )}
+                  {selected.status === 'rejected' && selected.rejection_reason && (
+                    <p className="text-sm text-red-700 mt-1">{selected.rejection_reason}</p>
+                  )}
                 </div>
               )}
 
-              {/* Rejection input */}
-              {selected.status === 'pending' && (
+              {/* Rejection input — shown when reject button is visible */}
+              {selected.status !== 'rejected' && (
                 <div>
                   <label className="text-xs font-bold text-gray-800 mb-1 block">Rejection Reason (required to reject)</label>
                   <textarea value={rejectionReason} onChange={e => setRejectionReason(e.target.value)}
@@ -284,23 +293,23 @@ export default function AdminVerificationPage() {
                 </div>
               )}
 
-              {/* Actions */}
+              {/* Actions — always show relevant buttons */}
               <div className="flex gap-3 pt-1">
                 <button onClick={() => { setSelected(null); setRejectionReason('') }} disabled={processing}
                   className="flex-1 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50">
                   Close
                 </button>
-                {selected.status === 'pending' && (
-                  <>
-                    <button onClick={() => handleReject(selected.id, selected.user_id)} disabled={processing || !rejectionReason.trim()}
-                      className="flex-1 px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50">
-                      {processing ? 'Processing...' : 'Reject'}
-                    </button>
-                    <button onClick={() => handleApprove(selected.id, selected.user_id)} disabled={processing}
-                      className="flex-1 px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">
-                      {processing ? 'Processing...' : 'Approve'}
-                    </button>
-                  </>
+                {selected.status !== 'rejected' && (
+                  <button onClick={() => handleReject(selected.id, selected.user_id)} disabled={processing || !rejectionReason.trim()}
+                    className="flex-1 px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50">
+                    {processing ? 'Processing...' : selected.status === 'approved' ? 'Change to Rejected' : 'Reject'}
+                  </button>
+                )}
+                {selected.status !== 'approved' && (
+                  <button onClick={() => handleApprove(selected.id, selected.user_id)} disabled={processing}
+                    className="flex-1 px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">
+                    {processing ? 'Processing...' : selected.status === 'rejected' ? 'Change to Approved' : 'Approve'}
+                  </button>
                 )}
               </div>
             </div>

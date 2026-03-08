@@ -7,7 +7,7 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
   Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
-  MessageCircle, Lock, Send, Loader2, Trash2
+  MessageCircle, Lock, Send, Loader2, Trash2, MessageSquare
 } from 'lucide-react'
 
 export default function ModelDashboardPage() {
@@ -23,10 +23,13 @@ export default function ModelDashboardPage() {
   const [photoCount, setPhotoCount] = useState<number | null>(null)
   const [isVerified, setIsVerified] = useState(false)
   const [hasActiveAd, setHasActiveAd] = useState(false)
+  const [chatAvailable, setChatAvailable] = useState(false)
+  const [chatToggling, setChatToggling] = useState(false)
   const [activeStatus, setActiveStatus] = useState<any>(null)
   const [statusText, setStatusText] = useState('')
   const [statusPosting, setStatusPosting] = useState(false)
   const [statusDeleting, setStatusDeleting] = useState(false)
+  const [unrepliedComments, setUnrepliedComments] = useState(0)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -143,8 +146,17 @@ export default function ModelDashboardPage() {
         setModelStats(statsData || null)
         setPhotoCount(photosCount ?? 0)
         setIsVerified(verificationData?.status === 'approved')
+        const { count: unrepliedCount } = await supabase
+          .from('model_comments')
+          .select('id', { count: 'exact', head: true })
+          .eq('model_id', user.id)
+          .eq('status', 'approved')
+          .is('reply_text', null)
+
         setHasActiveAd(adActive)
+        setChatAvailable(modelDetailsData?.chat_available ?? false)
         setActiveStatus(statusMsgs?.[0] || null)
+        setUnrepliedComments(unrepliedCount ?? 0)
         setLoading(false)
       } catch {
         setLoading(false)
@@ -152,6 +164,30 @@ export default function ModelDashboardPage() {
     }
     checkUser()
   }, [router])
+
+  async function toggleChatAvailable() {
+    if (!user || !hasActiveAd) return
+    setChatToggling(true)
+    try {
+      const supabase = createClient()
+      const next = !chatAvailable
+      await supabase
+        .from('model_details')
+        .update({ chat_available: next })
+        .eq('model_id', user.id)
+      await supabase
+        .from('online_status')
+        .upsert({
+          user_id: user.id,
+          is_online: next,
+          is_available_for_chat: next,
+          last_seen_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+      setChatAvailable(next)
+      window.dispatchEvent(new CustomEvent('chat-available-changed', { detail: { available: next } }))
+    } catch {}
+    finally { setChatToggling(false) }
+  }
 
   async function postStatusMessage() {
     if (!statusText.trim() || !user) return
@@ -287,6 +323,29 @@ export default function ModelDashboardPage() {
                 className="shrink-0 text-xs font-bold text-pink-600 hover:text-pink-800 flex items-center gap-1 transition-colors"
               >
                 Review <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* ── Unreplied reviews ── */}
+          {unrepliedComments > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">
+                    {unrepliedComments} review{unrepliedComments > 1 ? 's' : ''} awaiting your reply
+                  </p>
+                  <p className="text-xs text-gray-500">Respond to your visitors' reviews to build trust</p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push('/dashboard/model/comments')}
+                className="shrink-0 text-xs font-bold text-amber-600 hover:text-amber-800 flex items-center gap-1 transition-colors"
+              >
+                Reply <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           )}
@@ -546,6 +605,45 @@ export default function ModelDashboardPage() {
                   <p className="text-xs text-gray-400 mt-0.5">Club{clubInfo.count !== 1 ? 's' : ''} you're part of</p>
                 </div>
               )}
+
+              {/* Available for chat toggle */}
+              <div className={`border rounded-lg p-4 ${hasActiveAd ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-200'}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${chatAvailable ? 'bg-emerald-100' : hasActiveAd ? 'bg-gray-100' : 'bg-gray-200'}`}>
+                    <MessageSquare className={`w-4 h-4 ${chatAvailable ? 'text-emerald-600' : hasActiveAd ? 'text-gray-400' : 'text-gray-300'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 leading-tight">Available for Chat</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5 leading-tight">
+                      {hasActiveAd
+                        ? chatAvailable ? 'Visible in homepage chat widget' : 'Show clients you\'re available'
+                        : 'Requires an active ad'}
+                    </p>
+                  </div>
+                  {hasActiveAd ? (
+                    <button
+                      onClick={toggleChatAvailable}
+                      disabled={chatToggling}
+                      className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${chatAvailable ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                    >
+                      {chatToggling ? (
+                        <Loader2 className="absolute inset-0 m-auto w-3.5 h-3.5 animate-spin text-white" />
+                      ) : (
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${chatAvailable ? 'translate-x-5' : 'translate-x-0'}`}
+                        />
+                      )}
+                    </button>
+                  ) : (
+                    <Lock className="w-4 h-4 text-gray-300 shrink-0" />
+                  )}
+                </div>
+                {chatAvailable && (
+                  <p className="text-[11px] text-emerald-600 font-medium mt-2.5 pl-11">
+                    ● You appear as available for chat on the homepage
+                  </p>
+                )}
+              </div>
 
               {/* Stats */}
               <div className="bg-white border border-gray-200 rounded-lg p-5">

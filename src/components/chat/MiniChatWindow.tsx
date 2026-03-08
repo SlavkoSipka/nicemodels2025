@@ -318,7 +318,7 @@ export default function MiniChatWindow({
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {otherUser.photo_url ? (
             <img
-              src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${otherUser.photo_url}`}
+              src={otherUser.photo_url}
               alt={otherUser.username}
               className="w-8 h-8 rounded-full object-cover"
             />

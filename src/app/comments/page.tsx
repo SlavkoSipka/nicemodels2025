@@ -13,6 +13,8 @@ export default async function CommentsPage() {
       comment_text,
       rating,
       created_at,
+      reply_text,
+      replied_at,
       user:profiles!model_comments_user_id_fkey (
         id,
         username

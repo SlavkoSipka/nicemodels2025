@@ -27,7 +27,7 @@ export default function LatestStatusMessages({ messages }: { messages: StatusMes
   if (messages.length === 0) return null
 
   return (
-    <div className="sticky top-[115px]">
+    <div>
       <div
         className="rounded-xl overflow-hidden"
         style={{
