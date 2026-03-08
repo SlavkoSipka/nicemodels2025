@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { User, MapPin, Phone, DollarSign, Calendar, Ruler, Upload, X } from 'lucide-react'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 import CitySearch from '@/components/ui/CitySearch'
 
 export default function EditProfilePage() {
@@ -172,15 +173,12 @@ export default function EditProfilePage() {
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Bio / Description
-                </label>
-                <textarea
+                <RichTextEditor
                   value={profileData.bio}
-                  onChange={(e) => setProfileData({ ...profileData, bio: e.target.value })}
-                  rows={4}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-pink-500 focus:border-pink-500 transition-all shadow-soft hover:shadow-md resize-none"
+                  onChange={(val) => setProfileData({ ...profileData, bio: val })}
+                  label="Bio / Description"
                   placeholder="Tell us about yourself..."
+                  height={250}
                 />
               </div>
             </section>

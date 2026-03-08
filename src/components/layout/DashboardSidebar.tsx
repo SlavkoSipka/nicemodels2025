@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone } from 'lucide-react'
+import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardSidebarProps {
@@ -507,6 +507,18 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               >
                 <Users className="w-5 h-5" />
                 <span>Manage Models</span>
+              </Link>
+
+              <Link
+                href="/dashboard/company/jobs-rent"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/company/jobs-rent')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <Briefcase className="w-5 h-5" />
+                <span>Jobs / Rent</span>
               </Link>
 
               <Link

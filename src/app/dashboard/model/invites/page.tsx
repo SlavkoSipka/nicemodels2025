@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Building2, Check, X, AlertCircle, CheckCircle, MapPin } from 'lucide-react'
 
@@ -139,9 +140,9 @@ export default function ModelInvitesPage() {
                       <Building2 className="w-4 h-4 text-brand" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900">
+                      <Link href={`/clubs/${invite.club_id}`} className="text-sm font-bold text-gray-900 hover:text-brand hover:underline transition-colors">
                         {invite.club_details?.display_name || invite.club_details?.club_name || 'Unknown Club'}
-                      </p>
+                      </Link>
                       {invite.club_details?.area && (
                         <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                           <MapPin className="w-3 h-3" />{invite.club_details.area}
@@ -154,7 +155,7 @@ export default function ModelInvitesPage() {
                   </div>
                   {invite.club_details?.about_description && (
                     <div className="mb-3 p-3 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-600 line-clamp-2">{invite.club_details.about_description}</p>
+                      <p className="text-xs text-gray-600 line-clamp-2">{invite.club_details.about_description?.replace(/<[^>]*>/g, '')}</p>
                     </div>
                   )}
                   {invite.message && (
@@ -195,7 +196,9 @@ export default function ModelInvitesPage() {
                     <Building2 className="w-4 h-4 text-brand" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900">{club.display_name || club.club_name}</p>
+                    <Link href={`/clubs/${club.club_id}`} className="text-sm font-bold text-gray-900 hover:text-brand hover:underline transition-colors">
+                      {club.display_name || club.club_name}
+                    </Link>
                     {(club.city || club.area) && (
                       <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                         <MapPin className="w-3 h-3" />{club.city || club.area}

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 
 interface SimplifiedClubModelFormProps {
   clubId: string
@@ -246,12 +247,11 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
           <label className="block text-sm font-semibold text-gray-700 mb-1">
             About Me (Optional)
           </label>
-          <textarea
+          <RichTextEditor
             value={formData.about_me}
-            onChange={(e) => handleChange('about_me', e.target.value)}
+            onChange={(val) => handleChange('about_me', val)}
             placeholder="Brief description about the model..."
-            rows={4}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all resize-none"
+            height={200}
           />
         </div>
 

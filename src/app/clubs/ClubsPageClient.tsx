@@ -276,7 +276,7 @@ export default function ClubsPageClient() {
                   <div className="p-4 sm:p-5">
                     {club.description ? (
                       <p className="text-gray-700 text-sm leading-relaxed line-clamp-3 mb-3">
-                        {club.description}
+                        {club.description.replace(/<[^>]*>/g, '')}
                       </p>
                     ) : (
                       <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 mb-3">

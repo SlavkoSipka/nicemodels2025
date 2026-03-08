@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Search, UserPlus, AlertCircle, CheckCircle, ArrowLeft, X } from 'lucide-react'
+import { Search, UserPlus, AlertCircle, CheckCircle, ArrowLeft, X, Zap } from 'lucide-react'
 
 interface ModelSearchResult {
   id: string
@@ -28,6 +29,7 @@ export default function InviteModelPage() {
   const [inviteMessage, setInviteMessage] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [hasActiveAd, setHasActiveAd] = useState(false)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -40,13 +42,54 @@ export default function InviteModelPage() {
       }
 
       setUser(user)
-      await loadExcludedModels(user.id)
-      await loadAllModels()
+      const adActive = await checkActiveAd(user.id)
+      if (adActive) {
+        await loadExcludedModels(user.id)
+        await loadAllModels()
+      }
       setLoading(false)
     }
 
     checkUser()
   }, [router])
+
+  const checkActiveAd = async (userId: string): Promise<boolean> => {
+    try {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('order_items')
+        .select(`
+          id,
+          activation_date,
+          orders!inner(user_id, status, created_at),
+          products!inner(product_type, duration_days, duration_hours)
+        `)
+        .eq('orders.user_id', userId)
+        .eq('orders.status', 'paid')
+        .eq('products.product_type', 'ad_package')
+
+      if (!data || data.length === 0) return false
+
+      const now = new Date()
+      for (const item of data) {
+        const order = (item as any).orders
+        const product = (item as any).products
+        const startDate = item.activation_date
+          ? new Date(item.activation_date)
+          : new Date(order.created_at)
+        if (startDate > now) continue
+        const durationMs = (product.duration_days * 86400000) + (product.duration_hours * 3600000)
+        const expiryDate = new Date(startDate.getTime() + durationMs)
+        if (expiryDate > now) {
+          setHasActiveAd(true)
+          return true
+        }
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
 
   const loadExcludedModels = async (clubId: string) => {
     try {
@@ -239,6 +282,30 @@ export default function InviteModelPage() {
           </div>
         )}
 
+        {!hasActiveAd && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-5">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
+                <Zap className="w-4 h-4 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-amber-900">Active ad required</p>
+                <p className="text-xs text-amber-700 mt-1">
+                  You need an active ad package to send invitations to models. Activate an ad first so models can find and view your club profile.
+                </p>
+                <Link
+                  href="/dashboard/company/activate-ad"
+                  className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover transition-colors"
+                >
+                  <Zap className="w-4 h-4" />
+                  Activate Ad
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {hasActiveAd && <>
         {/* Search */}
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <div className="relative">
@@ -394,6 +461,7 @@ export default function InviteModelPage() {
             </div>
           </div>
         )}
+        </>}
 
       </div>
     </div>

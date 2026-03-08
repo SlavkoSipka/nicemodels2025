@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { FileText, Save, CheckCircle, AlertCircle } from 'lucide-react'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 
 export default function AboutMePage() {
   const router = useRouter()
@@ -44,17 +45,6 @@ export default function AboutMePage() {
     } finally { setSaving(false) }
   }
 
-  const applyFormatting = (tag: string) => {
-    const ta = document.getElementById('about-me-textarea') as HTMLTextAreaElement
-    if (!ta) return
-    const start = ta.selectionStart
-    const end = ta.selectionEnd
-    const selected = aboutMe.substring(start, end)
-    if (selected) {
-      setAboutMe(aboutMe.substring(0, start) + `<${tag}>${selected}</${tag}>` + aboutMe.substring(end))
-    }
-  }
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
       <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
@@ -92,28 +82,15 @@ export default function AboutMePage() {
         )}
 
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <label className="block text-xs font-bold text-gray-800 mb-1">
-            Describe yourself <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            id="about-me-textarea"
+          <RichTextEditor
             value={aboutMe}
-            onChange={e => setAboutMe(e.target.value.slice(0, MAX_CHARS))}
-            rows={10}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent resize-none mb-2"
+            onChange={setAboutMe}
+            label="Describe yourself"
+            required
             placeholder="Write about yourself, your services, what makes you special..."
+            maxLength={MAX_CHARS}
+            height={350}
           />
-          <div className="flex items-center justify-between">
-            <div className="flex gap-1.5">
-              {[['b', 'B', 'font-bold'], ['i', 'I', 'italic'], ['u', 'U', 'underline']].map(([tag, label, cls]) => (
-                <button key={tag} type="button" onClick={() => applyFormatting(tag)}
-                  className={`px-2.5 py-1 border border-gray-200 rounded text-xs hover:bg-gray-50 ${cls}`}>
-                  {label}
-                </button>
-              ))}
-            </div>
-            <span className="text-xs text-gray-400">{aboutMe.length} / {MAX_CHARS}</span>
-          </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">

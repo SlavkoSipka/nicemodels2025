@@ -198,9 +198,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {/* About */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-large p-8 border border-gray-100">
               <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">About Me</h2>
-              <p className="text-gray-700 whitespace-pre-line leading-relaxed text-lg">
-                {profile.bio}
-              </p>
+              <div className="text-gray-700 leading-relaxed text-lg rich-text-content" dangerouslySetInnerHTML={{ __html: profile.bio }} />
             </div>
 
             {/* Services */}

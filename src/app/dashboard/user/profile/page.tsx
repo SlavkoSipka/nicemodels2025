@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Save, CheckCircle } from 'lucide-react'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 
 export default function UserProfile() {
   const [profile, setProfile] = useState<any>(null)
@@ -117,14 +118,14 @@ export default function UserProfile() {
               />
             </div>
 
-            <div>
-              <label className={labelCls}>About Me</label>
-              <textarea value={description}
-                onChange={e => { if (e.target.value.length <= 500) setDescription(e.target.value) }}
-                placeholder="Tell us a bit about yourself..." rows={4} maxLength={500}
-                className={inputCls + ' resize-none'} />
-              <p className="text-xs text-gray-400 mt-0.5">{description.length} / 500</p>
-            </div>
+            <RichTextEditor
+              value={description}
+              onChange={setDescription}
+              label="About Me"
+              placeholder="Tell us a bit about yourself..."
+              maxLength={500}
+              height={200}
+            />
 
             <div>
               <label className={labelCls}>Member Since</label>

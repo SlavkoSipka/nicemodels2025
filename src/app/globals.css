@@ -215,6 +215,26 @@ body {
   text-transform: uppercase;
 }
 
+/* Rich text content rendered from TinyMCE */
+.rich-text-content p { margin-bottom: 0.5em; }
+.rich-text-content p:last-child { margin-bottom: 0; }
+.rich-text-content ul,
+.rich-text-content ol { padding-left: 1.5em; margin-bottom: 0.5em; }
+.rich-text-content ul { list-style-type: disc; }
+.rich-text-content ol { list-style-type: decimal; }
+.rich-text-content li { margin-bottom: 0.25em; }
+.rich-text-content a { color: #EC4899; text-decoration: underline; }
+.rich-text-content a:hover { color: #BE185D; }
+.rich-text-content strong { font-weight: 700; }
+.rich-text-content em { font-style: italic; }
+.rich-text-content h1,
+.rich-text-content h2,
+.rich-text-content h3 { font-weight: 700; margin-bottom: 0.5em; }
+
+.rich-text-light { font-size: 0.875rem; line-height: 1.625; color: rgba(255,255,255,0.72); }
+.rich-text-light a { color: #F9A8D4; }
+.rich-text-light a:hover { color: #FBCFE8; }
+
 /* Prevent icon flash */
 svg[class*="lucide"] { flex-shrink: 0; display: inline-block; vertical-align: middle; }
 aside svg { min-width: 1.25rem; min-height: 1.25rem; }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Building2, Save, AlertCircle, CheckCircle } from 'lucide-react'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 
 const ENTRANCE_FEE_OPTIONS = [
   { value: 'na', label: 'N/A' },
@@ -234,19 +235,15 @@ export default function BasicInfoPage() {
             />
           </div>
 
-          {/* About — smaller textarea */}
-          <div>
-            <label className="block text-xs font-bold text-gray-800 mb-1">About Your Club</label>
-            <textarea
-              value={formData.about_description}
-              onChange={(e) => handleChange('about_description', e.target.value)}
-              maxLength={maxChars}
-              rows={3}
-              placeholder="Describe your club, services, atmosphere..."
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent resize-none"
-            />
-            <div className="mt-0.5 text-right text-xs text-gray-400">{charCount} / {maxChars}</div>
-          </div>
+          {/* About — rich text editor */}
+          <RichTextEditor
+            value={formData.about_description}
+            onChange={(val) => handleChange('about_description', val)}
+            label="About Your Club"
+            placeholder="Describe your club, services, atmosphere..."
+            maxLength={maxChars}
+            height={250}
+          />
 
           {/* Physical club — compact row */}
           <div className="flex items-center gap-3 py-2">

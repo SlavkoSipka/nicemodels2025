@@ -2,6 +2,7 @@
 
 import { ChevronLeft } from 'lucide-react'
 import { RegistrationData } from '../ModelRegistrationWizard'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 
 interface Props {
   data: RegistrationData
@@ -35,33 +36,15 @@ export default function AboutMeStep({ data, updateData, nextStep, prevStep, curr
         </p>
 
         <div className="mb-6">
-          <label className="block text-sm mb-2">
-            Describe yourself <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            placeholder="Describe yourself"
+          <RichTextEditor
             value={data.description}
-            onChange={(e) => updateData({ description: e.target.value })}
-            rows={10}
+            onChange={(val) => updateData({ description: val })}
+            label="Describe yourself"
+            required
+            placeholder="Describe yourself"
             maxLength={25000}
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
+            height={350}
           />
-          <div className="text-right text-sm text-gray-500 mt-1">
-            {data.description.length} / 25000
-          </div>
-        </div>
-
-        {/* Text Formatting Buttons */}
-        <div className="flex gap-2 mb-6">
-          <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 font-bold">
-            B
-          </button>
-          <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 italic">
-            I
-          </button>
-          <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 underline">
-            U
-          </button>
         </div>
 
         {/* Next Step Button */}

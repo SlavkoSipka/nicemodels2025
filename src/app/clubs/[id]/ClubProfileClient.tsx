@@ -5,10 +5,11 @@ import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
 import {
   Building2, MapPin, Phone, Mail, Globe, MessageCircle,
   Clock, CheckCircle, Coffee, Waves, Trees, DollarSign,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Users, Sparkles
 } from 'lucide-react'
 
 interface ClubProfileClientProps {
@@ -17,6 +18,7 @@ interface ClubProfileClientProps {
   contactDetails: any
   workingHours: any
   photos: any[]
+  clubModels?: any[]
 }
 
 export default function ClubProfileClient({
@@ -24,7 +26,8 @@ export default function ClubProfileClient({
   clubDetails,
   contactDetails,
   workingHours,
-  photos
+  photos,
+  clubModels = []
 }: ClubProfileClientProps) {
   const [showContact, setShowContact] = useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
@@ -176,7 +179,7 @@ export default function ClubProfileClient({
                     </div>
                     <p className="text-sm font-bold text-gray-800">About Us</p>
                   </div>
-                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{clubDetails.about_description}</p>
+                  <div className="text-sm text-gray-600 leading-relaxed rich-text-content" dangerouslySetInnerHTML={{ __html: clubDetails.about_description }} />
                 </div>
               )}
 
@@ -249,6 +252,59 @@ export default function ClubProfileClient({
                     {clubDetails.additional_info && (
                       <p className="text-gray-400 text-xs mt-1">{clubDetails.additional_info}</p>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Club Models */}
+              {clubModels.length > 0 && (
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-brand" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-800">Our Models</p>
+                    <span className="ml-auto text-xs font-semibold text-gray-400">{clubModels.length}</span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {clubModels.map(model => (
+                      <Link
+                        key={model.id}
+                        href={`/models/${model.id}`}
+                        className="group block rounded-lg overflow-hidden border border-gray-100 hover:border-brand/30 hover:shadow-md transition-all"
+                      >
+                        <div className="relative aspect-[3/4] bg-gray-100">
+                          {model.photoUrl ? (
+                            <Image
+                              src={model.photoUrl}
+                              alt={model.showname || model.username}
+                              fill
+                              className="object-cover object-top group-hover:scale-[1.03] transition-transform duration-300"
+                              sizes="(max-width: 640px) 45vw, 180px"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Sparkles className="w-8 h-8 text-gray-300" />
+                            </div>
+                          )}
+                          {model.is_verified && (
+                            <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow">
+                              <CheckCircle className="w-3 h-3 text-white" />
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-sm font-bold text-gray-900 truncate group-hover:text-brand transition-colors">
+                            {model.showname || model.username}
+                          </p>
+                          {(model.city || model.age) && (
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">
+                              {[model.age ? `${model.age} yrs` : '', model.city].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
               )}

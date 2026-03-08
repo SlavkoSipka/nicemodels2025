@@ -234,8 +234,8 @@ export default function ManageModelsPage() {
                               <CheckCircle className="w-3 h-3" /> Verified
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200 shrink-0">
-                              <Clock className="w-3 h-3" /> Pending
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 text-gray-500 text-xs font-semibold rounded-full border border-gray-200 shrink-0">
+                              Unverified
                             </span>
                           )}
                         </div>

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { processImage } from '@/lib/imageProcessor'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 
 interface ClubFormData {
   // Step 1: Basic Info
@@ -74,7 +75,7 @@ export default function ClubOnboardingForm() {
   const [error, setError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
   const totalSteps = 1
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  
   const [formData, setFormData] = useState<ClubFormData>({
     club_name: '',
     display_name: '',
@@ -340,43 +341,6 @@ export default function ClubOnboardingForm() {
     }
   }
 
-  // Text formatting functions
-  const formatText = (command: string) => {
-    const textarea = textareaRef.current
-    if (!textarea) return
-
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = textarea.value.substring(start, end)
-    
-    let formattedText = ''
-    
-    switch (command) {
-      case 'bold':
-        formattedText = `**${selectedText}**`
-        break
-      case 'italic':
-        formattedText = `*${selectedText}*`
-        break
-      case 'underline':
-        formattedText = `__${selectedText}__`
-        break
-    }
-
-    const newText = 
-      textarea.value.substring(0, start) + 
-      formattedText + 
-      textarea.value.substring(end)
-    
-    handleChange('about_description', newText)
-    
-    // Set cursor position after formatted text
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + formattedText.length, start + formattedText.length)
-    }, 0)
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -522,20 +486,13 @@ export default function ClubOnboardingForm() {
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-3">About</h2>
               
-              <div className="border border-gray-300 rounded-lg bg-gray-50">
-                <textarea
-                  ref={textareaRef}
-                  value={formData.about_description}
-                  onChange={(e) => handleChange('about_description', e.target.value)}
-                  placeholder="Describe your club / agency, atmosphere, concept…"
-                  maxLength={maxChars}
-                  rows={4}
-                  className="w-full px-3 py-2 text-sm focus:outline-none resize-none bg-gray-50"
-                />
-              </div>
-              <div className="mt-1 text-right text-xs text-gray-500">
-                {charCount} / {maxChars}
-              </div>
+              <RichTextEditor
+                value={formData.about_description}
+                onChange={(val) => handleChange('about_description', val)}
+                placeholder="Describe your club / agency, atmosphere, concept…"
+                maxLength={maxChars}
+                height={250}
+              />
 
               {/* Is Club Checkbox */}
               <div className="mt-4 flex items-center gap-2">

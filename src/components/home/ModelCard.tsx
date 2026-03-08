@@ -43,7 +43,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   const age         = details?.age ? `${details.age} yrs` : ''
   const tags        = details?.services_for?.length ? details.services_for : []
   const description = (() => {
-    const raw = details?.about_me || ''
+    const raw = (details?.about_me || '').replace(/<[^>]*>/g, '')
     return raw.length > 220 ? raw.slice(0, 220).trimEnd() + '…' : raw
   })()
   const ago = timeAgo(model.created_at)

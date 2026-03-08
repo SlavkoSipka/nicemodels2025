@@ -142,11 +142,12 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="hidden lg:flex items-center justify-center gap-16">
             {[
-              { href: '/',         label: 'Girls' },
-              { href: '/clubs',    label: 'Clubs / Agency' },
-              { href: '/comments', label: 'Comments' },
-              { href: '/contact',  label: 'Contact' },
-              { href: '/blog',     label: 'Blog' },
+              { href: '/',           label: 'Girls' },
+              { href: '/clubs',      label: 'Clubs / Agency' },
+              { href: '/jobs-rents', label: 'Jobs / Rent' },
+              { href: '/comments',   label: 'Comments' },
+              { href: '/contact',    label: 'Contact' },
+              { href: '/blog',       label: 'Blog' },
             ].map(({ href, label }) => (
               <Link
                 key={href}
@@ -169,11 +170,12 @@ export default function Navbar() {
         <div className="lg:hidden" style={{ backgroundColor: '#1f2126', borderTop: '1px solid #2a2d34' }}>
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             {[
-              { href: '/',         label: 'Girls' },
-              { href: '/clubs',    label: 'Clubs / Agency' },
-              { href: '/comments', label: 'Comments' },
-              { href: '/contact',  label: 'Contact' },
-              { href: '/blog',     label: 'Blog' },
+              { href: '/',           label: 'Girls' },
+              { href: '/clubs',      label: 'Clubs / Agency' },
+              { href: '/jobs-rents', label: 'Jobs / Rent' },
+              { href: '/comments',   label: 'Comments' },
+              { href: '/contact',    label: 'Contact' },
+              { href: '/blog',       label: 'Blog' },
             ].map(({ href, label }) => (
               <Link
                 key={href}

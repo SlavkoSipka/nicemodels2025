@@ -706,9 +706,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                   <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>About me</span>
                 </div>
-                <div className="px-5 py-4">
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'rgba(255,255,255,0.72)' }}>{modelDetails.about_me}</p>
-                </div>
+                <div className="px-5 py-4 rich-text-content rich-text-light" dangerouslySetInnerHTML={{ __html: modelDetails.about_me }} />
               </div>
             )}
 

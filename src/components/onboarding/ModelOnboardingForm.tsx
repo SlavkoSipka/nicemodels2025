@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import RichTextEditor from '@/components/ui/RichTextEditor'
 
 // Countries list (abbreviated)
 const COUNTRIES = [
@@ -1119,16 +1120,13 @@ export default function ModelOnboardingForm() {
               <label className="block text-sm font-bold text-gray-700 mb-1">
                 Describe yourself
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.about_me}
-                onChange={(e) => handleChange('about_me', e.target.value)}
+                onChange={(val) => handleChange('about_me', val)}
                 placeholder="Tell us about yourself, your personality, what makes you special..."
-                rows={8}
-                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 resize-none"
+                maxLength={25000}
+                height={300}
               />
-              <div className="text-right text-xs text-gray-500 mt-1">
-                {formData.about_me.length} / 25000 characters
-              </div>
             </div>
           </div>
         )}
