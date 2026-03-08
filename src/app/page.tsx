@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
 
 // ISR: re-generate page every 60 s
@@ -91,5 +92,43 @@ export default async function HomePage() {
       cta_url: b.cta_url,
     }))
 
-  return <HomePageClient initialModels={models} initialBanners={banners} />
+  const admin = createAdminClient()
+  const { data: statusRaw } = await admin
+    .from('model_status_messages')
+    .select('id, model_id, message, created_at')
+    .eq('is_active', true)
+    .gt('expires_at', now)
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  let statusMessages: any[] = []
+  if (statusRaw?.length) {
+    const msgModelIds = [...new Set(statusRaw.map(s => s.model_id))]
+    const [{ data: msgProfiles }, { data: msgDetails }, { data: msgPhotos }] = await Promise.all([
+      admin.from('profiles').select('id, username').in('id', msgModelIds),
+      admin.from('model_details').select('model_id, showname').in('model_id', msgModelIds),
+      admin.from('model_photos').select('model_id, file_path').in('model_id', msgModelIds)
+        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+    ])
+
+    const profMap = new Map((msgProfiles || []).map(p => [p.id, p]))
+    const detMap = new Map((msgDetails || []).map(d => [d.model_id, d]))
+    const photoMap = new Map<string, string>()
+    for (const p of msgPhotos || []) {
+      if (!photoMap.has(p.model_id) && p.file_path) {
+        photoMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
+      }
+    }
+
+    statusMessages = statusRaw.map(s => ({
+      id: s.id,
+      model_id: s.model_id,
+      caption: s.message,
+      created_at: s.created_at,
+      model_name: detMap.get(s.model_id)?.showname || profMap.get(s.model_id)?.username || 'Model',
+      model_photo: photoMap.get(s.model_id) || null,
+    }))
+  }
+
+  return <HomePageClient initialModels={models} initialBanners={banners} statusMessages={statusMessages} />
 }

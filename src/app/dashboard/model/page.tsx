@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
-  Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight
+  Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
+  MessageCircle, Lock, Send, Loader2, Trash2
 } from 'lucide-react'
 
 export default function ModelDashboardPage() {
@@ -16,10 +17,16 @@ export default function ModelDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [modelDetails, setModelDetails] = useState<any>(null)
   const [pendingInvites, setPendingInvites] = useState<any[]>([])
+  const [pendingCollabs, setPendingCollabs] = useState<any[]>([])
   const [clubInfo, setClubInfo] = useState<any>(null)
   const [modelStats, setModelStats] = useState<{ total_profile_views: number; total_contact_views: number; total_favorites: number; total_shares: number } | null>(null)
   const [photoCount, setPhotoCount] = useState<number | null>(null)
   const [isVerified, setIsVerified] = useState(false)
+  const [hasActiveAd, setHasActiveAd] = useState(false)
+  const [activeStatus, setActiveStatus] = useState<any>(null)
+  const [statusText, setStatusText] = useState('')
+  const [statusPosting, setStatusPosting] = useState(false)
+  const [statusDeleting, setStatusDeleting] = useState(false)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -54,6 +61,29 @@ export default function ModelDashboardPage() {
           enrichedInvites = invitesData.map(inv => ({ ...inv, club_details: clubsMap.get(inv.club_id) }))
         }
 
+        const { data: collabInvitesData } = await supabase
+          .from('model_collaborations')
+          .select('id, sender_id, message, created_at')
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(3)
+
+        let enrichedCollabs: any[] = []
+        if (collabInvitesData?.length) {
+          const senderIds = collabInvitesData.map(c => c.sender_id)
+          const [{ data: senderProfiles }, { data: senderDetails }] = await Promise.all([
+            supabase.from('profiles').select('id, username').in('id', senderIds),
+            supabase.from('model_details').select('model_id, showname').in('model_id', senderIds),
+          ])
+          const profMap = new Map(senderProfiles?.map(p => [p.id, p]) || [])
+          const detMap = new Map(senderDetails?.map(d => [d.model_id, d]) || [])
+          enrichedCollabs = collabInvitesData.map(c => ({
+            ...c,
+            sender_name: detMap.get(c.sender_id)?.showname || profMap.get(c.sender_id)?.username || 'A model',
+          }))
+        }
+
         const { data: acceptedInvites } = await supabase
           .from('club_invites').select('club_id')
           .eq('invited_model_id', user.id).eq('status', 'accepted')
@@ -75,14 +105,46 @@ export default function ModelDashboardPage() {
           .eq('user_id', user.id)
           .single()
 
+        const { data: orderItemsData } = await supabase
+          .from('order_items')
+          .select(`id, activation_date, orders!inner(user_id, status, created_at), products!inner(product_type, duration_days, duration_hours)`)
+          .eq('orders.user_id', user.id)
+          .eq('orders.status', 'paid')
+          .eq('products.product_type', 'ad_package')
+
+        let adActive = false
+        if (orderItemsData?.length) {
+          const nowDate = new Date()
+          for (const item of orderItemsData) {
+            const order = (item as any).orders
+            const product = (item as any).products
+            const startDate = item.activation_date ? new Date(item.activation_date) : new Date(order.created_at)
+            if (startDate > nowDate) continue
+            const durationMs = (product.duration_days * 86400000) + (product.duration_hours * 3600000)
+            if (new Date(startDate.getTime() + durationMs) > nowDate) { adActive = true; break }
+          }
+        }
+
+        const { data: statusMsgs } = await supabase
+          .from('model_status_messages')
+          .select('id, message, created_at, expires_at')
+          .eq('model_id', user.id)
+          .eq('is_active', true)
+          .gt('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false })
+          .limit(1)
+
         setUser(user)
         setProfile(profileData)
         setModelDetails(modelDetailsData)
         setClubInfo({ count: acceptedInvites?.length || 0 })
         setPendingInvites(enrichedInvites)
+        setPendingCollabs(enrichedCollabs)
         setModelStats(statsData || null)
         setPhotoCount(photosCount ?? 0)
         setIsVerified(verificationData?.status === 'approved')
+        setHasActiveAd(adActive)
+        setActiveStatus(statusMsgs?.[0] || null)
         setLoading(false)
       } catch {
         setLoading(false)
@@ -90,6 +152,38 @@ export default function ModelDashboardPage() {
     }
     checkUser()
   }, [router])
+
+  async function postStatusMessage() {
+    if (!statusText.trim() || !user) return
+    setStatusPosting(true)
+    try {
+      const supabase = createClient()
+      if (activeStatus) {
+        await supabase.from('model_status_messages').delete().eq('id', activeStatus.id)
+      }
+      const { data, error } = await supabase
+        .from('model_status_messages')
+        .insert({ model_id: user.id, message: statusText.trim() })
+        .select()
+        .single()
+      if (!error && data) {
+        setActiveStatus(data)
+        setStatusText('')
+      }
+    } catch {}
+    finally { setStatusPosting(false) }
+  }
+
+  async function deleteStatusMessage() {
+    if (!activeStatus) return
+    setStatusDeleting(true)
+    try {
+      const supabase = createClient()
+      await supabase.from('model_status_messages').delete().eq('id', activeStatus.id)
+      setActiveStatus(null)
+    } catch {}
+    finally { setStatusDeleting(false) }
+  }
 
   if (loading) {
     return (
@@ -169,6 +263,114 @@ export default function ModelDashboardPage() {
               </button>
             </div>
           )}
+
+          {/* ── Collaboration requests ── */}
+          {pendingCollabs.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-5 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-md bg-pink-100 flex items-center justify-center shrink-0">
+                  <Handshake className="w-5 h-5 text-pink-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-gray-900">
+                    {pendingCollabs.length} collaboration request{pendingCollabs.length > 1 ? 's' : ''}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {pendingCollabs.length === 1
+                      ? `${pendingCollabs[0].sender_name} wants to collaborate with you.`
+                      : 'Other models want to collaborate with you.'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push('/dashboard/model/collaborations')}
+                className="shrink-0 text-xs font-bold text-pink-600 hover:text-pink-800 flex items-center gap-1 transition-colors"
+              >
+                Review <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* ── Status message ── */}
+          <div className={`border rounded-lg overflow-hidden ${hasActiveAd ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-200'}`}>
+            <div className="px-5 py-4 flex items-center gap-3 border-b border-gray-100">
+              <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${hasActiveAd ? 'bg-violet-100' : 'bg-gray-200'}`}>
+                <MessageCircle className={`w-4 h-4 ${hasActiveAd ? 'text-violet-600' : 'text-gray-400'}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-gray-900">Status Message</p>
+                <p className="text-xs text-gray-500">Post a status visible on the homepage sidebar</p>
+              </div>
+              {hasActiveAd && activeStatus && (
+                <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Live
+                </span>
+              )}
+            </div>
+            <div className="px-5 py-4">
+              {hasActiveAd ? (
+                activeStatus ? (
+                  <div className="space-y-3">
+                    <div className="bg-violet-50 border border-violet-100 rounded-lg px-4 py-3">
+                      <p className="text-sm text-gray-800">{activeStatus.message}</p>
+                      <p className="text-[10px] text-gray-400 mt-1.5">
+                        Posted {new Date(activeStatus.created_at).toLocaleDateString()} · Expires {new Date(activeStatus.expires_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-gray-400">Delete your current status to post a new one</p>
+                      <button
+                        onClick={deleteStatusMessage}
+                        disabled={statusDeleting}
+                        className="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors"
+                      >
+                        {statusDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <textarea
+                        value={statusText}
+                        onChange={e => setStatusText(e.target.value)}
+                        placeholder="Write a status message…"
+                        maxLength={200}
+                        rows={2}
+                        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
+                      />
+                      <button
+                        onClick={postStatusMessage}
+                        disabled={statusPosting || !statusText.trim()}
+                        className="self-end px-3 py-2 bg-violet-600 text-white rounded-lg text-xs font-bold hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
+                      >
+                        {statusPosting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        Post
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-400">{statusText.length}/200 · Visible for 7 days</p>
+                  </div>
+                )
+              ) : (
+                <div className="text-center py-4">
+                  <div className="w-10 h-10 mx-auto mb-3 rounded-full bg-gray-200 flex items-center justify-center">
+                    <Lock className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-600 mb-1">Ad required</p>
+                  <p className="text-xs text-gray-400 mb-3 max-w-xs mx-auto">
+                    You need an active ad package to post status messages. Activate your ad to start sharing updates.
+                  </p>
+                  <button
+                    onClick={() => router.push('/dashboard/model/activate-ad')}
+                    className="text-xs font-bold text-violet-600 hover:text-violet-800 flex items-center gap-1 mx-auto transition-colors"
+                  >
+                    Activate Ad <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* ── Welcome header ── */}
           <div className="flex items-center justify-between gap-4 flex-wrap">

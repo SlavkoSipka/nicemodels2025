@@ -8,7 +8,6 @@ import { Upload, X, Loader2, Clock, Trash2, Camera, CheckCircle, AlertCircle } f
 export default function UploadStoryPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
-  const [caption, setCaption] = useState('');
   const [duration, setDuration] = useState(5);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -68,7 +67,7 @@ export default function UploadStoryPage() {
   }
 
   function clearSelection() {
-    setSelectedFile(null); setPreviewUrl(''); setCaption(''); setDuration(5); setError('');
+    setSelectedFile(null); setPreviewUrl(''); setDuration(5); setError('');
   }
 
   async function handleUpload() {
@@ -87,7 +86,7 @@ export default function UploadStoryPage() {
       if (uploadError) { setError('Failed to upload file: ' + uploadError.message); return; }
       const { error: dbError } = await supabase.from('model_stories').insert({
         model_id: user.id, media_type: mediaType, media_url: uploadData.path,
-        caption: caption.trim() || null, duration: mediaType === 'image' ? duration : null,
+        duration: mediaType === 'image' ? duration : null,
       });
       if (dbError) {
         await supabase.storage.from('model-stories').remove([fileName]);
@@ -155,13 +154,6 @@ export default function UploadStoryPage() {
                   : <video src={previewUrl} controls className="w-full h-72 object-contain" />
                 }
               </div>
-              <div>
-                <label className="block text-xs font-bold text-gray-800 mb-1">Caption (optional)</label>
-                <textarea value={caption} onChange={e => setCaption(e.target.value)}
-                  placeholder="Add a caption..." maxLength={200} rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-none" />
-                <p className="text-xs text-gray-400 mt-0.5">{caption.length}/200</p>
-              </div>
               {fileType === 'image' && (
                 <div>
                   <label className="block text-xs font-bold text-gray-800 mb-1">Display Duration</label>
@@ -218,7 +210,6 @@ export default function UploadStoryPage() {
                     {deletingId === story.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                   </button>
                   <div className="absolute bottom-0 left-0 right-0 p-2">
-                    {story.caption && <p className="text-white text-[10px] font-medium line-clamp-1 mb-0.5">{story.caption}</p>}
                     <div className="flex items-center gap-1 text-white/70 text-[10px]">
                       <Clock className="w-2.5 h-2.5" />{timeLeft(story.expires_at)}
                     </div>

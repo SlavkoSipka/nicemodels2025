@@ -33,7 +33,9 @@ import {
   Home,
   Briefcase,
   Info,
-  Star
+  Star,
+  Users,
+  Handshake
 } from 'lucide-react'
 
 interface ModelProfileClientProps {
@@ -66,7 +68,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     languages,
     workingHours,
     contactDetails,
-    comments
+    comments,
+    collabModels = [],
   } = modelData
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
@@ -811,6 +814,62 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       </div>
                     )
                   })()}
+                </div>
+              </div>
+            )}
+
+            {/* ── Collaborations ── */}
+            {collabModels.length > 0 && (
+              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
+                <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                  <Handshake className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Collaborations</span>
+                  <span className="text-[11px] font-bold ml-auto" style={{ color: 'rgba(255,255,255,0.2)' }}>({collabModels.length})</span>
+                </div>
+                <div className="p-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {collabModels.map((model: any) => (
+                      <Link
+                        key={model.id}
+                        href={`/models/${model.id}`}
+                        className="group block rounded-lg overflow-hidden transition-all"
+                        style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(236,72,153,0.3)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none' }}
+                      >
+                        <div className="relative aspect-[3/4]" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                          {model.photoUrl ? (
+                            <Image
+                              src={model.photoUrl}
+                              alt={model.showname || model.username}
+                              fill
+                              className="object-cover object-top group-hover:scale-[1.03] transition-transform duration-300"
+                              sizes="(max-width: 640px) 45vw, 180px"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Sparkles className="w-8 h-8" style={{ color: 'rgba(255,255,255,0.15)' }} />
+                            </div>
+                          )}
+                          {model.is_verified && (
+                            <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow">
+                              <CheckCircle className="w-3 h-3 text-white" />
+                            </span>
+                          )}
+                        </div>
+                        <div className="p-2.5">
+                          <p className="text-sm font-bold truncate group-hover:text-pink-400 transition-colors" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                            {model.showname || model.username}
+                          </p>
+                          {(model.city || model.age) && (
+                            <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                              {[model.age ? `${model.age} yrs` : '', model.city].filter(Boolean).join(' · ')}
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}

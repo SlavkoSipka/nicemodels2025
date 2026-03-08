@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ShoppingCart, Calendar, Zap, Clock, CheckCircle } from 'lucide-react'
+import { ShoppingCart, Calendar, Zap, Clock, CheckCircle, AlertTriangle, User, Camera, ChevronRight } from 'lucide-react'
 
 interface Product {
   id: string
@@ -259,6 +259,54 @@ export default function ActivateAdPage() {
             <span className="font-bold">Beta Info:</span> All packages are currently <span className="font-semibold">free for early users</span>.
             No payment required. We will clearly inform you before any pricing starts.
           </p>
+        </div>
+
+        {/* Profile readiness notice */}
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-5">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-900 mb-1">Before activating your ad — check your profile</p>
+              <p className="text-sm text-amber-800 mb-4">
+                Once your ad is active, your profile card will be shown to visitors. Make sure everything looks great before going live.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
+                {[
+                  'Your name, bio and description are filled in',
+                  'Your location, age and services are set',
+                  'You have uploaded at least 3 high-quality photos',
+                  'Your contact details are correct',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-amber-800">
+                    <div className="w-4 h-4 rounded-full border-2 border-amber-400 flex items-center justify-center shrink-0">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    </div>
+                    {item}
+                  </div>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => router.push('/dashboard/model/profile/biography')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  Edit Profile
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+                <button
+                  onClick={() => router.push('/dashboard/model/profile/pictures-video')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-300 text-amber-800 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  Manage Photos
+                  <ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         {checkoutError && (

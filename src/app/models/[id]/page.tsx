@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -49,6 +50,43 @@ async function getModelData(id: string) {
       .order('created_at', { ascending: false }),
   ])
 
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+  const admin = createAdminClient()
+  let collabModels: any[] = []
+
+  const [{ data: collabAsSender }, { data: collabAsReceiver }] = await Promise.all([
+    admin.from('model_collaborations').select('receiver_id').eq('sender_id', id).eq('status', 'accepted'),
+    admin.from('model_collaborations').select('sender_id').eq('receiver_id', id).eq('status', 'accepted'),
+  ])
+
+  const partnerIds = [
+    ...(collabAsSender || []).map((c: any) => c.receiver_id),
+    ...(collabAsReceiver || []).map((c: any) => c.sender_id),
+  ]
+
+  if (partnerIds.length) {
+    const [{ data: partnerProfiles }, { data: partnerDetails }, { data: partnerPhotos }] = await Promise.all([
+      admin.from('profiles').select('id, username, is_verified').in('id', partnerIds),
+      admin.from('model_details').select('model_id, showname, city, age').in('model_id', partnerIds),
+      admin.from('model_photos').select('model_id, file_path').in('model_id', partnerIds)
+        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+    ])
+
+    const dMap = new Map((partnerDetails ?? []).map((d: any) => [d.model_id, d]))
+    const pMap = new Map<string, string>()
+    for (const p of partnerPhotos ?? []) {
+      if (!pMap.has(p.model_id) && p.file_path) {
+        pMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
+      }
+    }
+
+    collabModels = (partnerProfiles ?? []).map((p: any) => ({
+      ...p,
+      ...(dMap.get(p.id) || {}),
+      photoUrl: pMap.get(p.id) || null,
+    }))
+  }
+
   return {
     profile,
     modelDetails,
@@ -60,6 +98,7 @@ async function getModelData(id: string) {
     workingHours: workingHours  || [],
     contactDetails,
     comments:     comments      || [],
+    collabModels,
   }
 }
 

@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase } from 'lucide-react'
+import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase, Handshake } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardSidebarProps {
@@ -321,6 +321,18 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             <span>Clubs & Invites</span>
+          </Link>
+
+          <Link
+            href="/dashboard/model/collaborations"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+              isActive('/dashboard/model/collaborations')
+                ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+            }`}
+          >
+            <Handshake className="w-5 h-5" />
+            <span>Collaborations</span>
           </Link>
 
           <Link

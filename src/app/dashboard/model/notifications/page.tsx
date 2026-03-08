@@ -139,6 +139,10 @@ export default function ModelNotificationsPage() {
     switch (type) {
       case 'club_invite':
         return '🏢'
+      case 'collaboration_invite':
+        return '🤝'
+      case 'collaboration_accepted':
+        return '✨'
       case 'verification_approved':
         return '✅'
       case 'system_message':

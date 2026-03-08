@@ -218,12 +218,6 @@ export default function StoryViewer({ modelStory, onClose }: StoryViewerProps) {
           />
         )}
 
-        {/* Caption */}
-        {currentStory.caption && (
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent">
-            <p className="text-white text-center">{currentStory.caption}</p>
-          </div>
-        )}
       </div>
 
       {/* Navigation Areas */}
