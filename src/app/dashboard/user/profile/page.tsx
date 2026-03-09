@@ -58,11 +58,7 @@ export default function UserProfile() {
   const inputCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent'
   const labelCls = 'block text-xs font-bold text-gray-800 mb-1'
 
-  if (loading) return (
-    <div className="ml-[280px] min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="ml-[280px] min-h-screen bg-gray-50">

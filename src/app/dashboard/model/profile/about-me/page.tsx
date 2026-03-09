@@ -45,11 +45,18 @@ export default function AboutMePage() {
     } finally { setSaving(false) }
   }
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  const applyFormatting = (tag: string) => {
+    const ta = document.getElementById('about-me-textarea') as HTMLTextAreaElement
+    if (!ta) return
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const selected = aboutMe.substring(start, end)
+    if (selected) {
+      setAboutMe(aboutMe.substring(0, start) + `<${tag}>${selected}</${tag}>` + aboutMe.substring(end))
+    }
+  }
+
+  if (loading) return null
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">

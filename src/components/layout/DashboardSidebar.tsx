@@ -270,6 +270,21 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
           </div>
 
           <Link
+            href="/dashboard/model/activate-ad"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all shadow-sm ${
+              isActive('/dashboard/model/activate-ad')
+                ? 'text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-orange-200'
+                : 'text-white bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 hover:shadow-md hover:shadow-orange-100'
+            }`}
+          >
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>Activate Ad</span>
+            <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
+          </Link>
+
+          <Link
             href="/dashboard/model/upload-story"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
               isActive('/dashboard/model/upload-story')
@@ -293,20 +308,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>Verification</span>
-          </Link>
-
-          <Link
-            href="/dashboard/model/activate-ad"
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-              isActive('/dashboard/model/activate-ad')
-                ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
-                : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
-            }`}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-            </svg>
-            <span>Activate Ad</span>
           </Link>
 
           <Link
@@ -497,16 +498,17 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
 
               <Link
                 href="/dashboard/company/activate-ad"
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-semibold transition-all shadow-sm ${
                   isActive('/dashboard/company/activate-ad')
-                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
-                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                    ? 'text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-orange-200'
+                    : 'text-white bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 hover:shadow-md hover:shadow-orange-100'
                 }`}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span>Activate Ads</span>
+                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
               <Link

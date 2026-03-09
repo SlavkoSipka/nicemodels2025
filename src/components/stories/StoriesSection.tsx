@@ -32,7 +32,7 @@ export default function StoriesSection() {
   const [modelStories, setModelStories] = useState<ModelStory[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [viewingStory, setViewingStory] = useState<ModelStory | null>(null);
+  const [viewingModelIndex, setViewingModelIndex] = useState<number | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -65,20 +65,19 @@ export default function StoriesSection() {
     }
   }
 
-  function openStoryViewer(modelStory: ModelStory) {
-    setViewingStory(modelStory);
+  function openStoryViewer(index: number) {
+    setViewingModelIndex(index);
   }
 
   function closeStoryViewer() {
-    setViewingStory(null);
-    // Reload stories to update view counts
+    setViewingModelIndex(null);
     loadStories();
   }
 
   if (loading) {
     return (
       <div className="py-6" style={{ backgroundColor: '#BE185D' }}>
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-[1280px] mx-auto px-4">
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {[1, 2, 3, 4, 5, 6, 7].map((i) => (
               <div key={i} className="flex-shrink-0 text-center">
@@ -105,7 +104,7 @@ export default function StoriesSection() {
   return (
     <>
       <div className="py-6" style={{ backgroundColor: '#BE185D' }}>
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-[1280px] mx-auto px-4">
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
 
             {/* Add Story button for models */}
@@ -136,7 +135,7 @@ export default function StoriesSection() {
               return (
                 <button
                   key={modelStory.model_id}
-                  onClick={() => openStoryViewer(modelStory)}
+                  onClick={() => openStoryViewer(modelStories.indexOf(modelStory))}
                   className="flex-shrink-0 text-center group"
                 >
                   <div className="relative">
@@ -210,9 +209,10 @@ export default function StoriesSection() {
       </div>
 
       {/* Story Viewer Modal */}
-      {viewingStory && (
+      {viewingModelIndex !== null && (
         <StoryViewer
-          modelStory={viewingStory}
+          allModelStories={modelStories}
+          initialModelIndex={viewingModelIndex}
           onClose={closeStoryViewer}
         />
       )}

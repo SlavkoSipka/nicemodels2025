@@ -143,12 +143,12 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
   const visible = filtered.slice(0, visibleCount)
 
   const statBoxes = [
-    { label: 'Models', value: stats.models, icon: Users, color: '#EC4899', bg: 'rgba(236,72,153,0.1)', border: 'rgba(236,72,153,0.2)' },
-    { label: 'Clubs', value: stats.clubs, icon: Building2, color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.2)' },
-    { label: 'Photos', value: stats.photos, icon: Camera, color: '#06B6D4', bg: 'rgba(6,182,212,0.1)', border: 'rgba(6,182,212,0.2)' },
-    { label: 'Videos', value: stats.videos, icon: Video, color: '#F59E0B', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)' },
-    { label: 'Reviews', value: stats.comments, icon: MessageSquare, color: '#10B981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)' },
-    { label: 'Banners', value: stats.banners, icon: Megaphone, color: '#F97316', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.2)' },
+    { label: 'Models',  value: stats.models,   icon: Users },
+    { label: 'Clubs',   value: stats.clubs,    icon: Building2 },
+    { label: 'Photos',  value: stats.photos,   icon: Camera },
+    { label: 'Videos',  value: stats.videos,   icon: Video },
+    { label: 'Reviews', value: stats.comments, icon: MessageSquare },
+    { label: 'Banners', value: stats.banners,  icon: Megaphone },
   ]
 
   return (
@@ -173,19 +173,19 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                 key={stat.label}
                 className="rounded-xl p-4 text-center transition-all hover:scale-[1.02]"
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  border: `1px solid ${stat.border}`,
-                  backdropFilter: 'blur(8px)',
+                  background: '#272a31',
+                  border: '1px solid rgba(59,130,246,0.25)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
                 }}
               >
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2"
-                  style={{ background: stat.bg }}
+                  style={{ background: 'rgba(59,130,246,0.12)' }}
                 >
-                  <Icon className="w-5 h-5" style={{ color: stat.color }} />
+                  <Icon className="w-5 h-5" style={{ color: '#93C5FD' }} />
                 </div>
                 <p className="text-2xl font-bold text-white">{stat.value.toLocaleString()}</p>
-                <p className="text-xs font-medium mt-0.5" style={{ color: 'rgba(255,255,255,0.45)' }}>{stat.label}</p>
+                <p className="text-xs font-medium mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{stat.label}</p>
               </div>
             )
           })}
@@ -220,7 +220,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
 
         {/* Actions Feed */}
         {visible.length === 0 ? (
-          <div className="text-center py-20 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="text-center py-20 rounded-xl" style={{ background: '#272a31', border: '1px solid rgba(255,255,255,0.08)' }}>
             <Sparkles className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.15)' }} />
             <p className="text-lg font-semibold" style={{ color: 'rgba(255,255,255,0.3)' }}>No actions yet</p>
             <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Activity will appear here as things happen on the site</p>
@@ -236,16 +236,17 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                 <div
                   className="rounded-xl p-4 flex items-center gap-4 transition-all group"
                   style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: `1px solid rgba(255,255,255,0.07)`,
+                    background: '#272a31',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
                   }}
                   onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.07)'
+                    (e.currentTarget as HTMLDivElement).style.background = '#2e323b'
                     ;(e.currentTarget as HTMLDivElement).style.borderColor = config.border
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.04)'
-                    ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.07)'
+                    (e.currentTarget as HTMLDivElement).style.background = '#272a31'
+                    ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.08)'
                   }}
                 >
                   {/* Actor photo or icon */}

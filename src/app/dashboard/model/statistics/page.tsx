@@ -47,11 +47,7 @@ export default function StatisticsPage() {
     </button>
   )
 
-  if (loading) return (
-    <div className="flex-1 flex items-center justify-center min-h-screen bg-gray-50 ml-[280px]">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   const stats = [
     { label: 'Profile Views', value: getVal('total_profile_views', 'profile_views'), icon: Eye, color: 'text-blue-600 bg-blue-50' },

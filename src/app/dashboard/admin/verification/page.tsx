@@ -101,11 +101,7 @@ export default function AdminVerificationPage() {
 
   const tabCls = (active: boolean) => `px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${active ? 'bg-brand text-white' : 'text-gray-600 hover:bg-gray-100'}`
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="min-h-screen bg-gray-50">

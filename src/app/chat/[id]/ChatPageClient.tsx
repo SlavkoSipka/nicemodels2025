@@ -62,7 +62,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        (payload: any) => {
           console.log('📩 [Full Chat] New message received:', payload.new);
           const newMsg = payload.new as Message;
           setMessages((prev) => {
@@ -89,14 +89,14 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        (payload: any) => {
           console.log('📝 [Full Chat] Message updated:', payload.new);
           setMessages((prev) =>
             prev.map((msg) => (msg.id === payload.new.id ? (payload.new as Message) : msg))
           );
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: any) => {
         console.log('📡 [Full Chat] Messages channel status:', status);
       });
 
@@ -136,7 +136,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           setIsOtherUserTyping(isTyping);
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: any) => {
         console.log('📡 [Full Chat] Typing channel status:', status);
       });
 

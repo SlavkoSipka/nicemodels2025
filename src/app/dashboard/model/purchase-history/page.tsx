@@ -49,11 +49,7 @@ export default function PurchaseHistoryPage() {
     </button>
   )
 
-  if (loading) return (
-    <div className="flex-1 flex items-center justify-center min-h-screen bg-gray-50 ml-[280px]">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="flex-1 p-6 ml-[280px] bg-gray-50 min-h-screen">

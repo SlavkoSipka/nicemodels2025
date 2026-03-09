@@ -108,11 +108,7 @@ export default function AdminBannersPage() {
     rejected: 'bg-red-100 text-red-800',
   }
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="min-h-screen bg-gray-50">

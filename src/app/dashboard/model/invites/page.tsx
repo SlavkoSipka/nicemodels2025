@@ -78,11 +78,7 @@ export default function ModelInvitesPage() {
   const tabBtn = (active: boolean) =>
     `px-4 py-2 text-sm font-semibold border-b-2 transition-colors ${active ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700'}`
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">

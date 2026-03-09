@@ -58,111 +58,103 @@ export default function ContactPage() {
             {/* Contact Information - Left Side */}
             <div className="lg:col-span-1 space-y-4">
               {/* Contact */}
-              <div className="bg-white rounded-lg border border-gray-200 p-5">
+              <div className="rounded-xl p-5" style={{ background: '#272a31', border: '1px solid rgba(59,130,246,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Phone className="w-4 h-4 text-gray-600" />
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
+                      <Phone className="w-4 h-4" style={{ color: '#93C5FD' }} />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</p>
-                      <a href="tel:+41443334455" className="text-gray-900 font-medium hover:text-brand transition-colors">
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Phone</p>
+                      <a href="tel:+41443334455" className="font-medium text-white hover:text-pink-400 transition-colors">
                         +41 44 333 44 55
                       </a>
-                      <p className="text-xs text-gray-500 mt-0.5">Mon–Fri 9am–6pm CET</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Mon–Fri 9am–6pm CET</p>
                     </div>
                   </div>
-                  <div className="border-t border-gray-100" />
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} />
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Mail className="w-4 h-4 text-gray-600" />
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
+                      <Mail className="w-4 h-4" style={{ color: '#93C5FD' }} />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Email</p>
-                      <a href="mailto:info@nicemodels.ch" className="text-gray-900 font-medium hover:text-brand transition-colors break-all">
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Email</p>
+                      <a href="mailto:info@nicemodels.ch" className="font-medium text-white hover:text-pink-400 transition-colors break-all">
                         info@nicemodels.ch
                       </a>
-                      <p className="text-xs text-gray-500 mt-0.5">Reply within 24h</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Reply within 24h</p>
                     </div>
                   </div>
-                  <div className="border-t border-gray-100" />
+                  <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }} />
                   <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-4 h-4 text-gray-600" />
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
+                      <MapPin className="w-4 h-4" style={{ color: '#93C5FD' }} />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Location</p>
-                      <p className="text-gray-900 font-medium">Zurich, Switzerland</p>
-                      <p className="text-xs text-gray-500 mt-0.5">Serving all of Switzerland</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Location</p>
+                      <p className="font-medium text-white">Zurich, Switzerland</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>Serving all of Switzerland</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Quick Info */}
-              <div className="bg-white rounded-lg border border-gray-200 p-5">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Quick Info</h3>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    24/7 platform access
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    Verified profiles
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    Safe & secure
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                    Switzerland wide
-                  </li>
+              <div className="rounded-xl p-5" style={{ background: '#272a31', border: '1px solid rgba(59,130,246,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
+                <h3 className="text-sm font-semibold text-white mb-3">Quick Info</h3>
+                <ul className="space-y-2 text-sm">
+                  {['24/7 platform access', 'Verified profiles', 'Safe & secure', 'Switzerland wide'].map(item => (
+                    <li key={item} className="flex items-center gap-2" style={{ color: 'rgba(255,255,255,0.65)' }}>
+                      <CheckCircle className="w-4 h-4 flex-shrink-0 text-emerald-400" />
+                      {item}
+                    </li>
+                  ))}
                 </ul>
               </div>
             </div>
 
             {/* Contact Form - Right Side */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg border border-gray-200 p-6 sm:p-7">
+              <div className="rounded-xl p-6 sm:p-7" style={{ background: '#272a31', border: '1px solid rgba(59,130,246,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}>
                 <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900">Send a message</h2>
-                  <p className="text-sm text-gray-500 mt-1">We'll get back to you as soon as possible.</p>
+                  <h2 className="text-xl font-semibold text-white">Send a message</h2>
+                  <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>We'll get back to you as soon as possible.</p>
                 </div>
 
                 {success ? (
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                    <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
-                    <h3 className="font-semibold text-gray-900 mb-1">Message sent</h3>
-                    <p className="text-sm text-gray-600">We'll reply within 24 hours.</p>
+                  <div className="rounded-lg p-6 text-center" style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.25)' }}>
+                    <CheckCircle className="w-10 h-10 text-emerald-400 mx-auto mb-3" />
+                    <h3 className="font-semibold text-white mb-1">Message sent</h3>
+                    <p className="text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>We'll reply within 24 hours.</p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                          Full name <span className="text-red-500">*</span>
+                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Full name <span className="text-red-400">*</span>
                         </label>
                         <input
                           type="text"
                           value={formData.name}
                           onChange={(e) => handleChange('name', e.target.value)}
                           required
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+                          className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors text-white placeholder-white/25"
+                          style={{ background: '#1e2025', border: '1px solid rgba(255,255,255,0.1)' }}
                           placeholder="John Doe"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                          Email <span className="text-red-500">*</span>
+                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Email <span className="text-red-400">*</span>
                         </label>
                         <input
                           type="email"
                           value={formData.email}
                           onChange={(e) => handleChange('email', e.target.value)}
                           required
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+                          className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors text-white placeholder-white/25"
+                          style={{ background: '#1e2025', border: '1px solid rgba(255,255,255,0.1)' }}
                           placeholder="john@example.com"
                         />
                       </div>
@@ -170,57 +162,60 @@ export default function ContactPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
                           Phone
                         </label>
                         <input
                           type="tel"
                           value={formData.phone}
                           onChange={(e) => handleChange('phone', e.target.value)}
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+                          className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors text-white placeholder-white/25"
+                          style={{ background: '#1e2025', border: '1px solid rgba(255,255,255,0.1)' }}
                           placeholder="+41 79 123 45 67"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                          Subject <span className="text-red-500">*</span>
+                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                          Subject <span className="text-red-400">*</span>
                         </label>
                         <select
                           value={formData.subject}
                           onChange={(e) => handleChange('subject', e.target.value)}
                           required
-                          className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors bg-white"
+                          className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors text-white"
+                          style={{ background: '#1e2025', border: '1px solid rgba(255,255,255,0.1)' }}
                         >
-                          <option value="">Select a subject</option>
-                          <option value="general">General Inquiry</option>
-                          <option value="model">Model Registration</option>
-                          <option value="club">Club/Agency Registration</option>
-                          <option value="verification">Account Verification</option>
-                          <option value="technical">Technical Support</option>
-                          <option value="billing">Billing & Payments</option>
-                          <option value="report">Report an Issue</option>
-                          <option value="other">Other</option>
+                          <option value="" style={{ background: '#1e2025' }}>Select a subject</option>
+                          <option value="general" style={{ background: '#1e2025' }}>General Inquiry</option>
+                          <option value="model" style={{ background: '#1e2025' }}>Model Registration</option>
+                          <option value="club" style={{ background: '#1e2025' }}>Club/Agency Registration</option>
+                          <option value="verification" style={{ background: '#1e2025' }}>Account Verification</option>
+                          <option value="technical" style={{ background: '#1e2025' }}>Technical Support</option>
+                          <option value="billing" style={{ background: '#1e2025' }}>Billing & Payments</option>
+                          <option value="report" style={{ background: '#1e2025' }}>Report an Issue</option>
+                          <option value="other" style={{ background: '#1e2025' }}>Other</option>
                         </select>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wider mb-1.5">
-                        Message <span className="text-red-500">*</span>
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Message <span className="text-red-400">*</span>
                       </label>
                       <textarea
                         value={formData.message}
                         onChange={(e) => handleChange('message', e.target.value)}
                         required
                         rows={5}
-                        className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors resize-none"
+                        className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors resize-none text-white placeholder-white/25"
+                        style={{ background: '#1e2025', border: '1px solid rgba(255,255,255,0.1)' }}
                         placeholder="How can we help?"
                       />
-                      <p className="text-xs text-gray-400 mt-1">{formData.message.length} / 1000</p>
+                      <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>{formData.message.length} / 1000</p>
                     </div>
 
-                    <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-3">
-                      <p className="text-xs text-gray-600">
+                    <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
                         Your data is kept confidential and only used to respond. We never share it with third parties.
                       </p>
                     </div>
@@ -247,15 +242,15 @@ export default function ContactPage() {
               </div>
 
               <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">For models</h3>
-                  <p className="text-xs text-gray-600">
+                <div className="rounded-xl p-4" style={{ background: '#272a31', border: '1px solid rgba(59,130,246,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                  <h3 className="text-sm font-semibold text-white mb-1">For models</h3>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
                     Registration, verification or advertising — we're here to help.
                   </p>
                 </div>
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">For clubs & agencies</h3>
-                  <p className="text-xs text-gray-600">
+                <div className="rounded-xl p-4" style={{ background: '#272a31', border: '1px solid rgba(59,130,246,0.2)', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }}>
+                  <h3 className="text-sm font-semibold text-white mb-1">For clubs & agencies</h3>
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
                     List your club or agency. Contact us for packages and benefits.
                   </p>
                 </div>

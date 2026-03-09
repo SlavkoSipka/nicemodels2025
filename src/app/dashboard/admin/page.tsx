@@ -60,11 +60,7 @@ export default function AdminDashboard() {
     load()
   }, [])
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   const cards: StatCard[] = [
     { label: 'Total Models', value: stats.totalModels, icon: <Users className="w-4 h-4" />, href: '/dashboard/admin/models', accent: 'text-brand bg-brand/10' },

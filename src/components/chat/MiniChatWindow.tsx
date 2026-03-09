@@ -63,7 +63,7 @@ export default function MiniChatWindow({
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        (payload: any) => {
           console.log('📩 New message received:', payload.new);
           const newMsg = payload.new as Message;
           setMessages((prev) => {
@@ -99,7 +99,7 @@ export default function MiniChatWindow({
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        (payload: any) => {
           console.log('📝 Message updated:', payload.new);
           const updatedMsg = payload.new as Message;
           setMessages((prev) =>
@@ -107,7 +107,7 @@ export default function MiniChatWindow({
           );
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: any) => {
         console.log('📡 Messages channel status:', status);
       });
 
@@ -147,7 +147,7 @@ export default function MiniChatWindow({
           setIsOtherUserTyping(isTyping);
         }
       )
-      .subscribe((status) => {
+      .subscribe((status: any) => {
         console.log('📡 Typing channel status:', status);
       });
 

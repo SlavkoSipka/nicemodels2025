@@ -143,11 +143,7 @@ export default function RatesPage() {
     } finally { setSaving(false) }
   }
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">

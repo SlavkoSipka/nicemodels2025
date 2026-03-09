@@ -90,6 +90,8 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
       ) return
       // Same page → no loader
       if (href === pathname) return
+      // Dashboard navigation → no loader (neither from nor to dashboard)
+      if (pathname.startsWith('/dashboard') || href.startsWith('/dashboard')) return
       show()
     }
     document.addEventListener('click', handle, true)

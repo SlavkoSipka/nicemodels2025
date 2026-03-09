@@ -66,13 +66,7 @@ export default function CompanyDashboardPage() {
     checkUser()
   }, [router])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return null
 
   const clubName = clubDetails?.display_name || clubDetails?.club_name || 'there'
   const clientCode = user?.id?.slice(0, 8).toUpperCase() || 'N/A'

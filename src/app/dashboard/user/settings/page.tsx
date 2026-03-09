@@ -40,11 +40,7 @@ export default function UserSettings() {
     setSaving(false)
   }
 
-  if (loading) return (
-    <div className="ml-[280px] min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="ml-[280px] min-h-screen bg-gray-50">

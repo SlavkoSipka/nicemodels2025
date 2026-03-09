@@ -48,8 +48,8 @@ export default function ReviewMediaPage() {
             supabase.from('profiles').select('id, email').in('id', ids),
             supabase.from('model_details').select('model_id, showname').in('model_id', ids),
           ])
-          const pm = new Map(profiles?.map(p => [p.id, p]) || [])
-          const dm = new Map(details?.map(d => [d.model_id, d]) || [])
+          const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
+          const dm = new Map<string, any>(details?.map(d => [d.model_id, d]) || [])
           allMedia.push(...modelPhotos.map(p => ({ ...p, type: 'photo' as const, owner_email: pm.get(p.model_id)?.email || 'Unknown', owner_type: 'model' as const, owner_name: dm.get(p.model_id)?.showname || 'Unknown', owner_id: p.model_id })))
         }
       }
@@ -61,8 +61,8 @@ export default function ReviewMediaPage() {
             supabase.from('profiles').select('id, email').in('id', ids),
             supabase.from('model_details').select('model_id, showname').in('model_id', ids),
           ])
-          const pm = new Map(profiles?.map(p => [p.id, p]) || [])
-          const dm = new Map(details?.map(d => [d.model_id, d]) || [])
+          const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
+          const dm = new Map<string, any>(details?.map(d => [d.model_id, d]) || [])
           allMedia.push(...modelVideos.map(v => ({ ...v, type: 'video' as const, owner_email: pm.get(v.model_id)?.email || 'Unknown', owner_type: 'model' as const, owner_name: dm.get(v.model_id)?.showname || 'Unknown', owner_id: v.model_id })))
         }
       }
@@ -77,8 +77,8 @@ export default function ReviewMediaPage() {
             supabase.from('profiles').select('id, email').in('id', ids),
             supabase.from('club_details').select('club_id, club_name').in('club_id', ids),
           ])
-          const pm = new Map(profiles?.map(p => [p.id, p]) || [])
-          const dm = new Map(details?.map(d => [d.club_id, d]) || [])
+          const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
+          const dm = new Map<string, any>(details?.map(d => [d.club_id, d]) || [])
           allMedia.push(...clubPhotos.map(p => ({ ...p, type: 'photo' as const, owner_email: pm.get(p.club_id)?.email || 'Unknown', owner_type: 'club' as const, owner_name: dm.get(p.club_id)?.club_name || 'Unknown', owner_id: p.club_id })))
         }
       }
@@ -90,8 +90,8 @@ export default function ReviewMediaPage() {
             supabase.from('profiles').select('id, email').in('id', ids),
             supabase.from('club_details').select('club_id, club_name').in('club_id', ids),
           ])
-          const pm = new Map(profiles?.map(p => [p.id, p]) || [])
-          const dm = new Map(details?.map(d => [d.club_id, d]) || [])
+          const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
+          const dm = new Map<string, any>(details?.map(d => [d.club_id, d]) || [])
           allMedia.push(...clubVideos.map(v => ({ ...v, type: 'video' as const, owner_email: pm.get(v.club_id)?.email || 'Unknown', owner_type: 'club' as const, owner_name: dm.get(v.club_id)?.club_name || 'Unknown', owner_id: v.club_id })))
         }
       }
@@ -151,11 +151,7 @@ export default function ReviewMediaPage() {
     </button>
   )
 
-  if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-    </div>
-  )
+  if (loading) return null
 
   return (
     <div className="min-h-screen bg-gray-50">

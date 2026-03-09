@@ -221,16 +221,7 @@ export default function ModelDashboardPage() {
     finally { setStatusDeleting(false) }
   }
 
-  if (loading) {
-    return (
-      <>
-        <DashboardSidebar userRole="model" />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
-          <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-        </div>
-      </>
-    )
-  }
+  if (loading) return null
 
   const clientCode = user?.id?.slice(0, 8).toUpperCase() || 'N/A'
   const showname = modelDetails?.showname || profile?.username || 'there'
