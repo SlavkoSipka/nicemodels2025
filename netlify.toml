@@ -1,5 +1,4 @@
 # Netlify Configuration for Next.js
-# Koristi @netlify/plugin-nextjs – ne stavljaj /* -> index.html (pokvari slike i static fajlove)
 [build]
   command = "npm run build"
   publish = ".next"
@@ -7,27 +6,20 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# Headers for security
+# Headers for security (exclude static assets from nosniff issues)
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
-    X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# Cache static assets
-[[headers]]
-  for = "/_next/static/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
+# Images caching
 [[headers]]
   for = "/images/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Lokalne slike iz public/ (logo itd.)
 [[headers]]
   for = "/*.png"
   [headers.values]
@@ -40,11 +32,6 @@
   for = "/*.svg"
   [headers.values]
     Cache-Control = "public, max-age=86400"
-
-# Functions (for API routes)
-[functions]
-  directory = ".netlify/functions"
-  node_bundler = "esbuild"
 
 # Plugin for Next.js
 [[plugins]]
