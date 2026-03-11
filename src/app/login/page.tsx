@@ -4,6 +4,8 @@ import LoginForm from '@/components/auth/LoginForm'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col">

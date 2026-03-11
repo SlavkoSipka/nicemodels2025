@@ -2,6 +2,8 @@ import Navbar from '@/components/layout/Navbar'
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default function ForgotPasswordPage() {
   return (
     <>
