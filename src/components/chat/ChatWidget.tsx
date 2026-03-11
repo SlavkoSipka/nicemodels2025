@@ -627,7 +627,7 @@ export default function ChatWidget() {
                       <div className="relative flex-shrink-0">
                         {user.photo_url ? (
                           <img
-                            src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${user.photo_url}`}
+                            src={user.photo_url}
                             alt={user.username}
                             className="w-12 h-12 rounded-full object-cover"
                           />
