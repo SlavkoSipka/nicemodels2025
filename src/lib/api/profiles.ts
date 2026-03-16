@@ -253,6 +253,13 @@ export async function getProfileById(id: string, client: SupabaseClient) {
       .eq('id', id)
       .single()
 
+    // Get contact details
+    const { data: contactDetails } = await supabase
+      .from('model_contact_details')
+      .select('*')
+      .eq('model_id', id)
+      .single()
+
     // Get photos from model_photos table
     const { data: photosData } = await supabase
       .from('model_photos')
@@ -304,6 +311,7 @@ export async function getProfileById(id: string, client: SupabaseClient) {
     return {
       ...profile,
       model_details: modelDetails,
+      contact_details: contactDetails || null,
       photos: photos || [],
       reviews: reviews || [],
       languages: languages || [],

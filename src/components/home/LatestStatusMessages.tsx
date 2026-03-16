@@ -31,38 +31,36 @@ export default function LatestStatusMessages({ messages }: { messages: StatusMes
       <div
         className="rounded-xl overflow-hidden"
         style={{
-          background: '#fff',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.08)',
+          background: '#ffffff',
+          border: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 1px 6px rgba(0,0,0,0.05)',
         }}
       >
         {/* Header */}
-        <div
-          className="px-4 py-3"
-          style={{ borderBottom: '1px solid #f0f0f0' }}
-        >
-          <p className="text-sm font-bold text-gray-800">Latest status messages</p>
+        <div className="px-4 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+          <p className="text-sm font-semibold" style={{ color: '#1a1a2e' }}>Latest status messages</p>
         </div>
 
         {/* Messages */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-50">
           {visible.map(msg => (
             <Link
               key={msg.id}
               href={`/models/${msg.model_id}`}
-              className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group"
+              className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50/70 transition-colors group"
             >
               {/* Avatar */}
-              <div className="w-[52px] h-[52px] rounded-md overflow-hidden shrink-0 bg-gray-100">
+              <div className="w-[48px] h-[48px] rounded-lg overflow-hidden shrink-0 bg-gray-100">
                 {msg.model_photo ? (
                   <Image
                     src={msg.model_photo}
                     alt={msg.model_name}
-                    width={52}
-                    height={52}
+                    width={48}
+                    height={48}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-lg">
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-400 to-pink-500 text-white font-bold text-lg">
                     {msg.model_name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -71,7 +69,7 @@ export default function LatestStatusMessages({ messages }: { messages: StatusMes
               {/* Content */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-sm font-bold text-gray-900 group-hover:text-pink-600 transition-colors truncate">
+                  <span className="text-sm font-semibold text-gray-800 group-hover:text-pink-500 transition-colors truncate">
                     {msg.model_name}
                   </span>
                   <span className="text-[10px] text-gray-400 whitespace-nowrap shrink-0">
@@ -90,12 +88,12 @@ export default function LatestStatusMessages({ messages }: { messages: StatusMes
         {totalPages > 1 && (
           <div
             className="flex items-center justify-center gap-1 px-4 py-2.5"
-            style={{ borderTop: '1px solid #f0f0f0' }}
+            style={{ borderTop: '1px solid #f1f5f9' }}
           >
             <button
               onClick={() => setPage(p => Math.max(0, p - 1))}
               disabled={page === 0}
-              className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -106,8 +104,8 @@ export default function LatestStatusMessages({ messages }: { messages: StatusMes
                 onClick={() => setPage(i)}
                 className="w-7 h-7 flex items-center justify-center rounded text-xs font-bold transition-colors"
                 style={{
-                  background: page === i ? '#EC4899' : 'transparent',
-                  color: page === i ? '#fff' : '#9ca3af',
+                  background: page === i ? '#fce7f3' : 'transparent',
+                  color: page === i ? '#be185d' : '#94a3b8',
                 }}
               >
                 {i + 1}
@@ -117,7 +115,7 @@ export default function LatestStatusMessages({ messages }: { messages: StatusMes
             <button
               onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
               disabled={page === totalPages - 1}
-              className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-700 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+              className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

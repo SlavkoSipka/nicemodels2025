@@ -17,6 +17,8 @@ interface Model {
   username: string
   created_at?: string
   photoUrl?: string | null
+  public_id?: number | null
+  canton?: string | null
   model_details: {
     model_id?: string
     showname: string
@@ -26,6 +28,10 @@ interface Model {
     hair_color: string
     about_me?: string
     services_for?: string[]
+    slogan?: string | null
+    nationality?: string | null
+    gender?: string | null
+    speaks_languages?: string[] | null
   } | null
   model_services_list?: ModelService[]
 }
@@ -47,6 +53,7 @@ interface HomePageClientProps {
 }
 
 export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [] }: HomePageClientProps) {
+  const [selectedRegion,   setSelectedRegion]   = useState<string>('all')
   const [selectedCity,     setSelectedCity]     = useState<string>('all')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [selectedOffer,    setSelectedOffer]    = useState<string>('all')
@@ -54,6 +61,8 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
 
   const filteredModels = useMemo(() => {
     let result = initialModels
+    if (selectedRegion !== 'all')
+      result = result.filter(m => m.canton === selectedRegion)
     if (selectedCity !== 'all')
       result = result.filter(m => m.model_details?.city === selectedCity)
     if (selectedCategory !== 'all')
@@ -63,26 +72,38 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
       result = result.filter(m => {
-        const name = m.model_details?.showname ?? m.username ?? ''
-        return name.toLowerCase().includes(q)
+        if (m.public_id && (`#${m.public_id}` === q || String(m.public_id) === q)) return true
+        const fields = [
+          m.model_details?.showname,
+          m.username,
+          m.model_details?.slogan,
+          m.model_details?.ethnicity,
+          m.model_details?.nationality,
+          m.model_details?.city,
+          m.model_details?.gender,
+          ...(m.model_services_list?.map(s => s.name) ?? []),
+          ...(m.model_details?.speaks_languages ?? []),
+        ]
+        return fields.some(f => f && String(f).toLowerCase().includes(q))
       })
     }
     return result
-  }, [initialModels, selectedCity, selectedCategory, selectedOffer, searchQuery])
+  }, [initialModels, selectedRegion, selectedCity, selectedCategory, selectedOffer, searchQuery])
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
+      <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
-        {/* Stories — full width, edge to edge */}
+        {/* Stories */}
         <StoriesSection />
 
-        {/* Centered main content */}
+        {/* Main content */}
         <div className="max-w-[1280px] mx-auto">
           <CitySelector
+            selectedRegion={selectedRegion}   setSelectedRegion={setSelectedRegion}
             selectedCity={selectedCity}       setSelectedCity={setSelectedCity}
             selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
             selectedOffer={selectedOffer}     setSelectedOffer={setSelectedOffer}
@@ -92,9 +113,12 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
           />
           <div className="px-4 py-6 w-full">
             {filteredModels.length === 0 ? (
-              <div className="text-center py-20 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <p className="text-2xl font-bold mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>No models found</p>
-                <p style={{ color: 'rgba(255,255,255,0.2)' }}>Try changing filters</p>
+              <div
+                className="text-center py-20 rounded-xl"
+                style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+              >
+                <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>No models found</p>
+                <p style={{ color: '#94a3b8' }}>Try changing filters</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
@@ -131,7 +155,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
           </div>
         </div>
 
-        {/* Fixed right-edge sidebar widget — desktop only, floats over content */}
+        {/* Sidebar */}
         {hasSidebar && (
           <div className="hidden xl:flex fixed right-0 top-[120px] flex-col gap-3 w-[275px] z-30 pr-3 max-h-[calc(100vh-140px)] overflow-y-auto">
             {chatModels.length > 0 && <AvailableForChat models={chatModels} />}

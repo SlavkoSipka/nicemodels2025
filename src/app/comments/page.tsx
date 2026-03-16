@@ -22,6 +22,7 @@ export default async function CommentsPage() {
       model:profiles!model_comments_model_id_fkey (
         id,
         username,
+        public_id,
         model_details!model_details_model_id_fkey (
           showname,
           city

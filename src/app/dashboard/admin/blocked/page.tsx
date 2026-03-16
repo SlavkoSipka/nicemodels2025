@@ -28,7 +28,7 @@ export default function AdminBlockedPage() {
 
     const { data } = await supabase
       .from('profiles')
-      .select('id, email, username, role, created_at, blocked_at, blocked_reason, model_details (showname), club_details (club_name)')
+      .select('id, email, username, public_id, role, created_at, blocked_at, blocked_reason, model_details (showname), club_details (club_name)')
       .eq('is_blocked', true)
       .order('blocked_at', { ascending: false })
 
@@ -42,8 +42,16 @@ export default function AdminBlockedPage() {
 
   const handleUnblock = async (userId: string) => {
     if (!confirm('Unblock this user?')) return
-    const supabase = createClient()
-    await supabase.from('profiles').update({ is_blocked: false, blocked_at: null, blocked_reason: null }).eq('id', userId)
+    const res = await fetch('/api/admin/block-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, block: false }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || 'Failed to unblock user')
+      return
+    }
     load()
   }
 
@@ -92,6 +100,7 @@ export default function AdminBlockedPage() {
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">
                               {user.role === 'model' ? user.model_details?.showname || user.username || 'N/A' : user.club_details?.club_name || user.username || 'N/A'}
+                              {user.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{user.public_id}</span>}
                             </p>
                             <p className="text-xs text-gray-400">@{user.username || 'no-username'}</p>
                           </div>

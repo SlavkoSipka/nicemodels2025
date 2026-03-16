@@ -86,7 +86,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     reviews: rating.count,
     verified: profileData.is_verified,
     online: false, // TODO: implement online status
-    phone: profileData.model_details.phone_number || '',
     height: profileData.model_details.height || 0,
     languages: profileData.model_details?.speaks_languages || [],
     bio: profileData.model_details.bio || 'No bio available.',
@@ -123,6 +122,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-4xl font-bold text-gray-800">
                       {profile.name}, {profile.age}
+                      <span className="ml-2 text-sm font-mono font-normal align-middle text-gray-400">
+                        #{profileData.public_id || id.slice(0, 6)}
+                      </span>
                     </h1>
                     {profile.verified && (
                       <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-1.5 rounded-full text-sm flex items-center shadow-lg">
@@ -247,7 +249,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 <div className="text-gray-600 font-medium">per hour</div>
               </div>
 
-              <ContactButtons phone={profile.phone} profileId={id} />
+              <ContactButtons contactDetails={profileData.contact_details} profileId={id} />
 
               {/* Pricing Table */}
               <div className="mt-6 pt-6 border-t">

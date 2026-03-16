@@ -214,8 +214,9 @@ export default function AdminClubEditClient({
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">
                     {clubDetails?.display_name || clubDetails?.club_name || profile.username}
+                    {profile.public_id && <span className="ml-2 text-xs font-mono text-gray-400">#{profile.public_id}</span>}
                   </h1>
-                  <p className="text-xs text-gray-500">{profile.email} · ID: {clubId.slice(0, 8)}…</p>
+                  <p className="text-xs text-gray-500">{profile.email}</p>
                 </div>
                 {profileData.is_verified && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">

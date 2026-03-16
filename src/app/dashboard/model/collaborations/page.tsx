@@ -279,6 +279,14 @@ export default function ModelCollaborationsPage() {
     ))
   }
 
+  const countAcceptedCollabs = async (supabase: any, userId: string): Promise<number> => {
+    const [{ data: asSender }, { data: asReceiver }] = await Promise.all([
+      supabase.from('model_collaborations').select('id').eq('sender_id', userId).eq('status', 'accepted'),
+      supabase.from('model_collaborations').select('id').eq('receiver_id', userId).eq('status', 'accepted'),
+    ])
+    return (asSender?.length || 0) + (asReceiver?.length || 0)
+  }
+
   const handleSendInvite = async () => {
     if (!selectedModel || !user) return
     setError(''); setSuccess(''); setSending(true)
@@ -297,6 +305,23 @@ export default function ModelCollaborationsPage() {
         setError(existing.status === 'pending'
           ? 'There is already a pending collaboration request with this model.'
           : 'You already have an active collaboration with this model.')
+        setSending(false)
+        return
+      }
+
+      // Enforce 2-collaboration limit for both sides
+      const [senderCount, receiverCount] = await Promise.all([
+        countAcceptedCollabs(supabase, user.id),
+        countAcceptedCollabs(supabase, selectedModel.id),
+      ])
+
+      if (senderCount >= 2) {
+        setError('You already have 2 collaborations. Remove one first to add a new one.')
+        setSending(false)
+        return
+      }
+      if (receiverCount >= 2) {
+        setError('This model already has 2 collaborations and cannot accept more at this time.')
         setSending(false)
         return
       }
@@ -336,6 +361,28 @@ export default function ModelCollaborationsPage() {
 
     try {
       const supabase = createClient()
+
+      // Before accepting, check that neither side exceeds the 2-collab limit
+      if (action === 'accept') {
+        const invite = incomingInvites.find(i => i.id === inviteId)
+        if (invite) {
+          const [receiverCount, senderCount] = await Promise.all([
+            countAcceptedCollabs(supabase, user.id),
+            countAcceptedCollabs(supabase, invite.sender_id),
+          ])
+          if (receiverCount >= 2) {
+            setError('You already have 2 collaborations. Remove one first to accept this request.')
+            setResponding(null)
+            return
+          }
+          if (senderCount >= 2) {
+            setError('The model who sent this request already has 2 collaborations.')
+            setResponding(null)
+            return
+          }
+        }
+      }
+
       const { error: e } = await supabase
         .from('model_collaborations')
         .update({

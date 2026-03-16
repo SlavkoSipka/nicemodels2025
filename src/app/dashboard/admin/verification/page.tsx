@@ -60,7 +60,7 @@ export default function AdminVerificationPage() {
     const { data: vData } = await supabase.from('verifications').select('*').order('submitted_at', { ascending: false })
     if (vData && vData.length > 0) {
       const withProfiles = await Promise.all(vData.map(async v => {
-        const { data: p } = await supabase.from('profiles').select('email, username, role, model_details!model_details_model_id_fkey (showname), club_details!club_details_club_id_fkey (club_name)').eq('id', v.user_id).single()
+        const { data: p } = await supabase.from('profiles').select('email, username, public_id, role, model_details!model_details_model_id_fkey (showname), club_details!club_details_club_id_fkey (club_name)').eq('id', v.user_id).single()
         const tp = p ? { ...p, model_details: Array.isArray(p.model_details) ? p.model_details[0] : p.model_details, club_details: Array.isArray(p.club_details) ? p.club_details[0] : p.club_details } : null
         return { ...v, profile: tp }
       }))
@@ -159,6 +159,7 @@ export default function AdminVerificationPage() {
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-gray-900 truncate">
                                 {v.profile?.model_details?.showname || v.profile?.club_details?.club_name || v.profile?.username || 'N/A'}
+                                {v.profile?.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{v.profile.public_id}</span>}
                               </p>
                               <p className="text-xs text-gray-400 truncate">{v.profile?.email}</p>
                             </div>

@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
-  LayoutDashboard, Users, Building2, Image, Film, UserX,
-  ShieldCheck, MessageSquare, Home, LogOut, ChevronRight, AlertCircle, Megaphone
+  LayoutDashboard, Users, Building2, Image, Film, UserX, UserCircle,
+  ShieldCheck, MessageSquare, Home, LogOut, ChevronRight, AlertCircle, Megaphone, Flag, Briefcase
 } from 'lucide-react'
 
 interface StatCard {
@@ -30,30 +30,35 @@ export default function AdminDashboard() {
   }
 
   const [stats, setStats] = useState({
-    totalModels: 0, totalClubs: 0, pendingPhotos: 0,
+    totalModels: 0, totalClubs: 0, totalVisitors: 0, totalListings: 0, pendingPhotos: 0,
     pendingVideos: 0, blockedUsers: 0, pendingVerifications: 0, pendingComments: 0,
-    pendingBanners: 0,
+    pendingBanners: 0, pendingReports: 0,
   })
 
   useEffect(() => {
     const load = async () => {
-      const [models, clubs, photos, videos, blocked, verifications, comments, banners] = await Promise.all([
+      const [models, clubs, visitors, listings, photos, videos, blocked, verifications, comments, banners, reports] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company'),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'user'),
+        supabase.from('job_listings').select('id', { count: 'exact', head: true }).neq('status', 'deleted'),
         supabase.from('model_photos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
         supabase.from('model_videos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_blocked', true),
         supabase.from('verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
         supabase.from('model_comments').select('id', { count: 'exact', head: true }),
         supabase.from('banners').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ])
 
       setStats({
         totalModels: models.count || 0, totalClubs: clubs.count || 0,
+        totalVisitors: visitors.count || 0, totalListings: listings.count || 0,
         pendingPhotos: photos.count || 0, pendingVideos: videos.count || 0,
         blockedUsers: blocked.count || 0, pendingVerifications: verifications.count || 0,
         pendingComments: comments.count || 0,
         pendingBanners: banners.count || 0,
+        pendingReports: reports.count || 0,
       })
       setLoading(false)
     }
@@ -63,24 +68,30 @@ export default function AdminDashboard() {
   if (loading) return null
 
   const cards: StatCard[] = [
+    { label: 'Total Visitors', value: stats.totalVisitors, icon: <UserCircle className="w-4 h-4" />, href: '/dashboard/admin/users', accent: 'text-violet-600 bg-violet-50' },
     { label: 'Total Models', value: stats.totalModels, icon: <Users className="w-4 h-4" />, href: '/dashboard/admin/models', accent: 'text-brand bg-brand/10' },
     { label: 'Total Clubs', value: stats.totalClubs, icon: <Building2 className="w-4 h-4" />, href: '/dashboard/admin/clubs', accent: 'text-blue-600 bg-blue-50' },
+    { label: 'Jobs & Rents', value: stats.totalListings, icon: <Briefcase className="w-4 h-4" />, href: '/dashboard/admin/jobs-rents', accent: 'text-purple-600 bg-purple-50' },
     { label: 'Pending Photos', value: stats.pendingPhotos, icon: <Image className="w-4 h-4" />, href: '/dashboard/admin/review-media', accent: 'text-amber-600 bg-amber-50', urgent: stats.pendingPhotos > 0 },
     { label: 'Pending Videos', value: stats.pendingVideos, icon: <Film className="w-4 h-4" />, href: '/dashboard/admin/review-media', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingVideos > 0 },
     { label: 'Blocked Users', value: stats.blockedUsers, icon: <UserX className="w-4 h-4" />, href: '/dashboard/admin/blocked', accent: 'text-red-600 bg-red-50' },
     { label: 'Pending Verifications', value: stats.pendingVerifications, icon: <ShieldCheck className="w-4 h-4" />, href: '/dashboard/admin/verification', accent: 'text-emerald-600 bg-emerald-50', urgent: stats.pendingVerifications > 0 },
     { label: 'Total Comments', value: stats.pendingComments, icon: <MessageSquare className="w-4 h-4" />, href: '/dashboard/admin/comments', accent: 'text-orange-600 bg-orange-50' },
     { label: 'Pending Banners', value: stats.pendingBanners, icon: <Megaphone className="w-4 h-4" />, href: '/dashboard/admin/banners', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingBanners > 0 },
+    { label: 'Reports', value: stats.pendingReports, icon: <Flag className="w-4 h-4" />, href: '/dashboard/admin/reports', accent: 'text-red-600 bg-red-50', urgent: stats.pendingReports > 0 },
   ]
 
   const navItems = [
+    { label: 'Visitors', sub: `${stats.totalVisitors} registered`, icon: <UserCircle className="w-4 h-4 text-violet-600" />, href: '/dashboard/admin/users' },
     { label: 'Manage Models', sub: `${stats.totalModels} registered`, icon: <Users className="w-4 h-4 text-brand" />, href: '/dashboard/admin/models' },
     { label: 'Manage Clubs', sub: `${stats.totalClubs} registered`, icon: <Building2 className="w-4 h-4 text-blue-600" />, href: '/dashboard/admin/clubs' },
+    { label: 'Jobs & Rents', sub: `${stats.totalListings} listings`, icon: <Briefcase className="w-4 h-4 text-purple-600" />, href: '/dashboard/admin/jobs-rents' },
     { label: 'Review Media', sub: `${stats.pendingPhotos + stats.pendingVideos} pending`, icon: <Image className="w-4 h-4 text-amber-600" />, href: '/dashboard/admin/review-media' },
     { label: 'Blocked Users', sub: `${stats.blockedUsers} blocked`, icon: <UserX className="w-4 h-4 text-red-600" />, href: '/dashboard/admin/blocked' },
     { label: 'Verifications', sub: `${stats.pendingVerifications} pending`, icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />, href: '/dashboard/admin/verification' },
     { label: 'Manage Comments', sub: `${stats.pendingComments} total`, icon: <MessageSquare className="w-4 h-4 text-orange-600" />, href: '/dashboard/admin/comments' },
     { label: 'Manage Banners', sub: `${stats.pendingBanners} pending`, icon: <Megaphone className="w-4 h-4 text-purple-600" />, href: '/dashboard/admin/banners' },
+    { label: 'Reports', sub: `${stats.pendingReports} pending`, icon: <Flag className="w-4 h-4 text-red-500" />, href: '/dashboard/admin/reports' },
   ]
 
   const totalPending = stats.pendingPhotos + stats.pendingVideos + stats.pendingVerifications
@@ -126,7 +137,7 @@ export default function AdminDashboard() {
           )}
 
           {/* Stats grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-3">
             {cards.map(card => (
               <Link key={card.label} href={card.href}
                 className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-gray-300 hover:shadow-sm transition-all group relative">

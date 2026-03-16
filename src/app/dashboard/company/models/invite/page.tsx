@@ -114,7 +114,7 @@ export default function InviteModelPage() {
 
       const { data: profiles, error: fetchError } = await supabase
         .from('profiles')
-        .select('id, username, is_verified, profile_status')
+        .select('id, username, public_id, is_verified, profile_status')
         .eq('role', 'model')
         .order('username', { ascending: true })
 
@@ -205,6 +205,19 @@ export default function InviteModelPage() {
         setError(existingInvite.status === 'pending'
           ? 'You already have a pending invite for this model'
           : 'This model is already part of your club')
+        setSending(false)
+        return
+      }
+
+      // Check club member limit (max 10 accepted members)
+      const { data: currentMembers } = await supabase
+        .from('club_invites')
+        .select('id')
+        .eq('club_id', user.id)
+        .eq('status', 'accepted')
+
+      if ((currentMembers?.length || 0) >= 10) {
+        setError('Your club has reached the maximum of 10 models. Remove one first to invite a new one.')
         setSending(false)
         return
       }
@@ -359,6 +372,7 @@ export default function InviteModelPage() {
                           <div className="flex items-center gap-1.5">
                             <p className="text-sm font-semibold text-gray-900 truncate">
                               {model.showname || model.username}
+                              {model.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{model.public_id}</span>}
                             </p>
                             {model.is_verified && (
                               <CheckCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
@@ -398,6 +412,7 @@ export default function InviteModelPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900">
                   {selectedModel.showname || selectedModel.username}
+                  {selectedModel.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{selectedModel.public_id}</span>}
                 </p>
                 <p className="text-xs text-gray-500">@{selectedModel.username}</p>
               </div>

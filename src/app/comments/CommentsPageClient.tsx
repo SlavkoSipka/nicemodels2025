@@ -45,8 +45,8 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   // Loading state
   if (isLoggedIn === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#fce9f3' }}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500"></div>
       </div>
     )
   }
@@ -54,27 +54,27 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   // Not logged in - show login prompt
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
-        <div className="p-8 max-w-sm w-full text-center rounded-xl" style={{ background: '#272a31', border: '1px solid rgba(59,130,246,0.25)', boxShadow: '0 4px 24px rgba(0,0,0,0.35)' }}>
-          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(59,130,246,0.12)' }}>
-            <Lock className="w-6 h-6" style={{ color: '#93C5FD' }} />
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#fce9f3' }}>
+        <div className="p-8 max-w-sm w-full text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(236,72,153,0.10)' }}>
+            <Lock className="w-6 h-6" style={{ color: '#EC4899' }} />
           </div>
-          <h1 className="text-xl font-semibold text-white mb-2">Login required</h1>
-          <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <h1 className="text-xl font-semibold text-slate-900 mb-2">Login required</h1>
+          <p className="text-sm mb-6 text-slate-500">
             Sign in to view reviews and comments.
           </p>
           <div className="space-y-2">
             <Link
               href="/login?redirect=%2Fcomments"
               className="block w-full py-2.5 px-4 text-white text-sm font-medium rounded-md transition-colors text-center"
-              style={{ background: 'rgba(236,72,153,0.85)' }}
+              style={{ background: '#EC4899' }}
             >
               Log in
             </Link>
             <Link
               href="/register?redirect=%2Fcomments"
               className="block w-full py-2.5 px-4 text-sm font-medium rounded-md transition-colors text-center"
-              style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)' }}
+              style={{ border: '1px solid rgba(0,0,0,0.12)', color: '#475569' }}
             >
               Create account
             </Link>
@@ -87,32 +87,32 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   // Logged in - show comments
   return (
     <>
-    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
+    <div className="min-h-screen" style={{ background: '#fce9f3' }}>
       <div className="max-w-7xl mx-auto px-4 py-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-white tracking-tight">
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
             Reviews & Comments
           </h1>
-          <p className="text-sm text-white/70 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Community experiences
           </p>
         </div>
 
         {/* Stats - minimal */}
-        <div className="flex items-baseline gap-2 mb-8 pb-6 border-b border-white/15">
-          <span className="text-2xl font-semibold text-white">{comments.length}</span>
-          <span className="text-sm text-white/60">
+        <div className="flex items-baseline gap-2 mb-8 pb-6 border-b border-gray-200">
+          <span className="text-2xl font-semibold text-slate-900">{comments.length}</span>
+          <span className="text-sm text-slate-500">
             {comments.length === 1 ? 'review' : 'reviews'}
           </span>
         </div>
 
         {/* Comments List */}
         {comments.length === 0 ? (
-          <div className="p-12 text-center rounded-xl" style={{ background: '#272a31', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <MessageSquare className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-            <p className="text-sm font-medium text-white">No reviews yet</p>
-            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Be the first to share your experience.</p>
+          <div className="p-12 text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}>
+            <MessageSquare className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(12,53,71,0.25)' }} />
+            <p className="text-sm font-medium text-slate-700">No reviews yet</p>
+            <p className="text-sm mt-1" style={{ color: '#64748b' }}>Be the first to share your experience.</p>
           </div>
         ) : (
           <ul className="space-y-4">
@@ -127,14 +127,14 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                 <li key={comment.id}>
                   <article
                     className="rounded-xl overflow-hidden transition-colors"
-                    style={{ background: '#272a31', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}
+                    style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.20)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}
                   >
                     <div className="flex flex-col sm:flex-row">
                       {/* Model photo */}
                       <Link
                         href={`/models/${comment.model.id}`}
                         className="relative w-full sm:w-56 flex-shrink-0 aspect-[3/4] block"
-                        style={{ background: '#1e2025', borderRight: '1px solid rgba(255,255,255,0.06)' }}
+                        style={{ background: '#e8f4f8', borderRight: '1px solid rgba(59,130,246,0.12)' }}
                       >
                         {photoUrl ? (
                           <Image
@@ -146,7 +146,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                           />
                         ) : (
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <User className="w-12 h-12" style={{ color: 'rgba(255,255,255,0.15)' }} />
+                            <User className="w-12 h-12" style={{ color: 'rgba(0,0,0,0.15)' }} />
                           </div>
                         )}
                       </Link>
@@ -160,12 +160,13 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                             <div>
                               <Link
                                 href={`/models/${comment.model.id}`}
-                                className="text-xl sm:text-2xl font-bold text-white hover:text-pink-400 transition-colors block"
+                                className="text-xl sm:text-2xl font-bold text-slate-900 hover:text-pink-500 transition-colors block"
                               >
                                 {modelName}
+                                {comment.model.public_id && <span className="ml-1.5 text-xs font-mono text-gray-400">#{comment.model.public_id}</span>}
                               </Link>
                               {modelCity && (
-                                <p className="flex items-center gap-1.5 text-sm mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                                <p className="flex items-center gap-1.5 text-sm mt-1" style={{ color: '#64748b' }}>
                                   <MapPin className="w-4 h-4 shrink-0" />
                                   {modelCity}
                                 </p>
@@ -177,7 +178,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                                   <Star
                                     key={i}
                                     className={`w-5 h-5 ${i < comment.rating! ? 'fill-amber-400 text-amber-400' : ''}`}
-                                    style={i >= comment.rating! ? { color: 'rgba(255,255,255,0.12)' } : undefined}
+                                    style={i >= comment.rating! ? { color: '#cbd5e1' } : undefined}
                                   />
                                 ))}
                               </div>
@@ -187,28 +188,28 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
 
                         {/* MIDDLE – comment text with quote accent */}
                         <div className="flex-1 flex flex-col justify-center gap-3">
-                          <div className="pl-4" style={{ borderLeft: '2px solid rgba(236,72,153,0.4)' }}>
-                            <svg className="w-6 h-6 mb-1" style={{ color: 'rgba(236,72,153,0.25)' }} fill="currentColor" viewBox="0 0 24 24">
+                          <div className="pl-4" style={{ borderLeft: '2px solid rgba(236,72,153,0.5)' }}>
+                            <svg className="w-6 h-6 mb-1" style={{ color: 'rgba(236,72,153,0.35)' }} fill="currentColor" viewBox="0 0 24 24">
                               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
                             </svg>
-                            <p className="text-base sm:text-lg leading-relaxed" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                            <p className="text-base sm:text-lg leading-relaxed" style={{ color: '#334155' }}>
                               {comment.comment_text}
                             </p>
                           </div>
 
                           {/* Model reply */}
                           {comment.reply_text && (
-                            <div className="rounded-lg px-4 py-3 ml-4" style={{ background: 'rgba(236,72,153,0.07)', border: '1px solid rgba(236,72,153,0.18)' }}>
+                            <div className="rounded-lg px-4 py-3 ml-4" style={{ background: 'rgba(236,72,153,0.06)', border: '1px solid rgba(236,72,153,0.18)' }}>
                               <div className="flex items-center gap-1.5 mb-1">
-                                <Reply className="w-3.5 h-3.5 text-pink-400" />
-                                <span className="text-xs font-bold text-pink-400">{modelName} replied</span>
+                                <Reply className="w-3.5 h-3.5 text-pink-500" />
+                                <span className="text-xs font-bold text-pink-500">{modelName} replied</span>
                                 {comment.replied_at && (
-                                  <span className="text-[11px] ml-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                                  <span className="text-[11px] ml-1" style={{ color: '#94a3b8' }}>
                                     · {new Date(comment.replied_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>{comment.reply_text}</p>
+                              <p className="text-sm leading-relaxed" style={{ color: '#475569' }}>{comment.reply_text}</p>
                             </div>
                           )}
                         </div>
@@ -216,14 +217,14 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                         {/* BOTTOM – author, date, profile link */}
                         <div
                           className="flex flex-wrap items-center justify-between gap-3 pt-3 text-sm"
-                          style={{ borderTop: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}
+                          style={{ borderTop: '1px solid #e2e8f0', color: '#94a3b8' }}
                         >
                           <div className="flex items-center gap-4">
                             <span className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                <User className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
+                              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: '#e8f4f8' }}>
+                                <User className="w-4 h-4" style={{ color: '#94a3b8' }} />
                               </div>
-                              <span className="font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>{comment.user.username || 'Anonymous'}</span>
+                              <span className="font-medium" style={{ color: '#475569' }}>{comment.user.username || 'Anonymous'}</span>
                             </span>
                             <span className="flex items-center gap-1.5">
                               <Calendar className="w-4 h-4" />
@@ -237,7 +238,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                           <Link
                             href={`/models/${comment.model.id}`}
                             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md font-semibold text-sm transition-all"
-                            style={{ background: 'rgba(59,130,246,0.12)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.25)' }}
+                            style={{ background: 'rgba(59,130,246,0.10)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.25)' }}
                           >
                             View Profile
                             <ChevronRight className="w-4 h-4" />

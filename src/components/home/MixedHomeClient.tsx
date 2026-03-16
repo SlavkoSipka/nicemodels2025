@@ -1,0 +1,512 @@
+'use client'
+
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import Navbar from '@/components/layout/Navbar'
+import Footer from '@/components/layout/Footer'
+import ModelCard from './ModelCard'
+import ClubCard, { type ClubCardData } from './ClubCard'
+import BannerCard, { type BannerData } from './BannerCard'
+import ListingBannerCard, { type ListingBannerData } from './ListingBannerCard'
+import StoriesSection from '@/components/stories/StoriesSection'
+import LatestStatusMessages from './LatestStatusMessages'
+import AvailableForChat, { type ChatModel } from './AvailableForChat'
+import { type StatusMessage } from './HomePageClient'
+import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+
+const CANTON_NAMES: Record<string, string> = {
+  AG: 'Aargau', AI: 'Appenzell I.', AR: 'Appenzell A.', BE: 'Bern',
+  BL: 'Basel-Land', BS: 'Basel-Stadt', FR: 'Fribourg', GE: 'Geneva',
+  GL: 'Glarus', GR: 'Grisons', JU: 'Jura', LU: 'Lucerne',
+  NE: 'Neuchâtel', NW: 'Nidwalden', OW: 'Obwalden', SG: 'St. Gallen',
+  SH: 'Schaffhausen', SO: 'Solothurn', SZ: 'Schwyz', TG: 'Thurgau',
+  TI: 'Ticino', UR: 'Uri', VD: 'Vaud', VS: 'Valais', ZG: 'Zug', ZH: 'Zürich',
+}
+
+interface Model {
+  id: string
+  username: string
+  created_at?: string
+  photoUrl?: string | null
+  public_id?: number | null
+  canton?: string | null
+  model_details: {
+    showname: string
+    city: string
+    age: number
+    ethnicity: string
+    hair_color: string
+    about_me?: string
+    services_for?: string[]
+  } | null
+  model_services_list?: { id: number; name: string }[]
+}
+
+interface CityResult {
+  id: string
+  name: string
+  postal_code: string | null
+  canton: string | null
+}
+
+type CardItem =
+  | { type: 'model'; data: Model }
+  | { type: 'club'; data: ClubCardData }
+  | { type: 'banner'; data: BannerData }
+  | { type: 'listing'; data: ListingBannerData }
+
+interface MixedHomeClientProps {
+  models: Model[]
+  clubs: ClubCardData[]
+  banners: BannerData[]
+  listings: ListingBannerData[]
+  statusMessages: StatusMessage[]
+  chatModels: ChatModel[]
+}
+
+function randomShuffle<T>(arr: T[]): T[] {
+  const copy = [...arr]
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j], copy[i]]
+  }
+  return copy
+}
+
+const WIDE_PER_PAGE = 3
+const CARDS_PER_SLOT = 4
+
+export default function MixedHomeClient({
+  models, clubs, banners, listings, statusMessages, chatModels,
+}: MixedHomeClientProps) {
+  const [mounted, setMounted] = useState(false)
+  const [cards, setCards] = useState<CardItem[]>([])
+  const [wideSlots, setWideSlots] = useState<CardItem[]>([])
+  const [page, setPage] = useState(0)
+
+  // Filter state
+  const [selectedRegion, setSelectedRegion] = useState('all')
+  const [selectedCity, setSelectedCity] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [regionOpen, setRegionOpen] = useState(false)
+
+  // City search state
+  const [cityQuery, setCityQuery] = useState('')
+  const [cityResults, setCityResults] = useState<CityResult[]>([])
+  const [cityOpen, setCityOpen] = useState(false)
+  const [cityLoading, setCityLoading] = useState(false)
+  const cityRef = useRef<HTMLDivElement>(null)
+  const regionDropdownRef = useRef<HTMLDivElement>(null)
+  const cityDebounce = useRef<ReturnType<typeof setTimeout>>(null)
+
+  // City search handlers
+  const searchCities = useCallback(async (q: string) => {
+    if (q.length < 1) { setCityResults([]); return }
+    setCityLoading(true)
+    try {
+      const supabase = createClient()
+      const isNumeric = /^\d/.test(q)
+      let query = supabase.from('cities').select('id, name, postal_code, canton').eq('is_active', true).limit(25)
+      if (isNumeric) {
+        query = query.like('postal_code', `${q}%`).order('postal_code').order('name')
+      } else {
+        query = query.ilike('name', `${q}%`).order('name').order('postal_code')
+      }
+      const { data } = await query
+      if (data) setCityResults(data)
+    } catch { /* silent */ } finally { setCityLoading(false) }
+  }, [])
+
+  const handleCityInput = (val: string) => {
+    setCityQuery(val)
+    setCityOpen(true)
+    if (val === '') { setSelectedCity('all'); setCityResults([]); return }
+    if (cityDebounce.current) clearTimeout(cityDebounce.current)
+    cityDebounce.current = setTimeout(() => searchCities(val), 200)
+  }
+
+  const handleCitySelect = (city: CityResult) => {
+    setSelectedCity(city.name)
+    setCityQuery(city.postal_code ? `${city.name} (${city.postal_code})` : city.name)
+    setCityOpen(false)
+    setPage(0)
+  }
+
+  const clearCity = () => {
+    setCityQuery('')
+    setSelectedCity('all')
+    setCityResults([])
+    setCityOpen(false)
+  }
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (cityRef.current && !cityRef.current.contains(e.target as Node)) setCityOpen(false)
+      if (regionDropdownRef.current && !regionDropdownRef.current.contains(e.target as Node)) setRegionOpen(false)
+    }
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [])
+
+  // Region counts from all models + clubs
+  const regionCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    models.forEach(m => { if (m.canton) counts[m.canton] = (counts[m.canton] || 0) + 1 })
+    clubs.forEach(c => { if (c.canton) counts[c.canton] = (counts[c.canton] || 0) + 1 })
+    return counts
+  }, [models, clubs])
+
+  const sortedRegions = useMemo(() =>
+    Object.entries(regionCounts).sort((a, b) => b[1] - a[1]),
+    [regionCounts]
+  )
+
+  const cantonName = (code: string) => CANTON_NAMES[code] || code
+
+  // Filter models and clubs based on region, city, and search
+  const filteredModels = useMemo(() => {
+    let result = models
+    if (selectedRegion !== 'all') result = result.filter(m => m.canton === selectedRegion)
+    if (selectedCity !== 'all') result = result.filter(m => m.model_details?.city === selectedCity)
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter(m => {
+        const fields = [
+          m.model_details?.showname, m.username, m.model_details?.city,
+          m.model_details?.ethnicity, m.model_details?.about_me,
+          ...(m.model_services_list?.map(s => s.name) ?? []),
+        ]
+        return fields.some(f => f && String(f).toLowerCase().includes(q))
+      })
+    }
+    return result
+  }, [models, selectedRegion, selectedCity, searchQuery])
+
+  const filteredClubs = useMemo(() => {
+    let result = clubs
+    if (selectedRegion !== 'all') result = result.filter(c => c.canton === selectedRegion)
+    if (selectedCity !== 'all') result = result.filter(c => c.city === selectedCity)
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase()
+      result = result.filter(c => {
+        const fields = [c.display_name, c.area, c.city, c.description]
+        return fields.some(f => f && f.toLowerCase().includes(q))
+      })
+    }
+    return result
+  }, [clubs, selectedRegion, selectedCity, searchQuery])
+
+  const filteredListings = useMemo(() => {
+    if (!searchQuery.trim()) return listings
+    const q = searchQuery.trim().toLowerCase()
+    return listings.filter(l => {
+      const fields = [l.title, l.location, l.club_name, l.description]
+      return fields.some(f => f && String(f).toLowerCase().includes(q))
+    })
+  }, [listings, searchQuery])
+
+  const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || searchQuery.trim() !== ''
+
+  // Only shuffle on the client after hydration
+  useEffect(() => {
+    setCards(randomShuffle([
+      ...models.map(m => ({ type: 'model' as const, data: m })),
+      ...clubs.map(c => ({ type: 'club' as const, data: c })),
+    ]))
+    setWideSlots(randomShuffle([
+      ...banners.map(b => ({ type: 'banner' as const, data: b })),
+      ...listings.map(l => ({ type: 'listing' as const, data: l })),
+    ]))
+    setMounted(true)
+  }, [])
+
+  // When filters change, rebuild cards from filtered data
+  const activeCards = useMemo(() => {
+    if (!isFiltering) return cards
+    return randomShuffle([
+      ...filteredModels.map(m => ({ type: 'model' as const, data: m })),
+      ...filteredClubs.map(c => ({ type: 'club' as const, data: c })),
+    ])
+  }, [isFiltering, filteredModels, filteredClubs, cards])
+
+  const activeWideSlots = useMemo(() => {
+    if (!isFiltering) return wideSlots
+    return randomShuffle([
+      ...banners.map(b => ({ type: 'banner' as const, data: b })),
+      ...filteredListings.map(l => ({ type: 'listing' as const, data: l })),
+    ])
+  }, [isFiltering, banners, filteredListings, wideSlots])
+
+  const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
+
+  // How many pages — driven by wide slots; if no wide slots, page by cards
+  const totalWidePages = activeWideSlots.length > 0
+    ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE)
+    : Math.ceil(activeCards.length / (WIDE_PER_PAGE * CARDS_PER_SLOT)) || 1
+
+  const totalPages = totalWidePages
+
+  const pageWide = activeWideSlots.slice(page * WIDE_PER_PAGE, (page + 1) * WIDE_PER_PAGE)
+  const pageCards = activeCards.slice(
+    page * WIDE_PER_PAGE * CARDS_PER_SLOT,
+    (page + 1) * WIDE_PER_PAGE * CARDS_PER_SLOT,
+  )
+
+  const goTo = (p: number) => {
+    setPage(p)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen" style={{ background: '#fce9f3' }}>
+        <StoriesSection />
+
+        <div className="max-w-[1280px] mx-auto">
+
+          {/* Filters */}
+          <div className="px-4 pt-4 w-full">
+            {/* Filter bar: Region | City | Search */}
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] gap-3 items-center pb-5">
+
+              {/* Region dropdown */}
+              <div className="relative min-w-0" ref={regionDropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setRegionOpen(v => !v)}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: 8, width: '100%', padding: '10px 16px', borderRadius: 10,
+                    fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
+                    border: selectedRegion !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
+                    backgroundColor: selectedRegion !== 'all' ? '#fef7fa' : '#ffffff',
+                    color: selectedRegion !== 'all' ? '#be185d' : '#64748b',
+                    fontWeight: selectedRegion !== 'all' ? 600 : 500,
+                  }}
+                >
+                  <span className="truncate">
+                    {selectedRegion === 'all' ? 'Region' : cantonName(selectedRegion)}
+                  </span>
+                  <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
+                </button>
+                {regionOpen && (
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                    padding: '4px 0', borderRadius: 10, zIndex: 50,
+                    maxHeight: 280, overflowY: 'auto',
+                    background: '#ffffff', border: '1px solid #e2e8f0',
+                    boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
+                  }}>
+                    {[['all', models.length + clubs.length] as [string, number], ...sortedRegions].map(([canton, count]) => (
+                      <button
+                        key={canton}
+                        type="button"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#fef7fa] hover:text-[#be185d] transition-colors"
+                        onClick={() => { setSelectedRegion(canton); setRegionOpen(false); setPage(0) }}
+                      >
+                        {canton === 'all' ? 'All regions' : cantonName(canton)}
+                        <span className="ml-1 text-gray-400">({count})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* City search */}
+              <div className="relative min-w-0" ref={cityRef}>
+                <MapPin style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8', zIndex: 1 }} />
+                <input
+                  type="text"
+                  value={cityQuery}
+                  onChange={e => handleCityInput(e.target.value)}
+                  onFocus={() => { if (cityQuery && cityResults.length > 0) setCityOpen(true) }}
+                  placeholder="City or postal code"
+                  className="w-full"
+                  style={{
+                    paddingLeft: 34, paddingRight: 32, paddingTop: 10, paddingBottom: 10,
+                    borderRadius: 10, fontSize: 13, fontWeight: selectedCity !== 'all' ? 600 : 400,
+                    outline: 'none', transition: 'all 0.2s',
+                    backgroundColor: selectedCity !== 'all' ? '#fef7fa' : '#ffffff',
+                    border: selectedCity !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
+                    color: selectedCity !== 'all' ? '#be185d' : '#64748b',
+                  }}
+                />
+                {cityLoading && (
+                  <Loader2 style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#94a3b8' }} className="animate-spin" />
+                )}
+                {cityQuery && !cityLoading && (
+                  <button type="button" onClick={clearCity}
+                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                    <X style={{ width: 14, height: 14, color: '#94a3b8' }} />
+                  </button>
+                )}
+                {cityOpen && cityResults.length > 0 && (
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                    padding: '4px 0', borderRadius: 10, zIndex: 50,
+                    maxHeight: 280, overflowY: 'auto',
+                    background: '#ffffff', border: '1px solid #e2e8f0',
+                    boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
+                  }}>
+                    {cityResults.map(city => (
+                      <button
+                        key={city.id} type="button"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#fef7fa] hover:text-[#be185d] transition-colors"
+                        onClick={() => handleCitySelect(city)}
+                      >
+                        <span className="font-medium">{city.name}</span>
+                        {city.postal_code && <span className="text-gray-400 ml-1">({city.postal_code})</span>}
+                        {city.canton && <span className="text-gray-300 ml-1">· {cantonName(city.canton)}</span>}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {cityOpen && cityQuery.length >= 1 && cityResults.length === 0 && !cityLoading && (
+                  <div style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                    padding: '12px 16px', borderRadius: 10, zIndex: 50, textAlign: 'center',
+                    background: '#ffffff', border: '1px solid #e2e8f0',
+                    boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
+                  }}>
+                    <p className="text-sm text-gray-400">No cities found</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Search all cards */}
+              <div className="relative min-w-0">
+                <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8' }} />
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={e => { setSearchQuery(e.target.value); setPage(0) }}
+                  placeholder="Search all cards..."
+                  className="w-full"
+                  style={{
+                    paddingLeft: 34, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
+                    borderRadius: 10, fontSize: 13, fontWeight: 400, outline: 'none',
+                    backgroundColor: '#ffffff', border: '1px solid #e2e8f0', color: '#1a1a2e',
+                  }}
+                  onFocus={e => { e.currentTarget.style.border = '1px solid #f9a8d4'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236,72,153,0.06)' }}
+                  onBlur={e => { e.currentTarget.style.border = '1px solid #e2e8f0'; e.currentTarget.style.boxShadow = 'none' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="px-4 py-6 w-full">
+            {!mounted ? (
+              // Skeleton shown during SSR / before hydration
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="animate-pulse rounded-xl"
+                    style={{ height: 180, background: 'rgba(0,0,0,0.06)' }}
+                  />
+                ))}
+              </div>
+            ) : activeCards.length === 0 && activeWideSlots.length === 0 ? (
+              <div
+                className="text-center py-20 rounded-xl"
+                style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)' }}
+              >
+                <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>
+                  {isFiltering ? 'No results found' : 'No content yet'}
+                </p>
+                <p style={{ color: '#94a3b8' }}>
+                  {isFiltering ? 'Try changing your filters' : 'Check back soon'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                  {(() => {
+                    const nodes: React.ReactNode[] = []
+                    let cardIdx = 0
+
+                    for (let s = 0; s < Math.max(pageWide.length, Math.ceil(pageCards.length / CARDS_PER_SLOT)); s++) {
+                      // Wide slot
+                      if (s < pageWide.length) {
+                        const slot = pageWide[s]
+                        if (slot.type === 'banner') {
+                          nodes.push(<BannerCard key={`b-${slot.data.id}`} banner={slot.data} />)
+                        } else if (slot.type === 'listing') {
+                          nodes.push(<ListingBannerCard key={`l-${slot.data.id}`} listing={slot.data} />)
+                        }
+                      }
+
+                      // 4 cards
+                      const chunk = pageCards.slice(cardIdx, cardIdx + CARDS_PER_SLOT)
+                      cardIdx += CARDS_PER_SLOT
+                      chunk.forEach((item, i) => {
+                        const isTop = page === 0 && s === 0 && i < 4
+                        if (item.type === 'model') {
+                          nodes.push(<ModelCard key={`m-${item.data.id}`} model={item.data} priority={isTop} />)
+                        } else if (item.type === 'club') {
+                          nodes.push(<ClubCard key={`c-${item.data.id}`} club={item.data} priority={isTop} />)
+                        }
+                      })
+                    }
+
+                    return nodes
+                  })()}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-10">
+                    <button
+                      onClick={() => goTo(page - 1)}
+                      disabled={page === 0}
+                      className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
+                    >
+                      <ChevronLeft className="w-4 h-4" /> Prev
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }).map((_, i) => (
+                        <button
+                          key={i}
+                          onClick={() => goTo(i)}
+                          className="w-9 h-9 rounded-lg text-sm font-bold transition-all"
+                          style={
+                            i === page
+                              ? { background: '#ec4899', color: '#ffffff', border: '1px solid #ec4899' }
+                              : { background: '#ffffff', color: '#374151', border: '1px solid rgba(0,0,0,0.10)' }
+                          }
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={() => goTo(page + 1)}
+                      disabled={page === totalPages - 1}
+                      className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
+                    >
+                      Next <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        {hasSidebar && (
+          <div className="hidden xl:flex fixed right-0 top-[120px] flex-col gap-3 w-[275px] z-30 pr-3 max-h-[calc(100vh-140px)] overflow-y-auto">
+            {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
+            {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
+          </div>
+        )}
+      </div>
+      <Footer />
+    </>
+  )
+}

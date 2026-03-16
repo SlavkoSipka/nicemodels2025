@@ -23,7 +23,6 @@ export default function RichTextEditor({
   required = false,
 }: RichTextEditorProps) {
   const editorRef = useRef<any>(null)
-  const apiKey = process.env.NEXT_PUBLIC_TINYMCE_API_KEY
 
   const charCount = value ? value.replace(/<[^>]*>/g, '').length : 0
 
@@ -36,7 +35,7 @@ export default function RichTextEditor({
       )}
 
       <Editor
-        apiKey={apiKey}
+        tinymceScriptSrc="/tinymce/tinymce.min.js"
         onInit={(_evt, editor) => { editorRef.current = editor }}
         value={value}
         onEditorChange={(content) => {

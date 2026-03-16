@@ -23,7 +23,6 @@ export default function Navbar() {
       if (user) {
         setUser(user)
         
-        // Get profile info
         const { data: profileData } = await supabase
           .from('profiles')
           .select('username, role')
@@ -41,7 +40,6 @@ export default function Navbar() {
     const supabase = createClient()
     await supabase.auth.signOut()
 
-    // Počisti sav lokalni state / storage da bude kao da nikad nisi bio na sajtu
     if (typeof window !== 'undefined') {
       try {
         window.localStorage.clear()
@@ -58,9 +56,9 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 shadow-lg">
-      {/* Top Bar - Clean dark */}
-      <div style={{ backgroundColor: '#1f2126', borderBottom: '1px solid #2a2d34' }}>
+    <nav className="sticky top-0 z-50" style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.06)' }}>
+      {/* Top Bar - Baby blue */}
+      <div style={{ backgroundColor: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -76,9 +74,14 @@ export default function Navbar() {
             </Link>
 
             {/* Desktop Auth Section */}
-            <div className="hidden lg:flex items-stretch h-16 self-stretch">
-              {/* Language Selector */}
-              <div className="flex items-center justify-center gap-1.5 px-5 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 transition-colors cursor-pointer select-none border-l border-white/10">
+            <div className="hidden lg:flex items-stretch h-16 self-stretch" style={{ marginBottom: '-1px' }}>
+              {/* Language */}
+              <div
+                className="flex items-center justify-center gap-1.5 px-5 text-xs font-semibold cursor-pointer select-none border-l transition-colors"
+                style={{ color: '#475569', borderColor: 'rgba(137,207,240,0.35)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#1e293b'; e.currentTarget.style.backgroundColor = 'rgba(137,207,240,0.15)' }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
+              >
                 <span>🇩🇪</span>
                 <span>DE</span>
               </div>
@@ -92,8 +95,8 @@ export default function Navbar() {
                       profile?.role === 'company' ? '/dashboard/company' :
                       '/dashboard'
                     }
-                    className="flex items-center justify-center gap-2 px-6 text-xs font-bold text-white transition-all border-l border-white/10 hover:brightness-110"
-                    style={{ background: 'linear-gradient(180deg, #1D4ED8, #3B82F6)' }}
+                    className="flex items-center justify-center gap-2 px-6 text-xs font-bold text-white transition-all border-l hover:brightness-110"
+                    style={{ background: 'linear-gradient(135deg, #38bdf8, #89CFF0)', borderColor: 'rgba(137,207,240,0.35)' }}
                   >
                     <User className="w-3.5 h-3.5" />
                     <span>{profile?.username || 'User'}</span>
@@ -101,7 +104,10 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex items-center justify-center px-6 text-xs font-semibold text-white/70 hover:text-white hover:bg-white/5 transition-all border-l border-white/10"
+                    className="flex items-center justify-center px-6 text-xs font-semibold transition-all border-l"
+                    style={{ color: '#475569', borderColor: 'rgba(137,207,240,0.35)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#1e293b'; e.currentTarget.style.backgroundColor = 'rgba(137,207,240,0.15)' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
                   >
                     Logout
                   </button>
@@ -110,15 +116,17 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/register"
-                    className="flex items-center justify-center px-6 text-xs font-bold text-white transition-all border-l border-white/10 hover:brightness-110"
-                    style={{ background: 'linear-gradient(180deg, #BE185D, #EC4899)' }}
+                    className="flex items-center justify-center px-6 text-xs font-bold text-white transition-all border-l hover:brightness-110"
+                    style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)', borderColor: 'rgba(137,207,240,0.35)' }}
                   >
                     Register
                   </Link>
                   <Link
                     href="/login"
-                    className="flex items-center justify-center px-6 text-xs font-bold text-white transition-all border-l border-r border-white/10 hover:brightness-110"
-                    style={{ background: 'linear-gradient(180deg, #1D4ED8, #3B82F6)' }}
+                    className="flex items-center justify-center px-6 text-xs font-semibold transition-all border-l border-r"
+                    style={{ color: '#475569', borderColor: 'rgba(137,207,240,0.35)' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = '#ec4899'; e.currentTarget.style.backgroundColor = 'rgba(236,72,153,0.05)' }}
+                    onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
                   >
                     Log in
                   </Link>
@@ -129,7 +137,8 @@ export default function Navbar() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
+              className="lg:hidden p-2 rounded-lg transition-all"
+              style={{ color: '#94a3b8' }}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -137,12 +146,12 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Navigation Bar - Vivid pink */}
-      <div style={{ backgroundColor: '#EC4899', borderBottom: '1px solid #DB2777' }}>
+      {/* Navigation Bar - Soft pink */}
+      <div style={{ background: 'linear-gradient(90deg, #ec4899, #f472b6)', boxShadow: '0 2px 8px rgba(236,72,153,0.15)' }}>
         <div className="max-w-7xl mx-auto px-4 w-full">
-          <div className="hidden lg:flex items-center justify-center gap-10">
+          <div className="hidden lg:flex items-center justify-center gap-1">
             {[
-              { href: '/',               label: 'Girls' },
+              { href: '/models-page',    label: 'Girls' },
               { href: '/clubs',          label: 'Clubs / Agency' },
               { href: '/jobs-rents',     label: 'Jobs / Rent' },
               { href: '/latest-actions', label: 'Latest Actions' },
@@ -153,13 +162,16 @@ export default function Navbar() {
               <Link
                 key={href}
                 href={href}
-                className="relative px-4 py-3 text-sm font-bold tracking-wide transition-colors duration-200 group"
-                style={{ color: 'rgba(255,255,255,0.92)' }}
+                className="relative px-5 py-2.5 text-[13px] font-semibold tracking-wide transition-all duration-200 group"
+                style={{ color: 'rgba(255,255,255,0.85)' }}
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#ffffff' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.92)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.85)' }}
               >
                 {label}
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-0 rounded-full transition-all duration-300 group-hover:w-4/5" style={{ backgroundColor: 'white' }} />
+                <span
+                  className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 rounded-full transition-all duration-300 group-hover:w-3/4"
+                  style={{ backgroundColor: 'white' }}
+                />
               </Link>
             ))}
           </div>
@@ -168,10 +180,10 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden" style={{ backgroundColor: '#1f2126', borderTop: '1px solid #2a2d34' }}>
+        <div className="lg:hidden" style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             {[
-              { href: '/',               label: 'Girls' },
+              { href: '/models-page',    label: 'Girls' },
               { href: '/clubs',          label: 'Clubs / Agency' },
               { href: '/jobs-rents',     label: 'Jobs / Rent' },
               { href: '/latest-actions', label: 'Latest Actions' },
@@ -182,18 +194,21 @@ export default function Navbar() {
               <Link
                 key={href}
                 href={href}
-                className="block px-4 py-3 text-sm font-semibold text-gray-300 hover:bg-brand/20 hover:text-white rounded-lg transition-all"
+                className="block px-4 py-3 text-sm font-semibold rounded-lg transition-all"
+                style={{ color: '#475569' }}
                 onClick={() => setMobileMenuOpen(false)}
+                onMouseEnter={e => { e.currentTarget.style.color = '#ec4899'; e.currentTarget.style.backgroundColor = '#fef7fa' }}
+                onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
               >
                 {label}
               </Link>
             ))}
 
-            <div className="border-t border-gray-800 pt-4 mt-4 space-y-2">
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} className="pt-4 mt-4 space-y-2">
               {user ? (
                 <>
-                  <div className="px-4 py-2 text-sm text-gray-400">
-                    Logged in as <span className="text-white font-semibold">{profile?.username}</span>
+                  <div className="px-4 py-2 text-sm" style={{ color: '#94a3b8' }}>
+                    Logged in as <span className="font-semibold" style={{ color: '#1a1a2e' }}>{profile?.username}</span>
                   </div>
                   <Link
                     href={
@@ -202,14 +217,16 @@ export default function Navbar() {
                       profile?.role === 'company' ? '/dashboard/company' :
                       '/dashboard'
                     }
-                    className="block w-full px-4 py-3 text-sm font-bold bg-brand text-white text-center hover:bg-brand-hover rounded-lg transition-all shadow-lg"
+                    className="block w-full px-4 py-3 text-sm font-bold text-white text-center rounded-lg transition-all hover:brightness-110"
+                    style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Dashboard
                   </Link>
                   <button
                     onClick={() => { setMobileMenuOpen(false); handleLogout() }}
-                    className="block w-full px-4 py-3 text-sm font-bold bg-red-600 text-white text-center hover:bg-red-700 rounded-lg transition-all shadow-lg"
+                    className="block w-full px-4 py-3 text-sm font-bold text-center rounded-lg transition-all"
+                    style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca' }}
                   >
                     Logout
                   </button>
@@ -218,14 +235,16 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/register"
-                    className="block w-full px-4 py-3 text-sm font-bold bg-brand text-white text-center hover:bg-brand-hover rounded-lg transition-all shadow-lg"
+                    className="block w-full px-4 py-3 text-sm font-bold text-white text-center rounded-lg transition-all hover:brightness-110"
+                    style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     REGISTER
                   </Link>
                   <Link
                     href="/login"
-                    className="block w-full px-4 py-3 text-sm font-bold bg-white text-gray-900 text-center hover:bg-gray-100 rounded-lg transition-all shadow-lg"
+                    className="block w-full px-4 py-3 text-sm font-bold text-center rounded-lg transition-all"
+                    style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     LOG IN
@@ -237,7 +256,6 @@ export default function Navbar() {
         </div>
       )}
       
-      {/* Chat Widget (only for logged-in users) */}
       {user && <ChatWidget />}
     </nav>
   )

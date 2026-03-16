@@ -77,22 +77,22 @@ export default function OnboardingPage() {
     <>
       <Navbar />
       <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 flex flex-col">
-        <div className="flex-1 overflow-y-auto px-4 pt-8 pb-20 flex justify-center">
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-16 flex justify-center">
           <div className="max-w-5xl w-full">
-            <div className="text-center mb-5">
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-1 tracking-tight">
+            <div className="text-center mb-3">
+              <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 tracking-tight">
                 Welcome to <span className="text-pink-600">nicemodels.ch</span>
               </h1>
-              <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto">
-                Complete a few short steps so we can prepare your{' '}
+              <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto">
+                Complete your profile so we can prepare your{' '}
                 <span className="font-semibold">model</span> or{' '}
-                <span className="font-semibold">club/agency</span> profile.
+                <span className="font-semibold">club/agency</span> page.
                 During the <span className="font-semibold text-pink-600">beta phase</span> everything stays{' '}
                 <span className="font-semibold">100% free</span>.
               </p>
             </div>
 
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl px-4 py-4 md:px-8 md:py-6">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-2xl px-4 py-4 md:px-8 md:py-5">
               {userRole === 'model' && <ModelOnboardingForm />}
               {userRole === 'company' && <CompanyOnboardingForm />}
               {userRole === 'user' && <UserOnboardingForm />}

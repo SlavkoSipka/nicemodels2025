@@ -31,8 +31,15 @@ export default function ClubProfileClient({
 }: ClubProfileClientProps) {
   const [showContact, setShowContact] = useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+  const [idCopied, setIdCopied] = useState(false)
 
   const clubName = clubDetails?.display_name || clubDetails?.club_name || 'Club'
+  const publicIdLabel = profile.public_id ? `#${profile.public_id}` : `#${profile.id.slice(0, 6)}`
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(publicIdLabel)
+    setIdCopied(true)
+    setTimeout(() => setIdCopied(false), 1800)
+  }
   const isClub = clubDetails?.is_club || false
   const is24_7 = workingHours?.always_available || false
 
@@ -147,7 +154,21 @@ export default function ClubProfileClient({
                 <div className="h-1.5 bg-gradient-to-r from-brand via-rose-400 to-pink-300" />
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3 mb-1">
-                    <h1 className="text-2xl font-bold text-gray-900 leading-tight">{clubName}</h1>
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <h1 className="text-2xl font-bold text-gray-900 leading-tight">{clubName}</h1>
+                      <button
+                        onClick={handleCopyId}
+                        title="Copy ID"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-xs font-semibold transition-all cursor-pointer select-none"
+                        style={{
+                          background: idCopied ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.05)',
+                          border: idCopied ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(0,0,0,0.1)',
+                          color: idCopied ? '#059669' : '#94a3b8',
+                        }}
+                      >
+                        {idCopied ? '✓ copied' : publicIdLabel}
+                      </button>
+                    </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {profile.is_verified && (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-500 px-2.5 py-1 rounded-full shadow-sm">

@@ -12,7 +12,8 @@ RETURNS TABLE (
   username text,
   email text,
   role text,
-  created_at timestamptz
+  created_at timestamptz,
+  public_id integer
 )
 SECURITY DEFINER
 LANGUAGE plpgsql
@@ -24,13 +25,15 @@ BEGIN
     p.username,
     p.email,
     p.role::text,
-    p.created_at
+    p.created_at,
+    p.public_id
   FROM profiles p
   INNER JOIN orders o ON o.user_id = p.id
   INNER JOIN order_items oi ON oi.order_id = o.id
   INNER JOIN products pr ON pr.id = oi.product_id
   WHERE 
     p.role = 'model'
+    AND p.is_blocked = FALSE
     AND o.status = 'paid'
     AND pr.product_type = 'ad_package'
     AND (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
@@ -32,8 +32,18 @@ interface ListingData {
 
 type FilterType = 'all' | 'job' | 'rent'
 
-export default function JobsRentsPageClient({ listings }: { listings: ListingData[] }) {
+export default function JobsRentsPageClient({ listings: initialListings }: { listings: ListingData[] }) {
   const [filter, setFilter] = useState<FilterType>('all')
+  const [listings, setListings] = useState<ListingData[]>(initialListings)
+
+  useEffect(() => {
+    const shuffled = [...initialListings]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    setListings(shuffled)
+  }, [])
 
   const filtered = filter === 'all' ? listings : listings.filter(l => l.listing_type === filter)
   const jobCount = listings.filter(l => l.listing_type === 'job').length
@@ -41,19 +51,19 @@ export default function JobsRentsPageClient({ listings }: { listings: ListingDat
 
   return (
     <>
-      <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
+      <div className="min-h-screen" style={{ background: '#fce9f3' }}>
         <div className="max-w-7xl mx-auto px-4 py-10">
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-white tracking-tight">Jobs & Rent</h1>
-            <p className="text-sm text-white/70 mt-1">Browse job opportunities and rental listings</p>
+            <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Jobs & Rent</h1>
+            <p className="text-sm text-slate-500 mt-1">Browse job opportunities and rental listings</p>
           </div>
 
           {/* Stats + filter */}
-          <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-white/15">
-            <span className="text-2xl font-semibold text-white">{listings.length}</span>
-            <span className="text-sm text-white/60">{listings.length === 1 ? 'listing' : 'listings'}</span>
+          <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-gray-200">
+            <span className="text-2xl font-semibold text-slate-900">{listings.length}</span>
+            <span className="text-sm text-slate-500">{listings.length === 1 ? 'listing' : 'listings'}</span>
             <div className="ml-auto flex gap-2">
               {[
                 { val: 'all' as FilterType, label: 'All', count: listings.length },
@@ -65,8 +75,8 @@ export default function JobsRentsPageClient({ listings }: { listings: ListingDat
                   onClick={() => setFilter(val)}
                   className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
                     filter === val
-                      ? 'bg-white text-gray-900'
-                      : 'bg-white/15 text-white/80 hover:bg-white/25'
+                      ? 'bg-[#ec4899] text-white'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:text-gray-900'
                   }`}
                 >
                   {label}
@@ -110,29 +120,29 @@ function ListingCard({ listing }: { listing: ListingData }) {
       <article
         className="overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-200 cursor-pointer"
         style={{
-          background: '#1f2126',
+          background: '#ffffff',
           borderRadius: 10,
-          border: '1px solid rgba(59,130,246,0.30)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.28)',
+          border: '1px solid rgba(59,130,246,0.25)',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
         }}
         onMouseEnter={e => {
           const el = e.currentTarget as HTMLElement
           el.style.transform = 'translateY(-3px)'
-          el.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.5)'
-          el.style.borderColor = 'rgba(59,130,246,0.6)'
+          el.style.boxShadow = '0 8px 32px rgba(59,130,246,0.20), 0 0 0 1px rgba(59,130,246,0.4)'
+          el.style.borderColor = 'rgba(59,130,246,0.5)'
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLElement
           el.style.transform = 'translateY(0)'
-          el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.28)'
-          el.style.borderColor = 'rgba(59,130,246,0.30)'
+          el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'
+          el.style.borderColor = 'rgba(59,130,246,0.25)'
         }}
       >
         {/* Photo */}
         <Link
           href={`/jobs-rents/${listing.id}`}
           className="relative flex-shrink-0 overflow-hidden block"
-          style={{ width: '100%', maxWidth: 200, minWidth: 140, aspectRatio: '3/4', background: '#16181d' }}
+          style={{ width: '100%', maxWidth: 200, minWidth: 140, aspectRatio: '3/4', background: '#e8f4f8' }}
         >
           {/* Blue left accent line */}
           <div style={{
@@ -151,7 +161,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center">
-              <Briefcase className="w-12 h-12" style={{ color: 'rgba(255,255,255,0.1)' }} />
+              <Briefcase className="w-12 h-12" style={{ color: 'rgba(0,0,0,0.15)' }} />
             </div>
           )}
 
@@ -190,8 +200,8 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
             {/* Title */}
             <Link href={`/jobs-rents/${listing.id}`}>
-              <h3 className="font-bold text-base sm:text-lg leading-snug hover:text-blue-400 transition-colors"
-                style={{ color: 'rgba(255,255,255,0.92)' }}>
+              <h3 className="font-bold text-base sm:text-lg leading-snug hover:text-blue-600 transition-colors"
+                style={{ color: '#0f172a' }}>
                 {title}
               </h3>
             </Link>
@@ -200,15 +210,15 @@ function ListingCard({ listing }: { listing: ListingData }) {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href={`/clubs/${listing.club_id}`}
-                className="flex items-center gap-1.5 text-sm font-semibold transition-colors hover:text-blue-400"
-                style={{ color: 'rgba(255,255,255,0.55)' }}
+                className="flex items-center gap-1.5 text-sm font-semibold transition-colors hover:text-blue-600"
+                style={{ color: '#475569' }}
                 onClick={e => e.stopPropagation()}
               >
                 <Building2 className="w-3.5 h-3.5 shrink-0" style={{ color: '#3B82F6' }} />
                 {listing.club_name}
               </Link>
-              <span style={{ color: 'rgba(255,255,255,0.15)' }}>·</span>
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+              <span style={{ color: '#cbd5e1' }}>·</span>
+              <span className="flex items-center gap-1.5 text-sm" style={{ color: '#64748b' }}>
                 <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: '#EC4899' }} />
                 {listing.location}
               </span>
@@ -216,7 +226,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
             {/* Description */}
             {shortDesc && (
-              <p className="text-sm leading-relaxed flex-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <p className="text-sm leading-relaxed flex-1" style={{ color: '#64748b' }}>
                 {shortDesc}
               </p>
             )}
@@ -228,14 +238,14 @@ function ListingCard({ listing }: { listing: ListingData }) {
                   <span
                     key={s.id}
                     className="text-[10px] font-semibold px-2 py-0.5 rounded-md"
-                    style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.2)' }}
+                    style={{ background: 'rgba(236,72,153,0.10)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}
                   >
                     {s.name}
                   </span>
                 ))}
                 {listing.services.length > 6 && (
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md"
-                    style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)' }}>
+                    style={{ background: 'rgba(0,0,0,0.05)', color: '#94a3b8' }}>
                     +{listing.services.length - 6}
                   </span>
                 )}
@@ -245,19 +255,19 @@ function ListingCard({ listing }: { listing: ListingData }) {
             {/* Contact row */}
             <div
               className="flex flex-wrap items-center gap-4 pt-3 mt-auto"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
+              style={{ borderTop: '1px solid #e2e8f0' }}
             >
               {listing.phone_number && (
                 <a
                   href={`tel:${listing.country_code}${listing.phone_number}`}
                   onClick={e => e.stopPropagation()}
                   className="flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-70"
-                  style={{ color: 'rgba(255,255,255,0.75)' }}
+                  style={{ color: '#334155' }}
                 >
-                  <Phone className="w-4 h-4 shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }} />
+                  <Phone className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
                   {listing.country_code} {listing.phone_number}
                   {(listing.has_whatsapp || listing.has_viber || listing.has_telegram) && (
-                    <span className="text-[10px] font-medium ml-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    <span className="text-[10px] font-medium ml-1" style={{ color: '#94a3b8' }}>
                       {[listing.has_whatsapp && 'WA', listing.has_viber && 'Viber', listing.has_telegram && 'TG'].filter(Boolean).join(' · ')}
                     </span>
                   )}
@@ -268,9 +278,9 @@ function ListingCard({ listing }: { listing: ListingData }) {
                   href={`mailto:${listing.email}`}
                   onClick={e => e.stopPropagation()}
                   className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: '#64748b' }}
                 >
-                  <Mail className="w-4 h-4 shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }} />
+                  <Mail className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
                   {listing.email}
                 </a>
               )}
@@ -281,9 +291,9 @@ function ListingCard({ listing }: { listing: ListingData }) {
                   rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
                   className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
-                  style={{ color: 'rgba(255,255,255,0.45)' }}
+                  style={{ color: '#64748b' }}
                 >
-                  <Globe className="w-4 h-4 shrink-0" style={{ color: 'rgba(255,255,255,0.25)' }} />
+                  <Globe className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
                   Website
                 </a>
               )}

@@ -78,6 +78,14 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [showContact, setShowContact] = useState(false)
+  const [idCopied, setIdCopied] = useState(false)
+
+  const publicIdLabel = profile.public_id ? `#${profile.public_id}` : `#${profile.id.slice(0, 6)}`
+  const handleCopyId = () => {
+    navigator.clipboard.writeText(publicIdLabel)
+    setIdCopied(true)
+    setTimeout(() => setIdCopied(false), 1800)
+  }
   const [isFavorite, setIsFavorite] = useState(false)
   const [isCheckingFavorite, setIsCheckingFavorite] = useState(true)
   const [isSavingFavorite, setIsSavingFavorite] = useState(false)
@@ -97,6 +105,15 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set(initialUserLiked))
   const [likingPhoto, setLikingPhoto] = useState<string | null>(null)
   const [heartPop, setHeartPop] = useState(false)
+
+  // Quick-invite state (only for logged-in models / clubs)
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null)
+  const [collabStatus, setCollabStatus] = useState<'none' | 'pending_sent' | 'pending_received' | 'accepted' | 'loading'>('loading')
+  const [clubInviteStatus, setClubInviteStatus] = useState<'none' | 'pending' | 'accepted' | 'loading'>('loading')
+  const [sendingInvite, setSendingInvite] = useState(false)
+  const [inviteSuccess, setInviteSuccess] = useState('')
+  const [inviteError, setInviteError] = useState('')
+
   const router = useRouter()
   const { show: showLoader } = usePageLoader()
 
@@ -167,6 +184,147 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     const { data: { user } } = await supabase.auth.getUser()
     setIsLoggedIn(!!user)
     setCurrentUserId(user?.id || null)
+
+    if (user) {
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      const role = userProfile?.role || null
+      setCurrentUserRole(role)
+
+      if (user.id !== profile.id) {
+        if (role === 'model') {
+          setClubInviteStatus('none')
+          checkCollabStatus(user.id)
+        } else if (role === 'company') {
+          setCollabStatus('none')
+          checkClubInviteStatus(user.id)
+        } else {
+          setCollabStatus('none')
+          setClubInviteStatus('none')
+        }
+      } else {
+        setCollabStatus('none')
+        setClubInviteStatus('none')
+      }
+    } else {
+      setCollabStatus('none')
+      setClubInviteStatus('none')
+    }
+  }
+
+  const checkCollabStatus = async (userId: string) => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('model_collaborations')
+      .select('id, status, sender_id')
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${profile.id}),and(sender_id.eq.${profile.id},receiver_id.eq.${userId})`)
+      .in('status', ['pending', 'accepted'])
+      .maybeSingle()
+
+    if (!data) setCollabStatus('none')
+    else if (data.status === 'accepted') setCollabStatus('accepted')
+    else if (data.sender_id === userId) setCollabStatus('pending_sent')
+    else setCollabStatus('pending_received')
+  }
+
+  const checkClubInviteStatus = async (clubId: string) => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('club_invites')
+      .select('id, status')
+      .eq('club_id', clubId)
+      .eq('invited_model_id', profile.id)
+      .in('status', ['pending', 'accepted'])
+      .maybeSingle()
+
+    if (!data) setClubInviteStatus('none')
+    else if (data.status === 'accepted') setClubInviteStatus('accepted')
+    else setClubInviteStatus('pending')
+  }
+
+  const countAcceptedCollabs = async (supabase: any, userId: string): Promise<number> => {
+    const [{ data: asSender }, { data: asReceiver }] = await Promise.all([
+      supabase.from('model_collaborations').select('id').eq('sender_id', userId).eq('status', 'accepted'),
+      supabase.from('model_collaborations').select('id').eq('receiver_id', userId).eq('status', 'accepted'),
+    ])
+    return (asSender?.length || 0) + (asReceiver?.length || 0)
+  }
+
+  const sendCollabRequest = async () => {
+    if (!currentUserId) return
+    setSendingInvite(true)
+    setInviteError('')
+    try {
+      const supabase = createClient()
+
+      // Check limits for both sides
+      const [senderCount, receiverCount] = await Promise.all([
+        countAcceptedCollabs(supabase, currentUserId),
+        countAcceptedCollabs(supabase, profile.id),
+      ])
+
+      if (senderCount >= 2) {
+        setInviteError('You already have 2 collaborations. Remove one first to add a new one.')
+        setTimeout(() => setInviteError(''), 5000)
+        setSendingInvite(false)
+        return
+      }
+      if (receiverCount >= 2) {
+        setInviteError('This model already has 2 collaborations and cannot accept more at this time.')
+        setTimeout(() => setInviteError(''), 5000)
+        setSendingInvite(false)
+        return
+      }
+
+      const { error } = await supabase
+        .from('model_collaborations')
+        .insert({ sender_id: currentUserId, receiver_id: profile.id, status: 'pending' })
+      if (error) throw error
+      setCollabStatus('pending_sent')
+      setInviteSuccess('Collaboration request sent!')
+      setTimeout(() => setInviteSuccess(''), 4000)
+    } catch (err: any) {
+      setInviteError(err.message || 'Failed to send request.')
+      setTimeout(() => setInviteError(''), 4000)
+    } finally { setSendingInvite(false) }
+  }
+
+  const sendClubInvite = async () => {
+    if (!currentUserId) return
+    setSendingInvite(true)
+    setInviteError('')
+    try {
+      const supabase = createClient()
+
+      // Check club member limit (max 10 accepted members)
+      const { data: currentMembers } = await supabase
+        .from('club_invites')
+        .select('id')
+        .eq('club_id', currentUserId)
+        .eq('status', 'accepted')
+
+      if ((currentMembers?.length || 0) >= 10) {
+        setInviteError('Your club has reached the maximum of 10 models. Remove one first to invite a new one.')
+        setTimeout(() => setInviteError(''), 5000)
+        setSendingInvite(false)
+        return
+      }
+
+      const { error } = await supabase
+        .from('club_invites')
+        .insert({ club_id: currentUserId, invited_model_id: profile.id, status: 'pending' })
+      if (error) throw error
+      setClubInviteStatus('pending')
+      setInviteSuccess('Club invitation sent!')
+      setTimeout(() => setInviteSuccess(''), 4000)
+    } catch (err: any) {
+      setInviteError(err.message || 'Failed to send invitation.')
+      setTimeout(() => setInviteError(''), 4000)
+    } finally { setSendingInvite(false) }
   }
 
   const checkIfFavorite = async () => {
@@ -484,7 +642,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   }
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
+    <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
       {/* ── Floating prev/next nav ── */}
       {allModelIds.length > 1 && (
@@ -496,17 +654,17 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             className="fixed left-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
             style={{
               width: 48, height: 96,
-              background: 'rgba(31,33,38,0.92)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.92)',
+              border: '1px solid #e2e8f0',
               borderRadius: 12,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
               backdropFilter: 'blur(8px)',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(31,33,38,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)'; (e.currentTarget as HTMLButtonElement).style.color = 'white' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0'; (e.currentTarget as HTMLButtonElement).style.color = '' }}
           >
-            <ChevronLeft className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.35)', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>prev</span>
+            <ChevronLeft className="w-5 h-5" style={{ color: '#64748b' }} />
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>prev</span>
           </button>
 
           {/* NEXT */}
@@ -516,17 +674,17 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             className="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
             style={{
               width: 48, height: 96,
-              background: 'rgba(31,33,38,0.92)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(255,255,255,0.92)',
+              border: '1px solid #e2e8f0',
               borderRadius: 12,
-              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
               backdropFilter: 'blur(8px)',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(31,33,38,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.1)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0' }}
           >
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.35)', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>next</span>
-            <ChevronRight className="w-5 h-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>next</span>
+            <ChevronRight className="w-5 h-5" style={{ color: '#64748b' }} />
           </button>
         </>
       )}
@@ -536,10 +694,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
         {/* Back Button */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-white hover:text-white/80 mb-6 transition-colors"
+          className="inline-flex items-center gap-2 mb-6 transition-colors hover:text-pink-600 font-medium text-sm"
+          style={{ color: '#64748b' }}
         >
           <ChevronLeft className="w-5 h-5" />
-          <span className="font-medium">Back to all models</span>
+          <span>Back to all models</span>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-8">
@@ -547,15 +706,29 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           <div className="space-y-3">
 
             {/* ── Hero card ── */}
-            <div className="rounded-xl overflow-hidden" style={{ boxShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
-              {/* Dark header */}
-              <div className="px-6 pt-6 pb-5" style={{ background: '#1f2126' }}>
+            <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
+              {/* Header */}
+              <div className="px-6 pt-6 pb-5" style={{ background: '#ffffff' }}>
 
-                {/* Name + verified */}
+                {/* Name + ID + verified */}
                 <div className="flex items-start justify-between gap-3 mb-1">
-                  <h1 className="text-3xl font-bold leading-tight tracking-tight" style={{ color: '#ffffff' }}>
-                    {modelDetails?.showname || profile.username}
-                  </h1>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-3xl font-bold leading-tight tracking-tight" style={{ color: '#0f172a' }}>
+                      {modelDetails?.showname || profile.username}
+                    </h1>
+                    <button
+                      onClick={handleCopyId}
+                      title="Copy ID"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-xs font-semibold transition-all cursor-pointer select-none"
+                      style={{
+                        background: idCopied ? 'rgba(16,185,129,0.12)' : '#f1f5f9',
+                        border: idCopied ? '1px solid rgba(16,185,129,0.4)' : '1px solid #e2e8f0',
+                        color: idCopied ? '#059669' : '#94a3b8',
+                      }}
+                    >
+                      {idCopied ? '✓ copied' : publicIdLabel}
+                    </button>
+                  </div>
                   {profile.is_verified && (
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white px-2.5 py-1 rounded-full shrink-0 mt-1" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(16,185,129,0.4)' }}>
                       <CheckCircle className="w-3 h-3" /> Verified
@@ -566,15 +739,15 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 {/* City / age line */}
                 <div className="flex items-center gap-3 mb-3">
                   {modelDetails?.city && (
-                    <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <span className="text-sm font-medium" style={{ color: '#64748b' }}>
                       {modelDetails.city}
                     </span>
                   )}
                   {modelDetails?.age && modelDetails?.city && (
-                    <span style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
                   )}
                   {modelDetails?.age && (
-                    <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <span className="text-sm font-medium" style={{ color: '#64748b' }}>
                       {modelDetails.age} years
                     </span>
                   )}
@@ -594,49 +767,50 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     <Phone className="w-4 h-4" /> Show Contact
                   </button>
                 ) : (
-                  <div className="mb-3 p-4 rounded-lg" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                  <div className="mb-3 p-4 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                     {contactDetails ? (
                       <div className="space-y-2.5">
-                        {contactDetails.show_phone_number && contactDetails.phone_number && (
-                          <div>
+                        {contactDetails.phone_number ? (
+                          <div className="space-y-2">
                             <a
                               href={`tel:${contactDetails.country_code || ''}${contactDetails.phone_number}`}
-                              className="text-2xl font-bold transition-colors"
-                              style={{ color: '#F472B6' }}
+                              className="text-2xl font-bold transition-colors block"
+                              style={{ color: '#EC4899' }}
                             >
                               {contactDetails.country_code || ''} {contactDetails.phone_number}
                             </a>
-                            {(contactDetails.has_whatsapp || contactDetails.has_viber || contactDetails.has_telegram) && (
-                              <div className="flex flex-wrap gap-1.5 mt-2">
-                                {contactDetails.has_whatsapp && <span className="text-xs px-2.5 py-1 font-semibold rounded-full" style={{ background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}>WhatsApp</span>}
-                                {contactDetails.has_viber && <span className="text-xs px-2.5 py-1 font-semibold rounded-full" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)' }}>Viber</span>}
-                                {contactDetails.has_telegram && <span className="text-xs px-2.5 py-1 font-semibold rounded-full" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa', border: '1px solid rgba(59,130,246,0.3)' }}>Telegram</span>}
-                              </div>
-                            )}
+                            {/* Small info line */}
+                            <div className="flex flex-wrap gap-x-2 gap-y-0.5">
+                              {contactDetails.contact_instruction && (
+                                <span className="text-xs" style={{ color: '#94a3b8' }}>
+                                  {contactDetails.contact_instruction === 'sms_and_call' ? 'SMS & call'
+                                    : contactDetails.contact_instruction === 'sms_only' ? 'SMS only'
+                                    : contactDetails.contact_instruction === 'no_sms' ? 'No SMS'
+                                    : contactDetails.contact_instruction.replace(/_/g, ' ')}
+                                </span>
+                              )}
+                              {contactDetails.has_whatsapp && <span className="text-xs" style={{ color: '#94a3b8' }}>WhatsApp</span>}
+                              {contactDetails.has_viber && <span className="text-xs" style={{ color: '#94a3b8' }}>Viber</span>}
+                              {contactDetails.has_telegram && <span className="text-xs" style={{ color: '#94a3b8' }}>Telegram</span>}
+                              {contactDetails.no_withheld_numbers && <span className="text-xs" style={{ color: '#94a3b8' }}>No withheld numbers</span>}
+                            </div>
                           </div>
+                        ) : contactDetails.email ? null : (
+                          <p className="text-sm text-center py-1" style={{ color: '#94a3b8' }}>No contact details provided yet</p>
                         )}
                         {contactDetails.email && (
-                          <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                          <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 text-sm transition-colors" style={{ color: '#475569' }}>
                             <Mail className="w-4 h-4" style={{ color: '#EC4899' }} /> {contactDetails.email}
                           </a>
                         )}
                         {contactDetails.website && (
-                          <a href={contactDetails.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                          <a href={contactDetails.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm transition-colors" style={{ color: '#475569' }}>
                             <Globe className="w-4 h-4" style={{ color: '#EC4899' }} /> {contactDetails.website}
                           </a>
                         )}
-                        {contactDetails.contact_instruction && (
-                          <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{contactDetails.contact_instruction.replace(/_/g, ' ')}</p>
-                        )}
-                        {contactDetails.no_withheld_numbers && (
-                          <p className="text-xs font-semibold" style={{ color: '#f87171' }}>No withheld numbers accepted</p>
-                        )}
-                        {!contactDetails.phone_number && !contactDetails.email && !contactDetails.website && (
-                          <p className="text-sm text-center py-1" style={{ color: 'rgba(255,255,255,0.4)' }}>No contact details provided yet</p>
-                        )}
                       </div>
                     ) : (
-                      <p className="text-sm text-center py-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Contact information not available</p>
+                      <p className="text-sm text-center py-1" style={{ color: '#94a3b8' }}>Contact information not available</p>
                     )}
                   </div>
                 )}
@@ -658,7 +832,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   <button
                     onClick={handleShare}
                     className="py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1.5"
-                    style={{ background: 'transparent', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.15)' }}
+                    style={{ background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0' }}
                   >
                     <Share2 className="w-4 h-4" /> Share
                   </button>
@@ -683,22 +857,22 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 ].filter(Boolean)
                 if (!statRows.length) return null
                 return (
-                  <div style={{ background: '#16181d', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
                     <div className="grid grid-cols-2">
                       {statRows.map(([label, val]: any, idx: number) => (
                         <div key={label} className="flex items-center justify-between px-5 py-2.5" style={{
-                          borderBottom: idx < statRows.length - 2 ? '1px solid rgba(255,255,255,0.05)' : 'none',
-                          borderRight: idx % 2 === 0 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                          borderBottom: idx < statRows.length - 2 ? '1px solid #f1f5f9' : 'none',
+                          borderRight: idx % 2 === 0 ? '1px solid #f1f5f9' : 'none',
                         }}>
-                          <span className="text-[11px] uppercase tracking-widest font-medium" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</span>
-                          <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{val}</span>
+                          <span className="text-[11px] uppercase tracking-widest font-medium" style={{ color: '#94a3b8' }}>{label}</span>
+                          <span className="text-xs font-semibold" style={{ color: '#0f172a' }}>{val}</span>
                         </div>
                       ))}
                     </div>
                     {modelDetails.special_characteristics && (
-                      <div className="px-5 py-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                        <span className="text-[11px] uppercase tracking-widest font-medium block mb-1" style={{ color: 'rgba(255,255,255,0.35)' }}>Special</span>
-                        <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.7)' }}>{modelDetails.special_characteristics}</p>
+                      <div className="px-5 py-3" style={{ borderTop: '1px solid #f1f5f9' }}>
+                        <span className="text-[11px] uppercase tracking-widest font-medium block mb-1" style={{ color: '#94a3b8' }}>Special</span>
+                        <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>{modelDetails.special_characteristics}</p>
                       </div>
                     )}
                   </div>
@@ -711,37 +885,37 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               const incallRates = rates.filter((r: any) => r.rate_type === 'incall')
               const outcallRates = rates.filter((r: any) => r.rate_type === 'outcall')
               return (
-                <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Rates</span>
+                <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Rates</span>
                   </div>
-                  <div className="grid grid-cols-2 divide-x" style={{ borderColor: 'rgba(255,255,255,0.07)' }}>
+                  <div className="grid grid-cols-2 divide-x divide-slate-100">
                     {/* Incall */}
                     <div>
-                      <div className="px-4 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                      <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#EC4899' }}>Incall</span>
                       </div>
                       {incallRates.length > 0 ? incallRates.map((rate: any) => (
-                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{formatDuration(rate.duration)}</span>
-                          <span className="text-sm font-bold" style={{ color: 'white' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>{rate.currency || 'CHF'}</span></span>
+                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
+                          <span className="text-xs" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
+                          <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
                         </div>
                       )) : (
-                        <div className="px-4 py-4 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>—</div>
+                        <div className="px-4 py-4 text-xs" style={{ color: '#cbd5e1' }}>—</div>
                       )}
                     </div>
                     {/* Outcall */}
                     <div>
-                      <div className="px-4 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                      <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#818CF8' }}>Outcall</span>
                       </div>
                       {outcallRates.length > 0 ? outcallRates.map((rate: any) => (
-                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{formatDuration(rate.duration)}</span>
-                          <span className="text-sm font-bold" style={{ color: 'white' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: 'rgba(255,255,255,0.4)' }}>{rate.currency || 'CHF'}</span></span>
+                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
+                          <span className="text-xs" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
+                          <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
                         </div>
                       )) : (
-                        <div className="px-4 py-4 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>—</div>
+                        <div className="px-4 py-4 text-xs" style={{ color: '#cbd5e1' }}>—</div>
                       )}
                     </div>
                   </div>
@@ -751,34 +925,34 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── About Me ── */}
             {modelDetails?.about_me && (
-              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>About me</span>
+              <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>About me</span>
                 </div>
-                <div className="px-5 py-4 rich-text-content rich-text-light" dangerouslySetInnerHTML={{ __html: modelDetails.about_me }} />
+                <div className="px-5 py-4 rich-text-content" style={{ color: '#475569' }} dangerouslySetInnerHTML={{ __html: modelDetails.about_me }} />
               </div>
             )}
 
             {/* ── Services ── */}
             {services.length > 0 && (
-              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Services</span>
+              <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Services</span>
                 </div>
                 <div className="px-5 py-4">
                   <div className="flex flex-wrap gap-2">
                     {services.map((service: any) => (
-                      <span key={service.id} className="text-xs px-3 py-1.5 font-medium rounded-md" style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.2)' }}>
+                      <span key={service.id} className="text-xs px-3 py-1.5 font-medium rounded-md" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>
                         {service.service?.name || 'Service'}
                       </span>
                     ))}
                   </div>
                   {modelDetails?.services_for?.length > 0 && (
-                    <div className="mt-3 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>For</p>
+                    <div className="mt-3 pt-3" style={{ borderTop: '1px solid #f1f5f9' }}>
+                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>For</p>
                       <div className="flex flex-wrap gap-1.5">
                         {modelDetails.services_for.map((sf: string, i: number) => (
-                          <span key={i} className="text-xs px-3 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.2)' }}>{sf}</span>
+                          <span key={i} className="text-xs px-3 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>{sf}</span>
                         ))}
                       </div>
                     </div>
@@ -789,15 +963,15 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── Languages ── */}
             {languages.length > 0 && (
-              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Languages</span>
+              <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Languages</span>
                 </div>
                 <div className="px-5 py-4 flex flex-wrap gap-2">
                   {languages.map((lang: any) => (
-                    <div key={lang.id} className="flex items-center gap-2 px-3 py-1.5 rounded-md" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)' }}>
-                      <span className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>{lang.language}</span>
-                      <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>{formatLanguageLevel(lang.level)}</span>
+                    <div key={lang.id} className="flex items-center gap-2 px-3 py-1.5 rounded-md" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                      <span className="text-sm font-semibold" style={{ color: '#0f172a' }}>{lang.language}</span>
+                      <span className="text-xs" style={{ color: '#94a3b8' }}>{formatLanguageLevel(lang.level)}</span>
                     </div>
                   ))}
                 </div>
@@ -806,23 +980,23 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── Location & Availability ── */}
             {modelDetails?.city && (
-              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Location</span>
+              <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Location</span>
                 </div>
                 <div className="px-5 py-4">
-                  <p className="text-sm font-bold mb-3" style={{ color: 'rgba(255,255,255,0.85)' }}>{modelDetails.city}</p>
+                  <p className="text-sm font-bold mb-3" style={{ color: '#0f172a' }}>{modelDetails.city}</p>
                   {modelDetails?.incall_options?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
                       {formatIncallOptions(modelDetails.incall_options).map((opt: string, i: number) => (
-                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.2)' }}>Incall: {opt}</span>
+                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>Incall: {opt}</span>
                       ))}
                     </div>
                   )}
                   {modelDetails?.outcall_options?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {formatIncallOptions(modelDetails.outcall_options).map((opt: string, i: number) => (
-                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.2)' }}>Outcall: {opt}</span>
+                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>Outcall: {opt}</span>
                       ))}
                     </div>
                   )}
@@ -832,9 +1006,9 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── Working Hours ── */}
             {workingHours.length > 0 && (
-              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Availability</span>
+              <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Availability</span>
                 </div>
                 <div className="px-5 py-3">
                   {(() => {
@@ -844,15 +1018,15 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     if (is24_7) return (
                       <div className="flex items-center gap-2 py-1">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                        <span className="text-sm font-bold" style={{ color: '#4ade80' }}>Available 24 / 7</span>
+                        <span className="text-sm font-bold" style={{ color: '#059669' }}>Available 24 / 7</span>
                       </div>
                     )
                     return (
                       <div>
                         {workingHours.map((wh: any) => (
-                          <div key={wh.id} className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                            <span className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>{formatDayOfWeek(wh.day_of_week)}</span>
-                            <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                          <div key={wh.id} className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid #f8fafc' }}>
+                            <span className="text-xs" style={{ color: '#64748b' }}>{formatDayOfWeek(wh.day_of_week)}</span>
+                            <span className="text-xs font-semibold" style={{ color: '#0f172a' }}>
                               {wh.start_time && wh.end_time ? `${wh.start_time.slice(0, 5)} – ${wh.end_time.slice(0, 5)}` : 'Closed'}
                             </span>
                           </div>
@@ -866,11 +1040,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── Collaborations ── */}
             {collabModels.length > 0 && (
-              <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                  <Handshake className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.4)' }} />
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Collaborations</span>
-                  <span className="text-[11px] font-bold ml-auto" style={{ color: 'rgba(255,255,255,0.2)' }}>({collabModels.length})</span>
+              <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <Handshake className="w-4 h-4" style={{ color: '#94a3b8' }} />
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Collaborations</span>
+                  <span className="text-[11px] font-bold ml-auto" style={{ color: '#cbd5e1' }}>({collabModels.length})</span>
                 </div>
                 <div className="p-4">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -879,11 +1053,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         key={model.id}
                         href={`/models/${model.id}`}
                         className="group block rounded-lg overflow-hidden transition-all"
-                        style={{ border: '1px solid rgba(255,255,255,0.08)' }}
-                        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(236,72,153,0.3)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)' }}
-                        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(255,255,255,0.08)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none' }}
+                        style={{ border: '1px solid #e2e8f0' }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = 'rgba(236,72,153,0.3)'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = '#e2e8f0'; (e.currentTarget as HTMLAnchorElement).style.boxShadow = 'none' }}
                       >
-                        <div className="relative aspect-[3/4]" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <div className="relative aspect-[3/4]" style={{ background: '#f8fafc' }}>
                           {model.photoUrl ? (
                             <Image
                               src={model.photoUrl}
@@ -894,7 +1068,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Sparkles className="w-8 h-8" style={{ color: 'rgba(255,255,255,0.15)' }} />
+                              <Sparkles className="w-8 h-8" style={{ color: '#cbd5e1' }} />
                             </div>
                           )}
                           {model.is_verified && (
@@ -904,11 +1078,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           )}
                         </div>
                         <div className="p-2.5">
-                          <p className="text-sm font-bold truncate group-hover:text-pink-400 transition-colors" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                          <p className="text-sm font-bold truncate group-hover:text-pink-500 transition-colors" style={{ color: '#0f172a' }}>
                             {model.showname || model.username}
                           </p>
                           {(model.city || model.age) && (
-                            <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                            <p className="text-xs mt-0.5 truncate" style={{ color: '#94a3b8' }}>
                               {[model.age ? `${model.age} yrs` : '', model.city].filter(Boolean).join(' · ')}
                             </p>
                           )}
@@ -924,16 +1098,16 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {(() => {
               const otherComments = comments?.filter((c: any) => c.user?.id !== currentUserId) || []
               return isLoggedIn && otherComments.length > 0 && (
-                <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>Reviews</span>
-                    <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.2)' }}>({otherComments.length})</span>
+                <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Reviews</span>
+                    <span className="text-[11px] font-bold" style={{ color: '#cbd5e1' }}>({otherComments.length})</span>
                   </div>
                   <div className="px-5 py-4 space-y-4">
                     {otherComments.map((comment: any) => (
-                      <div key={comment.id} className="pb-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      <div key={comment.id} className="pb-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <div className="flex items-start justify-between mb-1.5">
-                          <span className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.8)' }}>{comment.user.username || 'Anonymous'}</span>
+                          <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{comment.user.username || 'Anonymous'}</span>
                           {comment.rating && (
                             <div className="flex gap-0.5">
                               {Array.from({ length: comment.rating }).map((_: any, i: number) => (
@@ -942,25 +1116,25 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                             </div>
                           )}
                         </div>
-                        <p className="text-[11px] mb-2" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                        <p className="text-[11px] mb-2" style={{ color: '#94a3b8' }}>
                           {new Date(comment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                         </p>
-                        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.6)' }}>{comment.comment_text}</p>
+                        <p className="text-sm leading-relaxed" style={{ color: '#475569' }}>{comment.comment_text}</p>
 
                         {/* Model reply */}
                         {comment.reply_text && (
-                          <div className="mt-3 ml-4 pl-3" style={{ borderLeft: '2px solid rgba(236,72,153,0.3)' }}>
+                          <div className="mt-3 ml-4 pl-3" style={{ borderLeft: '2px solid rgba(236,72,153,0.4)' }}>
                             <div className="flex items-center gap-1.5 mb-1">
                               <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#EC4899' }}>
                                 {modelDetails?.showname || profile?.username || 'Model'} replied
                               </span>
                               {comment.replied_at && (
-                                <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                                <span className="text-[10px]" style={{ color: '#94a3b8' }}>
                                   · {new Date(comment.replied_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                 </span>
                               )}
                             </div>
-                            <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>{comment.reply_text}</p>
+                            <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{comment.reply_text}</p>
                           </div>
                         )}
                       </div>
@@ -971,9 +1145,9 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             })()}
 
             {/* ── Leave a review ── */}
-            <div className="rounded-xl overflow-hidden" style={{ background: '#1f2126', boxShadow: '0 2px 16px rgba(0,0,0,0.2)' }}>
-              <div className="px-5 py-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>
                   {myComment ? 'Your review' : 'Leave a review'}
                 </span>
               </div>
@@ -982,13 +1156,13 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                      myComment.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
-                      myComment.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                      'bg-amber-500/20 text-amber-400'
+                      myComment.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                      myComment.status === 'rejected' ? 'bg-red-100 text-red-600' :
+                      'bg-amber-100 text-amber-700'
                     }`}>
                       {myComment.status === 'approved' ? 'Published' : myComment.status === 'rejected' ? 'Removed' : 'Published'}
                     </span>
-                    <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    <p className="text-xs" style={{ color: '#94a3b8' }}>
                       {new Date(myComment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </p>
                   </div>
@@ -999,18 +1173,18 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       ))}
                     </div>
                   )}
-                  <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.65)' }}>{myComment.comment_text}</p>
+                  <p className="text-sm leading-relaxed" style={{ color: '#475569' }}>{myComment.comment_text}</p>
                 </div>
               ) : (
                 <div>
                   {commentSuccess && (
-                    <div className="mb-3 p-3 rounded-md text-sm font-medium" style={{ background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)', color: '#4ade80' }}>
+                    <div className="mb-3 p-3 rounded-md text-sm font-medium" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#059669' }}>
                       Your review has been published!
                     </div>
                   )}
                   {!showCommentForm ? (
                     <>
-                      <p className="text-sm mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>Share your experience with this model.</p>
+                      <p className="text-sm mb-3" style={{ color: '#94a3b8' }}>Share your experience with this model.</p>
                       <button
                         onClick={() => {
                           const supabase = createClient()
@@ -1020,7 +1194,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           })
                         }}
                         className="w-full py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2"
-                        style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.12)' }}
+                        style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
                       >
                         <MessageCircle className="w-4 h-4" /> Write a review
                       </button>
@@ -1030,7 +1204,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       <div className="flex gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <button key={star} onClick={() => setCommentRating(star)}
-                            className={`text-2xl transition-colors ${star <= commentRating ? 'text-amber-400' : 'text-gray-600 hover:text-amber-300'}`}>
+                            className={`text-2xl transition-colors ${star <= commentRating ? 'text-amber-400' : 'text-slate-300 hover:text-amber-300'}`}>
                             ★
                           </button>
                         ))}
@@ -1042,9 +1216,9 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         rows={4}
                         maxLength={1000}
                         className="w-full px-3 py-2.5 text-sm rounded-md focus:outline-none resize-none"
-                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.8)' }}
+                        style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#0f172a' }}
                       />
-                      <p className="text-xs text-right" style={{ color: 'rgba(255,255,255,0.3)' }}>{commentText.length} / 1000</p>
+                      <p className="text-xs text-right" style={{ color: '#94a3b8' }}>{commentText.length} / 1000</p>
                       <div className="flex gap-2">
                         <button
                           onClick={submitComment}
@@ -1057,12 +1231,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         <button
                           onClick={() => { setShowCommentForm(false); setCommentText(''); setCommentRating(0) }}
                           className="px-4 py-2.5 text-sm font-semibold rounded-md transition-colors"
-                          style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.5)' }}
+                          style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b' }}
                         >
                           Cancel
                         </button>
                       </div>
-                      <p className="text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>Your review will be published immediately.</p>
+                      <p className="text-xs" style={{ color: '#94a3b8' }}>Your review will be published immediately.</p>
                     </div>
                   )}
                 </div>
@@ -1074,6 +1248,97 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
           {/* Right Column - sticky media viewer (photos + videos) */}
           <div>
+
+            {/* ── Quick Action Panel – only for logged-in models & clubs ── */}
+            {isLoggedIn && currentUserId !== profile.id &&
+              (currentUserRole === 'model' || currentUserRole === 'company') &&
+              collabStatus !== 'loading' && clubInviteStatus !== 'loading' && (
+              <div
+                className="mb-3 rounded-xl p-4"
+                style={{
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                }}
+              >
+                <p className="text-[10px] uppercase tracking-widest font-bold mb-3 flex items-center gap-1.5" style={{ color: '#94a3b8' }}>
+                  {currentUserRole === 'model'
+                    ? <><Handshake className="w-3 h-3" /> Quick Collaboration</>
+                    : <><Users className="w-3 h-3" /> Club Invite</>
+                  }
+                </p>
+
+                {/* Model → Collaborate */}
+                {currentUserRole === 'model' && (
+                  <>
+                    {collabStatus === 'accepted' ? (
+                      <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold" style={{ background: 'rgba(16,185,129,0.15)', color: '#4ade80', border: '1px solid rgba(16,185,129,0.25)' }}>
+                        <Handshake className="w-4 h-4" /> Already collaborating
+                      </div>
+                    ) : collabStatus === 'pending_sent' ? (
+                      <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.2)' }}>
+                        <Clock className="w-4 h-4" /> Request sent – awaiting response
+                      </div>
+                    ) : collabStatus === 'pending_received' ? (
+                      <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.2)' }}>
+                        <Handshake className="w-4 h-4" /> They sent you a request
+                      </div>
+                    ) : (
+                      <button
+                        onClick={sendCollabRequest}
+                        disabled={sendingInvite}
+                        className="w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                        style={{
+                          background: 'linear-gradient(90deg, #9D174D, #EC4899)',
+                          color: 'white',
+                          boxShadow: '0 4px 16px rgba(236,72,153,0.35)',
+                        }}
+                      >
+                        <Handshake className="w-4 h-4" />
+                        {sendingInvite ? 'Sending…' : 'Invite to Collaborate'}
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {/* Club → Invite to club */}
+                {currentUserRole === 'company' && (
+                  <>
+                    {clubInviteStatus === 'accepted' ? (
+                      <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold" style={{ background: 'rgba(16,185,129,0.15)', color: '#4ade80', border: '1px solid rgba(16,185,129,0.25)' }}>
+                        <CheckCircle className="w-4 h-4" /> Already in your club
+                      </div>
+                    ) : clubInviteStatus === 'pending' ? (
+                      <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.2)' }}>
+                        <Clock className="w-4 h-4" /> Invite sent – awaiting response
+                      </div>
+                    ) : (
+                      <button
+                        onClick={sendClubInvite}
+                        disabled={sendingInvite}
+                        className="w-full py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+                        style={{
+                          background: 'linear-gradient(90deg, #9D174D, #EC4899)',
+                          color: 'white',
+                          boxShadow: '0 4px 16px rgba(236,72,153,0.35)',
+                        }}
+                      >
+                        <Users className="w-4 h-4" />
+                        {sendingInvite ? 'Sending…' : 'Invite to My Club'}
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {inviteSuccess && (
+                  <p className="mt-2.5 text-xs font-semibold text-center" style={{ color: '#4ade80' }}>{inviteSuccess}</p>
+                )}
+                {inviteError && (
+                  <p className="mt-2.5 text-xs font-semibold text-center" style={{ color: '#f87171' }}>{inviteError}</p>
+                )}
+              </div>
+            )}
+
             <div
               className="sticky top-[125px] relative overflow-hidden rounded-lg bg-black"
               style={{ height: '75vh' }}

@@ -152,17 +152,17 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
+    <div className="min-h-screen" style={{ background: '#fce9f3' }}>
       <div className="max-w-7xl mx-auto px-4 py-10">
 
         {/* Header */}
         <div className="flex items-center gap-3 mb-2">
-          <Link href="/" className="text-white/60 hover:text-white transition-colors">
+          <Link href="/" className="text-gray-400 hover:text-gray-700 transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl font-semibold text-white tracking-tight">Latest Actions</h1>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Latest Actions</h1>
         </div>
-        <p className="text-sm text-white/60 mb-8 ml-8">Everything happening on nicemodels.ch</p>
+        <p className="text-sm text-slate-500 mb-8 ml-8">Everything happening on nicemodels.ch</p>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
@@ -173,19 +173,19 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                 key={stat.label}
                 className="rounded-xl p-4 text-center transition-all hover:scale-[1.02]"
                 style={{
-                  background: '#272a31',
-                  border: '1px solid rgba(59,130,246,0.25)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                  background: '#ffffff',
+                  border: '1px solid rgba(59,130,246,0.20)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
                 }}
               >
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2"
-                  style={{ background: 'rgba(59,130,246,0.12)' }}
+                  style={{ background: 'rgba(236,72,153,0.10)' }}
                 >
-                  <Icon className="w-5 h-5" style={{ color: '#93C5FD' }} />
+                  <Icon className="w-5 h-5" style={{ color: '#EC4899' }} />
                 </div>
-                <p className="text-2xl font-bold text-white">{stat.value.toLocaleString()}</p>
-                <p className="text-xs font-medium mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{stat.label}</p>
+                <p className="text-2xl font-bold text-slate-900">{stat.value.toLocaleString()}</p>
+                <p className="text-xs font-medium mt-0.5" style={{ color: '#94a3b8' }}>{stat.label}</p>
               </div>
             )
           })}
@@ -193,7 +193,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
 
         {/* Filters */}
         <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 -mx-1 px-1">
-          <Filter className="w-4 h-4 shrink-0" style={{ color: 'rgba(255,255,255,0.3)' }} />
+          <Filter className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
           {FILTER_OPTIONS.map(opt => {
             const isActive = filter === opt.value
             return (
@@ -202,9 +202,9 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                 onClick={() => { setFilter(opt.value); setVisibleCount(30) }}
                 className="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all"
                 style={{
-                  background: isActive ? 'rgba(236,72,153,0.9)' : 'rgba(255,255,255,0.08)',
-                  color: isActive ? '#fff' : 'rgba(255,255,255,0.6)',
-                  border: isActive ? '1px solid rgba(236,72,153,0.6)' : '1px solid rgba(255,255,255,0.1)',
+                  background: isActive ? '#EC4899' : '#ffffff',
+                  color: isActive ? '#fff' : '#475569',
+                  border: isActive ? '1px solid rgba(236,72,153,0.6)' : '1px solid rgba(0,0,0,0.12)',
                 }}
               >
                 {opt.label}
@@ -220,10 +220,10 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
 
         {/* Actions Feed */}
         {visible.length === 0 ? (
-          <div className="text-center py-20 rounded-xl" style={{ background: '#272a31', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <Sparkles className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.15)' }} />
-            <p className="text-lg font-semibold" style={{ color: 'rgba(255,255,255,0.3)' }}>No actions yet</p>
-            <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Activity will appear here as things happen on the site</p>
+          <div className="text-center py-20 rounded-xl" style={{ background: 'rgba(255,255,255,0.40)', border: '1px solid rgba(12,53,71,0.15)' }}>
+            <Sparkles className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(12,53,71,0.20)' }} />
+            <p className="text-lg font-semibold" style={{ color: '#475569' }}>No actions yet</p>
+            <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>Activity will appear here as things happen on the site</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -236,17 +236,17 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                 <div
                   className="rounded-xl p-4 flex items-center gap-4 transition-all group"
                   style={{
-                    background: '#272a31',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+                    background: '#ffffff',
+                    border: '1px solid rgba(59,130,246,0.15)',
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.07)',
                   }}
                   onMouseEnter={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = '#2e323b'
+                    (e.currentTarget as HTMLDivElement).style.background = '#f8fbff'
                     ;(e.currentTarget as HTMLDivElement).style.borderColor = config.border
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLDivElement).style.background = '#272a31'
-                    ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.08)'
+                    (e.currentTarget as HTMLDivElement).style.background = '#ffffff'
+                    ;(e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(59,130,246,0.15)'
                   }}
                 >
                   {/* Actor photo or icon */}
@@ -254,7 +254,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                     {action.actor?.photoUrl ? (
                       <div
                         className="w-11 h-11 rounded-full overflow-hidden"
-                        style={{ border: `2px solid ${config.color}`, boxShadow: `0 0 0 2px #1f2126, 0 0 0 4px ${config.color}` }}
+                        style={{ border: `2px solid ${config.color}`, boxShadow: `0 0 0 2px #ffffff, 0 0 0 4px ${config.color}` }}
                       >
                         <Image
                           src={action.actor.photoUrl}
@@ -284,11 +284,11 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                         {action.action_type.replace(/_/g, ' ')}
                       </span>
                     </div>
-                    <p className="text-sm font-medium truncate" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                    <p className="text-sm font-medium truncate" style={{ color: '#0f172a' }}>
                       {action.description || action.title}
                     </p>
                     {action.actor && (
-                      <p className="text-xs mt-0.5 truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      <p className="text-xs mt-0.5 truncate" style={{ color: '#94a3b8' }}>
                         by {action.actor.showname || action.actor.username}
                       </p>
                     )}
@@ -296,7 +296,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
 
                   {/* Time */}
                   <div className="shrink-0 text-right">
-                    <p className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    <p className="text-xs font-medium" style={{ color: '#94a3b8' }}>
                       {formatTimeAgo(action.created_at)}
                     </p>
                   </div>
@@ -337,7 +337,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
 
         {/* Total count */}
         {visible.length > 0 && (
-          <p className="text-center text-xs mt-4" style={{ color: 'rgba(255,255,255,0.2)' }}>
+          <p className="text-center text-xs mt-4" style={{ color: '#94a3b8' }}>
             Showing {visible.length} of {filtered.length} actions
           </p>
         )}

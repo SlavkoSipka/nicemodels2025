@@ -216,7 +216,7 @@ export default function ChatWidget() {
       .from('profiles')
       .select('id, username, role')
       .in('id', onlineUserIds)
-      .neq('id', currentUserId || ''); // Exclude self
+      .neq('id', currentUserId || '');
 
     if (!profiles) {
       setOnlineUsers([]);
@@ -253,8 +253,27 @@ export default function ChatWidget() {
         clubPhotoMap.set(p.club_id, `${SUPA_URL}/storage/v1/object/public/club-photos/${p.file_path}`);
     }
 
-    const usersWithPhotos = profiles.map(profile => ({
-      ...profile,
+    // Fetch display names via server API
+    let onlineDisplayNames = new Map<string, string>();
+    const onlineIds = profiles.map((p: any) => p.id);
+    if (onlineIds.length > 0) {
+      try {
+        const res = await fetch('/api/chat/display-names', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: onlineIds }),
+        });
+        if (res.ok) {
+          const { names } = await res.json();
+          onlineDisplayNames = new Map(Object.entries(names || {}));
+        }
+      } catch { /* fallback to username */ }
+    }
+
+    const usersWithPhotos = profiles.map((profile: any) => ({
+      id: profile.id,
+      role: profile.role,
+      username: onlineDisplayNames.get(profile.id) || profile.username,
       photo_url: profile.role === 'model'
         ? (modelPhotoMap.get(profile.id) || null)
         : profile.role === 'company'
@@ -294,7 +313,9 @@ export default function ChatWidget() {
       conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id
     );
 
-    // Batch fetch profiles, online status, and model photos
+    const SUPA = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+
+    // Fetch profiles, online status, model photos in parallel
     const [{ data: profiles }, { data: onlineStatuses }, { data: modelPhotos }] = await Promise.all([
       supabase.from('profiles').select('id, username, role').in('id', otherUserIds),
       supabase.from('online_status').select('user_id, is_online').in('user_id', otherUserIds),
@@ -303,14 +324,34 @@ export default function ChatWidget() {
         .order('uploaded_at', { ascending: false }),
     ]);
 
-    const profileMap = new Map((profiles || []).map(p => [p.id, p]));
-    const onlineMap = new Map((onlineStatuses || []).map(s => [s.user_id, s.is_online]));
+    // Fetch display names via server API (bypasses RLS)
+    let displayNameMap = new Map<string, string>();
+    if (otherUserIds.length > 0) {
+      try {
+        const res = await fetch('/api/chat/display-names', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: otherUserIds }),
+        });
+        if (res.ok) {
+          const { names } = await res.json();
+          displayNameMap = new Map(Object.entries(names || {}));
+        }
+      } catch { /* fallback to username */ }
+    }
+
     const photoMap = new Map<string, string>();
     for (const p of modelPhotos || []) {
       if (!photoMap.has(p.model_id) && p.file_path) {
-        photoMap.set(p.model_id, `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${p.file_path}`);
+        photoMap.set(p.model_id, `${SUPA}/storage/v1/object/public/model-photos/${p.file_path}`);
       }
     }
+
+    const profileMap = new Map((profiles || []).map((p: any) => {
+      const displayName = displayNameMap.get(p.id) || p.username;
+      return [p.id, { id: p.id, username: displayName, role: p.role }];
+    }));
+    const onlineMap = new Map((onlineStatuses || []).map(s => [s.user_id, s.is_online]));
 
     const conversationsWithUsers = (data || []).map(conv => {
       const otherUserId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
@@ -319,7 +360,7 @@ export default function ChatWidget() {
         ...conv,
         other_user: profile
           ? { ...profile, photo_url: photoMap.get(otherUserId) || null }
-          : { id: otherUserId, username: 'Unknown', role: 'user', photo_url: null },
+          : { id: otherUserId, username: 'User', role: 'user', photo_url: null },
         is_online: onlineMap.get(otherUserId) || false,
       };
     });

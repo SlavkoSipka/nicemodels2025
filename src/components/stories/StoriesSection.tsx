@@ -76,13 +76,13 @@ export default function StoriesSection() {
 
   if (loading) {
     return (
-      <div className="py-6" style={{ backgroundColor: '#BE185D' }}>
+      <div className="py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
         <div className="max-w-[1280px] mx-auto px-4">
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
             {[1, 2, 3, 4, 5, 6, 7].map((i) => (
               <div key={i} className="flex-shrink-0 text-center">
-                <div className="w-20 h-20 rounded-full animate-pulse" style={{ background: 'rgba(255,255,255,0.07)' }} />
-                <div className="w-12 h-2.5 rounded mt-2 mx-auto animate-pulse" style={{ background: 'rgba(255,255,255,0.07)' }} />
+                <div className="w-[72px] h-[72px] rounded-full animate-pulse" style={{ background: '#f1f5f9' }} />
+                <div className="w-12 h-2 rounded mt-2 mx-auto animate-pulse" style={{ background: '#f1f5f9' }} />
               </div>
             ))}
           </div>
@@ -96,36 +96,35 @@ export default function StoriesSection() {
   const totalSlots = 16;
   const ghostCount = Math.max(0, totalSlots - modelStories.length - (hasAddButton ? 1 : 0));
 
-  // Hide the section only if there are truly no stories and user is not a model
   if (modelStories.length === 0 && !hasAddButton) {
     return null;
   }
 
   return (
     <>
-      <div className="py-6" style={{ backgroundColor: '#BE185D' }}>
+      <div className="py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
         <div className="max-w-[1280px] mx-auto px-4">
           <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
 
-            {/* Add Story button for models */}
+            {/* Add Story */}
             {hasAddButton && (
               <Link href="/dashboard/model/upload-story" className="flex-shrink-0 text-center group">
                 <div className="relative">
                   <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center transition-all"
+                    className="w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all"
                     style={{
-                      background: 'rgba(0,0,0,0.2)',
-                      border: '2px dashed rgba(0,0,0,0.35)',
+                      background: '#fef7fa',
+                      border: '1.5px dashed #f9a8d4',
                     }}
                   >
-                    <Plus className="w-7 h-7" style={{ color: 'rgba(0,0,0,0.4)' }} />
+                    <Plus className="w-6 h-6" style={{ color: '#ec4899' }} />
                   </div>
                 </div>
-                <p className="text-xs font-semibold mt-2 truncate w-20" style={{ color: 'rgba(255,255,255,0.45)' }}>Add Story</p>
+                <p className="text-[11px] font-medium mt-2 truncate w-[72px]" style={{ color: '#94a3b8' }}>Add Story</p>
               </Link>
             )}
 
-            {/* Real stories */}
+            {/* Stories */}
             {modelStories.map((modelStory) => {
               const hasUnviewed = modelStory.unviewed_stories > 0;
               const photoUrl = modelStory.model_photo
@@ -139,21 +138,17 @@ export default function StoriesSection() {
                   className="flex-shrink-0 text-center group"
                 >
                   <div className="relative">
-                    {/* ring: unviewed = dark bg color (invisible border = blends), viewed = grey */}
                     <div
-                      className="w-20 h-20 rounded-full p-[3px]"
+                      className="w-[72px] h-[72px] rounded-full p-[2.5px]"
                       style={{
                         background: hasUnviewed
-                          ? '#16181d'          /* same as bg → ring not visible → photo pops cleanly */
-                          : 'rgba(255,255,255,0.18)',  /* grey ring for viewed */
-                        boxShadow: hasUnviewed
-                          ? 'inset 0 0 0 2.5px #EC4899'
-                          : 'none',
+                          ? 'linear-gradient(135deg, #ec4899, #f9a8d4, #89CFF0)'
+                          : '#e2e8f0',
                       }}
                     >
                       <div
                         className="w-full h-full rounded-full overflow-hidden"
-                        style={{ border: '2px solid #16181d', background: '#2a2d34' }}
+                        style={{ border: '2.5px solid #e8f4fd', background: '#f1f5f9' }}
                       >
                         {photoUrl ? (
                           <img
@@ -162,7 +157,10 @@ export default function StoriesSection() {
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ background: 'linear-gradient(135deg, #BE185D, #EC4899)' }}>
+                          <div
+                            className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-lg"
+                            style={{ background: 'linear-gradient(135deg, #ec4899, #f9a8d4)' }}
+                          >
                             {modelStory.model_showname.charAt(0).toUpperCase()}
                           </div>
                         )}
@@ -171,13 +169,16 @@ export default function StoriesSection() {
                     {modelStory.total_stories > 1 && (
                       <div
                         className="absolute bottom-0 right-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
-                        style={{ background: '#EC4899', color: 'white', border: '2px solid #16181d' }}
+                        style={{ background: '#ec4899', color: 'white', border: '2px solid #e8f4fd' }}
                       >
                         {modelStory.total_stories}
                       </div>
                     )}
                   </div>
-                  <p className="text-xs font-semibold mt-2 truncate w-20" style={{ color: hasUnviewed ? 'rgba(255,255,255,0.88)' : 'rgba(255,255,255,0.4)' }}>
+                  <p
+                    className="text-[11px] font-medium mt-2 truncate w-[72px]"
+                    style={{ color: hasUnviewed ? '#475569' : '#94a3b8' }}
+                  >
                     {modelStory.model_showname}
                   </p>
                 </button>
@@ -192,15 +193,15 @@ export default function StoriesSection() {
                 aria-hidden
               >
                 <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center"
+                  className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
                   style={{
-                  background: 'rgba(0,0,0,0.18)',
-                  border: '1.5px dashed rgba(0,0,0,0.3)',
+                    background: '#f8fafc',
+                    border: '1.5px dashed #e2e8f0',
                   }}
                 >
-                  <User className="w-7 h-7" style={{ color: 'rgba(0,0,0,0.3)' }} />
+                  <User className="w-5 h-5" style={{ color: '#cbd5e1' }} />
                 </div>
-                <p className="text-xs font-medium mt-2 w-20 truncate" style={{ color: 'rgba(255,255,255,0.15)' }}>—</p>
+                <p className="text-[11px] font-medium mt-2 w-[72px] truncate" style={{ color: '#e2e8f0' }}>—</p>
               </div>
             ))}
 

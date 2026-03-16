@@ -55,7 +55,7 @@ export default function ManageModelsPage() {
         const modelIds = acceptedInvites.map(inv => inv.invited_model_id)
         const { data: modelProfiles } = await supabase
           .from('profiles')
-          .select('id, username, is_verified, created_at')
+          .select('id, username, public_id, is_verified, created_at')
           .in('id', modelIds)
           .order('created_at', { ascending: false })
 
@@ -220,7 +220,10 @@ export default function ManageModelsPage() {
                             {model.username?.charAt(0).toUpperCase() || 'M'}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">{model.username}</p>
+                            <p className="text-sm font-semibold text-gray-900 truncate">
+                              {model.username}
+                              {model.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{model.public_id}</span>}
+                            </p>
                             <p className="text-xs text-gray-500 truncate">@{model.username}</p>
                           </div>
                           {model.is_verified ? (

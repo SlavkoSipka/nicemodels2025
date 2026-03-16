@@ -62,6 +62,22 @@ export default function ModelInvitesPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+
+      // Before accepting, check that club hasn't hit 10-model limit
+      if (action === 'accept') {
+        const { data: currentMembers } = await supabase
+          .from('club_invites')
+          .select('id')
+          .eq('club_id', clubId)
+          .eq('status', 'accepted')
+
+        if ((currentMembers?.length || 0) >= 10) {
+          setError('This club has already reached its maximum of 10 models and cannot accept you at this time.')
+          setResponding(null)
+          return
+        }
+      }
+
       const { error: e } = await supabase.from('club_invites').update({
         status: action === 'accept' ? 'accepted' : 'rejected', responded_at: new Date().toISOString()
       }).eq('id', inviteId)

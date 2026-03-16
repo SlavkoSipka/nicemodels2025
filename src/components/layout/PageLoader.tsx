@@ -11,17 +11,14 @@ import {
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 
-// ── Context ─────────────────────────────────────────────────────────────────
 interface LoaderCtx { show: () => void }
 const Ctx = createContext<LoaderCtx>({ show: () => {} })
 export function usePageLoader() { return useContext(Ctx) }
 
-// ── Constants ────────────────────────────────────────────────────────────────
-const MIN_MS  = 420   // never dismiss before this
-const MAX_MS  = 1400  // force-dismiss after this
-const FADE_MS = 280   // fade-out duration
+const MIN_MS  = 420
+const MAX_MS  = 1400
+const FADE_MS = 280
 
-// ── Component ────────────────────────────────────────────────────────────────
 export default function PageLoader({ children }: { children: React.ReactNode }) {
   const [visible,  setVisible]  = useState(false)
   const [fadingOut, setFadingOut] = useState(false)
@@ -51,12 +48,9 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
     startTime.current = Date.now()
     setFadingOut(false)
     setVisible(true)
-
-    // Hard cap
     maxTimer.current = setTimeout(dismiss, MAX_MS)
   }, [dismiss])
 
-  // Dismiss when pathname changes (page finished loading)
   useEffect(() => {
     if (pathname === prevPath.current) return
     prevPath.current = pathname
@@ -73,7 +67,6 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
     }
   }, [pathname, visible, dismiss])
 
-  // Intercept ALL internal link clicks globally
   useEffect(() => {
     const handle = (e: MouseEvent) => {
       const anchor = (e.target as Element).closest('a')
@@ -88,9 +81,7 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
         href.startsWith('tel:') ||
         anchor.getAttribute('target') === '_blank'
       ) return
-      // Same page → no loader
       if (href === pathname) return
-      // Dashboard navigation → no loader (neither from nor to dashboard)
       if (pathname.startsWith('/dashboard') || href.startsWith('/dashboard')) return
       show()
     }
@@ -113,7 +104,7 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: '#0f172a',
+            background: '#ffffff',
             animation: fadingOut
               ? `loader-bg-out ${FADE_MS}ms ease-in-out forwards`
               : 'loader-bg-in 200ms ease-out forwards',
@@ -122,18 +113,18 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
         >
           {/* Ambient orbs */}
           <div style={{
-            position: 'absolute', width: 360, height: 360,
+            position: 'absolute', width: 400, height: 400,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(29,78,216,0.07) 0%, transparent 70%)',
-            top: '10%', left: '15%',
+            background: 'radial-gradient(circle, rgba(236,72,153,0.06) 0%, transparent 70%)',
+            top: '15%', left: '20%',
             animation: 'loader-orb-1 4s ease-in-out infinite',
             pointerEvents: 'none',
           }} />
           <div style={{
-            position: 'absolute', width: 300, height: 300,
+            position: 'absolute', width: 350, height: 350,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 70%)',
-            bottom: '15%', right: '12%',
+            background: 'radial-gradient(circle, rgba(137,207,240,0.08) 0%, transparent 70%)',
+            bottom: '15%', right: '15%',
             animation: 'loader-orb-2 5s ease-in-out infinite',
             pointerEvents: 'none',
           }} />
@@ -154,25 +145,25 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
                 width={220}
                 height={55}
                 priority
-                style={{ height: 'auto', width: 220, filter: 'drop-shadow(0 0 28px rgba(59,130,246,0.5))' }}
+                style={{ height: 'auto', width: 220, filter: 'drop-shadow(0 0 20px rgba(236,72,153,0.15))' }}
               />
             </div>
           </div>
 
-          {/* Progress bar track */}
+          {/* Progress bar */}
           <div style={{
             position:     'absolute',
             bottom:       0,
             left:         0,
             right:        0,
-            height:       3,
-            background:   'rgba(255,255,255,0.06)',
+            height:       2,
+            background:   '#f1f5f9',
           }}>
             <div style={{
               height:     '100%',
-              background: 'linear-gradient(90deg, #1D4ED8, #3B82F6, #93C5FD)',
+              background: 'linear-gradient(90deg, #ec4899, #f9a8d4, #89CFF0)',
               animation:  `loader-bar ${MAX_MS}ms cubic-bezier(0.4,0,0.2,1) forwards`,
-              boxShadow:  '0 0 12px rgba(59,130,246,0.8)',
+              boxShadow:  '0 0 10px rgba(236,72,153,0.3)',
             }} />
           </div>
         </div>

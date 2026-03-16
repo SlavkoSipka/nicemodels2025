@@ -249,9 +249,9 @@ export default function BlogPostPage() {
 
         {/* ── Related posts ── */}
         {relatedPosts.length > 0 && (
-          <div className="border-t border-gray-100 bg-gray-50">
+          <div className="border-t border-sky-100 bg-sky-50">
             <div className="max-w-3xl mx-auto px-4 py-12">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-7">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-7">
                 Related articles
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -286,11 +286,11 @@ export default function BlogPostPage() {
 
         {/* ── Newsletter ── */}
         <div className="max-w-7xl mx-auto px-4">
-        <div className="my-10 rounded-xl border border-gray-200 bg-gray-50 px-8 py-10 flex flex-col sm:flex-row items-center gap-8">
+        <div className="my-10 rounded-xl border border-sky-200 bg-white px-8 py-10 flex flex-col sm:flex-row items-center gap-8" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Newsletter</p>
-            <h3 className="text-xl font-bold text-gray-900 mb-1">Stay in the loop</h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Newsletter</p>
+            <h3 className="text-xl font-bold text-slate-900 mb-1">Stay in the loop</h3>
+            <p className="text-sm text-slate-500">
               Get the latest guides and news delivered to your inbox. No spam — unsubscribe anytime.
             </p>
           </div>
@@ -308,11 +308,11 @@ export default function BlogPostPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-56 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+                  className="w-56 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-brand transition-colors text-slate-800 placeholder-slate-300"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                  className="px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
                 >
                   Subscribe
                 </button>

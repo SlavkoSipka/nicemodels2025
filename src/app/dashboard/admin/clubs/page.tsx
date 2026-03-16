@@ -33,7 +33,7 @@ export default function AdminClubsPage() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select(`id, email, username, created_at, is_blocked, onboarding_completed, is_verified,
+      .select(`id, email, username, public_id, created_at, is_blocked, onboarding_completed, is_verified,
         club_details!club_details_club_id_fkey (club_name, display_name, city)`)
       .eq('role', 'company')
       .order('created_at', { ascending: false })
@@ -66,20 +66,27 @@ export default function AdminClubsPage() {
 
   const handleBlock = async (userId: string, blocked: boolean) => {
     if (!confirm(`${blocked ? 'Unblock' : 'Block'} this club?`)) return
-    const supabase = createClient()
-    await supabase.from('profiles').update({
-      is_blocked: !blocked,
-      blocked_at: !blocked ? new Date().toISOString() : null,
-    }).eq('id', userId)
+    const res = await fetch('/api/admin/block-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, block: !blocked }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || 'Failed to update block status')
+      return
+    }
     loadClubs()
   }
 
-  const filtered = clubs.filter(c =>
-    c.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.club_details?.club_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.club_details?.display_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filtered = clubs.filter(c => {
+    const q = searchTerm.toLowerCase()
+    if (c.public_id && (`#${c.public_id}` === q || String(c.public_id) === q)) return true
+    return c.email.toLowerCase().includes(q) ||
+      c.username?.toLowerCase().includes(q) ||
+      c.club_details?.club_name?.toLowerCase().includes(q) ||
+      c.club_details?.display_name?.toLowerCase().includes(q)
+  })
 
   if (loading) return null
 
@@ -107,7 +114,7 @@ export default function AdminClubsPage() {
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search by email, username, or club name..."
+            <input type="text" placeholder="Search by ID, email, username, or club name..."
               value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
@@ -139,6 +146,7 @@ export default function AdminClubsPage() {
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-brand transition-colors">
                               {club.club_details?.club_name || club.club_details?.display_name || club.username || 'N/A'}
+                              {club.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{club.public_id}</span>}
                             </p>
                             <p className="text-xs text-gray-400 truncate">@{club.username || 'no-username'}</p>
                           </div>

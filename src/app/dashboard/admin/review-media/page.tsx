@@ -45,12 +45,12 @@ export default function ReviewMediaPage() {
         if (modelPhotos) {
           const ids = [...new Set(modelPhotos.map(p => p.model_id))]
           const [{ data: profiles }, { data: details }] = await Promise.all([
-            supabase.from('profiles').select('id, email').in('id', ids),
+            supabase.from('profiles').select('id, email, public_id').in('id', ids),
             supabase.from('model_details').select('model_id, showname').in('model_id', ids),
           ])
           const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
           const dm = new Map<string, any>(details?.map(d => [d.model_id, d]) || [])
-          allMedia.push(...modelPhotos.map(p => ({ ...p, type: 'photo' as const, owner_email: pm.get(p.model_id)?.email || 'Unknown', owner_type: 'model' as const, owner_name: dm.get(p.model_id)?.showname || 'Unknown', owner_id: p.model_id })))
+          allMedia.push(...modelPhotos.map(p => ({ ...p, type: 'photo' as const, owner_email: pm.get(p.model_id)?.email || 'Unknown', owner_type: 'model' as const, owner_name: dm.get(p.model_id)?.showname || 'Unknown', owner_id: p.model_id, owner_public_id: pm.get(p.model_id)?.public_id || null })))
         }
       }
       if (typeFilter === 'all' || typeFilter === 'videos') {
@@ -58,12 +58,12 @@ export default function ReviewMediaPage() {
         if (modelVideos) {
           const ids = [...new Set(modelVideos.map(v => v.model_id))]
           const [{ data: profiles }, { data: details }] = await Promise.all([
-            supabase.from('profiles').select('id, email').in('id', ids),
+            supabase.from('profiles').select('id, email, public_id').in('id', ids),
             supabase.from('model_details').select('model_id, showname').in('model_id', ids),
           ])
           const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
           const dm = new Map<string, any>(details?.map(d => [d.model_id, d]) || [])
-          allMedia.push(...modelVideos.map(v => ({ ...v, type: 'video' as const, owner_email: pm.get(v.model_id)?.email || 'Unknown', owner_type: 'model' as const, owner_name: dm.get(v.model_id)?.showname || 'Unknown', owner_id: v.model_id })))
+          allMedia.push(...modelVideos.map(v => ({ ...v, type: 'video' as const, owner_email: pm.get(v.model_id)?.email || 'Unknown', owner_type: 'model' as const, owner_name: dm.get(v.model_id)?.showname || 'Unknown', owner_id: v.model_id, owner_public_id: pm.get(v.model_id)?.public_id || null })))
         }
       }
     }
@@ -74,12 +74,12 @@ export default function ReviewMediaPage() {
         if (clubPhotos) {
           const ids = [...new Set(clubPhotos.map(p => p.club_id))]
           const [{ data: profiles }, { data: details }] = await Promise.all([
-            supabase.from('profiles').select('id, email').in('id', ids),
+            supabase.from('profiles').select('id, email, public_id').in('id', ids),
             supabase.from('club_details').select('club_id, club_name').in('club_id', ids),
           ])
           const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
           const dm = new Map<string, any>(details?.map(d => [d.club_id, d]) || [])
-          allMedia.push(...clubPhotos.map(p => ({ ...p, type: 'photo' as const, owner_email: pm.get(p.club_id)?.email || 'Unknown', owner_type: 'club' as const, owner_name: dm.get(p.club_id)?.club_name || 'Unknown', owner_id: p.club_id })))
+          allMedia.push(...clubPhotos.map(p => ({ ...p, type: 'photo' as const, owner_email: pm.get(p.club_id)?.email || 'Unknown', owner_type: 'club' as const, owner_name: dm.get(p.club_id)?.club_name || 'Unknown', owner_id: p.club_id, owner_public_id: pm.get(p.club_id)?.public_id || null })))
         }
       }
       if (typeFilter === 'all' || typeFilter === 'videos') {
@@ -87,12 +87,12 @@ export default function ReviewMediaPage() {
         if (clubVideos) {
           const ids = [...new Set(clubVideos.map(v => v.club_id))]
           const [{ data: profiles }, { data: details }] = await Promise.all([
-            supabase.from('profiles').select('id, email').in('id', ids),
+            supabase.from('profiles').select('id, email, public_id').in('id', ids),
             supabase.from('club_details').select('club_id, club_name').in('club_id', ids),
           ])
           const pm = new Map<string, any>(profiles?.map(p => [p.id, p]) || [])
           const dm = new Map<string, any>(details?.map(d => [d.club_id, d]) || [])
-          allMedia.push(...clubVideos.map(v => ({ ...v, type: 'video' as const, owner_email: pm.get(v.club_id)?.email || 'Unknown', owner_type: 'club' as const, owner_name: dm.get(v.club_id)?.club_name || 'Unknown', owner_id: v.club_id })))
+          allMedia.push(...clubVideos.map(v => ({ ...v, type: 'video' as const, owner_email: pm.get(v.club_id)?.email || 'Unknown', owner_type: 'club' as const, owner_name: dm.get(v.club_id)?.club_name || 'Unknown', owner_id: v.club_id, owner_public_id: pm.get(v.club_id)?.public_id || null })))
         }
       }
     }
@@ -263,7 +263,10 @@ export default function ReviewMediaPage() {
                       {item.owner_type === 'model'
                         ? <User className="w-3 h-3 text-brand shrink-0" />
                         : <Building2 className="w-3 h-3 text-blue-600 shrink-0" />}
-                      <p className="text-xs font-semibold text-gray-900 truncate">{item.owner_name}</p>
+                      <p className="text-xs font-semibold text-gray-900 truncate">
+                        {item.owner_name}
+                        {item.owner_public_id && <span className="ml-1 text-[9px] font-mono text-gray-400">#{item.owner_public_id}</span>}
+                      </p>
                     </div>
                     <p className="text-xs text-gray-400">{new Date(item.uploaded_at).toLocaleDateString()}</p>
                   </div>
@@ -294,7 +297,10 @@ export default function ReviewMediaPage() {
                 {selectedMedia.owner_type === 'model'
                   ? <User className="w-4 h-4 text-brand" />
                   : <Building2 className="w-4 h-4 text-blue-600" />}
-                <p className="text-sm font-bold text-gray-900">{selectedMedia.owner_name}</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {selectedMedia.owner_name}
+                  {selectedMedia.owner_public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{selectedMedia.owner_public_id}</span>}
+                </p>
                 <span className="text-xs text-gray-400">{selectedMedia.owner_email}</span>
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-500">

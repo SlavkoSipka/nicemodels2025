@@ -20,10 +20,8 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
   useEffect(() => {
     const supabase = createClient()
 
-    // Check auth
     supabase.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user))
 
-    // Subscribe to the same presence channel ChatWidget uses
     const channel = supabase.channel('online-users')
 
     function syncOnline(presenceState: Record<string, any[]>) {
@@ -47,7 +45,6 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
     }
   }, [])
 
-  // Only show models that are currently online
   const visibleModels = useMemo(
     () => models.filter(m => onlineIds.has(m.id)),
     [models, onlineIds]
@@ -70,23 +67,23 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
   return (
     <div
       className="rounded-xl overflow-hidden"
-      style={{ background: '#fff', boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}
+      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 6px rgba(0,0,0,0.05)' }}
     >
       {/* Header */}
-      <div className="px-4 py-3" style={{ borderBottom: '1px solid #f0f0f0' }}>
+      <div className="px-4 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <p className="text-sm font-bold text-gray-800">Available for 1:1 Chat</p>
+          <p className="text-sm font-semibold" style={{ color: '#1a1a2e' }}>Available for 1:1 Chat</p>
         </div>
       </div>
 
       {/* Models list */}
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-50">
         {visibleModels.map(model => (
           <button
             key={model.id}
             onClick={() => handleModelClick(model)}
-            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-left group"
+            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50/70 transition-colors text-left group"
           >
             <div className="relative shrink-0">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100">
@@ -99,7 +96,7 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-500 to-rose-500 text-white font-bold text-sm">
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pink-400 to-pink-500 text-white font-bold text-sm">
                     {model.model_name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -108,7 +105,7 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 group-hover:text-pink-600 transition-colors truncate">
+              <p className="text-sm font-semibold text-gray-800 group-hover:text-pink-500 transition-colors truncate">
                 {model.model_name}
               </p>
               {model.city && (
@@ -120,11 +117,11 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-2.5" style={{ borderTop: '1px solid #f0f0f0' }}>
+      <div className="px-4 py-2.5" style={{ borderTop: '1px solid #f1f5f9' }}>
         <button
           onClick={handleViewAllChats}
-          className="w-full py-2 rounded-lg text-center text-xs font-bold transition-colors hover:opacity-90"
-          style={{ background: '#EC4899', color: '#fff' }}
+          className="w-full py-2 rounded-lg text-center text-xs font-bold transition-all text-white hover:brightness-110"
+          style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)' }}
         >
           View All Chats
         </button>

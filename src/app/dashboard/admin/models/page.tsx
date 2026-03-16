@@ -33,7 +33,7 @@ export default function AdminModelsPage() {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select(`id, email, username, created_at, is_blocked, onboarding_completed, is_verified,
+      .select(`id, email, username, public_id, created_at, is_blocked, onboarding_completed, is_verified,
         model_details!model_details_model_id_fkey (showname, city)`)
       .eq('role', 'model')
       .order('created_at', { ascending: false })
@@ -65,20 +65,27 @@ export default function AdminModelsPage() {
   }
 
   const handleBlock = async (userId: string, blocked: boolean) => {
-    if (!confirm(`${blocked ? 'Unblock' : 'Block'} this user?`)) return
-    const supabase = createClient()
-    await supabase.from('profiles').update({
-      is_blocked: !blocked,
-      blocked_at: !blocked ? new Date().toISOString() : null,
-    }).eq('id', userId)
+    if (!confirm(`${blocked ? 'Unblock' : 'Block'} this model?`)) return
+    const res = await fetch('/api/admin/block-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, block: !blocked }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      alert(data.error || 'Failed to update block status')
+      return
+    }
     loadModels()
   }
 
-  const filtered = models.filter(m =>
-    m.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.model_details?.showname?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filtered = models.filter(m => {
+    const q = searchTerm.toLowerCase()
+    if (m.public_id && (`#${m.public_id}` === q || String(m.public_id) === q)) return true
+    return m.email.toLowerCase().includes(q) ||
+      m.username?.toLowerCase().includes(q) ||
+      m.model_details?.showname?.toLowerCase().includes(q)
+  })
 
   if (loading) return null
 
@@ -108,7 +115,7 @@ export default function AdminModelsPage() {
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search by email, username, or showname..."
+            <input type="text" placeholder="Search by ID, email, username, or showname..."
               value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
@@ -146,6 +153,7 @@ export default function AdminModelsPage() {
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate group-hover:text-brand transition-colors">
                               {model.model_details?.showname || model.username || 'N/A'}
+                              {model.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{model.public_id}</span>}
                             </p>
                             <p className="text-xs text-gray-400 truncate">@{model.username || 'no-username'}</p>
                           </div>

@@ -28,25 +28,25 @@ export default function BannerCard({ banner, priority = false }: BannerCardProps
   return (
     <Link href={href} className="block group w-full col-span-1 sm:col-span-2">
       <div
-        className="relative overflow-hidden w-full transition-all duration-200"
+        className="relative overflow-hidden w-full transition-all duration-300"
         style={{
-          borderRadius: '10px',
-          border: '1px solid rgba(59,130,246,0.35)',
-          boxShadow: '0 2px 12px rgba(0,0,0,0.28)',
+          borderRadius: '12px',
+          border: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)',
           aspectRatio: '4/1',
-          background: '#16181d',
+          background: '#f1f5f9',
         }}
         onMouseEnter={e => {
           const el = e.currentTarget as HTMLDivElement
-          el.style.transform = 'translateY(-3px)'
-          el.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.5)'
-          el.style.borderColor = 'rgba(59,130,246,0.6)'
+          el.style.transform = 'translateY(-2px)'
+          el.style.boxShadow = '0 8px 28px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)'
+          el.style.borderColor = 'rgba(236,72,153,0.18)'
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLDivElement
           el.style.transform = 'translateY(0)'
-          el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.28)'
-          el.style.borderColor = 'rgba(59,130,246,0.35)'
+          el.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)'
+          el.style.borderColor = 'rgba(0,0,0,0.06)'
         }}
       >
         <Image
@@ -58,7 +58,7 @@ export default function BannerCard({ banner, priority = false }: BannerCardProps
           quality={85}
           placeholder="blur"
           blurDataURL={BLUR}
-          className="object-cover group-hover:scale-[1.03] transition-transform duration-500"
+          className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
         />
       </div>
     </Link>

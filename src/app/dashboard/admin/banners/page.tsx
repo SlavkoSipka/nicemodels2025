@@ -20,6 +20,7 @@ interface Banner {
   created_at: string
   owner_email?: string
   owner_name?: string
+  owner_public_id?: number | null
 }
 
 type Filter = 'all' | 'pending' | 'active' | 'expired' | 'rejected'
@@ -46,7 +47,7 @@ export default function AdminBannersPage() {
     const ownerIds = [...new Set(bannersData.map(b => b.owner_id))]
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, email, username')
+      .select('id, email, username, public_id')
       .in('id', ownerIds)
 
     const profileMap = new Map<string, any>()
@@ -63,6 +64,7 @@ export default function AdminBannersPage() {
     const enriched: Banner[] = bannersData.map(b => ({
       ...b,
       owner_email: profileMap.get(b.owner_id)?.email || '',
+      owner_public_id: profileMap.get(b.owner_id)?.public_id || null,
       owner_name: b.owner_type === 'club'
         ? clubNameMap.get(b.owner_id) || profileMap.get(b.owner_id)?.username || 'Unknown'
         : profileMap.get(b.owner_id)?.username || 'Unknown',
@@ -175,7 +177,7 @@ export default function AdminBannersPage() {
                       <div>
                         <p className="text-sm font-bold text-gray-900">{banner.title}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          by {banner.owner_name} ({banner.owner_type})
+                          by {banner.owner_name}{banner.owner_public_id ? ` #${banner.owner_public_id}` : ''} ({banner.owner_type})
                         </p>
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusCls[banner.status] || statusCls.pending}`}>

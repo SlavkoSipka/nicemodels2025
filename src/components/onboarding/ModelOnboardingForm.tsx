@@ -676,6 +676,10 @@ export default function ModelOnboardingForm() {
       setError('Showname and Gender are required')
       return false
     }
+    if (!phoneNumber.trim()) {
+      setError('Phone number is required')
+      return false
+    }
     if (formData.age && (parseInt(formData.age) < 18 || parseInt(formData.age) > 100)) {
       setError('Age must be between 18 and 100')
       return false
@@ -735,6 +739,18 @@ export default function ModelOnboardingForm() {
 
       if (detailsError) throw detailsError
 
+      if (phoneNumber.trim()) {
+        const { error: contactError } = await supabase
+          .from('model_contact_details')
+          .upsert({
+            model_id: user.id,
+            country_code: countryCode,
+            phone_number: phoneNumber.trim(),
+          }, { onConflict: 'model_id' })
+
+        if (contactError) throw contactError
+      }
+
       await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
@@ -754,43 +770,29 @@ export default function ModelOnboardingForm() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-gray-700">Step {currentStep} of {totalSteps}</span>
-          <span className="text-sm text-gray-500">{Math.round((currentStep / totalSteps) * 100)}%</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-pink-600 to-rose-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-          />
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit}>
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg mb-6">
+          <div className="bg-red-50 border-l-4 border-red-500 p-2.5 rounded-lg mb-4">
             <p className="text-sm text-red-700 font-medium">{error}</p>
           </div>
         )}
 
         {/* STEP 1: Basic BIO */}
         {currentStep === 1 && (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Basic BIO</h2>
+          <div className="space-y-3">
+            <h2 className="text-xl font-bold text-gray-900">Basic BIO</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Showname */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Showname <span className="text-pink-600">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.showname}
                   onChange={(e) => handleChange('showname', e.target.value)}
-                  placeholder="Name which will appear on your profile"
+                  placeholder="Name on your profile"
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                   required
                 />
@@ -798,7 +800,7 @@ export default function ModelOnboardingForm() {
 
               {/* Gender */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
                   Gender <span className="text-pink-600">*</span>
                 </label>
                 <select
@@ -815,26 +817,73 @@ export default function ModelOnboardingForm() {
               </div>
             </div>
 
-            {/* Slogan */}
+            {/* Phone Number */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
-                Slogan
+              <label className="block text-xs font-bold text-gray-700 mb-1">
+                Phone Number <span className="text-pink-600">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.slogan}
-                onChange={(e) => handleChange('slogan', e.target.value)}
-                placeholder="Put here a slogan or keyword which describes you and/or your service the best"
-                className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
-              />
+              <div className="flex gap-2">
+                <select
+                  value={countryCode}
+                  onChange={(e) => setCountryCode(e.target.value)}
+                  className="w-40 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 flex-shrink-0"
+                >
+                  <option value="+41">🇨🇭 +41</option>
+                  <option value="+49">🇩🇪 +49</option>
+                  <option value="+43">🇦🇹 +43</option>
+                  <option value="+39">🇮🇹 +39</option>
+                  <option value="+33">🇫🇷 +33</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+420">🇨🇿 +420</option>
+                  <option value="+48">🇵🇱 +48</option>
+                  <option value="+7">🇷🇺 +7</option>
+                  <option value="+380">🇺🇦 +380</option>
+                  <option value="+40">🇷🇴 +40</option>
+                  <option value="+381">🇷🇸 +381</option>
+                  <option value="+385">🇭🇷 +385</option>
+                  <option value="+386">🇸🇮 +386</option>
+                  <option value="+36">🇭🇺 +36</option>
+                  <option value="+421">🇸🇰 +421</option>
+                  <option value="+90">🇹🇷 +90</option>
+                  <option value="+34">🇪🇸 +34</option>
+                  <option value="+351">🇵🇹 +351</option>
+                </select>
+                <input
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Enter phone number"
+                  className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+                  required
+                />
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400 font-medium">optional</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* 2×2 grid: Slogan, Ethnicity, Nationality, Age */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Slogan */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Slogan</label>
+                <input
+                  type="text"
+                  value={formData.slogan}
+                  onChange={(e) => handleChange('slogan', e.target.value)}
+                  placeholder="A short slogan or keyword"
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+                />
+              </div>
+
               {/* Ethnicity */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Ethnicity
-                </label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Ethnicity</label>
                 <select
                   value={formData.ethnicity}
                   onChange={(e) => handleChange('ethnicity', e.target.value)}
@@ -854,9 +903,7 @@ export default function ModelOnboardingForm() {
 
               {/* Nationality */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Nationality
-                </label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Nationality</label>
                 <select
                   value={formData.nationality}
                   onChange={(e) => handleChange('nationality', e.target.value)}
@@ -868,14 +915,10 @@ export default function ModelOnboardingForm() {
                   ))}
                 </select>
               </div>
-            </div>
 
-            {/* Age */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Age */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Age
-                </label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Age</label>
                 <input
                   type="number"
                   value={formData.age}
@@ -887,6 +930,82 @@ export default function ModelOnboardingForm() {
                 />
               </div>
             </div>
+
+            {/* Photos Upload */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-gray-700">Photos</label>
+
+              {/* Drop zone */}
+              <label htmlFor="photo-upload-step1" className="block">
+                <div
+                  className="flex items-center justify-center gap-3 w-full py-4 px-4 rounded-xl border-2 border-dashed cursor-pointer transition-all"
+                  style={{ borderColor: '#f9a8d4', background: '#fef7fa' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = '#fce7f3' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = '#fef7fa' }}
+                >
+                  {uploadingPhotos ? (
+                    <>
+                      <svg className="w-5 h-5 animate-spin text-pink-400" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                      </svg>
+                      <span className="text-sm font-semibold text-pink-500">Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#fce7f3' }}>
+                        <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-pink-500">Click to upload photos</p>
+                        <p className="text-xs text-gray-400">JPG, PNG, WEBP — max 10MB each</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </label>
+              <input
+                id="photo-upload-step1"
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotoUpload}
+                disabled={uploadingPhotos}
+                className="hidden"
+              />
+
+              {/* Uploaded photos grid */}
+              {uploadedPhotos.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {uploadedPhotos.map((photo) => (
+                    <div key={photo.id} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${photo.file_path}`}
+                        alt={photo.file_name}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => deletePhoto(photo.id, photo.file_path)}
+                        className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ background: 'rgba(0,0,0,0.45)' }}
+                      >
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {uploadedPhotos.length === 0 && (
+                <p className="text-xs text-gray-400">No photos uploaded yet</p>
+              )}
+            </div>
+
           </div>
         )}
 
@@ -2072,7 +2191,7 @@ export default function ModelOnboardingForm() {
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
           {currentStep > 1 ? (
             <button
               type="button"
@@ -2097,7 +2216,8 @@ export default function ModelOnboardingForm() {
             <button
               type="submit"
               disabled={loading}
-              className="px-8 py-2 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-bold hover:from-green-700 hover:to-teal-700 transition-all shadow-lg disabled:opacity-50"
+              className="px-8 py-2 text-white rounded-lg font-bold transition-all shadow-lg disabled:opacity-50"
+              style={{ background: 'linear-gradient(90deg, #ec4899, #f472b6)', boxShadow: 'rgba(236,72,153,0.25) 0px 2px 10px' }}
             >
               {loading ? 'Saving...' : 'FINISH'}
             </button>

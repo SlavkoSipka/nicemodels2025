@@ -47,36 +47,26 @@ export async function processImage(
 
       // 3. Watermark
       if (addWatermark) {
-        const fontSize = Math.max(14, Math.round(width * 0.022))
-        const padding = Math.round(fontSize * 0.8)
+        const fontSize = Math.max(22, Math.round(width * 0.045))
 
         ctx.save()
 
-        // Merni tekst
         ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`
-        const textW = ctx.measureText(watermark).width
-        const textH = fontSize
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
 
-        // Pozicija — desno dole
-        const x = width  - textW - padding * 1.5
-        const y = height - textH - padding
+        // Pozicija — centar slike
+        const x = width / 2
+        const y = height / 2
 
-        // Polu-providna crna pozadina iza teksta
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.38)'
-        ctx.beginPath()
-        ctx.roundRect(
-          x - padding * 0.6,
-          y - textH * 0.85,
-          textW + padding * 1.2,
-          textH + padding * 0.8,
-          4
-        )
-        ctx.fill()
+        // Jak drop-shadow da tekst bude čitljiv na svakoj pozadini
+        ctx.shadowColor = 'rgba(0,0,0,0.75)'
+        ctx.shadowBlur  = 8
+        ctx.shadowOffsetX = 1
+        ctx.shadowOffsetY = 1
 
-        // Tekst — beli sa blagim drop-shadow
-        ctx.shadowColor = 'rgba(0,0,0,0.6)'
-        ctx.shadowBlur = 3
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.90)'
+        // Tekst — beli, 55% providnost (jasno vidljiv, ne uništava sliku)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)'
         ctx.fillText(watermark, x, y)
 
         ctx.restore()

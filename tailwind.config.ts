@@ -14,11 +14,17 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        surface: {
+          DEFAULT: "#ffffff",
+          hover: "#fafbff",
+          elevated: "#ffffff",
+        },
         brand: {
           DEFAULT: "#EC4899",
           hover: "#DB2777",
-          light: "#FDF2F8",
-          dark: "#9D174D",
+          light: "#FCE7F3",
+          dark: "#BE185D",
+          deep: "#9D174D",
         },
         sky: {
           50:  "#F0F9FF",
@@ -31,8 +37,8 @@ const config: Config = {
           700: "#0369A1",
         },
         navy: {
-          DEFAULT: "#0F172A",
-          light: "#1E293B",
+          DEFAULT: "#89CFF0",
+          light: "#B8E8F7",
         },
       },
     },
@@ -40,4 +46,3 @@ const config: Config = {
   plugins: [],
 };
 export default config;
-

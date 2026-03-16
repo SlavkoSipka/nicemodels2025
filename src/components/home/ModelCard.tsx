@@ -11,6 +11,7 @@ interface ModelCardProps {
     username: string
     created_at?: string
     photoUrl?: string | null
+    public_id?: number | null
     model_details: {
       showname: string
       city: string
@@ -44,7 +45,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   const tags        = details?.services_for?.length ? details.services_for : []
   const description = (() => {
     const raw = (details?.about_me || '').replace(/<[^>]*>/g, '')
-    return raw.length > 220 ? raw.slice(0, 220).trimEnd() + '…' : raw
+    return raw.length > 200 ? raw.slice(0, 200).trimEnd() + '…' : raw
   })()
   const ago = timeAgo(model.created_at)
 
@@ -55,38 +56,31 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
       className="block group w-full"
     >
       <div
-        className="overflow-hidden flex flex-row w-full transition-all duration-200"
+        className="overflow-hidden flex flex-row w-full transition-all duration-300"
         style={{
-          background:   '#1f2126',
-          borderRadius: '10px',
-          border:       '1px solid rgba(59,130,246,0.35)',
-          boxShadow:    '0 2px 12px rgba(0,0,0,0.28)',
+          background: '#ffffff',
+          borderRadius: '12px',
+          border: '1px solid rgba(0,0,0,0.06)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)',
         }}
         onMouseEnter={e => {
           const el = e.currentTarget as HTMLDivElement
-          el.style.transform  = 'translateY(-3px)'
-          el.style.boxShadow  = '0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.5)'
-          el.style.borderColor = 'rgba(59,130,246,0.6)'
+          el.style.transform  = 'translateY(-2px)'
+          el.style.boxShadow  = '0 8px 28px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)'
+          el.style.borderColor = 'rgba(236,72,153,0.18)'
         }}
         onMouseLeave={e => {
           const el = e.currentTarget as HTMLDivElement
           el.style.transform  = 'translateY(0)'
-          el.style.boxShadow  = '0 2px 12px rgba(0,0,0,0.28)'
-          el.style.borderColor = 'rgba(59,130,246,0.35)'
+          el.style.boxShadow  = '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)'
+          el.style.borderColor = 'rgba(0,0,0,0.06)'
         }}
       >
-        {/* ── Photo ─────────────────────────────────────── */}
+        {/* Photo */}
         <div
           className="relative flex-shrink-0 overflow-hidden"
-          style={{ width: '38%', minWidth: 130, aspectRatio: '3/4', background: '#16181d' }}
+          style={{ width: '36%', minWidth: 120, aspectRatio: '3/4', background: '#f1f5f9' }}
         >
-          {/* pink accent line on photo left edge */}
-          <div style={{
-            position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
-            background: 'linear-gradient(to bottom, #1D4ED8, #3B82F6, #93C5FD)',
-            zIndex: 2,
-          }} />
-
           {model.photoUrl ? (
             <Image
               src={model.photoUrl}
@@ -97,66 +91,79 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
               quality={80}
               placeholder="blur"
               blurDataURL={BLUR}
-              className="object-cover object-top group-hover:scale-[1.04] transition-transform duration-500"
+              className="object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Sparkles className="w-10 h-10" style={{ color: 'rgba(255,255,255,0.15)' }} />
+              <Sparkles className="w-8 h-8" style={{ color: '#cbd5e1' }} />
             </div>
           )}
 
-          {/* time badge */}
+          {/* ID badge */}
+          {model.public_id && (
+            <span
+              className="absolute top-2 left-2 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+              style={{ background: 'rgba(0,0,0,0.45)', color: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', fontFamily: 'monospace' }}
+            >
+              #{model.public_id}
+            </span>
+          )}
+
+          {/* Time badge */}
           {ago && (
             <span
-              className="absolute bottom-2 left-3 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(0,0,0,0.45)', color: 'rgba(255,255,255,0.85)', zIndex: 3 }}
+              className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(0,0,0,0.50)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}
             >
               {ago}
             </span>
           )}
         </div>
 
-        {/* ── Content ───────────────────────────────────── */}
+        {/* Content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* blue top strip */}
-          <div style={{ height: 3, background: 'linear-gradient(90deg, #1D4ED8, #3B82F6, #93C5FD)', flexShrink: 0 }} />
+          {/* Thin blue accent line at top */}
+          <div style={{ height: 2, background: 'linear-gradient(90deg, #89CFF0, #bae6fd)', flexShrink: 0 }} />
 
-          <div className="px-4 py-3 flex flex-col gap-2 flex-1">
-            {/* PREMIUM tag */}
-            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#3B82F6' }}>
+          <div className="px-4 py-3.5 flex flex-col gap-1.5 flex-1">
+            {/* Premium tag */}
+            <span
+              className="text-[9px] font-bold uppercase tracking-[0.12em] self-start px-2 py-0.5 rounded-full"
+              style={{ background: '#fce7f3', color: '#be185d' }}
+            >
               Premium
             </span>
 
             {/* Name */}
             <h3
-              className="font-bold text-base sm:text-lg leading-snug transition-colors"
-              style={{ color: 'rgba(255,255,255,0.92)' }}
+              className="font-bold text-[15px] sm:text-base leading-snug transition-colors group-hover:text-pink-500"
+              style={{ color: '#1a1a2e' }}
             >
               {title}
             </h3>
 
-            {/* City · Age */}
+            {/* City + Age */}
             {(city || age) && (
-              <p className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.38)' }}>
+              <p className="text-[11px] font-medium" style={{ color: '#94a3b8' }}>
                 {[city, age].filter(Boolean).join(' · ')}
               </p>
             )}
 
             {/* Description */}
             {description ? (
-              <p className="text-sm leading-relaxed flex-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <p className="text-[13px] leading-relaxed flex-1" style={{ color: '#64748b' }}>
                 {description}
               </p>
             ) : <div className="flex-1" />}
 
-            {/* Service tags */}
+            {/* Tags */}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
                 {tags.slice(0, 3).map(tag => (
                   <span
                     key={tag}
-                    className="text-[10px] font-semibold px-2 py-0.5 rounded-md"
-                    style={{ background: 'rgba(236,72,153,0.12)', color: '#F472B6', border: '1px solid rgba(236,72,153,0.2)' }}
+                    className="text-[10px] font-medium px-2 py-0.5 rounded"
+                    style={{ background: '#e8f4fd', color: '#0284c7' }}
                   >
                     {tag}
                   </span>

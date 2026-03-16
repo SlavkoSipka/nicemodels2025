@@ -108,18 +108,18 @@ export default function BlogPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom, #BE185D 0px, #BE185D 370px, #1f2126 370px)' }}>
+      <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
         {/* ── Header ── */}
-        <div style={{ borderBottom: '1px solid rgba(255,255,255,0.15)' }}>
+        <div style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div className="max-w-7xl mx-auto px-4 py-12">
-            <p className="text-xs font-semibold uppercase tracking-widest text-white/60 mb-3">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
               Blog
             </p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight max-w-2xl">
+            <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight max-w-2xl">
               Stories, guides &amp; insights
             </h1>
-            <p className="mt-3 text-white/70 text-lg max-w-xl">
+            <p className="mt-3 text-slate-500 text-lg max-w-xl">
               Tips and industry knowledge for models, agencies and curious readers.
             </p>
           </div>
@@ -128,15 +128,15 @@ export default function BlogPage() {
         <div className="max-w-7xl mx-auto px-4">
 
           {/* ── Category tabs ── */}
-          <div className="flex items-center gap-1 py-5 border-b border-white/15 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 py-5 border-b border-gray-200 overflow-x-auto scrollbar-hide">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
                 className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   selectedCategory === cat
-                    ? 'bg-white text-gray-900'
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
+                    ? 'bg-[#ec4899] text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
                 }`}
               >
                 {cat}
@@ -146,8 +146,8 @@ export default function BlogPage() {
 
           {/* ── Featured post ── */}
           {featuredPost && selectedCategory === 'All' && (
-            <div className="py-10 border-b border-white/15">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/50 mb-5">
+            <div className="py-10 border-b border-slate-200">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">
                 Featured
               </p>
               <Link
@@ -206,7 +206,7 @@ export default function BlogPage() {
           <div className="py-10">
             {regularPosts.length > 0 ? (
               <>
-                <p className="text-xs font-semibold uppercase tracking-widest text-white/50 mb-7">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-7">
                   {selectedCategory === 'All' ? 'Latest articles' : selectedCategory}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -214,10 +214,10 @@ export default function BlogPage() {
                     <Link
                       key={post.id}
                       href={`/blog/${post.slug}`}
-                      className="group flex flex-col"
+                      className="group flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border border-sky-100 hover:shadow-md hover:border-pink-200 transition-all"
                     >
                       {/* Image */}
-                      <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-gray-100 mb-4">
+                      <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
                         <Image
                           src={post.image}
                           alt={post.title}
@@ -227,54 +227,56 @@ export default function BlogPage() {
                         />
                       </div>
 
-                      {/* Meta */}
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xs font-semibold text-brand uppercase tracking-wide">
-                          {post.category}
-                        </span>
-                        <span className="text-gray-300">·</span>
-                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {post.readTime}
-                        </span>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-base font-semibold text-white group-hover:text-white/80 transition-colors leading-snug mb-2">
-                        {post.title}
-                      </h3>
-
-                      {/* Excerpt */}
-                      <p className="text-sm text-white/60 line-clamp-2 flex-1 mb-4">
-                        {post.excerpt}
-                      </p>
-
-                      {/* Author + date */}
-                      <div className="flex items-center gap-2 text-xs text-white/50 mt-auto">
-                        <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                          <User className="w-3 h-3 text-white/50" />
+                      <div className="p-5 flex flex-col flex-1">
+                        {/* Meta */}
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-xs font-semibold text-brand uppercase tracking-wide">
+                            {post.category}
+                          </span>
+                          <span className="text-slate-300">·</span>
+                          <span className="text-xs text-slate-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {post.readTime}
+                          </span>
                         </div>
-                        <span>{post.author}</span>
-                        <span className="text-white/30">·</span>
-                        <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+
+                        {/* Title */}
+                        <h3 className="text-base font-semibold text-slate-900 group-hover:text-brand transition-colors leading-snug mb-2">
+                          {post.title}
+                        </h3>
+
+                        {/* Excerpt */}
+                        <p className="text-sm text-slate-500 line-clamp-2 flex-1 mb-4">
+                          {post.excerpt}
+                        </p>
+
+                        {/* Author + date */}
+                        <div className="flex items-center gap-2 text-xs text-slate-400 mt-auto">
+                          <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
+                            <User className="w-3 h-3 text-slate-400" />
+                          </div>
+                          <span>{post.author}</span>
+                          <span className="text-slate-300">·</span>
+                          <span>{new Date(post.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
                       </div>
                     </Link>
                   ))}
                 </div>
               </>
             ) : (
-              <div className="py-16 text-center">
-                <p className="text-gray-500">No articles in this category yet.</p>
+              <div className="py-16 text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}>
+                <p className="text-slate-500">No articles in this category yet.</p>
               </div>
             )}
           </div>
 
           {/* ── Newsletter ── */}
-          <div className="my-10 rounded-xl border border-gray-200 bg-gray-50 px-8 py-10 flex flex-col sm:flex-row items-center gap-8">
+          <div className="my-10 rounded-xl border border-sky-200 bg-white px-8 py-10 flex flex-col sm:flex-row items-center gap-8" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Newsletter</p>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">Stay in the loop</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Newsletter</p>
+              <h3 className="text-xl font-bold text-slate-900 mb-1">Stay in the loop</h3>
+              <p className="text-sm text-slate-500">
                 Get the latest guides and news delivered to your inbox. No spam — unsubscribe anytime.
               </p>
             </div>
@@ -292,11 +294,11 @@ export default function BlogPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-56 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand transition-colors"
+                    className="w-56 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-brand transition-colors text-slate-800 placeholder-slate-300"
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                    className="px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
                   >
                     Subscribe
                   </button>

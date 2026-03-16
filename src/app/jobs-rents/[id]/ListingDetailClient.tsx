@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   MapPin, Calendar, Phone, Mail, Globe,
-  Building2, ArrowLeft, Pencil
+  Building2, ArrowLeft, Pencil, Briefcase
 } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
 
@@ -31,17 +31,6 @@ interface ListingDetail {
   services: { id: string; name: string }[]
 }
 
-const SECTION_LABEL = {
-  color: 'rgba(255,255,255,0.28)',
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: '0.1em',
-  textTransform: 'uppercase' as const,
-  marginBottom: 12,
-}
-
-const DIVIDER = { borderTop: '1px solid rgba(255,255,255,0.07)', marginTop: 0 }
-
 export default function ListingDetailClient({ listing }: { listing: ListingDetail }) {
   const [isOwner, setIsOwner] = useState(false)
 
@@ -62,37 +51,33 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
 
   return (
     <>
-      <div className="min-h-screen" style={{ background: '#1f2126' }}>
+      <div className="min-h-screen" style={{ background: '#fce9f3' }}>
+        <div className="max-w-4xl mx-auto px-4 py-8">
 
-        {/* Pink top banner */}
-        <div style={{ background: '#BE185D', height: 220, position: 'relative' }}>
-          <div className="max-w-5xl mx-auto px-4 pt-8">
-            <Link
-              href="/jobs-rents"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to listings
-            </Link>
-          </div>
-        </div>
-
-        <div className="max-w-5xl mx-auto px-4 pb-16" style={{ marginTop: -140 }}>
+          {/* Back link */}
+          <Link
+            href="/jobs-rents"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 transition-colors hover:text-pink-600"
+            style={{ color: '#64748b' }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to listings
+          </Link>
 
           {/* Main card */}
           <div
             className="overflow-hidden"
             style={{
-              background: '#272a31',
-              borderRadius: 14,
-              border: '1px solid rgba(59,130,246,0.30)',
-              boxShadow: '0 8px 40px rgba(0,0,0,0.45)',
+              background: '#ffffff',
+              borderRadius: 12,
+              border: '1px solid rgba(59,130,246,0.25)',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
             }}
           >
             {/* Blue top accent */}
             <div style={{ height: 3, background: 'linear-gradient(90deg, #1D4ED8, #3B82F6, #93C5FD)' }} />
 
-            <div className="p-6 sm:p-8 space-y-8">
+            <div className="p-6 sm:p-8 space-y-7">
 
               {/* ── Header ─────────────────────────────── */}
               <div className="flex items-start justify-between gap-4">
@@ -101,16 +86,15 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   <span
                     className="inline-block px-3 py-1 text-[10px] font-bold rounded-full mb-4 uppercase tracking-widest"
                     style={{
-                      background: isJob ? 'rgba(124,58,237,0.2)' : 'rgba(245,158,11,0.2)',
-                      color: isJob ? '#a78bfa' : '#fcd34d',
-                      border: `1px solid ${isJob ? 'rgba(124,58,237,0.35)' : 'rgba(245,158,11,0.35)'}`,
+                      background: isJob ? 'rgba(124,58,237,0.10)' : 'rgba(245,158,11,0.10)',
+                      color: isJob ? '#7c3aed' : '#d97706',
+                      border: `1px solid ${isJob ? 'rgba(124,58,237,0.25)' : 'rgba(245,158,11,0.25)'}`,
                     }}
                   >
                     {isJob ? 'Job Opportunity' : 'Rental Offer'}
                   </span>
 
-                  <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-4"
-                    style={{ color: 'rgba(255,255,255,0.92)' }}>
+                  <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-4" style={{ color: '#0f172a' }}>
                     {displayTitle}
                   </h1>
 
@@ -118,17 +102,19 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
                     <Link
                       href={`/clubs/${listing.club_id}`}
-                      className="flex items-center gap-1.5 text-sm font-semibold transition-opacity hover:opacity-70"
-                      style={{ color: 'rgba(255,255,255,0.65)' }}
+                      className="flex items-center gap-1.5 text-sm font-semibold transition-colors hover:text-blue-600"
+                      style={{ color: '#475569' }}
                     >
                       <Building2 className="w-4 h-4 shrink-0" style={{ color: '#3B82F6' }} />
                       {listing.club_name}
                     </Link>
-                    <span className="flex items-center gap-1.5 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span className="flex items-center gap-1.5 text-sm" style={{ color: '#64748b' }}>
                       <MapPin className="w-4 h-4 shrink-0" style={{ color: '#EC4899' }} />
                       {listing.location}
                     </span>
-                    <span className="flex items-center gap-1.5 text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span className="flex items-center gap-1.5 text-sm" style={{ color: '#94a3b8' }}>
                       <Calendar className="w-4 h-4 shrink-0" />
                       {dateStr}
                     </span>
@@ -139,7 +125,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   <Link
                     href={`/dashboard/company/jobs-rent/edit/${listing.id}`}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold shrink-0 transition-opacity hover:opacity-80"
-                    style={{ background: 'rgba(59,130,246,0.15)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.3)' }}
+                    style={{ background: 'rgba(59,130,246,0.08)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.25)' }}
                   >
                     <Pencil className="w-4 h-4" />
                     Edit
@@ -148,28 +134,32 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
               </div>
 
               {/* ── Description ────────────────────────── */}
-              <div style={DIVIDER} className="pt-6">
-                <p style={SECTION_LABEL}>Description</p>
+              <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
+                <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
+                  Description
+                </p>
                 <div
                   className="text-sm sm:text-base leading-relaxed rich-text-content"
-                  style={{ color: 'rgba(255,255,255,0.6)' }}
+                  style={{ color: '#475569' }}
                   dangerouslySetInnerHTML={{ __html: listing.description }}
                 />
               </div>
 
               {/* ── Services ───────────────────────────── */}
               {listing.services.length > 0 && (
-                <div style={DIVIDER} className="pt-6">
-                  <p style={SECTION_LABEL}>Services</p>
+                <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
+                  <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
+                    Services
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {listing.services.map(s => (
                       <span
                         key={s.id}
                         className="text-xs font-semibold px-3 py-1.5 rounded-lg"
                         style={{
-                          background: 'rgba(236,72,153,0.1)',
-                          color: '#F472B6',
-                          border: '1px solid rgba(236,72,153,0.2)',
+                          background: 'rgba(236,72,153,0.08)',
+                          color: '#BE185D',
+                          border: '1px solid rgba(236,72,153,0.20)',
                         }}
                       >
                         {s.name}
@@ -181,30 +171,32 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
 
               {/* ── Contact ────────────────────────────── */}
               {(listing.phone_number || listing.email || listing.website) && (
-                <div style={DIVIDER} className="pt-6">
-                  <p style={SECTION_LABEL}>Contact</p>
+                <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
+                  <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
+                    Contact
+                  </p>
                   <div
                     className="rounded-xl p-5 space-y-4"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+                    style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
                   >
                     {listing.phone_number && (
                       <div className="flex items-center gap-4">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.2)' }}
+                          style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
                         >
-                          <Phone className="w-4 h-4" style={{ color: '#93C5FD' }} />
+                          <Phone className="w-4 h-4" style={{ color: '#3B82F6' }} />
                         </div>
                         <div>
                           <a
                             href={`tel:${listing.country_code}${listing.phone_number}`}
                             className="text-sm font-semibold transition-opacity hover:opacity-70"
-                            style={{ color: 'rgba(255,255,255,0.85)' }}
+                            style={{ color: '#0f172a' }}
                           >
                             {listing.country_code} {listing.phone_number}
                           </a>
                           {(listing.has_whatsapp || listing.has_viber || listing.has_telegram) && (
-                            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                            <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
                               Available on{' '}
                               {[
                                 listing.has_whatsapp && 'WhatsApp',
@@ -221,14 +213,14 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                       <div className="flex items-center gap-4">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.2)' }}
+                          style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
                         >
-                          <Mail className="w-4 h-4" style={{ color: '#93C5FD' }} />
+                          <Mail className="w-4 h-4" style={{ color: '#3B82F6' }} />
                         </div>
                         <a
                           href={`mailto:${listing.email}`}
                           className="text-sm font-semibold transition-opacity hover:opacity-70"
-                          style={{ color: 'rgba(255,255,255,0.75)' }}
+                          style={{ color: '#334155' }}
                         >
                           {listing.email}
                         </a>
@@ -239,16 +231,16 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                       <div className="flex items-center gap-4">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.2)' }}
+                          style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
                         >
-                          <Globe className="w-4 h-4" style={{ color: '#93C5FD' }} />
+                          <Globe className="w-4 h-4" style={{ color: '#3B82F6' }} />
                         </div>
                         <a
                           href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-sm font-semibold transition-opacity hover:opacity-70"
-                          style={{ color: 'rgba(255,255,255,0.75)' }}
+                          style={{ color: '#334155' }}
                         >
                           {listing.website}
                         </a>
@@ -260,8 +252,10 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
 
               {/* ── Photos ─────────────────────────────── */}
               {listing.photos.length > 0 && (
-                <div style={DIVIDER} className="pt-6">
-                  <p style={SECTION_LABEL}>Photos</p>
+                <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
+                  <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
+                    Photos
+                  </p>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                     {listing.photos.map((url, i) => (
                       <a
@@ -270,7 +264,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                         target="_blank"
                         rel="noopener noreferrer"
                         className="relative aspect-square rounded-xl overflow-hidden transition-opacity hover:opacity-80"
-                        style={{ background: '#16181d', border: '1px solid rgba(255,255,255,0.07)' }}
+                        style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}
                       >
                         <Image
                           src={url}
@@ -286,17 +280,17 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
               )}
 
               {/* ── Club link ──────────────────────────── */}
-              <div style={DIVIDER} className="pt-6">
+              <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
                 <Link
                   href={`/clubs/${listing.club_id}`}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
                   style={{
-                    background: 'rgba(59,130,246,0.1)',
-                    color: '#93C5FD',
-                    border: '1px solid rgba(59,130,246,0.25)',
+                    background: 'rgba(59,130,246,0.07)',
+                    color: '#3B82F6',
+                    border: '1px solid rgba(59,130,246,0.22)',
                   }}
                 >
-                  <Building2 className="w-4 h-4" />
+                  <Briefcase className="w-4 h-4" />
                   View {listing.club_name}&apos;s profile
                 </Link>
               </div>

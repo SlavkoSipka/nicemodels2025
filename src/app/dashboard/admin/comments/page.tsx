@@ -26,6 +26,7 @@ export default async function AdminCommentsPage() {
         id,
         username,
         email,
+        public_id,
         model_details!model_details_model_id_fkey (
           showname,
           city

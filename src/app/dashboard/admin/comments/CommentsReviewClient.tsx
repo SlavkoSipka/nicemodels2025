@@ -21,7 +21,7 @@ interface Comment {
     phone: string | null; city: string | null; description: string | null
   }
   model: {
-    id: string; username: string; email: string
+    id: string; username: string; email: string; public_id?: number | null
     model_details: Array<{ showname: string; city: string }>
     model_contact_details: Array<{
       phone_number: string; country_code: string
@@ -119,6 +119,7 @@ export default function CommentsReviewClient({ comments: initialComments }: { co
                         <div className="flex items-center gap-2">
                           <Link href={`/models/${comment.model.id}`} className="text-sm font-bold text-gray-900 hover:text-brand transition-colors">
                             {modelName}
+                            {comment.model.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{comment.model.public_id}</span>}
                           </Link>
                           <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${
                             comment.status === 'pending' ? 'bg-amber-50 text-amber-700' : comment.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
