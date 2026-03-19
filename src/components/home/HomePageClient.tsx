@@ -32,6 +32,8 @@ interface Model {
     nationality?: string | null
     gender?: string | null
     speaks_languages?: string[] | null
+    live_location_city?: string | null
+    live_location_postal_code?: string | null
   } | null
   model_services_list?: ModelService[]
 }
@@ -53,11 +55,12 @@ interface HomePageClientProps {
 }
 
 export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [] }: HomePageClientProps) {
-  const [selectedRegion,   setSelectedRegion]   = useState<string>('all')
-  const [selectedCity,     setSelectedCity]     = useState<string>('all')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [selectedOffer,    setSelectedOffer]    = useState<string>('all')
-  const [searchQuery,      setSearchQuery]      = useState<string>('')
+  const [selectedRegion,       setSelectedRegion]       = useState<string>('all')
+  const [selectedCity,         setSelectedCity]         = useState<string>('all')
+  const [selectedCategory,     setSelectedCategory]     = useState<string>('all')
+  const [selectedOffer,        setSelectedOffer]        = useState<string>('all')
+  const [selectedLiveLocation, setSelectedLiveLocation] = useState<string>('all')
+  const [searchQuery,          setSearchQuery]          = useState<string>('')
 
   const filteredModels = useMemo(() => {
     let result = initialModels
@@ -65,6 +68,8 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       result = result.filter(m => m.canton === selectedRegion)
     if (selectedCity !== 'all')
       result = result.filter(m => m.model_details?.city === selectedCity)
+    if (selectedLiveLocation !== 'all')
+      result = result.filter(m => m.model_details?.live_location_city === selectedLiveLocation)
     if (selectedCategory !== 'all')
       result = result.filter(m => m.model_details?.ethnicity === selectedCategory)
     if (selectedOffer !== 'all')
@@ -88,7 +93,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       })
     }
     return result
-  }, [initialModels, selectedRegion, selectedCity, selectedCategory, selectedOffer, searchQuery])
+  }, [initialModels, selectedRegion, selectedCity, selectedLiveLocation, selectedCategory, selectedOffer, searchQuery])
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
@@ -103,11 +108,12 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
         {/* Main content */}
         <div className="max-w-[1280px] mx-auto">
           <CitySelector
-            selectedRegion={selectedRegion}   setSelectedRegion={setSelectedRegion}
-            selectedCity={selectedCity}       setSelectedCity={setSelectedCity}
-            selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory}
-            selectedOffer={selectedOffer}     setSelectedOffer={setSelectedOffer}
-            searchQuery={searchQuery}         setSearchQuery={setSearchQuery}
+            selectedRegion={selectedRegion}             setSelectedRegion={setSelectedRegion}
+            selectedCity={selectedCity}                 setSelectedCity={setSelectedCity}
+            selectedCategory={selectedCategory}         setSelectedCategory={setSelectedCategory}
+            selectedOffer={selectedOffer}               setSelectedOffer={setSelectedOffer}
+            selectedLiveLocation={selectedLiveLocation} setSelectedLiveLocation={setSelectedLiveLocation}
+            searchQuery={searchQuery}                   setSearchQuery={setSearchQuery}
             totalModels={initialModels.length}
             models={initialModels}
           />

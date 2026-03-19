@@ -7,7 +7,7 @@ import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
   Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
-  MessageCircle, Lock, Send, Loader2, Trash2, MessageSquare
+  MessageCircle, Lock, Send, Loader2, Trash2, MessageSquare, Navigation
 } from 'lucide-react'
 
 export default function ModelDashboardPage() {
@@ -30,6 +30,10 @@ export default function ModelDashboardPage() {
   const [statusPosting, setStatusPosting] = useState(false)
   const [statusDeleting, setStatusDeleting] = useState(false)
   const [unrepliedComments, setUnrepliedComments] = useState(0)
+  const [shareLiveLocation, setShareLiveLocation] = useState(false)
+  const [liveCity, setLiveCity] = useState<string | null>(null)
+  const [livePostalCode, setLivePostalCode] = useState<string | null>(null)
+  const [liveToggling, setLiveToggling] = useState(false)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -155,6 +159,9 @@ export default function ModelDashboardPage() {
 
         setHasActiveAd(adActive)
         setChatAvailable(modelDetailsData?.chat_available ?? false)
+        setShareLiveLocation(modelDetailsData?.share_live_location ?? false)
+        setLiveCity(modelDetailsData?.live_location_city ?? null)
+        setLivePostalCode(modelDetailsData?.live_location_postal_code ?? null)
         setActiveStatus(statusMsgs?.[0] || null)
         setUnrepliedComments(unrepliedCount ?? 0)
         setLoading(false)
@@ -219,6 +226,38 @@ export default function ModelDashboardPage() {
       setActiveStatus(null)
     } catch {}
     finally { setStatusDeleting(false) }
+  }
+
+  async function toggleLiveLocation() {
+    if (!user) return
+    setLiveToggling(true)
+    try {
+      if (!shareLiveLocation) {
+        if (!('geolocation' in navigator)) return
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: false, timeout: 15000, maximumAge: 60000,
+          })
+        )
+        const res = await fetch('/api/update-live-location', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        })
+        const data = await res.json()
+        if (res.ok) {
+          setShareLiveLocation(true)
+          setLiveCity(data.city)
+          setLivePostalCode(data.postal_code)
+        }
+      } else {
+        await fetch('/api/update-live-location', { method: 'DELETE' })
+        setShareLiveLocation(false)
+        setLiveCity(null)
+        setLivePostalCode(null)
+      }
+    } catch {}
+    finally { setLiveToggling(false) }
   }
 
   if (loading) return null
@@ -632,6 +671,52 @@ export default function ModelDashboardPage() {
                 {chatAvailable && (
                   <p className="text-[11px] text-emerald-600 font-medium mt-2.5 pl-11">
                     ● You appear as available for chat on the homepage
+                  </p>
+                )}
+              </div>
+
+              {/* Share Live Location toggle */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${shareLiveLocation ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                    <Navigation className={`w-4 h-4 ${shareLiveLocation ? 'text-emerald-600' : 'text-gray-400'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 leading-tight">Share Live Location</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5 leading-tight">
+                      {shareLiveLocation
+                        ? 'Your live location is visible on your card'
+                        : 'Share your current city on your profile card'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={toggleLiveLocation}
+                    disabled={liveToggling}
+                    className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${shareLiveLocation ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                  >
+                    {liveToggling ? (
+                      <Loader2 className="absolute inset-0 m-auto w-3.5 h-3.5 animate-spin text-white" />
+                    ) : (
+                      <span
+                        className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${shareLiveLocation ? 'translate-x-5' : 'translate-x-0'}`}
+                      />
+                    )}
+                  </button>
+                </div>
+                {shareLiveLocation && liveCity && (
+                  <div className="flex items-center gap-2 mt-3 pl-11">
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                    <span className="text-[11px] font-semibold text-emerald-700">
+                      Live: {liveCity}{livePostalCode ? ` (${livePostalCode})` : ''}
+                    </span>
+                  </div>
+                )}
+                {!shareLiveLocation && (
+                  <p className="text-[10px] text-gray-400 mt-2.5 pl-11">
+                    When enabled, your browser will ask for location permission. Your current Swiss city and postal code will appear on your profile card. This does not change your permanent city.
                   </p>
                 )}
               </div>

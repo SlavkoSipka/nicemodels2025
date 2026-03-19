@@ -22,7 +22,7 @@ export default async function ModelsPage() {
     ] = await Promise.all([
       supabase
         .from('model_details')
-        .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for')
+        .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for, share_live_location, live_location_city, live_location_postal_code, live_location_updated_at')
         .in('model_id', modelIds),
       supabase
         .from('model_services')
@@ -36,8 +36,18 @@ export default async function ModelsPage() {
         .order('uploaded_at', { ascending: false }),
     ])
 
+    const TWO_HOURS = 2 * 60 * 60 * 1000
     const detailsMap = new Map<string, any>()
-    for (const d of allDetails ?? []) detailsMap.set(d.model_id, d)
+    for (const d of allDetails ?? []) {
+      if (d.share_live_location && d.live_location_updated_at) {
+        const age = Date.now() - new Date(d.live_location_updated_at).getTime()
+        if (age > TWO_HOURS) {
+          d.live_location_city = null
+          d.live_location_postal_code = null
+        }
+      }
+      detailsMap.set(d.model_id, d)
+    }
 
     const servicesMap = new Map<string, any[]>()
     for (const s of allServices ?? []) {

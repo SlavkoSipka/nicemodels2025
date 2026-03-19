@@ -305,6 +305,10 @@ export interface Database {
           phone_number: string | null
           services: string[] | null
           price_per_hour: number | null
+          share_live_location: boolean
+          live_location_city: string | null
+          live_location_postal_code: string | null
+          live_location_updated_at: string | null
           created_at: string
           updated_at: string
         }
@@ -319,6 +323,10 @@ export interface Database {
           phone_number?: string | null
           services?: string[] | null
           price_per_hour?: number | null
+          share_live_location?: boolean
+          live_location_city?: string | null
+          live_location_postal_code?: string | null
+          live_location_updated_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -333,6 +341,10 @@ export interface Database {
           phone_number?: string | null
           services?: string[] | null
           price_per_hour?: number | null
+          share_live_location?: boolean
+          live_location_city?: string | null
+          live_location_postal_code?: string | null
+          live_location_updated_at?: string | null
           created_at?: string
           updated_at?: string
         }

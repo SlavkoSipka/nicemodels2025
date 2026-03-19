@@ -20,6 +20,8 @@ interface ModelCardProps {
       hair_color: string
       about_me?: string
       services_for?: string[]
+      live_location_city?: string | null
+      live_location_postal_code?: string | null
     } | null
   }
   priority?: boolean
@@ -43,6 +45,9 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   const city        = details?.city || ''
   const age         = details?.age ? `${details.age} yrs` : ''
   const tags        = details?.services_for?.length ? details.services_for : []
+  const liveLocation = details?.live_location_city
+    ? `${details.live_location_city}${details.live_location_postal_code ? ` (${details.live_location_postal_code})` : ''}`
+    : ''
   const description = (() => {
     const raw = (details?.about_me || '').replace(/<[^>]*>/g, '')
     return raw.length > 200 ? raw.slice(0, 200).trimEnd() + '…' : raw
@@ -146,6 +151,17 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             {(city || age) && (
               <p className="text-[11px] font-medium" style={{ color: '#94a3b8' }}>
                 {[city, age].filter(Boolean).join(' · ')}
+              </p>
+            )}
+
+            {/* Live Location */}
+            {liveLocation && (
+              <p className="text-[10px] font-semibold flex items-center gap-1" style={{ color: '#059669' }}>
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
+                Live: {liveLocation}
               </p>
             )}
 

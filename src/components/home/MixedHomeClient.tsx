@@ -11,7 +11,7 @@ import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
 import AvailableForChat, { type ChatModel } from './AvailableForChat'
 import { type StatusMessage } from './HomePageClient'
-import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2, Navigation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const CANTON_NAMES: Record<string, string> = {
@@ -38,6 +38,8 @@ interface Model {
     hair_color: string
     about_me?: string
     services_for?: string[]
+    live_location_city?: string | null
+    live_location_postal_code?: string | null
   } | null
   model_services_list?: { id: number; name: string }[]
 }
@@ -87,8 +89,10 @@ export default function MixedHomeClient({
   // Filter state
   const [selectedRegion, setSelectedRegion] = useState('all')
   const [selectedCity, setSelectedCity] = useState('all')
+  const [selectedLiveLocation, setSelectedLiveLocation] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [regionOpen, setRegionOpen] = useState(false)
+  const [liveLocationOpen, setLiveLocationOpen] = useState(false)
 
   // City search state
   const [cityQuery, setCityQuery] = useState('')
@@ -97,6 +101,7 @@ export default function MixedHomeClient({
   const [cityLoading, setCityLoading] = useState(false)
   const cityRef = useRef<HTMLDivElement>(null)
   const regionDropdownRef = useRef<HTMLDivElement>(null)
+  const liveLocationRef = useRef<HTMLDivElement>(null)
   const cityDebounce = useRef<ReturnType<typeof setTimeout>>(null)
 
   // City search handlers
@@ -144,6 +149,7 @@ export default function MixedHomeClient({
     function handleClick(e: MouseEvent) {
       if (cityRef.current && !cityRef.current.contains(e.target as Node)) setCityOpen(false)
       if (regionDropdownRef.current && !regionDropdownRef.current.contains(e.target as Node)) setRegionOpen(false)
+      if (liveLocationRef.current && !liveLocationRef.current.contains(e.target as Node)) setLiveLocationOpen(false)
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
@@ -164,11 +170,29 @@ export default function MixedHomeClient({
 
   const cantonName = (code: string) => CANTON_NAMES[code] || code
 
-  // Filter models and clubs based on region, city, and search
+  // Live location counts from models that have active live locations
+  const liveLocationCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    models.forEach(m => {
+      const loc = m.model_details?.live_location_city
+      if (loc) counts[loc] = (counts[loc] || 0) + 1
+    })
+    return counts
+  }, [models])
+
+  const sortedLiveLocations = useMemo(() =>
+    Object.entries(liveLocationCounts).sort((a, b) => b[1] - a[1]),
+    [liveLocationCounts]
+  )
+
+  const hasLiveLocations = sortedLiveLocations.length > 0
+
+  // Filter models and clubs based on region, city, live location, and search
   const filteredModels = useMemo(() => {
     let result = models
     if (selectedRegion !== 'all') result = result.filter(m => m.canton === selectedRegion)
     if (selectedCity !== 'all') result = result.filter(m => m.model_details?.city === selectedCity)
+    if (selectedLiveLocation !== 'all') result = result.filter(m => m.model_details?.live_location_city === selectedLiveLocation)
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
       result = result.filter(m => {
@@ -181,7 +205,7 @@ export default function MixedHomeClient({
       })
     }
     return result
-  }, [models, selectedRegion, selectedCity, searchQuery])
+  }, [models, selectedRegion, selectedCity, selectedLiveLocation, searchQuery])
 
   const filteredClubs = useMemo(() => {
     let result = clubs
@@ -206,7 +230,7 @@ export default function MixedHomeClient({
     })
   }, [listings, searchQuery])
 
-  const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || searchQuery.trim() !== ''
+  const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || selectedLiveLocation !== 'all' || searchQuery.trim() !== ''
 
   // Only shuffle on the client after hydration
   useEffect(() => {
@@ -268,8 +292,8 @@ export default function MixedHomeClient({
 
           {/* Filters */}
           <div className="px-4 pt-4 w-full">
-            {/* Filter bar: Region | City | Search */}
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] gap-3 items-center pb-5">
+            {/* Filter bar: Region | Live Location | City | Search */}
+            <div className={`grid grid-cols-1 ${hasLiveLocations ? 'sm:grid-cols-[1fr_1fr_1fr_1fr]' : 'sm:grid-cols-[1fr_1fr_1fr]'} gap-3 items-center pb-5`}>
 
               {/* Region dropdown */}
               <div className="relative min-w-0" ref={regionDropdownRef}>
@@ -313,6 +337,69 @@ export default function MixedHomeClient({
                   </div>
                 )}
               </div>
+
+              {/* Live Location dropdown */}
+              {hasLiveLocations && (
+                <div className="relative min-w-0" ref={liveLocationRef}>
+                  <button
+                    type="button"
+                    onClick={() => setLiveLocationOpen(v => !v)}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      gap: 8, width: '100%', padding: '10px 16px', borderRadius: 10,
+                      fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
+                      border: selectedLiveLocation !== 'all' ? '1px solid #6ee7b7' : '1px solid #e2e8f0',
+                      backgroundColor: selectedLiveLocation !== 'all' ? '#ecfdf5' : '#ffffff',
+                      color: selectedLiveLocation !== 'all' ? '#047857' : '#64748b',
+                      fontWeight: selectedLiveLocation !== 'all' ? 600 : 500,
+                    }}
+                  >
+                    <span className="truncate flex items-center gap-1.5">
+                      {selectedLiveLocation !== 'all' && (
+                        <span className="relative flex h-2 w-2 shrink-0">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                        </span>
+                      )}
+                      {selectedLiveLocation === 'all' ? 'Live Location' : selectedLiveLocation}
+                    </span>
+                    <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
+                  </button>
+                  {liveLocationOpen && (
+                    <div style={{
+                      position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+                      padding: '4px 0', borderRadius: 10, zIndex: 50,
+                      maxHeight: 280, overflowY: 'auto',
+                      background: '#ffffff', border: '1px solid #e2e8f0',
+                      boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
+                    }}>
+                      <button
+                        type="button"
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#ecfdf5] hover:text-[#047857] transition-colors"
+                        onClick={() => { setSelectedLiveLocation('all'); setLiveLocationOpen(false); setPage(0) }}
+                      >
+                        All live locations
+                      </button>
+                      {sortedLiveLocations.map(([city, count]) => (
+                        <button
+                          key={city}
+                          type="button"
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#ecfdf5] hover:text-[#047857] transition-colors"
+                          onClick={() => { setSelectedLiveLocation(city); setLiveLocationOpen(false); setPage(0) }}
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <span className="relative flex h-1.5 w-1.5 shrink-0">
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                            </span>
+                            {city}
+                          </span>
+                          <span className="ml-1 text-gray-400">({count})</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* City search */}
               <div className="relative min-w-0" ref={cityRef}>

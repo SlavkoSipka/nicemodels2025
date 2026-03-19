@@ -1,4 +1,5 @@
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
+import LiveLocationGate from '@/components/live-location/LiveLocationGate'
 
 export default function ModelDashboardLayout({
   children,
@@ -8,6 +9,7 @@ export default function ModelDashboardLayout({
   return (
     <>
       <DashboardSidebar userRole="model" />
+      <LiveLocationGate />
       {children}
     </>
   )

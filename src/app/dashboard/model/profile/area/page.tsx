@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { MapPin, Save, CheckCircle, AlertCircle } from 'lucide-react'
+import { MapPin, Save, CheckCircle, AlertCircle, Navigation, Loader2 } from 'lucide-react'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 export default function AreaPage() {
@@ -16,6 +16,13 @@ export default function AreaPage() {
   const [city, setCity] = useState('')
   const [incallOptions, setIncallOptions] = useState<string[]>([])
   const [outcallOptions, setOutcallOptions] = useState<string[]>([])
+
+  // Live location state
+  const [shareLiveLocation, setShareLiveLocation] = useState(false)
+  const [liveCity, setLiveCity] = useState<string | null>(null)
+  const [livePostalCode, setLivePostalCode] = useState<string | null>(null)
+  const [liveLoading, setLiveLoading] = useState(false)
+  const [liveError, setLiveError] = useState('')
 
   useEffect(() => {
     const loadData = async () => {
@@ -33,12 +40,71 @@ export default function AreaPage() {
           setCity(md.city || '')
           setIncallOptions(md.incall_options || [])
           setOutcallOptions(md.outcall_options || [])
+          setShareLiveLocation(md.share_live_location || false)
+          setLiveCity(md.live_location_city || null)
+          setLivePostalCode(md.live_location_postal_code || null)
         }
         setLoading(false)
       } catch { setLoading(false) }
     }
     loadData()
   }, [router])
+
+  const handleToggleLiveLocation = useCallback(async (enable: boolean) => {
+    setLiveError('')
+    if (enable) {
+      if (!('geolocation' in navigator)) {
+        setLiveError('Geolocation is not supported by your browser')
+        return
+      }
+      setLiveLoading(true)
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const res = await fetch('/api/update-live-location', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+            })
+            const data = await res.json()
+            if (!res.ok) {
+              setLiveError(data.error || 'Failed to update location')
+              setLiveLoading(false)
+              return
+            }
+            setShareLiveLocation(true)
+            setLiveCity(data.city)
+            setLivePostalCode(data.postal_code)
+          } catch {
+            setLiveError('Failed to send location to server')
+          } finally {
+            setLiveLoading(false)
+          }
+        },
+        (geoErr) => {
+          setLiveLoading(false)
+          if (geoErr.code === geoErr.PERMISSION_DENIED) {
+            setLiveError('Location permission denied. Please allow location access in your browser settings.')
+          } else {
+            setLiveError('Could not get your location. Please try again.')
+          }
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
+      )
+    } else {
+      setLiveLoading(true)
+      try {
+        await fetch('/api/update-live-location', { method: 'DELETE' })
+        setShareLiveLocation(false)
+        setLiveCity(null)
+        setLivePostalCode(null)
+      } catch {
+        setLiveError('Failed to disable live location')
+      } finally {
+        setLiveLoading(false)
+      }
+    }
+  }, [])
 
   const toggle = (arr: string[], setArr: (v: string[]) => void, opt: string) =>
     setArr(arr.includes(opt) ? arr.filter(o => o !== opt) : [...arr, opt])
@@ -99,6 +165,62 @@ export default function AreaPage() {
             <p className="text-sm text-emerald-800">{success}</p>
           </div>
         )}
+
+        {/* Live Location Toggle */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <Navigation className="w-4 h-4 text-emerald-600" />
+            <p className="text-sm font-bold text-gray-800">Share Active Location</p>
+          </div>
+          <p className="text-xs text-gray-500">
+            When enabled, your current location will be shared as a live location on your profile card.
+            This does not change your permanent city setting below.
+          </p>
+
+          {liveError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <p className="text-xs text-red-800">{liveError}</p>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={liveLoading}
+              onClick={() => handleToggleLiveLocation(!shareLiveLocation)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                shareLiveLocation ? 'bg-emerald-500' : 'bg-gray-300'
+              } ${liveLoading ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  shareLiveLocation ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-sm text-gray-700">
+              {liveLoading ? (
+                <span className="flex items-center gap-1.5">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Detecting location...
+                </span>
+              ) : shareLiveLocation ? 'Active' : 'Disabled'}
+            </span>
+          </div>
+
+          {shareLiveLocation && liveCity && (
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              </span>
+              <span className="text-sm font-semibold text-emerald-800">
+                Live: {liveCity}{livePostalCode ? ` (${livePostalCode})` : ''}
+              </span>
+            </div>
+          )}
+        </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
           {/* City */}

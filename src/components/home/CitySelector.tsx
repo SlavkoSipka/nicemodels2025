@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
+import { ChevronDown, Search, MapPin, X, Loader2, Navigation } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const CANTON_NAMES: Record<string, string> = {
@@ -16,6 +16,8 @@ const CANTON_NAMES: Record<string, string> = {
 interface ModelDetail {
   city?: string
   ethnicity?: string
+  live_location_city?: string | null
+  live_location_postal_code?: string | null
 }
 
 interface ModelService {
@@ -45,6 +47,8 @@ interface CitySelectorProps {
   setSelectedCategory: (c: string) => void
   selectedOffer: string
   setSelectedOffer: (o: string) => void
+  selectedLiveLocation: string
+  setSelectedLiveLocation: (l: string) => void
   searchQuery: string
   setSearchQuery: (q: string) => void
   totalModels: number
@@ -84,15 +88,18 @@ export default function CitySelector({
   setSelectedCategory,
   selectedOffer,
   setSelectedOffer,
+  selectedLiveLocation,
+  setSelectedLiveLocation,
   searchQuery,
   setSearchQuery,
   totalModels,
   models,
 }: CitySelectorProps) {
-  const [openDropdown, setOpenDropdown] = useState<'region' | 'category' | 'offer' | null>(null)
+  const [openDropdown, setOpenDropdown] = useState<'region' | 'category' | 'offer' | 'liveLocation' | null>(null)
   const regionRef = useRef<HTMLDivElement>(null)
   const categoryRef = useRef<HTMLDivElement>(null)
   const offerRef = useRef<HTMLDivElement>(null)
+  const liveLocationRef = useRef<HTMLDivElement>(null)
 
   // City search state
   const [cityQuery, setCityQuery] = useState('')
@@ -117,24 +124,43 @@ export default function CitySelector({
       .sort((a, b) => b[1] - a[1])
   }, [regionCounts])
 
+  // Live location counts from models
+  const liveLocationCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    models.forEach(m => {
+      const loc = m.model_details?.live_location_city
+      if (loc) counts[loc] = (counts[loc] || 0) + 1
+    })
+    return counts
+  }, [models])
+
+  const sortedLiveLocations = useMemo(() =>
+    Object.entries(liveLocationCounts).sort((a, b) => b[1] - a[1]),
+    [liveLocationCounts]
+  )
+
+  const hasLiveLocations = sortedLiveLocations.length > 0
+
   // Filter models for dynamic category/offer counts
   const modelsForCategory = useMemo(() => {
     return models.filter(m => {
       if (selectedRegion !== 'all' && m.canton !== selectedRegion) return false
       if (selectedCity !== 'all' && m.model_details?.city !== selectedCity) return false
+      if (selectedLiveLocation !== 'all' && m.model_details?.live_location_city !== selectedLiveLocation) return false
       if (selectedOffer !== 'all' && !m.model_services_list?.some(s => s.name === selectedOffer)) return false
       return true
     })
-  }, [models, selectedRegion, selectedCity, selectedOffer])
+  }, [models, selectedRegion, selectedCity, selectedLiveLocation, selectedOffer])
 
   const modelsForOffer = useMemo(() => {
     return models.filter(m => {
       if (selectedRegion !== 'all' && m.canton !== selectedRegion) return false
       if (selectedCity !== 'all' && m.model_details?.city !== selectedCity) return false
+      if (selectedLiveLocation !== 'all' && m.model_details?.live_location_city !== selectedLiveLocation) return false
       if (selectedCategory !== 'all' && m.model_details?.ethnicity !== selectedCategory) return false
       return true
     })
-  }, [models, selectedRegion, selectedCity, selectedCategory])
+  }, [models, selectedRegion, selectedCity, selectedLiveLocation, selectedCategory])
 
   const categories = useUniqueOptions(modelsForCategory, m => m.model_details?.ethnicity)
   const offers = useUniqueOptions(modelsForOffer, m => m.model_services_list?.map(s => s.name))
@@ -155,7 +181,8 @@ export default function CitySelector({
         regionRef.current?.contains(t) ||
         categoryRef.current?.contains(t) ||
         offerRef.current?.contains(t) ||
-        cityRef.current?.contains(t)
+        cityRef.current?.contains(t) ||
+        liveLocationRef.current?.contains(t)
       ) return
       setOpenDropdown(null)
       setCityOpen(false)
@@ -241,8 +268,8 @@ export default function CitySelector({
     <div>
       <div className="max-w-7xl mx-auto px-4 pt-4 w-full">
 
-        {/* Filter bar: Region | City | Category | Offer | Search */}
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 w-full items-center pb-5">
+        {/* Filter bar: Region | Live Location | City | Category | Offer | Search */}
+        <div className={`grid grid-cols-1 ${hasLiveLocations ? 'sm:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto]' : 'sm:grid-cols-[1fr_1fr_1fr_1fr_auto]'} gap-3 w-full items-center pb-5`}>
 
           {/* Region dropdown */}
           <div className="relative min-w-0" ref={regionRef}>
@@ -260,6 +287,59 @@ export default function CitySelector({
               </div>
             )}
           </div>
+
+          {/* Live Location dropdown */}
+          {hasLiveLocations && (
+            <div className="relative min-w-0" ref={liveLocationRef}>
+              <button
+                type="button"
+                style={selectedLiveLocation !== 'all'
+                  ? { ...btnBase, background: '#ecfdf5', border: '1px solid #6ee7b7', color: '#047857', fontWeight: 600 }
+                  : btnBase
+                }
+                onClick={() => setOpenDropdown(v => v === 'liveLocation' ? null : 'liveLocation')}
+              >
+                <span className="truncate flex items-center gap-1.5">
+                  {selectedLiveLocation !== 'all' && (
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                    </span>
+                  )}
+                  {selectedLiveLocation === 'all' ? 'Live Location' : selectedLiveLocation}
+                </span>
+                <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
+              </button>
+              {openDropdown === 'liveLocation' && (
+                <div style={panelStyle}>
+                  <button
+                    type="button"
+                    style={optStyle}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#ecfdf5'; (e.currentTarget as HTMLButtonElement).style.color = '#047857' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#64748b' }}
+                    onClick={() => { setSelectedLiveLocation('all'); setOpenDropdown(null) }}
+                  >All live locations</button>
+                  {sortedLiveLocations.map(([city, count]) => (
+                    <button
+                      key={city}
+                      type="button"
+                      style={optStyle}
+                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#ecfdf5'; (e.currentTarget as HTMLButtonElement).style.color = '#047857' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#64748b' }}
+                      onClick={() => { setSelectedLiveLocation(city); setOpenDropdown(null) }}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <span className="relative flex h-1.5 w-1.5 shrink-0">
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                        </span>
+                        {city} ({count})
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* City search (postal code based) */}
           <div className="relative min-w-0" ref={cityRef}>
