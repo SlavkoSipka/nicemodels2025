@@ -58,8 +58,8 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { href: '/privacy', label: 'Privacy Policy' },
-                { href: '/terms',   label: 'Terms of Service' },
+                { href: '/privacy', label: 'Privacy / Datenschutz' },
+                { href: '/terms',   label: 'AGB (Terms)' },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -77,7 +77,7 @@ export default function Footer() {
             </h4>
             <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <a
-                href="https://wa.me/41000000000"
+                href="https://wa.me/41783339396"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 text-sm transition-colors group hover:text-white"
@@ -112,8 +112,8 @@ export default function Footer() {
           <span>&copy; {new Date().getFullYear()} nicemodels.ch &ndash; All rights reserved</span>
           <div className="flex items-center gap-5">
             {[
-              { href: '/privacy', label: 'Privacy Policy' },
-              { href: '/terms',   label: 'Terms' },
+              { href: '/privacy', label: 'Privacy' },
+              { href: '/terms',   label: 'AGB' },
               { href: '/contact', label: 'Imprint' },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="hover:text-white/60 transition-colors">

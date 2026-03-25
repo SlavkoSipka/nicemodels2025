@@ -65,11 +65,20 @@ export default function ContactPage() {
                       <Phone className="w-4 h-4" style={{ color: '#EC4899' }} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Phone</p>
-                      <a href="tel:+41443334455" className="font-medium text-slate-800 hover:text-pink-500 transition-colors">
-                        +41 44 333 44 55
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>WhatsApp</p>
+                      <a
+                        href="https://wa.me/41783339396"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-slate-800 hover:text-pink-500 transition-colors"
+                      >
+                        +41 78 333 93 96
                       </a>
-                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Mon–Fri 9am–6pm CET</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Contact via WhatsApp</p>
+                      <div className="text-xs mt-1 space-y-0.5" style={{ color: '#94a3b8' }}>
+                        <p><span className="font-medium text-slate-600">Mon–Fri (CET):</span> 09:00–11:00 / 14:00–16:00 / 19:00–20:00</p>
+                        <p><span className="font-medium text-slate-600">Sat, Sun &amp; holidays:</span> 16:00–18:00</p>
+                      </div>
                     </div>
                   </div>
                   <div style={{ borderTop: '1px solid #e2e8f0' }} />
@@ -92,7 +101,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Location</p>
-                      <p className="font-medium text-slate-800">Zurich, Switzerland</p>
+                      <p className="font-medium text-slate-800">Aargau, Switzerland</p>
                       <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Serving all of Switzerland</p>
                     </div>
                   </div>

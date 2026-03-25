@@ -150,6 +150,18 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
+          <p
+            className="font-semibold tracking-wide text-base"
+            style={{
+              color: '#be185d',
+              marginTop: -24,
+              marginBottom: 32,
+              animation: fadingOut ? 'none' : 'loader-logo-pulse 1.4s ease-in-out infinite 0.5s',
+            }}
+          >
+            models
+          </p>
+
           {/* Progress bar */}
           <div style={{
             position:     'absolute',
