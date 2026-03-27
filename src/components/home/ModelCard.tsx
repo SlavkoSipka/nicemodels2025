@@ -45,14 +45,16 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   const city        = details?.city || ''
   const age         = details?.age ? `${details.age} yrs` : ''
   const tags        = details?.services_for?.length ? details.services_for : []
-  const liveLocation = details?.live_location_city
-    ? `${details.live_location_city}${details.live_location_postal_code ? ` (${details.live_location_postal_code})` : ''}`
-    : ''
   const description = (() => {
     const raw = (details?.about_me || '').replace(/<[^>]*>/g, '')
     return raw.length > 200 ? raw.slice(0, 200).trimEnd() + '…' : raw
   })()
   const ago = timeAgo(model.created_at)
+  const liveCity = details?.live_location_city?.trim()
+  const liveLine =
+    liveCity
+      ? `Live: ${liveCity}${details?.live_location_postal_code ? ` (${details.live_location_postal_code})` : ''}`
+      : null
 
   return (
     <Link
@@ -154,14 +156,14 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
               </p>
             )}
 
-            {/* Live Location */}
-            {liveLocation && (
-              <p className="text-[10px] font-semibold flex items-center gap-1" style={{ color: '#059669' }}>
-                <span className="relative flex h-2 w-2 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                Live: {liveLocation}
+            {/* Live location (matches filter / listing styling) */}
+            {liveLine && (
+              <p
+                className="text-[11px] font-semibold flex items-center gap-1.5 leading-snug"
+                style={{ color: '#047857' }}
+              >
+                <span className="relative inline-flex rounded-full h-2 w-2 shrink-0 bg-emerald-500" aria-hidden />
+                {liveLine}
               </p>
             )}
 

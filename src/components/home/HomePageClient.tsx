@@ -19,6 +19,7 @@ interface Model {
   photoUrl?: string | null
   public_id?: number | null
   canton?: string | null
+  live_location_canton?: string | null
   model_details: {
     model_id?: string
     showname: string
@@ -64,10 +65,18 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
 
   const filteredModels = useMemo(() => {
     let result = initialModels
-    if (selectedRegion !== 'all')
-      result = result.filter(m => m.canton === selectedRegion)
-    if (selectedCity !== 'all')
-      result = result.filter(m => m.model_details?.city === selectedCity)
+    if (selectedRegion !== 'all') {
+      result = result.filter(
+        m => m.canton === selectedRegion || m.live_location_canton === selectedRegion,
+      )
+    }
+    if (selectedCity !== 'all') {
+      result = result.filter(
+        m =>
+          m.model_details?.city === selectedCity ||
+          m.model_details?.live_location_city === selectedCity,
+      )
+    }
     if (selectedLiveLocation !== 'all')
       result = result.filter(m => m.model_details?.live_location_city === selectedLiveLocation)
     if (selectedCategory !== 'all')

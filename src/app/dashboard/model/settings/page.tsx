@@ -99,7 +99,10 @@ export default function SettingsPage() {
             <input type="email" value={email} disabled
               className="px-3 py-2 text-sm border border-gray-100 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed" />
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs text-blue-800">For your protection, to change this field please contact our support team.</p>
+              <p className="text-xs text-blue-800">
+                For your protection, to change this field please contact support at{' '}
+                <a href="mailto:info@nicemodels.ch" className="font-semibold text-brand hover:underline">info@nicemodels.ch</a>.
+              </p>
             </div>
           </div>
         </div>

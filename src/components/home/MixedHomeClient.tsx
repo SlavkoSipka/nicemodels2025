@@ -11,12 +11,13 @@ import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
 import AvailableForChat, { type ChatModel } from './AvailableForChat'
 import { type StatusMessage } from './HomePageClient'
-import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2, Navigation } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 const CANTON_NAMES: Record<string, string> = {
   AG: 'Aargau', AI: 'Appenzell I.', AR: 'Appenzell A.', BE: 'Bern',
   BL: 'Basel-Land', BS: 'Basel-Stadt', FR: 'Fribourg', GE: 'Geneva',
+  FL: 'Liechtenstein',
   GL: 'Glarus', GR: 'Grisons', JU: 'Jura', LU: 'Lucerne',
   NE: 'Neuchâtel', NW: 'Nidwalden', OW: 'Obwalden', SG: 'St. Gallen',
   SH: 'Schaffhausen', SO: 'Solothurn', SZ: 'Schwyz', TG: 'Thurgau',
@@ -30,6 +31,8 @@ interface Model {
   photoUrl?: string | null
   public_id?: number | null
   canton?: string | null
+  /** Canton derived from live_location_city (+ postal) via `cities` table — for region filter */
+  live_location_canton?: string | null
   model_details: {
     showname: string
     city: string
@@ -39,7 +42,6 @@ interface Model {
     about_me?: string
     services_for?: string[]
     live_location_city?: string | null
-    live_location_postal_code?: string | null
   } | null
   model_services_list?: { id: number; name: string }[]
 }
@@ -92,7 +94,6 @@ export default function MixedHomeClient({
   const [selectedLiveLocation, setSelectedLiveLocation] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [regionOpen, setRegionOpen] = useState(false)
-  const [liveLocationOpen, setLiveLocationOpen] = useState(false)
 
   // City search state
   const [cityQuery, setCityQuery] = useState('')
@@ -101,7 +102,6 @@ export default function MixedHomeClient({
   const [cityLoading, setCityLoading] = useState(false)
   const cityRef = useRef<HTMLDivElement>(null)
   const regionDropdownRef = useRef<HTMLDivElement>(null)
-  const liveLocationRef = useRef<HTMLDivElement>(null)
   const cityDebounce = useRef<ReturnType<typeof setTimeout>>(null)
 
   // City search handlers
@@ -123,16 +123,38 @@ export default function MixedHomeClient({
   }, [])
 
   const handleCityInput = (val: string) => {
+    if (selectedLiveLocation !== 'all') {
+      const expected = `Live: ${selectedLiveLocation}`
+      if (val !== expected) setSelectedLiveLocation('all')
+    }
     setCityQuery(val)
     setCityOpen(true)
-    if (val === '') { setSelectedCity('all'); setCityResults([]); return }
+    if (val === '') {
+      setSelectedCity('all')
+      setSelectedLiveLocation('all')
+      setCityResults([])
+      return
+    }
     if (cityDebounce.current) clearTimeout(cityDebounce.current)
     cityDebounce.current = setTimeout(() => searchCities(val), 200)
   }
 
   const handleCitySelect = (city: CityResult) => {
+    setSelectedLiveLocation('all')
     setSelectedCity(city.name)
+    const canton = city.canton?.trim()
+    setSelectedRegion(canton || 'all')
     setCityQuery(city.postal_code ? `${city.name} (${city.postal_code})` : city.name)
+    setCityOpen(false)
+    setPage(0)
+  }
+
+  const selectLiveFromDropdown = (city: string) => {
+    setSelectedLiveLocation(city)
+    setSelectedCity('all')
+    const canton = liveLocationToCanton[city]?.trim()
+    setSelectedRegion(canton || 'all')
+    setCityQuery(`Live: ${city}`)
     setCityOpen(false)
     setPage(0)
   }
@@ -140,26 +162,42 @@ export default function MixedHomeClient({
   const clearCity = () => {
     setCityQuery('')
     setSelectedCity('all')
+    setSelectedLiveLocation('all')
     setCityResults([])
     setCityOpen(false)
   }
+
+  const showCityPanel =
+    cityOpen &&
+    (hasLiveLocations ||
+      cityResults.length > 0 ||
+      cityLoading ||
+      (cityQuery.length >= 1 && !cityLoading))
 
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (cityRef.current && !cityRef.current.contains(e.target as Node)) setCityOpen(false)
       if (regionDropdownRef.current && !regionDropdownRef.current.contains(e.target as Node)) setRegionOpen(false)
-      if (liveLocationRef.current && !liveLocationRef.current.contains(e.target as Node)) setLiveLocationOpen(false)
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
   }, [])
 
-  // Region counts from all models + clubs
+  // Region counts: each model counts once per canton where they appear (profile city and/or live)
   const regionCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    models.forEach(m => { if (m.canton) counts[m.canton] = (counts[m.canton] || 0) + 1 })
-    clubs.forEach(c => { if (c.canton) counts[c.canton] = (counts[c.canton] || 0) + 1 })
+    models.forEach(m => {
+      const codes = new Set<string>()
+      if (m.canton) codes.add(m.canton)
+      if (m.live_location_canton) codes.add(m.live_location_canton)
+      codes.forEach((code) => {
+        counts[code] = (counts[code] || 0) + 1
+      })
+    })
+    clubs.forEach(c => {
+      if (c.canton) counts[c.canton] = (counts[c.canton] || 0) + 1
+    })
     return counts
   }, [models, clubs])
 
@@ -180,18 +218,40 @@ export default function MixedHomeClient({
     return counts
   }, [models])
 
-  const sortedLiveLocations = useMemo(() =>
-    Object.entries(liveLocationCounts).sort((a, b) => b[1] - a[1]),
-    [liveLocationCounts]
+  /** Live cities alphabetically (always listed first in Location dropdown) */
+  const sortedLiveLocations = useMemo(
+    () => Object.entries(liveLocationCounts).sort((a, b) => a[0].localeCompare(b[0])),
+    [liveLocationCounts],
   )
 
   const hasLiveLocations = sortedLiveLocations.length > 0
 
+  /** Canton for each live_location_city string (from first model that has both). */
+  const liveLocationToCanton = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const m of models) {
+      const city = m.model_details?.live_location_city?.trim()
+      const canton = m.live_location_canton?.trim()
+      if (city && canton && map[city] === undefined) map[city] = canton
+    }
+    return map
+  }, [models])
+
   // Filter models and clubs based on region, city, live location, and search
   const filteredModels = useMemo(() => {
     let result = models
-    if (selectedRegion !== 'all') result = result.filter(m => m.canton === selectedRegion)
-    if (selectedCity !== 'all') result = result.filter(m => m.model_details?.city === selectedCity)
+    if (selectedRegion !== 'all') {
+      result = result.filter(
+        m => m.canton === selectedRegion || m.live_location_canton === selectedRegion,
+      )
+    }
+    if (selectedCity !== 'all') {
+      result = result.filter(
+        m =>
+          m.model_details?.city === selectedCity ||
+          m.model_details?.live_location_city === selectedCity,
+      )
+    }
     if (selectedLiveLocation !== 'all') result = result.filter(m => m.model_details?.live_location_city === selectedLiveLocation)
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
@@ -293,12 +353,13 @@ export default function MixedHomeClient({
           {/* Filters */}
           <div className="px-4 pt-4 w-full">
             {/* Filter bar: Region | Live Location | City | Search */}
-            <div className={`grid grid-cols-1 ${hasLiveLocations ? 'sm:grid-cols-[1fr_1fr_1fr_1fr]' : 'sm:grid-cols-[1fr_1fr_1fr]'} gap-3 items-center pb-5`}>
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] gap-3 items-center pb-5">
 
               {/* Region dropdown */}
               <div className="relative min-w-0" ref={regionDropdownRef}>
                 <button
                   type="button"
+                  className="appearance-none"
                   onClick={() => setRegionOpen(v => !v)}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -306,6 +367,7 @@ export default function MixedHomeClient({
                     fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
                     border: selectedRegion !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
                     backgroundColor: selectedRegion !== 'all' ? '#fef7fa' : '#ffffff',
+                    backgroundImage: 'none',
                     color: selectedRegion !== 'all' ? '#be185d' : '#64748b',
                     fontWeight: selectedRegion !== 'all' ? 600 : 500,
                   }}
@@ -338,86 +400,24 @@ export default function MixedHomeClient({
                 )}
               </div>
 
-              {/* Live Location dropdown */}
-              {hasLiveLocations && (
-                <div className="relative min-w-0" ref={liveLocationRef}>
-                  <button
-                    type="button"
-                    onClick={() => setLiveLocationOpen(v => !v)}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      gap: 8, width: '100%', padding: '10px 16px', borderRadius: 10,
-                      fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
-                      border: selectedLiveLocation !== 'all' ? '1px solid #6ee7b7' : '1px solid #e2e8f0',
-                      backgroundColor: selectedLiveLocation !== 'all' ? '#ecfdf5' : '#ffffff',
-                      color: selectedLiveLocation !== 'all' ? '#047857' : '#64748b',
-                      fontWeight: selectedLiveLocation !== 'all' ? 600 : 500,
-                    }}
-                  >
-                    <span className="truncate flex items-center gap-1.5">
-                      {selectedLiveLocation !== 'all' && (
-                        <span className="relative flex h-2 w-2 shrink-0">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                        </span>
-                      )}
-                      {selectedLiveLocation === 'all' ? 'Live Location' : selectedLiveLocation}
-                    </span>
-                    <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
-                  </button>
-                  {liveLocationOpen && (
-                    <div style={{
-                      position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                      padding: '4px 0', borderRadius: 10, zIndex: 50,
-                      maxHeight: 280, overflowY: 'auto',
-                      background: '#ffffff', border: '1px solid #e2e8f0',
-                      boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
-                    }}>
-                      <button
-                        type="button"
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#ecfdf5] hover:text-[#047857] transition-colors"
-                        onClick={() => { setSelectedLiveLocation('all'); setLiveLocationOpen(false); setPage(0) }}
-                      >
-                        All live locations
-                      </button>
-                      {sortedLiveLocations.map(([city, count]) => (
-                        <button
-                          key={city}
-                          type="button"
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#ecfdf5] hover:text-[#047857] transition-colors"
-                          onClick={() => { setSelectedLiveLocation(city); setLiveLocationOpen(false); setPage(0) }}
-                        >
-                          <span className="flex items-center gap-1.5">
-                            <span className="relative flex h-1.5 w-1.5 shrink-0">
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                            </span>
-                            {city}
-                          </span>
-                          <span className="ml-1 text-gray-400">({count})</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* City search */}
+              {/* City search + live locations in same dropdown */}
               <div className="relative min-w-0" ref={cityRef}>
                 <MapPin style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8', zIndex: 1 }} />
                 <input
                   type="text"
                   value={cityQuery}
                   onChange={e => handleCityInput(e.target.value)}
-                  onFocus={() => { if (cityQuery && cityResults.length > 0) setCityOpen(true) }}
-                  placeholder="City or postal code"
-                  className="w-full"
+                  onFocus={() => setCityOpen(true)}
+                  placeholder="City, postal code, or live location"
+                  className="w-full appearance-none"
                   style={{
                     paddingLeft: 34, paddingRight: 32, paddingTop: 10, paddingBottom: 10,
-                    borderRadius: 10, fontSize: 13, fontWeight: selectedCity !== 'all' ? 600 : 400,
+                    borderRadius: 10, fontSize: 13, fontWeight: (selectedCity !== 'all' || selectedLiveLocation !== 'all') ? 600 : 400,
                     outline: 'none', transition: 'all 0.2s',
-                    backgroundColor: selectedCity !== 'all' ? '#fef7fa' : '#ffffff',
-                    border: selectedCity !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
-                    color: selectedCity !== 'all' ? '#be185d' : '#64748b',
+                    backgroundColor: selectedLiveLocation !== 'all' ? '#ecfdf5' : selectedCity !== 'all' ? '#fef7fa' : '#ffffff',
+                    backgroundImage: 'none',
+                    border: selectedLiveLocation !== 'all' ? '1px solid #6ee7b7' : selectedCity !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
+                    color: selectedLiveLocation !== 'all' ? '#047857' : selectedCity !== 'all' ? '#be185d' : '#64748b',
                   }}
                 />
                 {cityLoading && (
@@ -429,14 +429,38 @@ export default function MixedHomeClient({
                     <X style={{ width: 14, height: 14, color: '#94a3b8' }} />
                   </button>
                 )}
-                {cityOpen && cityResults.length > 0 && (
+                {showCityPanel && (
                   <div style={{
                     position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
                     padding: '4px 0', borderRadius: 10, zIndex: 50,
-                    maxHeight: 280, overflowY: 'auto',
+                    maxHeight: 320, overflowY: 'auto',
                     background: '#ffffff', border: '1px solid #e2e8f0',
                     boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
                   }}>
+                    {hasLiveLocations &&
+                      sortedLiveLocations.map(([city, count]) => (
+                        <button
+                          key={`live-${city}`}
+                          type="button"
+                          className="block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors hover:bg-emerald-50"
+                          style={{ color: '#047857' }}
+                          onClick={() => selectLiveFromDropdown(city)}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="relative flex h-2 w-2 shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                            </span>
+                            <span>Live: {city}</span>
+                            <span className="text-emerald-600/70 font-normal">({count})</span>
+                          </span>
+                        </button>
+                      ))}
+                    {cityQuery.length >= 1 && (cityResults.length > 0 || cityLoading) && (
+                      <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-gray-100">
+                        Search cities
+                      </div>
+                    )}
                     {cityResults.map(city => (
                       <button
                         key={city.id} type="button"
@@ -448,16 +472,11 @@ export default function MixedHomeClient({
                         {city.canton && <span className="text-gray-300 ml-1">· {cantonName(city.canton)}</span>}
                       </button>
                     ))}
-                  </div>
-                )}
-                {cityOpen && cityQuery.length >= 1 && cityResults.length === 0 && !cityLoading && (
-                  <div style={{
-                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                    padding: '12px 16px', borderRadius: 10, zIndex: 50, textAlign: 'center',
-                    background: '#ffffff', border: '1px solid #e2e8f0',
-                    boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
-                  }}>
-                    <p className="text-sm text-gray-400">No cities found</p>
+                    {cityQuery.length >= 1 && !cityLoading && cityResults.length === 0 && (
+                      <div className="px-4 py-3 text-center text-sm text-gray-400 border-t border-gray-100">
+                        No cities match “{cityQuery}”
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -470,11 +489,14 @@ export default function MixedHomeClient({
                   value={searchQuery}
                   onChange={e => { setSearchQuery(e.target.value); setPage(0) }}
                   placeholder="Search all cards..."
-                  className="w-full"
+                  className="w-full appearance-none"
                   style={{
                     paddingLeft: 34, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
                     borderRadius: 10, fontSize: 13, fontWeight: 400, outline: 'none',
-                    backgroundColor: '#ffffff', border: '1px solid #e2e8f0', color: '#1a1a2e',
+                    backgroundColor: '#ffffff',
+                    backgroundImage: 'none',
+                    border: '1px solid #e2e8f0',
+                    color: '#1a1a2e',
                   }}
                   onFocus={e => { e.currentTarget.style.border = '1px solid #f9a8d4'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236,72,153,0.06)' }}
                   onBlur={e => { e.currentTarget.style.border = '1px solid #e2e8f0'; e.currentTarget.style.boxShadow = 'none' }}

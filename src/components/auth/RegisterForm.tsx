@@ -212,7 +212,7 @@ export default function RegisterForm() {
         >
           <option value="">Who are you?</option>
           <option value="user">Member / Visitor</option>
-          <option value="model">Independent Escort</option>
+          <option value="model">Independent Model</option>
           <option value="company">Agency / Club</option>
         </select>
       </div>

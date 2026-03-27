@@ -17,6 +17,7 @@ export default function ServicesPage() {
   const [selectedServices, setSelectedServices] = useState<number[]>([])
   const [allServices, setAllServices] = useState<any[]>([])
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
+  const [otherServices, setOtherServices] = useState('')
 
   useEffect(() => {
     const loadData = async () => {
@@ -31,7 +32,11 @@ export default function ServicesPage() {
           supabase.from('model_services').select('service_id').eq('model_id', user.id)
         ])
         if (servicesData) setAllServices(servicesData)
-        if (md) { setSexualOrientation(md.sexual_orientation || ''); setServicesFor(md.services_for || []) }
+        if (md) {
+          setSexualOrientation(md.sexual_orientation || '')
+          setServicesFor(md.services_for || [])
+          setOtherServices(md.other_services || '')
+        }
         if (modelServicesData) setSelectedServices(modelServicesData.map((s: any) => s.service_id))
         setLoading(false)
       } catch { setLoading(false) }
@@ -58,10 +63,12 @@ export default function ServicesPage() {
     setSaving(true)
     try {
       const supabase = createClient()
+      const trimmedOther = otherServices.trim()
       const { error: e1 } = await supabase.from('model_details').upsert({
         model_id: user.id,
         sexual_orientation: sexualOrientation || null,
         services_for: servicesFor.length > 0 ? servicesFor : null,
+        other_services: trimmedOther.length > 0 ? trimmedOther.slice(0, 2000) : null,
       }, { onConflict: 'model_id' })
       if (e1) throw e1
       await supabase.from('model_services').delete().eq('model_id', user.id)
@@ -177,6 +184,24 @@ export default function ServicesPage() {
                   </div>
                 )
               })}
+            </div>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <label htmlFor="otherServices" className="block text-xs font-bold text-gray-800 mb-1">
+                Other services
+              </label>
+              <p className="text-[11px] text-gray-500 mb-2">
+                Add any service not listed above (optional, max 2000 characters).
+              </p>
+              <textarea
+                id="otherServices"
+                value={otherServices}
+                onChange={e => setOtherServices(e.target.value)}
+                maxLength={2000}
+                rows={4}
+                placeholder="e.g. Custom requests, special arrangements…"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-y min-h-[96px]"
+              />
+              <p className="text-[11px] text-gray-400 mt-1 text-right">{otherServices.length}/2000</p>
             </div>
           </div>
         </div>

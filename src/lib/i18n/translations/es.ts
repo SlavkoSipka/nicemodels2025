@@ -45,7 +45,7 @@ export const es: Translations = {
     confirmPasswordLabel: 'Confirmar contraseña',
     registerAs: 'Quiero registrarme como:',
     member: 'Miembro',
-    independentEscort: 'Escort Independiente / Chica Privada',
+    independentEscort: 'Modelo independiente / Chica privada',
     escortAgency: 'Agencia de Escort / Club',
     termsText: 'He leído y acepto los',
     termsLink: 'términos y condiciones',

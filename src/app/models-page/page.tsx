@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
+import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 
 export const revalidate = 60
 
@@ -69,11 +70,11 @@ export default async function ModelsPage() {
       photoUrl: photosMap.get(model.id) ?? null,
     }))
 
-    // Look up canton for each model's city
     const modelCityNames = [...new Set(
-      models.map((m: any) => m.model_details?.city).filter(Boolean)
+      models.map((m: any) => m.model_details?.city).filter(Boolean),
     )] as string[]
 
+    const cityCantonMap = new Map<string, string>()
     if (modelCityNames.length > 0) {
       const { data: cityCantonsData } = await supabase
         .from('cities')
@@ -81,18 +82,36 @@ export default async function ModelsPage() {
         .in('name', modelCityNames)
         .eq('is_active', true)
 
-      const cityCantonMap = new Map<string, string>()
       for (const c of cityCantonsData || []) {
         if (c.name && c.canton && !cityCantonMap.has(c.name)) {
           cityCantonMap.set(c.name, c.canton)
         }
       }
-
-      models = models.map((m: any) => ({
-        ...m,
-        canton: m.model_details?.city ? cityCantonMap.get(m.model_details.city) || null : null,
-      }))
     }
+
+    const liveCityNames = [...new Set(
+      models.map((m: any) => m.model_details?.live_location_city).filter(Boolean),
+    )] as string[]
+
+    let liveCityRows: { name: string; postal_code: string | null; canton: string | null }[] = []
+    if (liveCityNames.length > 0) {
+      const { data: liveRows } = await supabase
+        .from('cities')
+        .select('name, postal_code, canton')
+        .in('name', liveCityNames)
+        .eq('is_active', true)
+      liveCityRows = liveRows || []
+    }
+
+    models = models.map((m: any) => ({
+      ...m,
+      canton: m.model_details?.city ? cityCantonMap.get(m.model_details.city) || null : null,
+      live_location_canton: resolveLiveLocationCanton(
+        m.model_details?.live_location_city,
+        m.model_details?.live_location_postal_code,
+        liveCityRows,
+      ),
+    }))
   }
 
   const now = new Date().toISOString()

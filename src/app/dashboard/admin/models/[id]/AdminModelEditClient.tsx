@@ -146,6 +146,7 @@ export default function AdminModelEditClient({
   const [sexualOrientation, setSexualOrientation] = useState(modelDetails?.sexual_orientation || '')
   const [servicesFor, setServicesFor] = useState<string[]>(modelDetails?.services_for || [])
   const [selectedServices, setSelectedServices] = useState<number[]>(initServices)
+  const [otherServices, setOtherServices] = useState(modelDetails?.other_services || '')
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
   // ── Working hours ──
@@ -231,6 +232,10 @@ export default function AdminModelEditClient({
         outcall_options: outcallOptions.length > 0 ? outcallOptions : null,
         sexual_orientation: sexualOrientation || null,
         services_for: servicesFor.length > 0 ? servicesFor : null,
+        other_services: (() => {
+          const t = (otherServices || '').trim()
+          return t.length > 0 ? t.slice(0, 2000) : null
+        })(),
       }, { onConflict: 'model_id' })
       if (e2) throw e2
 
@@ -689,6 +694,19 @@ export default function AdminModelEditClient({
                     </div>
                   )
                 })}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <label className={labelCls}>Other services</label>
+                <p className="text-[11px] text-gray-500 mb-2">Custom services not in the list (optional, max 2000 characters).</p>
+                <textarea
+                  value={otherServices}
+                  onChange={e => setOtherServices(e.target.value)}
+                  maxLength={2000}
+                  rows={4}
+                  className={inputCls + ' resize-y min-h-[96px]'}
+                  placeholder="Free text…"
+                />
+                <p className="text-[11px] text-gray-400 mt-1 text-right">{(otherServices || '').length}/2000</p>
               </div>
             </div>
           )}

@@ -593,6 +593,27 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     return levels[level] || level
   }
 
+  /** Matches dashboard `languages/page.tsx` levelToDefaultStars */
+  const levelToStarCount = (level: string) => {
+    if (level === 'basic') return 2
+    if (level === 'fair') return 3
+    if (level === 'good') return 4
+    if (level === 'excellent_native') return 5
+    return 3
+  }
+
+  /** Tooltip for hover over star position 1–5 (what that rating means) */
+  const languageStarTooltip = (starIndex: number) => {
+    const t: Record<number, string> = {
+      1: '1 star — Elementary: familiar words and very short phrases.',
+      2: '2 stars — Basic: simple conversations in everyday situations.',
+      3: '3 stars — Fair: comfortable in most common social and travel contexts.',
+      4: '4 stars — Good: strong fluency; complex topics with only small gaps.',
+      5: '5 stars — Excellent / native-like: full fluency in professional and social settings.',
+    }
+    return t[starIndex] ?? ''
+  }
+
   const formatDayOfWeek = (day: string) => {
     const days: Record<string, string> = {
       'monday': 'Monday',
@@ -934,27 +955,38 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             )}
 
             {/* ── Services ── */}
-            {services.length > 0 && (
+            {(services.length > 0 || (modelDetails?.other_services && String(modelDetails.other_services).trim().length > 0)) && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Services</span>
                 </div>
                 <div className="px-5 py-4">
-                  <div className="flex flex-wrap gap-2">
-                    {services.map((service: any) => (
-                      <span key={service.id} className="text-xs px-3 py-1.5 font-medium rounded-md" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>
-                        {service.service?.name || 'Service'}
-                      </span>
-                    ))}
-                  </div>
+                  {services.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {services.map((service: any) => (
+                        <span key={service.id} className="text-xs px-3 py-1.5 font-medium rounded-md" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>
+                          {service.service?.name || 'Service'}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                   {modelDetails?.services_for?.length > 0 && (
-                    <div className="mt-3 pt-3" style={{ borderTop: '1px solid #f1f5f9' }}>
+                    <div className={`${services.length > 0 ? 'mt-3 pt-3' : ''}`} style={{ borderTop: services.length > 0 ? '1px solid #f1f5f9' : undefined }}>
                       <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>For</p>
                       <div className="flex flex-wrap gap-1.5">
                         {modelDetails.services_for.map((sf: string, i: number) => (
                           <span key={i} className="text-xs px-3 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>{sf}</span>
                         ))}
                       </div>
+                    </div>
+                  )}
+                  {modelDetails?.other_services && String(modelDetails.other_services).trim().length > 0 && (
+                    <div
+                      className={`${services.length > 0 || (modelDetails?.services_for?.length ?? 0) > 0 ? 'mt-3 pt-3' : ''}`}
+                      style={{ borderTop: services.length > 0 || (modelDetails?.services_for?.length ?? 0) > 0 ? '1px solid #f1f5f9' : undefined }}
+                    >
+                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>Other</p>
+                      <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{String(modelDetails.other_services).trim()}</p>
                     </div>
                   )}
                 </div>
@@ -968,24 +1000,90 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Languages</span>
                 </div>
                 <div className="px-5 py-4 flex flex-wrap gap-2">
-                  {languages.map((lang: any) => (
-                    <div key={lang.id} className="flex items-center gap-2 px-3 py-1.5 rounded-md" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                      <span className="text-sm font-semibold" style={{ color: '#0f172a' }}>{lang.language}</span>
-                      <span className="text-xs" style={{ color: '#94a3b8' }}>{formatLanguageLevel(lang.level)}</span>
-                    </div>
-                  ))}
+                  {languages.map((lang: any) => {
+                    const filled = levelToStarCount(lang.level)
+                    const levelShort = formatLanguageLevel(lang.level)
+                    return (
+                      <div
+                        key={lang.id}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-md"
+                        style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                      >
+                        <span className="text-sm font-semibold shrink-0" style={{ color: '#0f172a' }}>{lang.language}</span>
+                        <div
+                          className="flex items-center gap-0.5"
+                          role="img"
+                          aria-label={`${lang.language}: ${levelShort}`}
+                        >
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <span
+                              key={n}
+                              className="relative group inline-flex"
+                            >
+                              <span
+                                tabIndex={0}
+                                title={languageStarTooltip(n)}
+                                className="inline-flex rounded-sm outline-none cursor-default focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
+                              >
+                                <Star
+                                  className={`w-4 h-4 ${n <= filled ? 'text-amber-400' : 'text-slate-200'}`}
+                                  fill="currentColor"
+                                  strokeWidth={0}
+                                  aria-hidden
+                                />
+                              </span>
+                              <span
+                                role="tooltip"
+                                className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-max max-w-[min(260px,calc(100vw-2rem))] -translate-x-1/2 rounded-lg border px-2.5 py-2 text-left text-[11px] leading-snug shadow-lg opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100"
+                                style={{
+                                  background: '#ffffff',
+                                  borderColor: '#e2e8f0',
+                                  color: '#475569',
+                                  boxShadow: '0 10px 40px rgba(0,0,0,0.12)',
+                                }}
+                              >
+                                {languageStarTooltip(n)}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}
 
             {/* ── Location & Availability ── */}
-            {modelDetails?.city && (
+            {(() => {
+              const liveLoc =
+                modelDetails?.live_location_city
+                  ? `${modelDetails.live_location_city}${modelDetails.live_location_postal_code ? ` (${modelDetails.live_location_postal_code})` : ''}`
+                  : ''
+              if (!modelDetails?.city && !liveLoc) return null
+              return (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Location</span>
                 </div>
                 <div className="px-5 py-4">
-                  <p className="text-sm font-bold mb-3" style={{ color: '#0f172a' }}>{modelDetails.city}</p>
+                  {modelDetails.city && (
+                    <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{modelDetails.city}</p>
+                  )}
+                  {liveLoc && (
+                    <p
+                      className={`text-sm font-semibold flex items-center gap-2 ${modelDetails.city ? 'mt-3' : ''}`}
+                      style={{ color: '#059669' }}
+                    >
+                      <span className="relative flex h-2 w-2 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                      </span>
+                      Live: {liveLoc}
+                    </p>
+                  )}
+                  {(modelDetails?.incall_options?.length > 0 || modelDetails?.outcall_options?.length > 0) && (
+                    <div className={modelDetails.city || liveLoc ? 'mt-3' : ''}>
                   {modelDetails?.incall_options?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
                       {formatIncallOptions(modelDetails.incall_options).map((opt: string, i: number) => (
@@ -1000,9 +1098,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       ))}
                     </div>
                   )}
+                    </div>
+                  )}
                 </div>
               </div>
-            )}
+              )
+            })()}
 
             {/* ── Working Hours ── */}
             {workingHours.length > 0 && (

@@ -293,7 +293,7 @@ export default function ModelDashboardPage() {
                     <p>· Advertising features are disabled</p>
                   </div>
                   <a
-                    href="mailto:support@nicemodels.ch?subject=Account Blocked - Appeal Request"
+                    href="mailto:info@nicemodels.ch?subject=Account Blocked - Appeal Request"
                     className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-red-700 hover:text-red-900 underline underline-offset-2"
                   >
                     <Mail className="w-3.5 h-3.5" /> Contact support to appeal
@@ -790,8 +790,8 @@ export default function ModelDashboardPage() {
                   <p className="text-sm font-bold text-gray-800">Support</p>
                 </div>
                 <div className="space-y-2">
-                  <a href="mailto:support@nicemodels.ch" className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand transition-colors">
-                    <Mail className="w-4 h-4 text-gray-400" /> support@nicemodels.ch
+                  <a href="mailto:info@nicemodels.ch" className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand transition-colors">
+                    <Mail className="w-4 h-4 text-gray-400" /> info@nicemodels.ch
                   </a>
                   <p className="flex items-center gap-2 text-sm text-gray-600">
                     <Mail className="w-4 h-4 text-gray-400" /> Live chat available 24/7

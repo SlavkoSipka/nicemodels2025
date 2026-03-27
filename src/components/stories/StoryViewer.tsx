@@ -263,6 +263,9 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
                 <p className="text-white/80 text-xs">
                   {Math.floor((Date.now() - new Date(currentStory.created_at).getTime()) / 3600000)}h ago
                 </p>
+                <p className="text-white/55 text-[10px] mt-0.5 leading-tight">
+                  Go to the profile
+                </p>
               </div>
             </Link>
 

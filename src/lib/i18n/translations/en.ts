@@ -45,7 +45,7 @@ export const en = {
     confirmPasswordLabel: 'Confirm password',
     registerAs: 'I want to register as:',
     member: 'Member',
-    independentEscort: 'Independent Escort / Private Girl',
+    independentEscort: 'Independent Model / Private Girl',
     escortAgency: 'Escort Agency / Club',
     termsText: 'I have read and I agree with the general',
     termsLink: 'terms & conditions',

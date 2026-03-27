@@ -1,13 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import emailjs from '@emailjs/browser'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { Phone, Mail, MapPin, Send, CheckCircle } from 'lucide-react'
+import { Phone, Mail, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react'
+import { contactSubjectLabel } from '@/lib/contact/subjectLabels'
+
+const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID ?? ''
+const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID ?? ''
+const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ?? ''
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     phone: '',
     subject: '',
@@ -15,26 +20,46 @@ export default function ContactPage() {
   })
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+    setError(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+
+    if (!serviceId || !templateId || !publicKey) {
+      setError('The contact form is not configured. Please try email or WhatsApp on the left.')
+      return
+    }
+
     setSending(true)
+    try {
+      await emailjs.send(
+        serviceId,
+        templateId,
+        {
+          user_email: formData.email.trim(),
+          user_phone: formData.phone.trim() || '—',
+          subject_key: formData.subject,
+          subject_label: contactSubjectLabel(formData.subject),
+          message: formData.message.trim(),
+          submitted_at: new Date().toISOString(),
+        },
+        { publicKey },
+      )
 
-    // Simulate sending (replace with actual email sending later)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    setSending(false)
-    setSuccess(true)
-
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
-      setSuccess(false)
-    }, 3000)
+      setSuccess(true)
+      setFormData({ email: '', phone: '', subject: '', message: '' })
+      setTimeout(() => setSuccess(false), 8000)
+    } catch {
+      setError('Something went wrong. Please try again or email info@nicemodels.ch directly.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -138,35 +163,25 @@ export default function ContactPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
-                          Full name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={formData.name}
-                          onChange={(e) => handleChange('name', e.target.value)}
-                          required
-                          className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors text-slate-800 placeholder-slate-300"
-                          style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
-                          placeholder="John Doe"
-                        />
+                    {error && (
+                      <div className="rounded-lg p-3 flex items-start gap-2" style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                        <p className="text-sm text-red-800">{error}</p>
                       </div>
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
-                          Email <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => handleChange('email', e.target.value)}
-                          required
-                          className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors text-slate-800 placeholder-slate-300"
-                          style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
-                          placeholder="john@example.com"
-                        />
-                      </div>
+                    )}
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange('email', e.target.value)}
+                        required
+                        className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors text-slate-800 placeholder-slate-300"
+                        style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                        placeholder="john@example.com"
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -215,6 +230,7 @@ export default function ContactPage() {
                         value={formData.message}
                         onChange={(e) => handleChange('message', e.target.value)}
                         required
+                        maxLength={1000}
                         rows={5}
                         className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors resize-none text-slate-800 placeholder-slate-300"
                         style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}

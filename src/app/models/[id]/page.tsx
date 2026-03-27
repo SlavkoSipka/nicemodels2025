@@ -113,9 +113,24 @@ async function getModelData(id: string) {
     }))
   }
 
+  // Same ~2h freshness rule as homepage: stale GPS is not shown publicly
+  const TWO_HOURS_MS = 2 * 60 * 60 * 1000
+  let modelDetailsForClient = modelDetails
+  if (modelDetailsForClient) {
+    const md = { ...modelDetailsForClient }
+    if (md.share_live_location && md.live_location_updated_at) {
+      const age = Date.now() - new Date(md.live_location_updated_at).getTime()
+      if (age > TWO_HOURS_MS) {
+        md.live_location_city = null
+        md.live_location_postal_code = null
+      }
+    }
+    modelDetailsForClient = md
+  }
+
   return {
     profile,
-    modelDetails,
+    modelDetails: modelDetailsForClient,
     photos:       photos        || [],
     videos:       videos        || [],
     rates:        rates         || [],
