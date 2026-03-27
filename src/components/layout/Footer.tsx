@@ -10,21 +10,21 @@ export default function Footer() {
       <div style={{ height: '2px', background: 'linear-gradient(90deg, #ec4899, #f9a8d4, #89CFF0)' }} />
 
       {/* Main footer */}
-      <div className="max-w-7xl mx-auto px-4 pt-14 pb-10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+      <div className="max-w-7xl mx-auto px-4 pt-8 sm:pt-14 pb-8 sm:pb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-10">
 
           {/* Logo + tagline */}
-          <div className="md:col-span-1">
-            <Link href="/" className="inline-block mb-4">
+          <div className="col-span-2 sm:col-span-2 md:col-span-1">
+            <Link href="/" className="inline-block mb-3 sm:mb-4">
               <Image
-                src="/logo2.png"
+                src="/logo.webp"
                 alt="nicemodels.ch"
                 width={160}
                 height={40}
-                className="h-10 w-auto"
+                className="h-8 sm:h-10 w-auto"
               />
             </Link>
-            <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.40)' }}>
+            <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.40)' }}>
               The premium portal for Switzerland. Discreet, safe and professional.
             </p>
           </div>
@@ -36,15 +36,20 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { href: '/models-page', label: 'Girls' },
+                { href: '/models-page', label: 'Girls', mobileLabel: 'Models' },
                 { href: '/clubs',   label: 'Clubs' },
                 { href: '/comments',label: 'Comments' },
                 { href: '/blog',    label: 'Blog' },
                 { href: '/contact', label: 'Contact' },
-              ].map(({ href, label }) => (
-                <li key={href}>
-                  <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    {label}
+              ].map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                    {'mobileLabel' in item && item.mobileLabel ? (
+                      <>
+                        <span className="sm:hidden">{(item as any).mobileLabel}</span>
+                        <span className="hidden sm:inline">{item.label}</span>
+                      </>
+                    ) : item.label}
                   </Link>
                 </li>
               ))}
@@ -108,9 +113,9 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3 text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
-          <span>&copy; {new Date().getFullYear()} nicemodels.ch &ndash; All rights reserved</span>
-          <div className="flex items-center gap-5">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
+          <span>&copy; {new Date().getFullYear()} nicemodels.ch</span>
+          <div className="flex items-center gap-3 sm:gap-5">
             {[
               { href: '/privacy', label: 'Privacy' },
               { href: '/terms',   label: 'AGB' },

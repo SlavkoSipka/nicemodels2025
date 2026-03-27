@@ -42,7 +42,7 @@ export default function CreateModelPage() {
   if (loading) return null
 
   return (
-      <div className="min-h-screen bg-gray-50 py-8 ml-[280px]">
+      <div className="min-h-screen bg-gray-50 py-4 md:py-8 ml-0 md:ml-[280px]">
         <ClubModelOnboardingForm clubId={user?.id} />
       </div>
   )

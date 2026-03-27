@@ -35,10 +35,10 @@ export default function ClubCard({ club, priority = false }: ClubCardProps) {
   return (
     <Link href={`/clubs/${club.id}`} className="block group w-full">
       <div
-        className="overflow-hidden flex flex-row w-full transition-all duration-300"
+        className="overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
         style={{
           background: '#ffffff',
-          borderRadius: '12px',
+          borderRadius: '10px',
           border: '1px solid rgba(0,0,0,0.06)',
           boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)',
         }}
@@ -57,15 +57,15 @@ export default function ClubCard({ club, priority = false }: ClubCardProps) {
       >
         {/* Photo */}
         <div
-          className="relative flex-shrink-0 overflow-hidden"
-          style={{ width: '36%', minWidth: 120, aspectRatio: '3/4', background: '#f1f5f9' }}
+          className="relative flex-shrink-0 overflow-hidden w-full sm:w-[36%] sm:min-w-[120px]"
+          style={{ aspectRatio: '3/4', background: '#f1f5f9' }}
         >
           {club.photoUrl ? (
             <Image
               src={club.photoUrl}
               alt={title}
               fill
-              sizes="(max-width: 640px) 42vw, 22vw"
+              sizes="(max-width: 640px) 48vw, 22vw"
               priority={priority}
               quality={80}
               placeholder="blur"
@@ -80,15 +80,24 @@ export default function ClubCard({ club, priority = false }: ClubCardProps) {
 
           {/* Type badge */}
           <span
-            className="absolute top-2 left-2 text-[9px] font-semibold px-1.5 py-0.5 rounded"
+            className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 text-[8px] sm:text-[9px] font-semibold px-1 sm:px-1.5 py-0.5 rounded"
             style={{ background: 'rgba(0,0,0,0.45)', color: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
           >
             {typeLabel}
           </span>
+
+          {/* Mobile: name + location overlay */}
+          <div
+            className="absolute bottom-0 left-0 right-0 sm:hidden p-2 pt-8"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.70) 0%, transparent 100%)' }}
+          >
+            <h3 className="text-white font-bold text-[12px] leading-tight truncate">{title}</h3>
+            {location && <p className="text-white/60 text-[10px] mt-0.5 truncate">{location}</p>}
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Content - desktop only */}
+        <div className="flex-1 hidden sm:flex flex-col min-w-0 overflow-hidden">
           <div style={{ height: 2, background: 'linear-gradient(90deg, #60a5fa, #93c5fd)', flexShrink: 0 }} />
 
           <div className="px-4 py-3.5 flex flex-col gap-1.5 flex-1">
@@ -100,7 +109,7 @@ export default function ClubCard({ club, priority = false }: ClubCardProps) {
             </span>
 
             <h3
-              className="font-bold text-[15px] sm:text-base leading-snug transition-colors group-hover:text-pink-500"
+              className="font-bold text-base leading-snug transition-colors group-hover:text-pink-500"
               style={{ color: '#1a1a2e' }}
             >
               {title}

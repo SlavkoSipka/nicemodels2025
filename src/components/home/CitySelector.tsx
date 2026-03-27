@@ -294,8 +294,8 @@ export default function CitySelector({
 
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    gap: 8, width: '100%', padding: '10px 16px', borderRadius: 10,
-    fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
+    gap: 8, width: '100%', borderRadius: 10,
+    fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
     border: '1px solid #e2e8f0',
     backgroundColor: '#ffffff',
     backgroundImage: 'none',
@@ -312,19 +312,20 @@ export default function CitySelector({
   const panelStyle: React.CSSProperties = {
     position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
     padding: '4px 0', borderRadius: 10, zIndex: 50,
-    maxHeight: 280, overflowY: 'auto', overflowX: 'hidden',
+    overflowY: 'auto', overflowX: 'hidden',
     background: '#ffffff', border: '1px solid #e2e8f0',
     boxShadow: '0 12px 36px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.04)',
   }
   const optStyle: React.CSSProperties = {
     display: 'block', width: '100%', textAlign: 'left',
-    padding: '9px 16px', fontSize: 13, cursor: 'pointer',
+    cursor: 'pointer',
     color: '#64748b', background: 'transparent', border: 'none', transition: 'all 0.12s',
   }
 
   const Opt = ({ label, onSel }: { label: string; onSel: () => void }) => (
     <button
       type="button"
+      className="py-2 px-3 text-xs sm:py-2 sm:px-4 sm:text-[13px]"
       style={optStyle}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fef7fa'; (e.currentTarget as HTMLButtonElement).style.color = '#be185d' }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#64748b' }}
@@ -334,16 +335,16 @@ export default function CitySelector({
 
   return (
     <div>
-      <div className="max-w-7xl mx-auto px-4 pt-4 w-full">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 pt-3 sm:pt-4 w-full">
 
         {/* Filter bar: Region | Live Location | City | Category | Offer | Search */}
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 w-full items-center pb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 sm:gap-3 w-full items-center pb-3 sm:pb-5">
 
           {/* Region dropdown */}
           <div className="relative min-w-0" ref={regionRef}>
             <button
               type="button"
-              className="appearance-none"
+              className="appearance-none py-2 px-3 text-xs sm:py-2.5 sm:px-4 sm:text-[13px]"
               style={selectedRegion !== 'all' ? btnActive : btnBase}
               onClick={() => setOpenDropdown(v => v === 'region' ? null : 'region')}
             >
@@ -363,17 +364,16 @@ export default function CitySelector({
           {/* City search + live rows in one dropdown */}
           <div className="relative min-w-0" ref={cityRef}>
             <div className="relative">
-              <MapPin style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8' }} />
+              <MapPin className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: '#94a3b8' }} />
               <input
                 type="text"
                 value={cityQuery}
                 onChange={e => handleCityInput(e.target.value)}
                 onFocus={() => setCityOpen(true)}
                 placeholder="City, postal code, or live location"
-                className="appearance-none"
+                className="appearance-none py-2 pl-9 pr-8 text-xs sm:py-2.5 sm:pl-[34px] sm:pr-8 sm:text-[13px]"
                 style={{
                   ...btnBase,
-                  paddingLeft: 34, paddingRight: 32,
                   ...(selectedLiveLocation !== 'all'
                     ? {
                         backgroundColor: '#ecfdf5',
@@ -407,13 +407,13 @@ export default function CitySelector({
               )}
             </div>
             {showCityPanel && (
-              <div style={panelStyle}>
+              <div className="max-h-[min(240px,55vh)] sm:max-h-[280px]" style={panelStyle}>
                 {hasLiveLocations &&
                   sortedLiveLocations.map(([city, count]) => (
                     <button
                       key={`live-${city}`}
                       type="button"
-                      className="block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors hover:bg-emerald-50"
+                      className="block w-full text-left px-3 py-2 text-xs sm:px-4 sm:py-2.5 sm:text-sm font-medium transition-colors hover:bg-emerald-50"
                       style={{ ...optStyle, color: '#047857' }}
                       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#ecfdf5' }}
                       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
@@ -438,6 +438,7 @@ export default function CitySelector({
                   <button
                     key={city.id}
                     type="button"
+                    className="py-2 px-3 text-xs sm:py-2 sm:px-4 sm:text-[13px]"
                     style={optStyle}
                     onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fef7fa'; (e.currentTarget as HTMLButtonElement).style.color = '#be185d' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#64748b' }}
@@ -461,7 +462,7 @@ export default function CitySelector({
           <div className="relative min-w-0" ref={categoryRef}>
             <button
               type="button"
-              className="appearance-none"
+              className="appearance-none py-2 px-3 text-xs sm:py-2.5 sm:px-4 sm:text-[13px]"
               style={selectedCategory !== 'all' ? btnActive : btnBase}
               onClick={() => setOpenDropdown(v => v === 'category' ? null : 'category')}
             >
@@ -482,7 +483,7 @@ export default function CitySelector({
           <div className="relative min-w-0" ref={offerRef}>
             <button
               type="button"
-              className="appearance-none"
+              className="appearance-none py-2 px-3 text-xs sm:py-2.5 sm:px-4 sm:text-[13px]"
               style={selectedOffer !== 'all' ? btnActive : btnBase}
               onClick={() => setOpenDropdown(v => v === 'offer' ? null : 'offer')}
             >
@@ -501,17 +502,15 @@ export default function CitySelector({
 
           {/* Search */}
           <div className="relative min-w-0 sm:w-44">
-            <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8' }} />
+            <Search className="pointer-events-none absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style={{ color: '#94a3b8' }} />
             <input
               type="search"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search"
               aria-label="Search models by name"
-              className="appearance-none"
+              className="appearance-none w-full rounded-[10px] font-normal outline-none py-2 pl-9 pr-3 text-xs sm:py-2.5 sm:pl-[34px] sm:pr-3 sm:text-[13px]"
               style={{
-                width: '100%', paddingLeft: 34, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
-                borderRadius: 10, fontSize: 13, fontWeight: 400, outline: 'none',
                 backgroundColor: '#ffffff',
                 backgroundImage: 'none',
                 border: '1px solid #e2e8f0',

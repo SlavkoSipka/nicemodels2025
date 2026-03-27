@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
   Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
@@ -266,10 +265,8 @@ export default function ModelDashboardPage() {
   const showname = modelDetails?.showname || profile?.username || 'there'
 
   return (
-    <>
-      <DashboardSidebar userRole="model" />
-      <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
-        <div className="max-w-6xl mx-auto space-y-6">
+      <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+        <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
 
           {/* ── Blocked account ── */}
           {profile?.is_blocked && (
@@ -305,16 +302,16 @@ export default function ModelDashboardPage() {
 
           {/* ── Club invites ── */}
           {pendingInvites.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-md bg-indigo-100 flex items-center justify-center shrink-0">
-                  <Building2 className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-5 flex items-center justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-2.5 md:gap-3 min-w-0">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-md bg-indigo-100 flex items-center justify-center shrink-0">
+                  <Building2 className="w-4 h-4 md:w-5 md:h-5 text-indigo-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900">
                     {pendingInvites.length} pending club invitation{pendingInvites.length > 1 ? 's' : ''}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 truncate">
                     {pendingInvites.length === 1
                       ? `${pendingInvites[0].club_details?.display_name || pendingInvites[0].club_details?.club_name || 'A club'} wants you to join their roster.`
                       : 'Multiple clubs want you to join their roster.'}
@@ -332,16 +329,16 @@ export default function ModelDashboardPage() {
 
           {/* ── Collaboration requests ── */}
           {pendingCollabs.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-md bg-pink-100 flex items-center justify-center shrink-0">
-                  <Handshake className="w-5 h-5 text-pink-600" />
+            <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-5 flex items-center justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-2.5 md:gap-3 min-w-0">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-md bg-pink-100 flex items-center justify-center shrink-0">
+                  <Handshake className="w-4 h-4 md:w-5 md:h-5 text-pink-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900">
                     {pendingCollabs.length} collaboration request{pendingCollabs.length > 1 ? 's' : ''}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 truncate">
                     {pendingCollabs.length === 1
                       ? `${pendingCollabs[0].sender_name} wants to collaborate with you.`
                       : 'Other models want to collaborate with you.'}
@@ -359,12 +356,12 @@ export default function ModelDashboardPage() {
 
           {/* ── Unreplied reviews ── */}
           {unrepliedComments > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
-                  <MessageSquare className="w-5 h-5 text-amber-600" />
+            <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-5 flex items-center justify-between gap-3 md:gap-4">
+              <div className="flex items-center gap-2.5 md:gap-3 min-w-0">
+                <div className="w-8 h-8 md:w-9 md:h-9 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900">
                     {unrepliedComments} review{unrepliedComments > 1 ? 's' : ''} awaiting your reply
                   </p>
@@ -382,7 +379,7 @@ export default function ModelDashboardPage() {
 
           {/* ── Status message ── */}
           <div className={`border rounded-lg overflow-hidden ${hasActiveAd ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-200'}`}>
-            <div className="px-5 py-4 flex items-center gap-3 border-b border-gray-100">
+            <div className="px-3 py-3 md:px-5 md:py-4 flex items-center gap-3 border-b border-gray-100">
               <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${hasActiveAd ? 'bg-violet-100' : 'bg-gray-200'}`}>
                 <MessageCircle className={`w-4 h-4 ${hasActiveAd ? 'text-violet-600' : 'text-gray-400'}`} />
               </div>
@@ -396,7 +393,7 @@ export default function ModelDashboardPage() {
                 </span>
               )}
             </div>
-            <div className="px-5 py-4">
+            <div className="px-3 py-3 md:px-5 md:py-4">
               {hasActiveAd ? (
                 activeStatus ? (
                   <div className="space-y-3">
@@ -462,10 +459,10 @@ export default function ModelDashboardPage() {
           </div>
 
           {/* ── Welcome header ── */}
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center justify-between gap-3 md:gap-4 flex-wrap">
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-900">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg md:text-xl font-bold text-gray-900">
                   Welcome back, <span className="text-brand">{showname}</span>
                 </h1>
                 {isVerified && (
@@ -478,10 +475,10 @@ export default function ModelDashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-5">
 
             {/* ── Left / main ── */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-3 md:space-y-4">
 
               {/* Photo alert */}
               {photoCount !== null && photoCount < 3 && (
@@ -505,31 +502,31 @@ export default function ModelDashboardPage() {
               )}
 
               {/* Beta notice */}
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+                <div className="flex items-center gap-2 mb-2 md:mb-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-brand bg-brand/10 border border-brand/20 px-2 py-0.5 rounded-full">Beta</span>
                   <p className="text-sm font-bold text-gray-900">Welcome to the early access</p>
                 </div>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-[13px] md:text-sm text-gray-600 mb-3 md:mb-4">
                   You're one of the first models on <span className="font-semibold text-gray-900">nicemodels.ch</span>. Everything is free while we test and improve the platform.
                 </p>
-                <div className="space-y-1.5 mb-4">
+                <div className="space-y-1 md:space-y-1.5 mb-3 md:mb-4">
                   {[
                     'No prices, no payments during beta',
                     'Help us test, give feedback and shape the portal',
                     'We will inform you clearly before any pricing starts',
                   ].map(tip => (
-                    <div key={tip} className="flex items-center gap-2 text-sm text-gray-700">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <div key={tip} className="flex items-center gap-2 text-[13px] md:text-sm text-gray-700">
+                      <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500 shrink-0" />
                       {tip}
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-400">Complete your profile to get the best visibility when we go live.</p>
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100 gap-2">
+                  <p className="text-xs text-gray-400 hidden md:block">Complete your profile to get the best visibility when we go live.</p>
                   <button
                     onClick={() => router.push('/dashboard/model/profile/pictures-video')}
-                    className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 ml-4"
+                    className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1"
                   >
                     Complete profile <ChevronRight className="w-4 h-4" />
                   </button>
@@ -537,14 +534,14 @@ export default function ModelDashboardPage() {
               </div>
 
               {/* How it works */}
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <div className="flex items-center gap-2 mb-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+                <div className="flex items-center gap-2 mb-3 md:mb-4">
                   <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                     <Lightbulb className="w-4 h-4 text-brand" />
                   </div>
                   <p className="text-sm font-bold text-gray-800">How to get started</p>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-2.5 md:space-y-3">
                   {[
                     {
                       step: '1',
@@ -588,8 +585,8 @@ export default function ModelDashboardPage() {
               </div>
 
               {/* Profile tips */}
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+                <div className="flex items-center gap-2 mb-2 md:mb-3">
                   <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                     <Lightbulb className="w-4 h-4 text-amber-600" />
                   </div>
@@ -612,11 +609,11 @@ export default function ModelDashboardPage() {
             </div>
 
             {/* ── Right sidebar ── */}
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
 
               {/* Club membership */}
               {clubInfo && clubInfo.count > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
                       <Building2 className="w-4 h-4 text-indigo-600" />
@@ -637,7 +634,7 @@ export default function ModelDashboardPage() {
               )}
 
               {/* Available for chat toggle */}
-              <div className={`border rounded-lg p-4 ${hasActiveAd ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-200'}`}>
+              <div className={`border rounded-lg p-3 md:p-4 ${hasActiveAd ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-200'}`}>
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${chatAvailable ? 'bg-emerald-100' : hasActiveAd ? 'bg-gray-100' : 'bg-gray-200'}`}>
                     <MessageSquare className={`w-4 h-4 ${chatAvailable ? 'text-emerald-600' : hasActiveAd ? 'text-gray-400' : 'text-gray-300'}`} />
@@ -676,7 +673,7 @@ export default function ModelDashboardPage() {
               </div>
 
               {/* Share Live Location toggle */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-4">
                 <div className="flex items-center gap-3">
                   <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${shareLiveLocation ? 'bg-emerald-100' : 'bg-gray-100'}`}>
                     <Navigation className={`w-4 h-4 ${shareLiveLocation ? 'text-emerald-600' : 'text-gray-400'}`} />
@@ -722,8 +719,8 @@ export default function ModelDashboardPage() {
               </div>
 
               {/* Stats */}
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <div className="flex items-center gap-2 mb-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+                <div className="flex items-center gap-2 mb-3 md:mb-4">
                   <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                     <BarChart2 className="w-4 h-4 text-brand" />
                   </div>
@@ -752,7 +749,7 @@ export default function ModelDashboardPage() {
                 const hasPhotos = (photoCount ?? 0) >= 3
                 const strength = isVerified ? 100 : hasPhotos ? 75 : 35
                 return (
-                  <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
                     <div className="flex items-center justify-between mb-2">
                       <p className="text-sm font-bold text-gray-800">Profile strength</p>
                       <span className="text-sm font-bold text-brand">{strength}%</span>
@@ -782,8 +779,8 @@ export default function ModelDashboardPage() {
               })()}
 
               {/* Support */}
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+                <div className="flex items-center gap-2 mb-2 md:mb-3">
                   <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
                     <LifeBuoy className="w-4 h-4 text-blue-600" />
                   </div>
@@ -803,6 +800,5 @@ export default function ModelDashboardPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }

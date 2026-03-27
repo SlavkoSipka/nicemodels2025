@@ -351,9 +351,9 @@ export default function MixedHomeClient({
         <div className="max-w-[1280px] mx-auto">
 
           {/* Filters */}
-          <div className="px-4 pt-4 w-full">
+          <div className="px-2 sm:px-4 pt-4 w-full">
             {/* Filter bar: Region | Live Location | City | Search */}
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] gap-3 items-center pb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] gap-2 sm:gap-3 items-center pb-3 sm:pb-5">
 
               {/* Region dropdown */}
               <div className="relative min-w-0" ref={regionDropdownRef}>
@@ -505,15 +505,15 @@ export default function MixedHomeClient({
             </div>
           </div>
 
-          <div className="px-4 py-6 w-full">
+          <div className="px-2 sm:px-4 py-4 sm:py-6 w-full">
             {!mounted ? (
               // Skeleton shown during SSR / before hydration
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full">
                 {Array.from({ length: 8 }).map((_, i) => (
                   <div
                     key={i}
-                    className="animate-pulse rounded-xl"
-                    style={{ height: 180, background: 'rgba(0,0,0,0.06)' }}
+                    className="animate-pulse rounded-lg sm:rounded-xl"
+                    style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.06)' }}
                   />
                 ))}
               </div>
@@ -531,7 +531,7 @@ export default function MixedHomeClient({
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full">
                   {(() => {
                     const nodes: React.ReactNode[] = []
                     let cardIdx = 0
@@ -566,40 +566,48 @@ export default function MixedHomeClient({
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-10">
+                  <div className="flex items-center justify-center gap-1 sm:gap-2 mt-6 sm:mt-10">
                     <button
                       onClick={() => goTo(page - 1)}
                       disabled={page === 0}
-                      className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
                     >
-                      <ChevronLeft className="w-4 h-4" /> Prev
+                      <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Prev</span>
                     </button>
 
                     <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }).map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => goTo(i)}
-                          className="w-9 h-9 rounded-lg text-sm font-bold transition-all"
-                          style={
-                            i === page
-                              ? { background: '#ec4899', color: '#ffffff', border: '1px solid #ec4899' }
-                              : { background: '#ffffff', color: '#374151', border: '1px solid rgba(0,0,0,0.10)' }
-                          }
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
+                      {Array.from({ length: totalPages }).map((_, i) => {
+                        const show = i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1
+                        if (!show) {
+                          const prevShown = i === 1 ? true : (i - 1 === 0 || i - 1 === totalPages - 1 || Math.abs(i - 1 - page) <= 1)
+                          if (prevShown) return <span key={i} className="text-xs text-gray-400 px-0.5">…</span>
+                          return null
+                        }
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => goTo(i)}
+                            className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-bold transition-all"
+                            style={
+                              i === page
+                                ? { background: '#ec4899', color: '#ffffff', border: '1px solid #ec4899' }
+                                : { background: '#ffffff', color: '#374151', border: '1px solid rgba(0,0,0,0.10)' }
+                            }
+                          >
+                            {i + 1}
+                          </button>
+                        )
+                      })}
                     </div>
 
                     <button
                       onClick={() => goTo(page + 1)}
                       disabled={page === totalPages - 1}
-                      className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                      className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                       style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
                     >
-                      Next <ChevronRight className="w-4 h-4" />
+                      <span className="hidden sm:inline">Next</span> <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 )}

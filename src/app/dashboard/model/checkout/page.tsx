@@ -191,7 +191,7 @@ export default function CheckoutPage() {
 
   if (getTotalItems() === 0) {
     return (
-      <div className="flex-1 p-8 ml-[280px] bg-gray-50 min-h-screen">
+      <div className="flex-1 p-4 md:p-8 ml-0 md:ml-[280px] bg-gray-50 min-h-screen">
         <div className="max-w-4xl mx-auto text-center py-12">
           <ShoppingBag className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <p className="text-xl text-gray-600 mb-6">Your cart is empty</p>
@@ -213,7 +213,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="flex-1 p-8 ml-[280px] bg-gray-50 min-h-screen">
+    <div className="flex-1 p-4 md:p-8 ml-0 md:ml-[280px] bg-gray-50 min-h-screen">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">

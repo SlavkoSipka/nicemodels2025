@@ -118,7 +118,7 @@ export default function SettingsPage() {
   if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-4xl mx-auto space-y-4">
 
         {/* Header */}
@@ -128,7 +128,7 @@ export default function SettingsPage() {
               <SettingsIcon className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">Settings</h1>
               <p className="text-xs text-gray-500">Manage your account settings and preferences</p>
             </div>
           </div>
@@ -155,7 +155,7 @@ export default function SettingsPage() {
         )}
 
         {/* Account Info */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
               <Mail className="w-4 h-4 text-brand" />
@@ -190,7 +190,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Change Password */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
               <Lock className="w-4 h-4 text-brand" />
@@ -240,7 +240,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Notifications */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <p className="text-sm font-bold text-gray-800 mb-3">Notification Preferences</p>
           <div className="space-y-2">
             <div className="flex items-center gap-3 py-2.5 px-3 bg-gray-50 rounded-lg">
@@ -275,7 +275,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="bg-white border border-red-200 rounded-lg p-5">
+        <div className="bg-white border border-red-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5 text-red-600" />
             <p className="text-sm font-bold text-red-700">Danger Zone</p>

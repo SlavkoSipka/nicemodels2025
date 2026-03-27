@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
@@ -7,6 +8,62 @@ import ModelProfileClient from './ModelProfileClient'
 
 interface ModelPageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: ModelPageProps): Promise<Metadata> {
+  const { id } = await params
+  const admin = createAdminClient()
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+  const { data: details } = await admin
+    .from('model_details')
+    .select('showname, city, age, about_me')
+    .eq('model_id', id)
+    .single()
+
+  if (!details) {
+    return { title: 'Model nicht gefunden' }
+  }
+
+  const name = details.showname || 'Model'
+  const city = details.city || 'Schweiz'
+  const title = `${name} – Escort in ${city}`
+  const desc =
+    details.about_me?.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd() ||
+    `${name} – Verifiziertes Escort-Model in ${city}. Jetzt Profil ansehen auf NiceModels.ch`
+
+  const { data: photo } = await admin
+    .from('model_photos')
+    .select('file_path')
+    .eq('model_id', id)
+    .eq('is_approved', true)
+    .order('uploaded_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const ogImage = photo?.file_path
+    ? `${SUPA_URL}/storage/v1/object/public/model-photos/${photo.file_path}`
+    : '/logo.webp'
+
+  return {
+    title,
+    description: desc,
+    openGraph: {
+      title,
+      description: desc,
+      type: 'profile',
+      images: [{ url: ogImage, alt: name }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: desc,
+      images: [ogImage],
+    },
+    alternates: {
+      canonical: `https://www.nicemodels.ch/models/${id}`,
+    },
+  }
 }
 
 async function getModelData(id: string) {

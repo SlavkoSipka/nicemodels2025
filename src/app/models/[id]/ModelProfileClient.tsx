@@ -672,69 +672,65 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           <button
             onClick={goToPrev}
             aria-label="Previous model"
-            className="fixed left-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
+            className="fixed left-1 sm:left-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-0.5 sm:gap-1.5 transition-all duration-200 group w-9 h-16 sm:w-12 sm:h-24 rounded-lg sm:rounded-xl"
             style={{
-              width: 48, height: 96,
               background: 'rgba(255,255,255,0.92)',
               border: '1px solid #e2e8f0',
-              borderRadius: 12,
               boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
               backdropFilter: 'blur(8px)',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)'; (e.currentTarget as HTMLButtonElement).style.color = 'white' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0'; (e.currentTarget as HTMLButtonElement).style.color = '' }}
           >
-            <ChevronLeft className="w-5 h-5" style={{ color: '#64748b' }} />
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>prev</span>
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#64748b' }} />
+            <span className="hidden sm:inline text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>prev</span>
           </button>
 
           {/* NEXT */}
           <button
             onClick={goToNext}
             aria-label="Next model"
-            className="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
+            className="fixed right-1 sm:right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-0.5 sm:gap-1.5 transition-all duration-200 group w-9 h-16 sm:w-12 sm:h-24 rounded-lg sm:rounded-xl"
             style={{
-              width: 48, height: 96,
               background: 'rgba(255,255,255,0.92)',
               border: '1px solid #e2e8f0',
-              borderRadius: 12,
               boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
               backdropFilter: 'blur(8px)',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0' }}
           >
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>next</span>
-            <ChevronRight className="w-5 h-5" style={{ color: '#64748b' }} />
+            <span className="hidden sm:inline text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>next</span>
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#64748b' }} />
           </button>
         </>
       )}
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-2 py-4 sm:px-4 sm:py-8">
         {/* Back Button */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 mb-6 transition-colors hover:text-pink-600 font-medium text-sm"
+          className="inline-flex items-center gap-1.5 sm:gap-2 mb-4 sm:mb-6 transition-colors hover:text-pink-600 font-medium text-xs sm:text-sm"
           style={{ color: '#64748b' }}
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
           <span>Back to all models</span>
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-4 sm:gap-8">
           {/* Left Column - info */}
-          <div className="space-y-3">
+          <div className="space-y-3 order-2 lg:order-1">
 
             {/* ── Hero card ── */}
             <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
               {/* Header */}
-              <div className="px-6 pt-6 pb-5" style={{ background: '#ffffff' }}>
+              <div className="px-3 pt-4 pb-4 sm:px-6 sm:pt-6 sm:pb-5" style={{ background: '#ffffff' }}>
 
                 {/* Name + ID + verified */}
-                <div className="flex items-start justify-between gap-3 mb-1">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h1 className="text-3xl font-bold leading-tight tracking-tight" style={{ color: '#0f172a' }}>
+                <div className="flex items-start justify-between gap-2 sm:gap-3 mb-1">
+                  <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap min-w-0">
+                    <h1 className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight break-words" style={{ color: '#0f172a' }}>
                       {modelDetails?.showname || profile.username}
                     </h1>
                     <button
@@ -758,9 +754,9 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 </div>
 
                 {/* City / age line */}
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   {modelDetails?.city && (
-                    <span className="text-sm font-medium" style={{ color: '#64748b' }}>
+                    <span className="text-xs sm:text-sm font-medium" style={{ color: '#64748b' }}>
                       {modelDetails.city}
                     </span>
                   )}
@@ -768,34 +764,34 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     <span style={{ color: '#cbd5e1' }}>·</span>
                   )}
                   {modelDetails?.age && (
-                    <span className="text-sm font-medium" style={{ color: '#64748b' }}>
+                    <span className="text-xs sm:text-sm font-medium" style={{ color: '#64748b' }}>
                       {modelDetails.age} years
                     </span>
                   )}
                 </div>
 
                 {modelDetails?.slogan && (
-                  <p className="text-sm italic mb-4 leading-relaxed" style={{ color: '#F472B6' }}>"{modelDetails.slogan}"</p>
+                  <p className="text-xs sm:text-sm italic mb-3 sm:mb-4 leading-relaxed" style={{ color: '#F472B6' }}>"{modelDetails.slogan}"</p>
                 )}
 
                 {/* Show Contact */}
                 {!showContact ? (
                   <button
                     onClick={handleShowContact}
-                    className="w-full py-3.5 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 mb-3 text-sm tracking-wide"
+                    className="w-full py-3 sm:py-3.5 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 mb-2 sm:mb-3 text-xs sm:text-sm tracking-wide"
                     style={{ background: 'linear-gradient(90deg, #9D174D, #EC4899)', boxShadow: '0 4px 20px rgba(236,72,153,0.4)' }}
                   >
                     <Phone className="w-4 h-4" /> Show Contact
                   </button>
                 ) : (
-                  <div className="mb-3 p-4 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                  <div className="mb-2 sm:mb-3 p-3 sm:p-4 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                     {contactDetails ? (
-                      <div className="space-y-2.5">
+                      <div className="space-y-2 sm:space-y-2.5">
                         {contactDetails.phone_number ? (
-                          <div className="space-y-2">
+                          <div className="space-y-1.5 sm:space-y-2">
                             <a
                               href={`tel:${contactDetails.country_code || ''}${contactDetails.phone_number}`}
-                              className="text-2xl font-bold transition-colors block"
+                              className="text-lg sm:text-2xl font-bold transition-colors block break-all"
                               style={{ color: '#EC4899' }}
                             >
                               {contactDetails.country_code || ''} {contactDetails.phone_number}
@@ -837,11 +833,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 )}
 
                 {/* Save + Share */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                   <button
                     onClick={toggleFavorite}
                     disabled={isSavingFavorite || isCheckingFavorite}
-                    className="py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    className="py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5 disabled:opacity-50"
                     style={isFavorite
                       ? { background: 'linear-gradient(90deg, #9D174D, #EC4899)', color: 'white', border: '1px solid transparent' }
                       : { background: 'transparent', color: '#EC4899', border: '1px solid #EC4899' }
@@ -852,7 +848,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   </button>
                   <button
                     onClick={handleShare}
-                    className="py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1.5"
+                    className="py-2 sm:py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1 sm:gap-1.5"
                     style={{ background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0' }}
                   >
                     <Share2 className="w-4 h-4" /> Share
@@ -881,19 +877,19 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   <div style={{ background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
                     <div className="grid grid-cols-2">
                       {statRows.map(([label, val]: any, idx: number) => (
-                        <div key={label} className="flex items-center justify-between px-5 py-2.5" style={{
+                        <div key={label} className="flex items-center justify-between px-3 py-2 sm:px-5 sm:py-2.5 gap-2" style={{
                           borderBottom: idx < statRows.length - 2 ? '1px solid #f1f5f9' : 'none',
                           borderRight: idx % 2 === 0 ? '1px solid #f1f5f9' : 'none',
                         }}>
-                          <span className="text-[11px] uppercase tracking-widest font-medium" style={{ color: '#94a3b8' }}>{label}</span>
-                          <span className="text-xs font-semibold" style={{ color: '#0f172a' }}>{val}</span>
+                          <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-medium shrink-0" style={{ color: '#94a3b8' }}>{label}</span>
+                          <span className="text-[11px] sm:text-xs font-semibold text-right truncate" style={{ color: '#0f172a' }}>{val}</span>
                         </div>
                       ))}
                     </div>
                     {modelDetails.special_characteristics && (
-                      <div className="px-5 py-3" style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <span className="text-[11px] uppercase tracking-widest font-medium block mb-1" style={{ color: '#94a3b8' }}>Special</span>
-                        <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>{modelDetails.special_characteristics}</p>
+                      <div className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ borderTop: '1px solid #f1f5f9' }}>
+                        <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-medium block mb-1" style={{ color: '#94a3b8' }}>Special</span>
+                        <p className="text-[11px] sm:text-xs leading-relaxed" style={{ color: '#475569' }}>{modelDetails.special_characteristics}</p>
                       </div>
                     )}
                   </div>
@@ -907,36 +903,36 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               const outcallRates = rates.filter((r: any) => r.rate_type === 'outcall')
               return (
                 <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Rates</span>
+                  <div className="px-3 py-2.5 sm:px-5 sm:py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Rates</span>
                   </div>
                   <div className="grid grid-cols-2 divide-x divide-slate-100">
                     {/* Incall */}
                     <div>
-                      <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <div className="px-2.5 py-1.5 sm:px-4 sm:py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#EC4899' }}>Incall</span>
                       </div>
                       {incallRates.length > 0 ? incallRates.map((rate: any) => (
-                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
-                          <span className="text-xs" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
-                          <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
+                        <div key={rate.id} className="flex items-center justify-between gap-1 px-2.5 py-2 sm:px-4 sm:py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
+                          <span className="text-[11px] sm:text-xs truncate" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
+                          <span className="text-xs sm:text-sm font-bold shrink-0" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-[10px] sm:text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
                         </div>
                       )) : (
-                        <div className="px-4 py-4 text-xs" style={{ color: '#cbd5e1' }}>—</div>
+                        <div className="px-2.5 py-3 sm:px-4 sm:py-4 text-[11px] sm:text-xs" style={{ color: '#cbd5e1' }}>—</div>
                       )}
                     </div>
                     {/* Outcall */}
                     <div>
-                      <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <div className="px-2.5 py-1.5 sm:px-4 sm:py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#818CF8' }}>Outcall</span>
                       </div>
                       {outcallRates.length > 0 ? outcallRates.map((rate: any) => (
-                        <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
-                          <span className="text-xs" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
-                          <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
+                        <div key={rate.id} className="flex items-center justify-between gap-1 px-2.5 py-2 sm:px-4 sm:py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
+                          <span className="text-[11px] sm:text-xs truncate" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
+                          <span className="text-xs sm:text-sm font-bold shrink-0" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-[10px] sm:text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
                         </div>
                       )) : (
-                        <div className="px-4 py-4 text-xs" style={{ color: '#cbd5e1' }}>—</div>
+                        <div className="px-2.5 py-3 sm:px-4 sm:py-4 text-[11px] sm:text-xs" style={{ color: '#cbd5e1' }}>—</div>
                       )}
                     </div>
                   </div>
@@ -947,20 +943,20 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {/* ── About Me ── */}
             {modelDetails?.about_me && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>About me</span>
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>About me</span>
                 </div>
-                <div className="px-5 py-4 rich-text-content" style={{ color: '#475569' }} dangerouslySetInnerHTML={{ __html: modelDetails.about_me }} />
+                <div className="px-3 py-3 sm:px-5 sm:py-4 text-sm sm:text-base leading-relaxed rich-text-content" style={{ color: '#475569' }} dangerouslySetInnerHTML={{ __html: modelDetails.about_me }} />
               </div>
             )}
 
             {/* ── Services ── */}
             {(services.length > 0 || (modelDetails?.other_services && String(modelDetails.other_services).trim().length > 0)) && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Services</span>
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Services</span>
                 </div>
-                <div className="px-5 py-4">
+                <div className="px-3 py-3 sm:px-5 sm:py-4">
                   {services.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {services.map((service: any) => (
@@ -972,7 +968,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   )}
                   {modelDetails?.services_for?.length > 0 && (
                     <div className={`${services.length > 0 ? 'mt-3 pt-3' : ''}`} style={{ borderTop: services.length > 0 ? '1px solid #f1f5f9' : undefined }}>
-                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>For</p>
+                      <p className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>For</p>
                       <div className="flex flex-wrap gap-1.5">
                         {modelDetails.services_for.map((sf: string, i: number) => (
                           <span key={i} className="text-xs px-3 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>{sf}</span>
@@ -985,8 +981,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       className={`${services.length > 0 || (modelDetails?.services_for?.length ?? 0) > 0 ? 'mt-3 pt-3' : ''}`}
                       style={{ borderTop: services.length > 0 || (modelDetails?.services_for?.length ?? 0) > 0 ? '1px solid #f1f5f9' : undefined }}
                     >
-                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>Other</p>
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{String(modelDetails.other_services).trim()}</p>
+                      <p className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>Other</p>
+                      <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{String(modelDetails.other_services).trim()}</p>
                     </div>
                   )}
                 </div>
@@ -996,20 +992,20 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {/* ── Languages ── */}
             {languages.length > 0 && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Languages</span>
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Languages</span>
                 </div>
-                <div className="px-5 py-4 flex flex-wrap gap-2">
+                <div className="px-3 py-3 sm:px-5 sm:py-4 flex flex-wrap gap-1.5 sm:gap-2">
                   {languages.map((lang: any) => {
                     const filled = levelToStarCount(lang.level)
                     const levelShort = formatLanguageLevel(lang.level)
                     return (
                       <div
                         key={lang.id}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-md"
+                        className="flex items-center gap-1.5 sm:gap-2.5 px-2 py-1.5 sm:px-3 sm:py-2 rounded-md"
                         style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
                       >
-                        <span className="text-sm font-semibold shrink-0" style={{ color: '#0f172a' }}>{lang.language}</span>
+                        <span className="text-xs sm:text-sm font-semibold shrink-0" style={{ color: '#0f172a' }}>{lang.language}</span>
                         <div
                           className="flex items-center gap-0.5"
                           role="img"
@@ -1026,7 +1022,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                                 className="inline-flex rounded-sm outline-none cursor-default focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-1"
                               >
                                 <Star
-                                  className={`w-4 h-4 ${n <= filled ? 'text-amber-400' : 'text-slate-200'}`}
+                                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${n <= filled ? 'text-amber-400' : 'text-slate-200'}`}
                                   fill="currentColor"
                                   strokeWidth={0}
                                   aria-hidden
@@ -1063,16 +1059,16 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               if (!modelDetails?.city && !liveLoc) return null
               return (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Location</span>
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Location</span>
                 </div>
-                <div className="px-5 py-4">
+                <div className="px-3 py-3 sm:px-5 sm:py-4">
                   {modelDetails.city && (
-                    <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{modelDetails.city}</p>
+                    <p className="text-xs sm:text-sm font-bold" style={{ color: '#0f172a' }}>{modelDetails.city}</p>
                   )}
                   {liveLoc && (
                     <p
-                      className={`text-sm font-semibold flex items-center gap-2 ${modelDetails.city ? 'mt-3' : ''}`}
+                      className={`text-xs sm:text-sm font-semibold flex flex-wrap items-center gap-2 ${modelDetails.city ? 'mt-2 sm:mt-3' : ''}`}
                       style={{ color: '#059669' }}
                     >
                       <span className="relative flex h-2 w-2 shrink-0">
@@ -1108,10 +1104,10 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {/* ── Working Hours ── */}
             {workingHours.length > 0 && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Availability</span>
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Availability</span>
                 </div>
-                <div className="px-5 py-3">
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3">
                   {(() => {
                     const is24_7 = workingHours.length === 7 && workingHours.every((wh: any) =>
                       wh.start_time === '00:00:00' && wh.end_time === '23:59:00'
@@ -1119,7 +1115,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     if (is24_7) return (
                       <div className="flex items-center gap-2 py-1">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                        <span className="text-sm font-bold" style={{ color: '#059669' }}>Available 24 / 7</span>
+                        <span className="text-xs sm:text-sm font-bold" style={{ color: '#059669' }}>Available 24 / 7</span>
                       </div>
                     )
                     return (
@@ -1142,13 +1138,13 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {/* ── Collaborations ── */}
             {collabModels.length > 0 && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <Handshake className="w-4 h-4" style={{ color: '#94a3b8' }} />
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Collaborations</span>
-                  <span className="text-[11px] font-bold ml-auto" style={{ color: '#cbd5e1' }}>({collabModels.length})</span>
+                <div className="px-3 py-2.5 sm:px-5 sm:py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <Handshake className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" style={{ color: '#94a3b8' }} />
+                  <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Collaborations</span>
+                  <span className="text-[10px] sm:text-[11px] font-bold ml-auto" style={{ color: '#cbd5e1' }}>({collabModels.length})</span>
                 </div>
-                <div className="p-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="p-2.5 sm:p-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                     {collabModels.map((model: any) => (
                       <Link
                         key={model.id}
@@ -1178,8 +1174,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                             </span>
                           )}
                         </div>
-                        <div className="p-2.5">
-                          <p className="text-sm font-bold truncate group-hover:text-pink-500 transition-colors" style={{ color: '#0f172a' }}>
+                        <div className="p-2 sm:p-2.5">
+                          <p className="text-xs sm:text-sm font-bold truncate group-hover:text-pink-500 transition-colors" style={{ color: '#0f172a' }}>
                             {model.showname || model.username}
                           </p>
                           {(model.city || model.age) && (
@@ -1200,11 +1196,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               const otherComments = comments?.filter((c: any) => c.user?.id !== currentUserId) || []
               return isLoggedIn && otherComments.length > 0 && (
                 <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-                  <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Reviews</span>
-                    <span className="text-[11px] font-bold" style={{ color: '#cbd5e1' }}>({otherComments.length})</span>
+                  <div className="px-3 py-2.5 sm:px-5 sm:py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Reviews</span>
+                    <span className="text-[10px] sm:text-[11px] font-bold" style={{ color: '#cbd5e1' }}>({otherComments.length})</span>
                   </div>
-                  <div className="px-5 py-4 space-y-4">
+                  <div className="px-3 py-3 sm:px-5 sm:py-4 space-y-3 sm:space-y-4">
                     {otherComments.map((comment: any) => (
                       <div key={comment.id} className="pb-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <div className="flex items-start justify-between mb-1.5">
@@ -1247,12 +1243,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── Leave a review ── */}
             <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-              <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>
+              <div className="px-3 py-2.5 sm:px-5 sm:py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <span className="text-[10px] sm:text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>
                   {myComment ? 'Your review' : 'Leave a review'}
                 </span>
               </div>
-              <div className="px-5 py-4">
+              <div className="px-3 py-3 sm:px-5 sm:py-4">
               {myComment ? (
                 <div>
                   <div className="flex items-center justify-between mb-3">
@@ -1348,14 +1344,14 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           </div>
 
           {/* Right Column - sticky media viewer (photos + videos) */}
-          <div>
+          <div className="order-1 lg:order-2">
 
             {/* ── Quick Action Panel – only for logged-in models & clubs ── */}
             {isLoggedIn && currentUserId !== profile.id &&
               (currentUserRole === 'model' || currentUserRole === 'company') &&
               collabStatus !== 'loading' && clubInviteStatus !== 'loading' && (
               <div
-                className="mb-3 rounded-xl p-4"
+                className="mb-2 sm:mb-3 rounded-xl p-3 sm:p-4"
                 style={{
                   background: '#ffffff',
                   border: '1px solid #e2e8f0',
@@ -1441,8 +1437,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             )}
 
             <div
-              className="sticky top-[125px] relative overflow-hidden rounded-lg bg-black"
-              style={{ height: '75vh' }}
+              className="sticky top-20 sm:top-[125px] relative overflow-hidden rounded-lg bg-black h-[min(52vh,420px)] sm:h-[75vh]"
             >
               {mediaItems.length > 0 ? (
                 <>
@@ -1539,20 +1534,20 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
       {/* Share Toast */}
       {showShareToast && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-2xl z-50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <CheckCircle className="w-5 h-5 text-green-400" />
-          <span className="font-medium">Link copied to clipboard!</span>
+        <div className="fixed bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg shadow-2xl z-50 flex items-center gap-2 sm:gap-3 max-w-[calc(100vw-1rem)] animate-in fade-in slide-in-from-bottom-4 duration-300">
+          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 shrink-0" />
+          <span className="font-medium text-sm sm:text-base">Link copied to clipboard!</span>
         </div>
       )}
 
       {/* Comment Login Modal */}
       {showCommentLoginModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 sm:p-8 relative animate-in fade-in zoom-in duration-200">
             {/* Close button */}
             <button
               onClick={() => setShowCommentLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1565,12 +1560,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             </div>
 
             {/* Title */}
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-2 sm:mb-3">
               Leave a Comment
             </h2>
 
             {/* Message */}
-            <p className="text-gray-600 text-center mb-8">
+            <p className="text-gray-600 text-sm sm:text-base text-center mb-6 sm:mb-8">
               You need to be logged in to leave a comment. Create an account or log in to share your experience.
             </p>
 
@@ -1600,12 +1595,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
       {/* Favorites Login Modal */}
       {showLoginModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-5 sm:p-8 relative animate-in fade-in zoom-in duration-200">
             {/* Close button */}
             <button
               onClick={() => setShowLoginModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1618,12 +1613,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             </div>
 
             {/* Title */}
-            <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-2 sm:mb-3">
               Save to Favorites
             </h2>
 
             {/* Message */}
-            <p className="text-gray-600 text-center mb-8">
+            <p className="text-gray-600 text-sm sm:text-base text-center mb-6 sm:mb-8">
               You need to be logged in to save models to your favorites. Create an account or log in to continue.
             </p>
 
@@ -1687,7 +1682,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
           {/* Image */}
           <div
-            className="relative w-full h-full flex items-center justify-center px-20"
+            className="relative w-full h-full flex items-center justify-center px-4 sm:px-20"
             onClick={e => e.stopPropagation()}
           >
             {mediaItems[lightboxIndex]?.type === 'video' ? (

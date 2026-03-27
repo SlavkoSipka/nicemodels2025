@@ -1,11 +1,71 @@
+import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import ListingDetailClient from './ListingDetailClient'
 
-export const revalidate = 60
+interface PageProps {
+  params: Promise<{ id: string }>
+}
 
-export default async function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const admin = createAdminClient()
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+  const { data: listing } = await admin
+    .from('job_listings')
+    .select('listing_type, title, location, description, club_id')
+    .eq('id', id)
+    .single()
+
+  if (!listing) {
+    return { title: 'Listing nicht gefunden' }
+  }
+
+  const isJob = listing.listing_type === 'job'
+  const typeLabel = isJob ? 'Job' : 'Miete'
+  const title = listing.title || (isJob ? 'Stellenangebot' : 'Mietangebot')
+  const location = listing.location || 'Schweiz'
+  const pageTitle = `${title} – ${typeLabel} in ${location}`
+  const desc =
+    listing.description?.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd() ||
+    `${typeLabel}-Angebot in ${location}. Jetzt Details ansehen auf NiceModels.ch`
+
+  const { data: photo } = await admin
+    .from('job_listing_photos')
+    .select('file_path')
+    .eq('listing_id', id)
+    .order('display_order')
+    .limit(1)
+    .single()
+
+  const ogImage = photo?.file_path
+    ? `${SUPA_URL}/storage/v1/object/public/job-listing-photos/${photo.file_path}`
+    : '/logo.webp'
+
+  return {
+    title: pageTitle,
+    description: desc,
+    openGraph: {
+      title: pageTitle,
+      description: desc,
+      type: 'article',
+      images: [{ url: ogImage, alt: title }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: pageTitle,
+      description: desc,
+      images: [ogImage],
+    },
+    alternates: {
+      canonical: `https://www.nicemodels.ch/jobs-rents/${id}`,
+    },
+  }
+}
+
+export default async function ListingDetailPage({ params }: PageProps) {
   const { id } = await params
   const admin = createAdminClient()
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''

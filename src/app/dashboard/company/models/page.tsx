@@ -126,7 +126,7 @@ export default function ManageModelsPage() {
   if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-6xl mx-auto space-y-4">
 
         {/* Header */}
@@ -136,11 +136,11 @@ export default function ManageModelsPage() {
               <Users className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Manage Models</h1>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">Manage Models</h1>
               <p className="text-xs text-gray-500">View and manage your models & invitations</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => router.push('/dashboard/company')}
               className="text-sm font-semibold text-gray-600 hover:text-gray-900"
@@ -160,7 +160,7 @@ export default function ManageModelsPage() {
         {/* Card */}
         <div className="bg-white border border-gray-200 rounded-lg">
           {/* Tabs */}
-          <div className="flex items-center gap-0 border-b border-gray-200 px-5">
+          <div className="flex items-center gap-0 border-b border-gray-200 px-3 md:px-5">
             <button
               onClick={() => setActiveTab('models')}
               className={`px-4 py-3 text-sm font-semibold transition-colors relative ${
@@ -191,7 +191,7 @@ export default function ManageModelsPage() {
             </button>
           </div>
 
-          <div className="p-5">
+          <div className="p-3.5 md:p-5">
             {/* Models Tab */}
             {activeTab === 'models' && (
               <>

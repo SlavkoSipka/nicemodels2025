@@ -89,10 +89,10 @@ export default function ClubProfileClient({
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-8">
 
           {/* ── Hero image (horizontal) ── */}
-          <div className="relative w-full aspect-[16/7] bg-gray-200 rounded-lg overflow-hidden mb-8 shadow-sm">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/7] bg-gray-200 rounded-lg overflow-hidden mb-4 sm:mb-8 shadow-sm">
             {photos.length > 0 ? (
               <>
                 <Image
@@ -144,7 +144,7 @@ export default function ClubProfileClient({
           </div>
 
           {/* ── Content grid ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 sm:gap-6">
 
             {/* LEFT – main info */}
             <div className="space-y-4">
@@ -152,10 +152,10 @@ export default function ClubProfileClient({
               {/* Name / type / location */}
               <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
                 <div className="h-1.5 bg-gradient-to-r from-brand via-rose-400 to-pink-300" />
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-3 mb-1">
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h1 className="text-2xl font-bold text-gray-900 leading-tight">{clubName}</h1>
+                <div className="p-4 sm:p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3 mb-1">
+                    <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+                      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">{clubName}</h1>
                       <button
                         onClick={handleCopyId}
                         title="Copy ID"
@@ -169,7 +169,7 @@ export default function ClubProfileClient({
                         {idCopied ? '✓ copied' : publicIdLabel}
                       </button>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
                       {profile.is_verified && (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-500 px-2.5 py-1 rounded-full shadow-sm">
                           <CheckCircle className="w-3.5 h-3.5" /> Verified
@@ -193,27 +193,27 @@ export default function ClubProfileClient({
 
               {/* About */}
               {clubDetails?.about_description && (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-3">
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
                     <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
                       <Building2 className="w-4 h-4 text-violet-600" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">About Us</p>
+                    <p className="text-xs sm:text-sm font-bold text-gray-800">About Us</p>
                   </div>
-                  <div className="text-sm text-gray-600 leading-relaxed rich-text-content" dangerouslySetInnerHTML={{ __html: clubDetails.about_description }} />
+                  <div className="text-xs sm:text-sm text-gray-600 leading-relaxed rich-text-content" dangerouslySetInnerHTML={{ __html: clubDetails.about_description }} />
                 </div>
               )}
 
               {/* Club Features */}
               {isClub && (clubDetails?.entrance_fee || clubDetails?.wellness || clubDetails?.food_and_drinks || clubDetails?.outdoor_area) && (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
                     <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                       <CheckCircle className="w-4 h-4 text-brand" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">Club Features</p>
+                    <p className="text-xs sm:text-sm font-bold text-gray-800">Club Features</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {clubDetails?.entrance_fee && clubDetails.entrance_fee !== 'na' && (
                       <div className="bg-gray-50 rounded-md p-3">
                         <div className="flex items-center gap-2 mb-1">
@@ -256,14 +256,14 @@ export default function ClubProfileClient({
 
               {/* Address */}
               {(clubDetails?.street || clubDetails?.city) && (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-3">
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-2 sm:mb-3">
                     <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
                       <MapPin className="w-4 h-4 text-rose-600" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">Address</p>
+                    <p className="text-xs sm:text-sm font-bold text-gray-800">Address</p>
                   </div>
-                  <div className="space-y-1 text-sm text-gray-700">
+                  <div className="space-y-1 text-xs sm:text-sm text-gray-700">
                     {clubDetails.street && (
                       <p className="font-medium">{clubDetails.street} {clubDetails.street_number}</p>
                     )}
@@ -279,15 +279,15 @@ export default function ClubProfileClient({
 
               {/* Club Models */}
               {clubModels.length > 0 && (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 sm:p-5">
+                  <div className="flex items-center gap-2 mb-3 sm:mb-4">
                     <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                       <Users className="w-4 h-4 text-brand" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">Our Models</p>
+                    <p className="text-xs sm:text-sm font-bold text-gray-800">Our Models</p>
                     <span className="ml-auto text-xs font-semibold text-gray-400">{clubModels.length}</span>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
                     {clubModels.map(model => (
                       <Link
                         key={model.id}
@@ -337,10 +337,10 @@ export default function ClubProfileClient({
 
               {/* Contact card */}
               <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
-                <div className="bg-gradient-to-r from-brand to-rose-500 px-5 py-4">
-                  <p className="text-sm font-bold text-white">Contact</p>
+                <div className="bg-gradient-to-r from-brand to-rose-500 px-4 py-3 sm:px-5 sm:py-4">
+                  <p className="text-xs sm:text-sm font-bold text-white">Contact</p>
                 </div>
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   {!showContact ? (
                     <button
                       onClick={handleShowContact}
@@ -354,7 +354,7 @@ export default function ClubProfileClient({
                         <div>
                           <a
                             href={`tel:${contactDetails.country_code}${contactDetails.phone_number}`}
-                            className="text-xl font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
+                            className="text-lg sm:text-xl font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
                           >
                             {contactDetails.country_code} {contactDetails.phone_number}
                           </a>
@@ -401,12 +401,12 @@ export default function ClubProfileClient({
               </div>
 
               {/* Working Hours */}
-              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-3">
+              <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 sm:p-5">
+                <div className="flex items-center gap-2 mb-2 sm:mb-3">
                   <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                     <Clock className="w-4 h-4 text-amber-600" />
                   </div>
-                  <p className="text-sm font-bold text-gray-800">Working hours</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-800">Working hours</p>
                 </div>
                 {is24_7 ? (
                   <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-md">

@@ -217,7 +217,7 @@ export default function BuyBannerPage() {
   if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-6xl mx-auto space-y-4">
 
         {/* Header */}
@@ -257,7 +257,7 @@ export default function BuyBannerPage() {
 
         {/* Active banner status */}
         {hasActiveBanner && (
-          <div className="bg-white border border-emerald-200 rounded-lg p-5 flex items-start gap-3">
+          <div className="bg-white border border-emerald-200 rounded-lg p-3.5 md:p-5 flex items-start gap-3">
             <div className="w-9 h-9 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
               <CheckCircle className="w-5 h-5 text-emerald-600" />
             </div>
@@ -275,9 +275,9 @@ export default function BuyBannerPage() {
 
         {/* Package selection */}
         {!hasActiveBanner && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-4">1. Select duration:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
 
@@ -294,7 +294,7 @@ export default function BuyBannerPage() {
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white bg-emerald-500">
                       Beta — Free
                     </div>
-                    <div className="p-5 text-center">
+                    <div className="p-3.5 md:p-5 text-center">
                       <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
                       <p className="text-xs text-gray-400">{pkg.description}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
@@ -318,7 +318,7 @@ export default function BuyBannerPage() {
 
         {/* Banner image upload */}
         {!hasActiveBanner && selectedPackage && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
             <p className="text-sm font-bold text-gray-800">2. Upload banner image:</p>
             <p className="text-xs text-gray-400">
               Recommended: wide landscape ratio (4:1). Max 10MB. JPG, PNG, WebP.
@@ -362,7 +362,7 @@ export default function BuyBannerPage() {
 
         {/* Confirm activation */}
         {!hasActiveBanner && selectedPackage && imageFile && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-bold text-gray-800">3. Confirm:</p>
               <div className="text-right">
@@ -394,7 +394,7 @@ export default function BuyBannerPage() {
         {banners.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
             <h2 className="text-lg font-bold text-gray-900">Your Banners</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {banners.map(banner => (
                 <div key={banner.id} className="border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
                   {banner.image_path && (

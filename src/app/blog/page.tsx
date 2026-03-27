@@ -112,28 +112,28 @@ export default function BlogPage() {
 
         {/* ── Header ── */}
         <div style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-          <div className="max-w-7xl mx-auto px-4 py-12">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+          <div className="max-w-7xl mx-auto px-3 py-6 sm:px-4 sm:py-12">
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2 sm:mb-3">
               Blog
             </p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 leading-tight max-w-2xl">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight max-w-2xl">
               Stories, guides &amp; insights
             </h1>
-            <p className="mt-3 text-slate-500 text-lg max-w-xl">
+            <p className="mt-2 sm:mt-3 text-slate-500 text-base sm:text-lg max-w-xl">
               Tips and industry knowledge for models, agencies and curious readers.
             </p>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
 
           {/* ── Category tabs ── */}
-          <div className="flex items-center gap-1 py-5 border-b border-gray-200 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 py-3 sm:py-5 border-b border-gray-200 overflow-x-auto scrollbar-hide">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`flex-shrink-0 px-3 py-1.5 sm:px-4 rounded-full text-xs sm:text-sm font-medium transition-colors ${
                   selectedCategory === cat
                     ? 'bg-[#ec4899] text-white'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-white'
@@ -146,8 +146,8 @@ export default function BlogPage() {
 
           {/* ── Featured post ── */}
           {featuredPost && selectedCategory === 'All' && (
-            <div className="py-10 border-b border-slate-200">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">
+            <div className="py-6 sm:py-10 border-b border-slate-200">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3 sm:mb-5">
                 Featured
               </p>
               <Link
@@ -155,7 +155,7 @@ export default function BlogPage() {
                 className="group grid grid-cols-1 lg:grid-cols-2 gap-0 rounded-xl overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors"
               >
                 {/* Image */}
-                <div className="relative h-64 lg:h-auto min-h-[280px] bg-gray-100">
+                <div className="relative h-48 sm:h-64 lg:h-auto min-h-[200px] sm:min-h-[280px] bg-gray-100">
                   <Image
                     src={featuredPost.image}
                     alt={featuredPost.title}
@@ -169,17 +169,17 @@ export default function BlogPage() {
                 </div>
 
                 {/* Text */}
-                <div className="flex flex-col justify-between p-8 bg-white">
+                <div className="flex flex-col justify-between p-5 sm:p-8 bg-white">
                   <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-snug group-hover:text-brand transition-colors mb-4">
+                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-snug group-hover:text-brand transition-colors mb-3 sm:mb-4">
                       {featuredPost.title}
                     </h2>
-                    <p className="text-gray-500 leading-relaxed">
+                    <p className="text-sm sm:text-base text-gray-500 leading-relaxed">
                       {featuredPost.excerpt}
                     </p>
                   </div>
-                  <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-100">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-400">
                       <span className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5" />
                         {featuredPost.author}
@@ -203,13 +203,13 @@ export default function BlogPage() {
           )}
 
           {/* ── Posts grid ── */}
-          <div className="py-10">
+          <div className="py-6 sm:py-10">
             {regularPosts.length > 0 ? (
               <>
-                <p className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-7">
+                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4 sm:mb-7">
                   {selectedCategory === 'All' ? 'Latest articles' : selectedCategory}
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8">
                   {regularPosts.map((post) => (
                     <Link
                       key={post.id}
@@ -227,7 +227,7 @@ export default function BlogPage() {
                         />
                       </div>
 
-                      <div className="p-5 flex flex-col flex-1">
+                      <div className="p-4 sm:p-5 flex flex-col flex-1">
                         {/* Meta */}
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-xs font-semibold text-brand uppercase tracking-wide">
@@ -265,17 +265,17 @@ export default function BlogPage() {
                 </div>
               </>
             ) : (
-              <div className="py-16 text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}>
+              <div className="py-10 sm:py-16 px-3 text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}>
                 <p className="text-slate-500">No articles in this category yet.</p>
               </div>
             )}
           </div>
 
           {/* ── Newsletter ── */}
-          <div className="my-10 rounded-xl border border-sky-200 bg-white px-8 py-10 flex flex-col sm:flex-row items-center gap-8" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+          <div className="my-6 sm:my-10 rounded-xl border border-sky-200 bg-white px-4 py-6 sm:px-8 sm:py-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-5 sm:gap-8" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Newsletter</p>
-              <h3 className="text-xl font-bold text-slate-900 mb-1">Stay in the loop</h3>
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Newsletter</p>
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1">Stay in the loop</h3>
               <p className="text-sm text-slate-500">
                 Get the latest guides and news delivered to your inbox. No spam — unsubscribe anytime.
               </p>
@@ -286,7 +286,7 @@ export default function BlogPage() {
               ) : (
                 <form
                   onSubmit={(e) => { e.preventDefault(); setSubscribed(true) }}
-                  className="flex gap-2"
+                  className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto"
                 >
                   <input
                     type="email"
@@ -294,11 +294,11 @@ export default function BlogPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-56 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-brand transition-colors text-slate-800 placeholder-slate-300"
+                    className="w-full sm:w-56 min-w-0 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-brand transition-colors text-slate-800 placeholder-slate-300"
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                    className="w-full sm:w-auto px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
                   >
                     Subscribe
                   </button>

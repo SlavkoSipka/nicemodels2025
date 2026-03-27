@@ -106,14 +106,14 @@ export default function ManageJobsRentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-0 md:ml-[280px]">
         <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-6xl mx-auto space-y-4">
 
         {/* Header */}
@@ -205,7 +205,7 @@ export default function ManageJobsRentPage() {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                        <div className="flex items-center gap-3 flex-wrap text-xs text-gray-400">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {new Date(listing.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
@@ -217,7 +217,7 @@ export default function ManageJobsRentPage() {
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <button
                             onClick={() => router.push(`/jobs-rents/${listing.id}`)}
                             className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"

@@ -60,15 +60,15 @@ export default function Navbar() {
       {/* Top Bar - Baby blue */}
       <div style={{ backgroundColor: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-12 sm:h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center group">
               <Image
-                src="/logo2.png"
+                src="/logo.webp"
                 alt="nicemodels.ch"
                 width={240}
                 height={60}
-                className="h-10 w-auto md:h-12"
+                className="h-8 w-auto sm:h-10 md:h-12"
                 priority
               />
             </Link>
@@ -151,14 +151,14 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="hidden lg:flex items-center justify-center gap-1">
             {[
-              { href: '/models-page',    label: 'Girls' },
+              { href: '/models-page',    label: 'Girls', mobileLabel: 'Models' as const },
               { href: '/clubs',          label: 'Clubs / Agency' },
               { href: '/jobs-rents',     label: 'Jobs / Rent' },
               { href: '/latest-actions', label: 'Latest Actions' },
               { href: '/comments',       label: 'Comments' },
               { href: '/contact',        label: 'Contact' },
               { href: '/blog',           label: 'Blog' },
-            ].map(({ href, label }) => (
+            ].map(({ href, label, ...rest }) => (
               <Link
                 key={href}
                 href={href}
@@ -167,7 +167,14 @@ export default function Navbar() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#ffffff' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.85)' }}
               >
-                {label}
+                {'mobileLabel' in rest && rest.mobileLabel ? (
+                  <>
+                    <span className="sm:hidden">{rest.mobileLabel}</span>
+                    <span className="hidden sm:inline">{label}</span>
+                  </>
+                ) : (
+                  label
+                )}
                 <span
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 rounded-full transition-all duration-300 group-hover:w-3/4"
                   style={{ backgroundColor: 'white' }}
@@ -183,7 +190,7 @@ export default function Navbar() {
         <div className="lg:hidden" style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             {[
-              { href: '/models-page',    label: 'Girls' },
+              { href: '/models-page',    label: 'Models' },
               { href: '/clubs',          label: 'Clubs / Agency' },
               { href: '/jobs-rents',     label: 'Jobs / Rent' },
               { href: '/latest-actions', label: 'Latest Actions' },

@@ -126,7 +126,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
             totalModels={initialModels.length}
             models={initialModels}
           />
-          <div className="px-4 py-6 w-full">
+          <div className="px-2 sm:px-4 py-4 sm:py-6 w-full">
             {filteredModels.length === 0 ? (
               <div
                 className="text-center py-20 rounded-xl"
@@ -136,7 +136,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
                 <p style={{ color: '#94a3b8' }}>Try changing filters</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-2 gap-2 sm:gap-4 w-full">
                 {(() => {
                   const BANNER_GAP = 6
                   const items: React.ReactNode[] = []

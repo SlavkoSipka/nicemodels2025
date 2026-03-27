@@ -52,7 +52,7 @@ export default function PurchaseHistoryPage() {
   if (loading) return null
 
   return (
-    <div className="flex-1 p-6 ml-[280px] bg-gray-50 min-h-screen">
+    <div className="flex-1 p-4 md:p-6 ml-0 md:ml-[280px] bg-gray-50 min-h-screen">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center gap-2">

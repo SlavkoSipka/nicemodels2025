@@ -36,8 +36,8 @@ export default function UserCommentsClient({ comments: initialComments }: { comm
   }
 
   return (
-    <div className="ml-[280px] min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+    <div className="ml-0 md:ml-[280px] min-h-screen bg-gray-50">
+      <div className="py-4 md:py-6 px-4 md:px-6">
         <div className="max-w-4xl mx-auto space-y-4">
 
           {/* Header */}

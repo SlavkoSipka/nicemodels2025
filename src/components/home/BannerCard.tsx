@@ -26,7 +26,7 @@ export default function BannerCard({ banner, priority = false }: BannerCardProps
   const href = banner.cta_url || `/${banner.owner_type === 'club' ? 'clubs' : 'models'}/${banner.owner_id}`
 
   return (
-    <Link href={href} className="block group w-full col-span-1 sm:col-span-2">
+    <Link href={href} className="block group w-full col-span-2">
       <div
         className="relative overflow-hidden w-full transition-all duration-300"
         style={{

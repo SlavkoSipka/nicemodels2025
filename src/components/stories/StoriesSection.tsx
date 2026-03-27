@@ -76,13 +76,13 @@ export default function StoriesSection() {
 
   if (loading) {
     return (
-      <div className="py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
-        <div className="max-w-[1280px] mx-auto px-4">
-          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="py-3 sm:py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
+        <div className="max-w-[1280px] mx-auto px-2 sm:px-4">
+          <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-1.5 sm:pb-2 scrollbar-hide">
             {[1, 2, 3, 4, 5, 6, 7].map((i) => (
               <div key={i} className="flex-shrink-0 text-center">
-                <div className="w-[72px] h-[72px] rounded-full animate-pulse" style={{ background: '#f1f5f9' }} />
-                <div className="w-12 h-2 rounded mt-2 mx-auto animate-pulse" style={{ background: '#f1f5f9' }} />
+                <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-full animate-pulse" style={{ background: '#f1f5f9' }} />
+                <div className="w-10 sm:w-12 h-2 rounded mt-1.5 sm:mt-2 mx-auto animate-pulse" style={{ background: '#f1f5f9' }} />
               </div>
             ))}
           </div>
@@ -102,25 +102,25 @@ export default function StoriesSection() {
 
   return (
     <>
-      <div className="py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
-        <div className="max-w-[1280px] mx-auto px-4">
-          <div className="flex items-center gap-4 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="py-3 sm:py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
+        <div className="max-w-[1280px] mx-auto px-2 sm:px-4">
+          <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-1.5 sm:pb-2 scrollbar-hide">
 
             {/* Add Story */}
             {hasAddButton && (
               <Link href="/dashboard/model/upload-story" className="flex-shrink-0 text-center group">
                 <div className="relative">
                   <div
-                    className="w-[72px] h-[72px] rounded-full flex items-center justify-center transition-all"
+                    className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center transition-all p-[2px] sm:p-0"
                     style={{
                       background: '#fef7fa',
                       border: '1.5px dashed #f9a8d4',
                     }}
                   >
-                    <Plus className="w-6 h-6" style={{ color: '#ec4899' }} />
+                    <Plus className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: '#ec4899' }} />
                   </div>
                 </div>
-                <p className="text-[11px] font-medium mt-2 truncate w-[72px]" style={{ color: '#94a3b8' }}>Add Story</p>
+                <p className="text-[10px] sm:text-[11px] font-medium mt-1 sm:mt-2 truncate w-14 sm:w-[72px]" style={{ color: '#94a3b8' }}>Add Story</p>
               </Link>
             )}
 
@@ -139,7 +139,7 @@ export default function StoriesSection() {
                 >
                   <div className="relative">
                     <div
-                      className="w-[72px] h-[72px] rounded-full p-[2.5px]"
+                      className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-full p-[2px] sm:p-[2.5px]"
                       style={{
                         background: hasUnviewed
                           ? 'linear-gradient(135deg, #ec4899, #f9a8d4, #89CFF0)'
@@ -148,7 +148,7 @@ export default function StoriesSection() {
                     >
                       <div
                         className="w-full h-full rounded-full overflow-hidden"
-                        style={{ border: '2.5px solid #e8f4fd', background: '#f1f5f9' }}
+                        style={{ border: '2px solid #e8f4fd', background: '#f1f5f9' }}
                       >
                         {photoUrl ? (
                           <img
@@ -158,7 +158,7 @@ export default function StoriesSection() {
                           />
                         ) : (
                           <div
-                            className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-lg"
+                            className="w-full h-full rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg"
                             style={{ background: 'linear-gradient(135deg, #ec4899, #f9a8d4)' }}
                           >
                             {modelStory.model_showname.charAt(0).toUpperCase()}
@@ -168,7 +168,7 @@ export default function StoriesSection() {
                     </div>
                     {modelStory.total_stories > 1 && (
                       <div
-                        className="absolute bottom-0 right-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                        className="absolute bottom-0 right-0 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-bold"
                         style={{ background: '#ec4899', color: 'white', border: '2px solid #e8f4fd' }}
                       >
                         {modelStory.total_stories}
@@ -176,7 +176,7 @@ export default function StoriesSection() {
                     )}
                   </div>
                   <p
-                    className="text-[11px] font-medium mt-2 truncate w-[72px]"
+                    className="text-[10px] sm:text-[11px] font-medium mt-1 sm:mt-2 truncate w-14 sm:w-[72px]"
                     style={{ color: hasUnviewed ? '#475569' : '#94a3b8' }}
                   >
                     {modelStory.model_showname}
@@ -193,15 +193,15 @@ export default function StoriesSection() {
                 aria-hidden
               >
                 <div
-                  className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
+                  className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-full flex items-center justify-center"
                   style={{
                     background: '#f8fafc',
                     border: '1.5px dashed #e2e8f0',
                   }}
                 >
-                  <User className="w-5 h-5" style={{ color: '#cbd5e1' }} />
+                  <User className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: '#cbd5e1' }} />
                 </div>
-                <p className="text-[11px] font-medium mt-2 w-[72px] truncate" style={{ color: '#e2e8f0' }}>—</p>
+                <p className="text-[10px] sm:text-[11px] font-medium mt-1 sm:mt-2 w-14 sm:w-[72px] truncate" style={{ color: '#e2e8f0' }}>—</p>
               </div>
             ))}
 

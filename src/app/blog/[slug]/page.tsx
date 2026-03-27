@@ -176,7 +176,7 @@ export default function BlogPostPage() {
       <div className="min-h-screen bg-white">
 
         {/* ── Hero image ── */}
-        <div className="relative w-full aspect-[21/9] max-h-[480px] bg-gray-100 overflow-hidden">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[220px] sm:max-h-[480px] bg-gray-100 overflow-hidden">
           <Image
             src={post.image}
             alt={post.title}
@@ -188,25 +188,25 @@ export default function BlogPostPage() {
         </div>
 
         {/* ── Article ── */}
-        <div className="max-w-3xl mx-auto px-4 py-12">
+        <div className="max-w-3xl mx-auto px-3 py-6 sm:px-4 sm:py-12">
 
           {/* Category label */}
-          <p className="text-xs font-semibold uppercase tracking-widest text-brand mb-4">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-brand mb-3 sm:mb-4">
             {post.category}
           </p>
 
           {/* Title */}
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-3 sm:mb-4">
             {post.title}
           </h1>
 
           {/* Excerpt */}
-          <p className="text-lg text-gray-500 leading-relaxed mb-8">
+          <p className="text-base sm:text-lg text-gray-500 leading-relaxed mb-6 sm:mb-8">
             {post.excerpt}
           </p>
 
           {/* Meta */}
-          <div className="flex flex-wrap items-center gap-5 pb-8 mb-8 border-b border-gray-100 text-sm text-gray-400">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-5 pb-6 sm:pb-8 mb-6 sm:mb-8 border-b border-gray-100 text-xs sm:text-sm text-gray-400">
             <span className="flex items-center gap-1.5">
               <User className="w-4 h-4" />
               {post.author}
@@ -224,12 +224,12 @@ export default function BlogPostPage() {
           {/* Content */}
           <div
             className="
-              prose prose-gray max-w-none
+              prose prose-sm sm:prose-base prose-gray max-w-none
               prose-headings:font-semibold prose-headings:text-gray-900 prose-headings:tracking-tight
-              prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4
-              prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3
-              prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-5
-              prose-ul:pl-5 prose-ul:space-y-1
+              prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:mt-6 sm:prose-h2:mt-10 prose-h2:mb-3 sm:prose-h2:mb-4
+              prose-h3:text-base sm:prose-h3:text-lg prose-h3:mt-4 sm:prose-h3:mt-6 prose-h3:mb-2 sm:prose-h3:mb-3
+              prose-p:text-gray-600 prose-p:leading-relaxed prose-p:mb-4 sm:prose-p:mb-5
+              prose-ul:pl-4 sm:prose-ul:pl-5 prose-ul:space-y-1
               prose-li:text-gray-600
               prose-a:text-brand prose-a:no-underline hover:prose-a:underline
             "
@@ -237,7 +237,7 @@ export default function BlogPostPage() {
           />
 
           {/* Tags */}
-          <div className="flex flex-wrap items-center gap-2 mt-12 pt-8 border-t border-gray-100">
+          <div className="flex flex-wrap items-center gap-2 mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-100">
             <span className="text-xs text-gray-400 font-medium uppercase tracking-wider mr-1">Tags</span>
             {[post.category, 'Switzerland', 'Guide'].map((tag) => (
               <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
@@ -250,11 +250,11 @@ export default function BlogPostPage() {
         {/* ── Related posts ── */}
         {relatedPosts.length > 0 && (
           <div className="border-t border-sky-100 bg-sky-50">
-            <div className="max-w-3xl mx-auto px-4 py-12">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-7">
+            <div className="max-w-3xl mx-auto px-3 py-8 sm:px-4 sm:py-12">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4 sm:mb-7">
                 Related articles
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {relatedPosts.map((rel) => (
                   <Link
                     key={rel.id}
@@ -285,11 +285,11 @@ export default function BlogPostPage() {
         )}
 
         {/* ── Newsletter ── */}
-        <div className="max-w-7xl mx-auto px-4">
-        <div className="my-10 rounded-xl border border-sky-200 bg-white px-8 py-10 flex flex-col sm:flex-row items-center gap-8" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4">
+        <div className="my-6 sm:my-10 rounded-xl border border-sky-200 bg-white px-4 py-6 sm:px-8 sm:py-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-5 sm:gap-8" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Newsletter</p>
-            <h3 className="text-xl font-bold text-slate-900 mb-1">Stay in the loop</h3>
+            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">Newsletter</p>
+            <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1">Stay in the loop</h3>
             <p className="text-sm text-slate-500">
               Get the latest guides and news delivered to your inbox. No spam — unsubscribe anytime.
             </p>
@@ -300,7 +300,7 @@ export default function BlogPostPage() {
             ) : (
               <form
                 onSubmit={(e) => { e.preventDefault(); setSubscribed(true) }}
-                className="flex gap-2"
+                className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto"
               >
                 <input
                   type="email"
@@ -308,11 +308,11 @@ export default function BlogPostPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-56 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-brand transition-colors text-slate-800 placeholder-slate-300"
+                  className="w-full sm:w-56 min-w-0 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-brand transition-colors text-slate-800 placeholder-slate-300"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
+                  className="w-full sm:w-auto px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-semibold rounded-lg transition-colors whitespace-nowrap"
                 >
                   Subscribe
                 </button>

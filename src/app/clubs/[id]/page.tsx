@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
@@ -5,6 +6,62 @@ import ClubProfileClient from './ClubProfileClient'
 
 interface PageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const admin = createAdminClient()
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+  const { data: club } = await admin
+    .from('club_details')
+    .select('club_name, display_name, area, description')
+    .eq('club_id', id)
+    .single()
+
+  if (!club) {
+    return { title: 'Club nicht gefunden' }
+  }
+
+  const name = club.display_name || club.club_name || 'Club'
+  const area = club.area || 'Schweiz'
+  const title = `${name} – Club in ${area}`
+  const desc =
+    club.description?.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd() ||
+    `${name} – Club & Agentur in ${area}. Jetzt Profil ansehen auf NiceModels.ch`
+
+  const { data: photo } = await admin
+    .from('club_photos')
+    .select('file_path')
+    .eq('club_id', id)
+    .eq('is_approved', true)
+    .order('uploaded_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const ogImage = photo?.file_path
+    ? `${SUPA_URL}/storage/v1/object/public/club-photos/${photo.file_path}`
+    : '/logo.webp'
+
+  return {
+    title,
+    description: desc,
+    openGraph: {
+      title,
+      description: desc,
+      type: 'profile',
+      images: [{ url: ogImage, alt: name }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: desc,
+      images: [ogImage],
+    },
+    alternates: {
+      canonical: `https://www.nicemodels.ch/clubs/${id}`,
+    },
+  }
 }
 
 export default async function ClubPage({ params }: PageProps) {

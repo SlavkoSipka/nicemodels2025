@@ -1,7 +1,15 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
+
+export const metadata: Metadata = {
+  title: 'Alle Escort-Models – Schweiz',
+  description:
+    'Durchsuche alle verifizierten Escort-Models in der Schweiz. Aktuelle Profile mit Fotos, Services und Bewertungen auf NiceModels.ch.',
+  alternates: { canonical: 'https://www.nicemodels.ch/models-page' },
+}
 
 export const revalidate = 60
 
