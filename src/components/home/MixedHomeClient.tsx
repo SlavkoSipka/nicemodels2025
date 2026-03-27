@@ -294,7 +294,7 @@ export default function MixedHomeClient({
 
   const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || selectedLiveLocation !== 'all' || searchQuery.trim() !== ''
 
-  // Only shuffle on the client after hydration
+  // Shuffle once on mount — stable order until manual refresh
   useEffect(() => {
     setCards(randomShuffle([
       ...models.map(m => ({ type: 'model' as const, data: m })),
@@ -307,22 +307,24 @@ export default function MixedHomeClient({
     setMounted(true)
   }, [])
 
-  // When filters change, rebuild cards from filtered data
+  // Filter from the already-shuffled order (preserves stable positions)
   const activeCards = useMemo(() => {
     if (!isFiltering) return cards
-    return randomShuffle([
-      ...filteredModels.map(m => ({ type: 'model' as const, data: m })),
-      ...filteredClubs.map(c => ({ type: 'club' as const, data: c })),
-    ])
+    const modelIds = new Set(filteredModels.map(m => m.id))
+    const clubIds = new Set(filteredClubs.map(c => c.id))
+    return cards.filter(c =>
+      (c.type === 'model' && modelIds.has(c.data.id)) ||
+      (c.type === 'club' && clubIds.has(c.data.id))
+    )
   }, [isFiltering, filteredModels, filteredClubs, cards])
 
   const activeWideSlots = useMemo(() => {
     if (!isFiltering) return wideSlots
-    return randomShuffle([
-      ...banners.map(b => ({ type: 'banner' as const, data: b })),
-      ...filteredListings.map(l => ({ type: 'listing' as const, data: l })),
-    ])
-  }, [isFiltering, banners, filteredListings, wideSlots])
+    const listingIds = new Set(filteredListings.map(l => l.id))
+    return wideSlots.filter(s =>
+      s.type === 'banner' || (s.type === 'listing' && listingIds.has(s.data.id))
+    )
+  }, [isFiltering, filteredListings, wideSlots])
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
