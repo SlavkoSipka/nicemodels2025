@@ -77,7 +77,7 @@ export default function ListingBannerCard({ listing }: ListingBannerCardProps) {
             src={listing.photoUrl}
             alt={title}
             fill
-            quality={80}
+            quality={60}
             placeholder="blur"
             blurDataURL={BLUR}
             className="object-cover object-top"

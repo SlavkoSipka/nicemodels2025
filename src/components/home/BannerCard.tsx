@@ -55,7 +55,7 @@ export default function BannerCard({ banner, priority = false }: BannerCardProps
           fill
           sizes="(max-width: 640px) 100vw, 50vw"
           priority={priority}
-          quality={85}
+          quality={65}
           placeholder="blur"
           blurDataURL={BLUR}
           className="object-cover group-hover:scale-[1.02] transition-transform duration-500"

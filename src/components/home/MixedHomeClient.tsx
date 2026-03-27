@@ -87,6 +87,8 @@ export default function MixedHomeClient({
   const [cards, setCards] = useState<CardItem[]>([])
   const [wideSlots, setWideSlots] = useState<CardItem[]>([])
   const [page, setPage] = useState(0)
+  const shouldScrollTop = useRef(false)
+  const contentRef = useRef<HTMLDivElement>(null)
 
   // Filter state
   const [selectedRegion, setSelectedRegion] = useState('all')
@@ -337,9 +339,16 @@ export default function MixedHomeClient({
     (page + 1) * WIDE_PER_PAGE * CARDS_PER_SLOT,
   )
 
+  useEffect(() => {
+    if (shouldScrollTop.current) {
+      shouldScrollTop.current = false
+      window.scrollTo(0, 0)
+    }
+  }, [page])
+
   const goTo = (p: number) => {
+    shouldScrollTop.current = true
     setPage(p)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
