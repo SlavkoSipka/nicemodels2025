@@ -20,20 +20,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
   ]
 
-  const blogSlugs = [
-    'how-to-create-perfect-profile',
-    'safety-tips-for-escorts',
-    'understanding-swiss-escort-laws',
-    'maximizing-your-online-presence',
-    'photography-tips-for-models',
-    'building-client-relationships',
-  ]
-  const blogPages: MetadataRoute.Sitemap = blogSlugs.map(slug => ({
-    url: `${SITE_URL}/blog/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.5,
-  }))
+  let blogPages: MetadataRoute.Sitemap = []
+  const { data: discussionTopics, error: discussionErr } = await admin
+    .from('discussion_topics')
+    .select('slug, updated_at')
+    .eq('status', 'active')
+    .order('updated_at', { ascending: false })
+    .limit(500)
+
+  if (!discussionErr && discussionTopics?.length) {
+    blogPages = discussionTopics.map(t => ({
+      url: `${SITE_URL}/blog/${t.slug}`,
+      lastModified: t.updated_at ? new Date(t.updated_at) : new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
+    }))
+  }
 
   let modelPages: MetadataRoute.Sitemap = []
   const { data: models } = await admin

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
+import { normalizePlacement } from '@/lib/bannerPlacement'
 
 export const metadata: Metadata = {
   title: 'Alle Escort-Models – Schweiz',
@@ -131,11 +132,12 @@ export default async function ModelsPage() {
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('display_order')
 
-  const seenOwners = new Set<string>()
+  const seenOwnerPlacement = new Set<string>()
   const banners = (bannersRaw ?? [])
     .filter((b: any) => {
-      if (seenOwners.has(b.owner_id)) return false
-      seenOwners.add(b.owner_id)
+      const key = `${b.owner_id}:${normalizePlacement(b.placement)}`
+      if (seenOwnerPlacement.has(key)) return false
+      seenOwnerPlacement.add(key)
       return true
     })
     .map((b: any) => ({
@@ -145,6 +147,7 @@ export default async function ModelsPage() {
       title: b.title,
       image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,
       cta_url: b.cta_url,
+      placement: normalizePlacement(b.placement),
     }))
 
   const admin = createAdminClient()

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MixedHomeClient from '@/components/home/MixedHomeClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
+import { normalizePlacement } from '@/lib/bannerPlacement'
 
 export const revalidate = 60
 
@@ -172,13 +173,22 @@ export default async function HomePage() {
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('display_order')
 
-  const seenOwners = new Set<string>()
+  const seenOwnerPlacement = new Set<string>()
   const banners = (bannersRaw ?? [])
-    .filter((b: any) => { if (seenOwners.has(b.owner_id)) return false; seenOwners.add(b.owner_id); return true })
+    .filter((b: any) => {
+      const key = `${b.owner_id}:${normalizePlacement(b.placement)}`
+      if (seenOwnerPlacement.has(key)) return false
+      seenOwnerPlacement.add(key)
+      return true
+    })
     .map((b: any) => ({
-      id: b.id, owner_type: b.owner_type, owner_id: b.owner_id, title: b.title,
+      id: b.id,
+      owner_type: b.owner_type,
+      owner_id: b.owner_id,
+      title: b.title,
       image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,
       cta_url: b.cta_url,
+      placement: normalizePlacement(b.placement),
     }))
 
   // ── 4. Job/Rent listings (active, not blocked) ──

@@ -92,6 +92,7 @@ export default function AdminDashboard() {
     { label: 'Manage Comments', sub: `${stats.pendingComments} total`, icon: <MessageSquare className="w-4 h-4 text-orange-600" />, href: '/dashboard/admin/comments' },
     { label: 'Manage Banners', sub: `${stats.pendingBanners} pending`, icon: <Megaphone className="w-4 h-4 text-purple-600" />, href: '/dashboard/admin/banners' },
     { label: 'Reports', sub: `${stats.pendingReports} pending`, icon: <Flag className="w-4 h-4 text-red-500" />, href: '/dashboard/admin/reports' },
+    { label: 'Discussions', sub: 'Blog / forum topics', icon: <MessageSquare className="w-4 h-4 text-pink-600" />, href: '/dashboard/admin/discussions' },
   ]
 
   const totalPending = stats.pendingPhotos + stats.pendingVideos + stats.pendingVerifications

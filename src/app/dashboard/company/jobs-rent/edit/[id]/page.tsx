@@ -216,35 +216,18 @@ export default function EditJobRentPage() {
       const currentCount = existingPhotos.length
       for (let i = 0; i < newPhotos.length; i++) {
         const raw = newPhotos[i].file
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'edit/page.tsx:upload-start',message:'Edit: Starting photo upload',data:{index:i,fileName:raw.name,fileSize:raw.size,fileType:raw.type,userEmail:user.email,userId:user.id},timestamp:Date.now(),hypothesisId:'A,B,C'})}).catch(()=>{});
-        // #endregion
         let processed: File
         try {
           processed = await processImage(raw)
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'edit/page.tsx:processImage-done',message:'Edit: processImage completed',data:{index:i,processedSize:processed.size,processedType:processed.type},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
-          // #endregion
-        } catch (procErr: any) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'edit/page.tsx:processImage-error',message:'Edit: processImage THREW',data:{index:i,error:procErr?.message},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
+        } catch {
           continue
         }
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
         const filePath = `${user.id}/${listingId}/${fileName}`
 
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'edit/page.tsx:pre-upload',message:'Edit: About to upload to storage',data:{filePath,processedSize:processed.size,processedType:processed.type},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
-        // #endregion
-
         const { error: upErr } = await supabase.storage
           .from('job-listing-photos')
           .upload(filePath, processed, { contentType: 'image/webp', cacheControl: '3600', upsert: false })
-
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'edit/page.tsx:post-upload',message:'Edit: Storage upload result',data:{filePath,success:!upErr,error:upErr?{message:upErr.message,name:(upErr as any).name,statusCode:(upErr as any).statusCode}:null},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
-        // #endregion
 
         if (upErr) {
           console.error('Photo upload error:', upErr)

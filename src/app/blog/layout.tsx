@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Blog – Tipps, Guides & Neuigkeiten',
+  title: 'Discussions – Community | NiceModels',
   description:
-    'Lese Artikel, Tipps und Guides rund um die Escort-Branche in der Schweiz auf NiceModels.ch.',
+    'Community discussions and topics for members on NiceModels.ch. Sign in to take part in the conversation.',
   alternates: { canonical: 'https://www.nicemodels.ch/blog' },
 }
 

@@ -187,6 +187,19 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
+              <Link
+                href="/dashboard/model/buy-banner"
+                className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-semibold transition-all shadow-sm text-sm ${
+                  isActive('/dashboard/model/buy-banner')
+                    ? 'text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-violet-200'
+                    : 'text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 hover:shadow-md hover:shadow-violet-100'
+                }`}
+              >
+                <Megaphone className="w-5 h-5 shrink-0" />
+                <span>Buy Banner</span>
+                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">PROMO</span>
+              </Link>
+
               <Link href="/dashboard/model/upload-story" className={navLinkCls('/dashboard/model/upload-story')}>
                 <Camera className="w-5 h-5 shrink-0" />
                 <span>Upload Story</span>
@@ -214,13 +227,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               <Link href="/dashboard/model/collaborations" className={navLinkCls('/dashboard/model/collaborations')}>
                 <Handshake className="w-5 h-5 shrink-0" />
                 <span>Collaborations</span>
-              </Link>
-
-              <Link href="/dashboard/model/buy-banner" className={navLinkCls('/dashboard/model/buy-banner')}>
-                <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>Buy Banner</span>
               </Link>
 
               <Link href="/dashboard/model/purchase-history" className={navLinkCls('/dashboard/model/purchase-history')}>
@@ -308,9 +314,17 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
-              <Link href="/dashboard/company/buy-banner" className={navLinkCls('/dashboard/company/buy-banner')}>
+              <Link
+                href="/dashboard/company/buy-banner"
+                className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-semibold transition-all shadow-sm text-sm ${
+                  isActive('/dashboard/company/buy-banner')
+                    ? 'text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-violet-200'
+                    : 'text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 hover:shadow-md hover:shadow-violet-100'
+                }`}
+              >
                 <Megaphone className="w-5 h-5 shrink-0" />
                 <span>Buy Banner</span>
+                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">PROMO</span>
               </Link>
 
               <Link href="/dashboard/company/models" className={navLinkCls('/dashboard/company/models')}>

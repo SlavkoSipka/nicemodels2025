@@ -37,9 +37,9 @@ export default async function JobsRentsPage() {
   }
 
   const now = new Date()
+  // Match home page: visibility = status active + not blocked; no expires_at filter.
   const allListings = (rawListings ?? []).filter(l => {
     if (l.starts_at && new Date(l.starts_at) > now) return false
-    if (l.expires_at && new Date(l.expires_at) <= now) return false
     return true
   })
 

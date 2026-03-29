@@ -1,7 +1,14 @@
 'use client'
 
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { Editor } from '@tinymce/tinymce-react'
+
+function getTinyCloudApiKey(): string | undefined {
+  const k =
+    process.env.NEXT_PUBLIC_TINYMCE_API_KEY?.trim() ||
+    process.env.NEXT_PUBLIC_TINYCLOUD_API_KEY?.trim()
+  return k || undefined
+}
 
 interface RichTextEditorProps {
   value: string
@@ -23,6 +30,8 @@ export default function RichTextEditor({
   required = false,
 }: RichTextEditorProps) {
   const editorRef = useRef<any>(null)
+  const cloudApiKey = useMemo(() => getTinyCloudApiKey(), [])
+  const selfHosted = !cloudApiKey
 
   const charCount = value ? value.replace(/<[^>]*>/g, '').length : 0
 
@@ -35,7 +44,9 @@ export default function RichTextEditor({
       )}
 
       <Editor
-        tinymceScriptSrc="/tinymce/tinymce.min.js"
+        apiKey={cloudApiKey}
+        tinymceScriptSrc={selfHosted ? '/tinymce/tinymce.min.js' : undefined}
+        licenseKey={selfHosted ? 'gpl' : undefined}
         onInit={(_evt, editor) => { editorRef.current = editor }}
         value={value}
         onEditorChange={(content) => {
@@ -48,6 +59,12 @@ export default function RichTextEditor({
         init={{
           height,
           menubar: false,
+          ...(selfHosted
+            ? {
+                base_url: '/tinymce',
+                suffix: '.min',
+              }
+            : {}),
           plugins: [
             'advlist', 'autolink', 'lists', 'link',
             'charmap', 'preview',
@@ -74,7 +91,6 @@ export default function RichTextEditor({
           resize: false,
           skin: 'oxide',
           promotion: false,
-          licenseKey: 'gpl',
         }}
       />
 

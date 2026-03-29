@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
   Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
-  MessageCircle, Lock, Send, Loader2, Trash2, MessageSquare, Navigation
+  MessageCircle, Lock, Send, Loader2, Trash2, MessageSquare, Navigation, Megaphone
 } from 'lucide-react'
 
 export default function ModelDashboardPage() {
@@ -474,6 +474,30 @@ export default function ModelDashboardPage() {
               <p className="text-xs text-gray-400 mt-0.5 font-mono">ID: {clientCode}</p>
             </div>
           </div>
+
+          {!profile?.is_blocked && (
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard/model/buy-banner')}
+              className="w-full text-left rounded-xl border border-violet-300/60 bg-gradient-to-r from-violet-600 to-fuchsia-600 p-4 md:p-5 shadow-md shadow-violet-500/25 hover:from-violet-700 hover:to-fuchsia-700 transition-all group"
+            >
+              <div className="flex items-start gap-3 md:gap-4">
+                <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                  <Megaphone className="w-5 h-5 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 px-2 py-0.5 rounded-full">Promotion</span>
+                    <span className="text-sm md:text-base font-bold text-white">Buy a homepage banner</span>
+                  </div>
+                  <p className="text-xs md:text-sm text-white/90 leading-snug">
+                    Get extra visibility with a banner on the homepage — open <span className="font-semibold">Buy Banner</span> in the sidebar to choose a slot.
+                  </p>
+                </div>
+                <ChevronRight className="w-5 h-5 text-white/90 shrink-0 mt-1 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </button>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-5">
 

@@ -18,6 +18,7 @@ CREATE TABLE public.banners (
   starts_at timestamp with time zone,
   expires_at timestamp with time zone,
   display_order integer DEFAULT 0,
+  placement text NOT NULL DEFAULT 'feed_wide' CHECK (placement IN ('feed_wide', 'feed_card', 'sidebar_left')),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
   updated_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT banners_pkey PRIMARY KEY (id),
@@ -26,6 +27,10 @@ CREATE TABLE public.banners (
 
 -- Index for fast homepage queries
 CREATE INDEX idx_banners_active ON public.banners (status, starts_at, expires_at)
+  WHERE status = 'active';
+
+CREATE UNIQUE INDEX idx_banners_one_active_per_owner_placement
+  ON public.banners (owner_id, placement)
   WHERE status = 'active';
 
 -- RLS policies
