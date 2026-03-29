@@ -290,7 +290,7 @@ export default function MixedHomeClient({
 
   const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || selectedLiveLocation !== 'all' || searchQuery.trim() !== ''
 
-  // Shuffle on the client; rebuild when listing data changes
+  // Shuffle on the client; rebuild when listing data changes; fresh shuffle when filtering
   useEffect(() => {
     const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(banners)
     setCards(randomShuffle([
@@ -307,7 +307,6 @@ export default function MixedHomeClient({
     setMounted(true)
   }, [banners, models, clubs, listings])
 
-  // When filters change, rebuild cards from filtered data
   const activeCards = useMemo(() => {
     const { feedCard } = partitionBannersByPlacement(banners)
     if (!isFiltering) return cards

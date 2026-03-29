@@ -1,19 +1,16 @@
 import Navbar from '@/components/layout/Navbar'
 
-export default function HomeLoading() {
+export default function ModelsPageLoading() {
   return (
     <>
       <Navbar />
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
         <div className="max-w-[1280px] mx-auto px-2 sm:px-4 pt-4 animate-pulse">
-          {/* Filter bar skeleton */}
           <div className="flex gap-2 sm:gap-3 mb-4">
             <div className="h-10 flex-1 bg-white/60 rounded-lg" />
             <div className="h-10 flex-1 bg-white/60 rounded-lg" />
             <div className="h-10 flex-1 bg-white/60 rounded-lg hidden sm:block" />
           </div>
-
-          {/* Cards grid skeleton */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
             {[...Array(12)].map((_, i) => (
               <div key={i} className="rounded-xl overflow-hidden bg-white/50">
