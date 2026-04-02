@@ -20,12 +20,17 @@ export async function PATCH(request: NextRequest) {
     if (!id) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
     }
-    if (typeof json.is_deleted !== 'boolean') {
-      return NextResponse.json({ error: 'is_deleted boolean required' }, { status: 400 })
+
+    const updates: Record<string, unknown> = {}
+    if (typeof json.is_deleted === 'boolean') updates.is_deleted = json.is_deleted
+    if (typeof json.body === 'string' && json.body.trim()) updates.body = json.body.trim()
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'Provide is_deleted or body' }, { status: 400 })
     }
 
     const admin = createAdminClient()
-    const { error } = await admin.from('discussion_posts').update({ is_deleted: json.is_deleted }).eq('id', id)
+    const { error } = await admin.from('discussion_posts').update(updates).eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })

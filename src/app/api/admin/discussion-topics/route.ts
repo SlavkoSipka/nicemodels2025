@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
     const body = typeof json.body === 'string' ? json.body : ''
     const status = ['draft', 'active', 'archived'].includes(json.status) ? json.status : 'draft'
     const is_pinned = Boolean(json.is_pinned)
+    const cover_image = typeof json.cover_image === 'string' ? json.cover_image : null
 
     let slug = typeof json.slug === 'string' && json.slug.trim() ? slugifyTitle(json.slug.trim()) : slugifyTitle(title)
 
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
         body,
         status,
         is_pinned,
+        cover_image,
         created_by: user.id,
       })
       .select('id, slug')
@@ -77,6 +79,9 @@ export async function PATCH(request: NextRequest) {
     if (typeof json.body === 'string') updates.body = json.body
     if (['draft', 'active', 'archived'].includes(json.status)) updates.status = json.status
     if (typeof json.is_pinned === 'boolean') updates.is_pinned = json.is_pinned
+    if (json.cover_image === null || typeof json.cover_image === 'string') {
+      updates.cover_image = json.cover_image ?? null
+    }
     if (typeof json.slug === 'string' && json.slug.trim()) {
       const newSlug = slugifyTitle(json.slug.trim())
       const adminCheck = createAdminClient()

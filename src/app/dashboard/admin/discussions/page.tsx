@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { ArrowLeft, MessageSquarePlus, Pin, Trash2, ExternalLink } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowLeft, MessageSquarePlus, Pin, Trash2, ExternalLink, ImagePlus, X } from 'lucide-react'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import { isDiscussionSchemaMissing } from '@/lib/discussion/supabaseErrors'
 
@@ -14,6 +15,7 @@ interface TopicRow {
   body: string
   status: string
   is_pinned: boolean
+  cover_image: string | null
   created_at: string
   updated_at: string
 }
@@ -27,16 +29,23 @@ export default function AdminDiscussionsPage() {
   const [body, setBody] = useState('')
   const [status, setStatus] = useState<'draft' | 'active' | 'archived'>('draft')
   const [isPinned, setIsPinned] = useState(false)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [savingId, setSavingId] = useState<string | null>(null)
   const [schemaMissing, setSchemaMissing] = useState(false)
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+
+  const coverUrl = (path: string | null) =>
+    path ? `${supabaseUrl}/storage/v1/object/public/discussion-images/${path}` : null
 
   const load = async () => {
     setLoading(true)
     const supabase = createClient()
     const { data, error: qErr } = await supabase
       .from('discussion_topics')
-      .select('id, slug, title, body, status, is_pinned, created_at, updated_at')
+      .select('id, slug, title, body, status, is_pinned, cover_image, created_at, updated_at')
       .order('is_pinned', { ascending: false })
       .order('updated_at', { ascending: false })
 
@@ -61,10 +70,36 @@ export default function AdminDiscussionsPage() {
     load()
   }, [])
 
+  const uploadCover = async (file: File): Promise<string | null> => {
+    const supabase = createClient()
+    const ext = file.name.split('.').pop() || 'jpg'
+    const path = `covers/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const { error: upErr } = await supabase.storage.from('discussion-images').upload(path, file, { upsert: true })
+    if (upErr) { setError(`Image upload failed: ${upErr.message}`); return null }
+    return path
+  }
+
+  const handleCoverFile = (file: File | null) => {
+    setCoverFile(file)
+    if (file) {
+      const url = URL.createObjectURL(file)
+      setCoverPreview(url)
+    } else {
+      setCoverPreview(null)
+    }
+  }
+
   const submitCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     setCreating(true)
     setError('')
+
+    let cover_image: string | null = null
+    if (coverFile) {
+      cover_image = await uploadCover(coverFile)
+      if (!cover_image) { setCreating(false); return }
+    }
+
     const res = await fetch('/api/admin/discussion-topics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -73,6 +108,7 @@ export default function AdminDiscussionsPage() {
         body,
         status,
         is_pinned: isPinned,
+        cover_image,
         ...(slug.trim() ? { slug: slug.trim() } : {}),
       }),
     })
@@ -87,6 +123,8 @@ export default function AdminDiscussionsPage() {
     setBody('')
     setStatus('draft')
     setIsPinned(false)
+    setCoverFile(null)
+    setCoverPreview(null)
     await load()
   }
 
@@ -185,6 +223,25 @@ export default function AdminDiscussionsPage() {
               />
             </div>
             <RichTextEditor label="Opening post / description" value={body} onChange={setBody} height={220} />
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Cover image (optional)</label>
+              {coverPreview ? (
+                <div className="relative inline-block">
+                  <Image src={coverPreview} alt="Cover preview" width={320} height={180} className="rounded-lg object-cover border border-gray-200" style={{ maxHeight: 180 }} />
+                  <button type="button" onClick={() => handleCoverFile(null)} className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-0.5 shadow hover:bg-red-50">
+                    <X className="w-4 h-4 text-red-600" />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-2 cursor-pointer w-fit px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-pink-400 hover:text-pink-600 transition-colors">
+                  <ImagePlus className="w-4 h-4" />
+                  Choose image
+                  <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverFile(f) }} />
+                </label>
+              )}
+            </div>
+
             <div className="flex flex-wrap gap-4 items-center">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
@@ -226,8 +283,11 @@ export default function AdminDiscussionsPage() {
                 {topics.map(t => (
                   <li
                     key={t.id}
-                    className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center gap-3"
+                    className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-start gap-3"
                   >
+                    {coverUrl(t.cover_image) && (
+                      <Image src={coverUrl(t.cover_image)!} alt="" width={96} height={64} className="rounded-md object-cover shrink-0 border border-gray-100" style={{ width: 96, height: 64 }} />
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         {t.is_pinned && (
@@ -277,6 +337,26 @@ export default function AdminDiscussionsPage() {
                       >
                         {t.is_pinned ? 'Unpin' : 'Pin'}
                       </button>
+                      <label className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer disabled:opacity-50">
+                        <ImagePlus className="w-3 h-3" />
+                        {t.cover_image ? 'Change cover' : 'Add cover'}
+                        <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                          const f = e.target.files?.[0]
+                          if (!f) return
+                          const path = await uploadCover(f)
+                          if (path) await patchTopic(t.id, { cover_image: path })
+                        }} />
+                      </label>
+                      {t.cover_image && (
+                        <button
+                          type="button"
+                          disabled={savingId === t.id}
+                          onClick={() => patchTopic(t.id, { cover_image: null })}
+                          className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-gray-600"
+                        >
+                          Remove cover
+                        </button>
+                      )}
                       <Link
                         href={`/blog/${t.slug}`}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-pink-200 text-pink-700 hover:bg-pink-50"

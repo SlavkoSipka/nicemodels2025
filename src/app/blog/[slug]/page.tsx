@@ -38,7 +38,7 @@ export default async function BlogTopicPage({ params }: PageProps) {
 
   const { data: row, error: topicErr } = await supabase
     .from('discussion_topics')
-    .select('id, slug, title, body, created_at, updated_at, status')
+    .select('id, slug, title, body, cover_image, created_at, updated_at, status')
     .eq('slug', slug)
     .eq('status', 'active')
     .maybeSingle()
@@ -52,16 +52,26 @@ export default async function BlogTopicPage({ params }: PageProps) {
     slug: row.slug,
     title: row.title,
     body: row.body || '',
+    cover_image: row.cover_image || null,
     created_at: row.created_at,
     updated_at: row.updated_at,
   }
 
-  const { data: posts } = await supabase
-    .from('discussion_posts')
-    .select('id, topic_id, parent_id, author_id, body, created_at')
-    .eq('topic_id', topic.id)
-    .eq('is_deleted', false)
-    .order('created_at', { ascending: true })
+  const [{ data: posts }, { data: { user } }] = await Promise.all([
+    supabase
+      .from('discussion_posts')
+      .select('id, topic_id, parent_id, author_id, body, created_at, updated_at')
+      .eq('topic_id', topic.id)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true }),
+    supabase.auth.getUser(),
+  ])
+
+  let isAdmin = false
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    isAdmin = profile?.role === 'admin'
+  }
 
   const authorIds = (posts || []).map(p => p.author_id)
   const labelMap = await resolveAuthorLabels(supabase, authorIds)
@@ -73,13 +83,14 @@ export default async function BlogTopicPage({ params }: PageProps) {
     author_id: p.author_id,
     body: p.body,
     created_at: p.created_at,
+    updated_at: p.updated_at,
     author_label: labelMap.get(p.author_id) || 'Member',
   }))
 
   return (
     <>
       <Navbar />
-      <BlogTopicClient topic={topic} flatPosts={flatPosts} />
+      <BlogTopicClient topic={topic} flatPosts={flatPosts} isAdmin={isAdmin} />
       <Footer />
     </>
   )

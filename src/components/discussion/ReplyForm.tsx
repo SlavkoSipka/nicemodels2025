@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { Send } from 'lucide-react'
 
 const MAX_LEN = 10000
+const WARN_THRESHOLD = 9000
 
 function plainToSafeHtml(text: string) {
   const esc = text
@@ -18,7 +20,7 @@ export default function ReplyForm({
   topicId,
   parentId,
   onSuccess,
-  placeholder = 'Write a reply…',
+  placeholder = 'Write a reply...',
 }: {
   topicId: string
   parentId: string | null
@@ -75,17 +77,24 @@ export default function ReplyForm({
   }
 
   if (userId === undefined) {
-    return <p className="text-sm text-gray-400">Checking session…</p>
+    return (
+      <div className="flex items-center gap-2 py-3">
+        <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm text-gray-400">Checking session...</span>
+      </div>
+    )
   }
 
   if (userId === null) {
     return (
-      <p className="text-sm text-gray-600">
-        <Link href="/login" className="font-semibold text-pink-600 hover:underline">
-          Sign in
-        </Link>{' '}
-        to join the discussion.
-      </p>
+      <div className="flex items-center gap-2 py-3 px-4 rounded-lg bg-gray-50 border border-gray-200">
+        <p className="text-sm text-gray-600">
+          <Link href="/login" className="font-semibold text-pink-600 hover:underline">
+            Sign in
+          </Link>{' '}
+          to join the discussion.
+        </p>
+      </div>
     )
   }
 
@@ -95,22 +104,27 @@ export default function ReplyForm({
         value={body}
         onChange={e => setBody(e.target.value)}
         placeholder={placeholder}
-        rows={4}
-        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-200 focus:border-pink-400 outline-none resize-y min-h-[100px] text-gray-900"
+        rows={parentId ? 3 : 4}
+        className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-pink-200 focus:border-pink-400 outline-none resize-y min-h-[80px] text-gray-900 transition-colors placeholder:text-gray-400"
       />
       <div className="flex flex-wrap items-center gap-2 justify-between">
-        <span className="text-[10px] text-gray-400">
-          {plainLen} / {MAX_LEN}
-        </span>
+        {plainLen >= WARN_THRESHOLD ? (
+          <span className={`text-[10px] ${plainLen > MAX_LEN ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+            {plainLen} / {MAX_LEN}
+          </span>
+        ) : (
+          <span />
+        )}
         <button
           type="submit"
-          disabled={sending}
-          className="px-4 py-2 text-sm font-semibold rounded-lg bg-pink-600 text-white hover:bg-pink-700 disabled:opacity-50"
+          disabled={sending || plainLen === 0}
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-pink-600 text-white hover:bg-pink-700 disabled:opacity-40 transition-colors"
         >
-          {sending ? 'Posting…' : 'Post'}
+          <Send className="w-3.5 h-3.5" />
+          {sending ? 'Posting...' : 'Post'}
         </button>
       </div>
-      {err && <p className="text-xs text-red-600">{err}</p>}
+      {err && <p className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md">{err}</p>}
     </form>
   )
 }
