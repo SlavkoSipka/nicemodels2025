@@ -76,13 +76,38 @@ interface MixedHomeClientProps {
 const WIDE_PER_PAGE = 3
 const CARDS_PER_SLOT = 4
 
+function buildInitialCards(
+  models: Model[],
+  clubs: ClubCardData[],
+  banners: BannerData[],
+  listings: ListingBannerData[],
+) {
+  const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(banners)
+  return {
+    cards: [
+      ...models.map(m => ({ type: 'model' as const, data: m })),
+      ...clubs.map(c => ({ type: 'club' as const, data: c })),
+      ...feedCard.map(b => ({ type: 'banner_card' as const, data: b })),
+    ] as CardItem[],
+    wideSlots: [
+      ...feedWide.map(b => ({ type: 'banner' as const, data: b })),
+      ...listings.map(l => ({ type: 'listing' as const, data: l })),
+    ] as CardItem[],
+    sidebarRail: sidebarLeft.slice(0, 1),
+  }
+}
+
 export default function MixedHomeClient({
   models, clubs, banners, listings, statusMessages, chatModels,
 }: MixedHomeClientProps) {
-  const [mounted, setMounted] = useState(false)
-  const [cards, setCards] = useState<CardItem[]>([])
-  const [wideSlots, setWideSlots] = useState<CardItem[]>([])
-  const [sidebarRail, setSidebarRail] = useState<BannerData[]>([])
+  const initial = useMemo(
+    () => buildInitialCards(models, clubs, banners, listings),
+    [models, clubs, banners, listings],
+  )
+
+  const [cards, setCards] = useState<CardItem[]>(initial.cards)
+  const [wideSlots, setWideSlots] = useState<CardItem[]>(initial.wideSlots)
+  const [sidebarRail, setSidebarRail] = useState<BannerData[]>(initial.sidebarRail)
   const [page, setPage] = useState(0)
   const shouldScrollTop = useRef(false)
 
@@ -290,21 +315,16 @@ export default function MixedHomeClient({
 
   const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || selectedLiveLocation !== 'all' || searchQuery.trim() !== ''
 
-  // Shuffle on the client; rebuild when listing data changes; fresh shuffle when filtering
+  // Shuffle on the client after hydration for fair rotation; cards are already
+  // visible from the deterministic initial build (no skeleton gate needed).
   useEffect(() => {
-    const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(banners)
-    setCards(randomShuffle([
-      ...models.map(m => ({ type: 'model' as const, data: m })),
-      ...clubs.map(c => ({ type: 'club' as const, data: c })),
-      ...feedCard.map(b => ({ type: 'banner_card' as const, data: b })),
-    ]))
-    setWideSlots(randomShuffle([
-      ...feedWide.map(b => ({ type: 'banner' as const, data: b })),
-      ...listings.map(l => ({ type: 'listing' as const, data: l })),
-    ]))
-    const sideShuffled = sidebarLeft.length <= 1 ? sidebarLeft : randomShuffle([...sidebarLeft])
-    setSidebarRail(sideShuffled.length ? [sideShuffled[0]] : [])
-    setMounted(true)
+    const fresh = buildInitialCards(models, clubs, banners, listings)
+    setCards(randomShuffle([...fresh.cards]))
+    setWideSlots(randomShuffle([...fresh.wideSlots]))
+    const side = fresh.sidebarRail.length <= 1
+      ? fresh.sidebarRail
+      : randomShuffle([...fresh.sidebarRail])
+    setSidebarRail(side.slice(0, 1))
   }, [banners, models, clubs, listings])
 
   const activeCards = useMemo(() => {
@@ -328,17 +348,20 @@ export default function MixedHomeClient({
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
-  // How many pages — driven by wide slots; if no wide slots, page by cards
-  const totalWidePages = activeWideSlots.length > 0
-    ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE)
-    : Math.ceil(activeCards.length / (WIDE_PER_PAGE * CARDS_PER_SLOT)) || 1
-
-  const totalPages = totalWidePages
+  // Page count must cover BOTH wide slots and mixed feed cards. Previously, when any wide
+  // slot existed, only ceil(wides/3) was used — so with 3 listings/banners, totalPages
+  // stayed 1 while activeCards could be 40+; only the first 12 cards were ever sliced,
+  // so shuffled models could never appear on any page.
+  const cardSlotsPerPage = WIDE_PER_PAGE * CARDS_PER_SLOT
+  const pagesFromWide =
+    activeWideSlots.length > 0 ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE) : 1
+  const pagesFromCards = Math.max(1, Math.ceil(activeCards.length / cardSlotsPerPage))
+  const totalPages = Math.max(pagesFromWide, pagesFromCards)
 
   const pageWide = activeWideSlots.slice(page * WIDE_PER_PAGE, (page + 1) * WIDE_PER_PAGE)
   const pageCards = activeCards.slice(
-    page * WIDE_PER_PAGE * CARDS_PER_SLOT,
-    (page + 1) * WIDE_PER_PAGE * CARDS_PER_SLOT,
+    page * cardSlotsPerPage,
+    (page + 1) * cardSlotsPerPage,
   )
 
   useEffect(() => {
@@ -505,19 +528,6 @@ export default function MixedHomeClient({
   )
 
   const renderFeed = () => {
-    if (!mounted) {
-      return (
-        <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-lg sm:rounded-xl"
-              style={{ aspectRatio: '3/4', background: 'rgba(0,0,0,0.06)' }}
-            />
-          ))}
-        </div>
-      )
-    }
     if (activeCards.length === 0 && activeWideSlots.length === 0) {
       return (
         <div

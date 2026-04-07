@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ShoppingCart, Zap, Clock, Calendar, CheckCircle, Building2 } from 'lucide-react'
+import { ShoppingCart, Zap, Clock, Calendar, CheckCircle, Building2, Info } from 'lucide-react'
 
 interface Product {
   id: string
@@ -34,6 +34,7 @@ export default function CompanyActivateAdPage() {
   const [activationDate, setActivationDate] = useState<string>('')
   const [hasActiveAd, setHasActiveAd] = useState(false)
   const [activeAdExpiry, setActiveAdExpiry] = useState<string | null>(null)
+  const [lastExpiredAd, setLastExpiredAd] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState<string>('')
 
   useEffect(() => {
@@ -66,6 +67,9 @@ export default function CompanyActivateAdPage() {
       if (!data || data.length === 0) return
 
       const now = new Date()
+      const fmt = { day: 'numeric' as const, month: 'long' as const, year: 'numeric' as const, hour: '2-digit' as const, minute: '2-digit' as const }
+      let latestExpiry: Date | null = null
+
       for (const item of data) {
         const order = (item as any).orders
         const product = (item as any).products
@@ -77,12 +81,17 @@ export default function CompanyActivateAdPage() {
 
         if (startDate <= now && expiryDate > now) {
           setHasActiveAd(true)
-          setActiveAdExpiry(expiryDate.toLocaleDateString('en-CH', {
-            day: 'numeric', month: 'long', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-          }))
+          setActiveAdExpiry(expiryDate.toLocaleDateString('en-CH', fmt))
           return
         }
+
+        if (expiryDate <= now && (!latestExpiry || expiryDate > latestExpiry)) {
+          latestExpiry = expiryDate
+        }
+      }
+
+      if (latestExpiry) {
+        setLastExpiredAd(latestExpiry.toLocaleDateString('en-CH', fmt))
       }
     } catch (e) {
       console.error('Error checking active ad:', e)
@@ -270,6 +279,22 @@ export default function CompanyActivateAdPage() {
               {activeAdExpiry && (
                 <p className="text-xs text-gray-400 mt-1">Active until: {activeAdExpiry}</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Expired ad notice */}
+        {!hasActiveAd && lastExpiredAd && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 md:p-5 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
+              <Info className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-800 mb-1">Your previous ad has expired</p>
+              <p className="text-sm text-gray-600">
+                It expired on <span className="font-semibold">{lastExpiredAd}</span>. Your club is no longer visible in search results.
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Activate a new ad below to go live again.</p>
             </div>
           </div>
         )}

@@ -78,6 +78,42 @@ CREATE TRIGGER discussion_posts_touch_topic
 ALTER TABLE discussion_topics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE discussion_posts ENABLE ROW LEVEL SECURITY;
 
+-- Avoid RLS recursion: INSERT policy must not SELECT discussion_posts directly.
+-- SECURITY DEFINER read bypasses RLS for parent validation only.
+CREATE OR REPLACE FUNCTION public.discussion_post_parent_is_valid(
+  p_parent_id uuid,
+  p_topic_id uuid
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.discussion_posts pp
+    WHERE pp.id = p_parent_id
+      AND pp.topic_id = p_topic_id
+      AND pp.is_deleted = false
+  );
+$$;
+
+REVOKE ALL ON FUNCTION public.discussion_post_parent_is_valid(uuid, uuid) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.discussion_post_parent_is_valid(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.discussion_post_parent_is_valid(uuid, uuid) TO service_role;
+
+-- Idempotent: safe to re-run (policies already exist from a previous run)
+DROP POLICY IF EXISTS "Anyone can read active topics" ON discussion_topics;
+DROP POLICY IF EXISTS "Admins can read all topics" ON discussion_topics;
+DROP POLICY IF EXISTS "Admins insert topics" ON discussion_topics;
+DROP POLICY IF EXISTS "Admins update topics" ON discussion_topics;
+DROP POLICY IF EXISTS "Admins delete topics" ON discussion_topics;
+DROP POLICY IF EXISTS "Public reads posts on active topics" ON discussion_posts;
+DROP POLICY IF EXISTS "Admins read all posts" ON discussion_posts;
+DROP POLICY IF EXISTS "Logged-in users insert posts on active topics" ON discussion_posts;
+DROP POLICY IF EXISTS "Admins update posts moderation" ON discussion_posts;
+
 -- Helper: caller is admin
 -- discussion_topics policies
 CREATE POLICY "Anyone can read active topics"
@@ -142,12 +178,7 @@ CREATE POLICY "Logged-in users insert posts on active topics"
     )
     AND (
       parent_id IS NULL
-      OR EXISTS (
-        SELECT 1 FROM discussion_posts pp
-        WHERE pp.id = parent_id
-          AND pp.topic_id = topic_id
-          AND pp.is_deleted = false
-      )
+      OR public.discussion_post_parent_is_valid(parent_id, topic_id)
     )
   );
 

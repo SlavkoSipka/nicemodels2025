@@ -32,8 +32,22 @@ export async function updateSession(request: NextRequest) {
   // issues with users being randomly logged out.
 
   const {
-    data: { user },
+    data: { user: userFromJwt },
+    error: authError,
   } = await supabase.auth.getUser()
+
+  // Stale cookies: refresh token missing/revoked on server (logout elsewhere, DB reset, expired).
+  // Clear session so the next request stops spamming AuthApiError in the terminal.
+  let user = userFromJwt
+  if (
+    authError &&
+    (authError.code === 'refresh_token_not_found' ||
+      authError.code === 'invalid_grant' ||
+      (typeof authError.message === 'string' && authError.message.includes('Refresh Token')))
+  ) {
+    await supabase.auth.signOut()
+    user = null
+  }
 
   // Protected routes
   const protectedRoutes = ['/dashboard', '/onboarding']

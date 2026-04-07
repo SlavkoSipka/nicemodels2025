@@ -51,14 +51,15 @@ export default async function HomePage() {
   // ── Stage 2: ALL detail queries in parallel (across all categories) ──
   const stage2: Promise<any>[] = []
 
-  // Models (indices 0-2)
+  // Models (indices 0-2): use admin so RLS never hides other models' public listing
+  // data when the request runs as a logged-in user (RPC already scoped IDs via active ads).
   if (modelIds.length > 0) {
     stage2.push(
-      supabase.from('model_details')
+      admin.from('model_details')
         .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for, share_live_location, live_location_city, live_location_postal_code, live_location_updated_at')
         .in('model_id', modelIds),
-      supabase.from('model_services').select('model_id, services(id, name)').in('model_id', modelIds),
-      supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds)
+      admin.from('model_services').select('model_id, services(id, name)').in('model_id', modelIds),
+      admin.from('model_photos').select('model_id, file_path').in('model_id', modelIds)
         .eq('is_approved', true).order('uploaded_at', { ascending: false }),
     )
   } else {
