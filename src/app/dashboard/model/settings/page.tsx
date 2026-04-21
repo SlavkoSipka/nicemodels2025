@@ -84,7 +84,7 @@ export default function SettingsPage() {
   if (loading) return null
 
   return (
-    <div className="flex-1 p-6 ml-[280px] bg-gray-50 min-h-screen">
+    <div className="flex-1 p-4 md:p-6 ml-0 md:ml-[280px] bg-gray-50 min-h-screen">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center gap-2">
@@ -92,13 +92,13 @@ export default function SettingsPage() {
             <Settings className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Settings</h1>
+            <h1 className="text-lg md:text-xl font-bold text-gray-900">Settings</h1>
             <p className="text-xs text-gray-500">Manage your account settings and preferences</p>
           </div>
         </div>
 
         {/* Account Info */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <p className="text-sm font-bold text-gray-800 mb-3">Associated Email</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input type="email" value={email} disabled
@@ -113,7 +113,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Change Password */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Lock className="w-4 h-4 text-gray-500" />
             <p className="text-sm font-bold text-gray-800">Change Password</p>
@@ -159,7 +159,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Newsletter */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Bell className="w-4 h-4 text-gray-500" />
             <p className="text-sm font-bold text-gray-800">Newsletter</p>
@@ -182,7 +182,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Delete Account */}
-        <div className="bg-white border border-red-200 rounded-lg p-5">
+        <div className="bg-white border border-red-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Trash2 className="w-4 h-4 text-red-600" />
             <p className="text-sm font-bold text-red-600">Account Removal</p>

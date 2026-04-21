@@ -55,13 +55,13 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   // Not logged in - show login prompt
   if (!isLoggedIn) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#fce9f3' }}>
-        <div className="p-8 max-w-sm w-full text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
-          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: 'rgba(236,72,153,0.10)' }}>
+      <div className="min-h-screen flex items-center justify-center p-3 sm:p-4" style={{ background: '#fce9f3' }}>
+        <div className="p-5 sm:p-8 max-w-sm w-full text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+          <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5" style={{ background: 'rgba(236,72,153,0.10)' }}>
             <Lock className="w-6 h-6" style={{ color: '#EC4899' }} />
           </div>
-          <h1 className="text-xl font-semibold text-slate-900 mb-2">Login required</h1>
-          <p className="text-sm mb-6 text-slate-500">
+          <h1 className="text-lg sm:text-xl font-semibold text-slate-900 mb-2">Login required</h1>
+          <p className="text-sm mb-5 sm:mb-6 text-slate-500">
             Sign in to view reviews and comments.
           </p>
           <div className="space-y-2">
@@ -89,20 +89,20 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
   return (
     <>
     <div className="min-h-screen" style={{ background: '#fce9f3' }}>
-      <div className="max-w-7xl mx-auto px-4 py-10">
+      <div className="max-w-7xl mx-auto px-3 py-5 sm:px-4 sm:py-10">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">
+        <div className="mb-5 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
             Reviews & Comments
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Community experiences
           </p>
         </div>
 
         {/* Stats - minimal */}
-        <div className="flex items-baseline gap-2 mb-8 pb-6 border-b border-gray-200">
-          <span className="text-2xl font-semibold text-slate-900">{comments.length}</span>
+        <div className="flex items-baseline gap-2 mb-5 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200">
+          <span className="text-xl sm:text-2xl font-semibold text-slate-900">{comments.length}</span>
           <span className="text-sm text-slate-500">
             {comments.length === 1 ? 'review' : 'reviews'}
           </span>
@@ -110,13 +110,13 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
 
         {/* Comments List */}
         {comments.length === 0 ? (
-          <div className="p-12 text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}>
+          <div className="p-8 sm:p-12 text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}>
             <MessageSquare className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(12,53,71,0.25)' }} />
             <p className="text-sm font-medium text-slate-700">No reviews yet</p>
             <p className="text-sm mt-1" style={{ color: '#64748b' }}>Be the first to share your experience.</p>
           </div>
         ) : (
-          <ul className="space-y-4">
+          <ul className="space-y-3 sm:space-y-4">
             {comments.map((comment) => {
               const modelName = comment.model.model_details[0]?.showname || comment.model.username
               const modelCity = comment.model.model_details[0]?.city
@@ -134,7 +134,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                       {/* Model photo */}
                       <Link
                         href={`/models/${comment.model.id}`}
-                        className="relative w-full sm:w-56 flex-shrink-0 aspect-[3/4] block"
+                        className="relative w-full sm:w-56 flex-shrink-0 aspect-[4/3] sm:aspect-[3/4] block"
                         style={{ background: '#e8f4f8', borderRight: '1px solid rgba(59,130,246,0.12)' }}
                       >
                         {photoUrl ? (
@@ -153,7 +153,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                       </Link>
 
                       {/* Content */}
-                      <div className="flex-1 p-5 sm:p-7 min-w-0 flex flex-col justify-between gap-4">
+                      <div className="flex-1 p-4 sm:p-5 md:p-7 min-w-0 flex flex-col justify-between gap-3 sm:gap-4">
 
                         {/* TOP – name, city, rating */}
                         <div>
@@ -161,7 +161,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                             <div>
                               <Link
                                 href={`/models/${comment.model.id}`}
-                                className="text-xl sm:text-2xl font-bold text-slate-900 hover:text-pink-500 transition-colors block"
+                                className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 hover:text-pink-500 transition-colors block"
                               >
                                 {modelName}
                                 {comment.model.public_id && <span className="ml-1.5 text-xs font-mono text-gray-400">#{comment.model.public_id}</span>}
@@ -178,7 +178,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                                 {Array.from({ length: 5 }).map((_, i) => (
                                   <Star
                                     key={i}
-                                    className={`w-5 h-5 ${i < comment.rating! ? 'fill-amber-400 text-amber-400' : ''}`}
+                                    className={`w-4 h-4 sm:w-5 sm:h-5 ${i < comment.rating! ? 'fill-amber-400 text-amber-400' : ''}`}
                                     style={i >= comment.rating! ? { color: '#cbd5e1' } : undefined}
                                   />
                                 ))}
@@ -189,18 +189,18 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
 
                         {/* MIDDLE – comment text with quote accent */}
                         <div className="flex-1 flex flex-col justify-center gap-3">
-                          <div className="pl-4" style={{ borderLeft: '2px solid rgba(236,72,153,0.5)' }}>
-                            <svg className="w-6 h-6 mb-1" style={{ color: 'rgba(236,72,153,0.35)' }} fill="currentColor" viewBox="0 0 24 24">
+                          <div className="pl-3 sm:pl-4" style={{ borderLeft: '2px solid rgba(236,72,153,0.5)' }}>
+                            <svg className="w-5 h-5 sm:w-6 sm:h-6 mb-1" style={{ color: 'rgba(236,72,153,0.35)' }} fill="currentColor" viewBox="0 0 24 24">
                               <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/>
                             </svg>
-                            <p className="text-base sm:text-lg leading-relaxed" style={{ color: '#334155' }}>
+                            <p className="text-sm sm:text-base md:text-lg leading-relaxed" style={{ color: '#334155' }}>
                               {comment.comment_text}
                             </p>
                           </div>
 
                           {/* Model reply */}
                           {comment.reply_text && (
-                            <div className="rounded-lg px-4 py-3 ml-4" style={{ background: 'rgba(236,72,153,0.06)', border: '1px solid rgba(236,72,153,0.18)' }}>
+                            <div className="rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 ml-2 sm:ml-4" style={{ background: 'rgba(236,72,153,0.06)', border: '1px solid rgba(236,72,153,0.18)' }}>
                               <div className="flex items-center gap-1.5 mb-1">
                                 <Reply className="w-3.5 h-3.5 text-pink-500" />
                                 <span className="text-xs font-bold text-pink-500">{modelName} replied</span>
@@ -217,7 +217,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
 
                         {/* BOTTOM – author, date, profile link */}
                         <div
-                          className="flex flex-wrap items-center justify-between gap-3 pt-3 text-sm"
+                          className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3 pt-3 text-xs sm:text-sm"
                           style={{ borderTop: '1px solid #e2e8f0', color: '#94a3b8' }}
                         >
                           <div className="flex items-center gap-4">
@@ -242,7 +242,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                           </div>
                           <Link
                             href={`/models/${comment.model.id}`}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-md font-semibold text-sm transition-all"
+                            className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 rounded-md font-semibold text-sm transition-all"
                             style={{ background: 'rgba(59,130,246,0.10)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.25)' }}
                           >
                             View Profile

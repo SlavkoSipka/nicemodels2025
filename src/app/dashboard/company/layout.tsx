@@ -8,7 +8,9 @@ export default function CompanyDashboardLayout({
   return (
     <>
       <DashboardSidebar userRole="company" />
-      {children}
+      <div className="pt-14 md:pt-0">
+        {children}
+      </div>
     </>
   )
 }

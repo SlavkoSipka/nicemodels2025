@@ -290,14 +290,14 @@ export default function CreateJobRentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-[280px]">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-0 md:ml-[280px]">
         <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-4xl mx-auto space-y-4">
 
         {/* Header */}
@@ -331,7 +331,7 @@ export default function CreateJobRentPage() {
         )}
 
         {/* Section 1: About */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
               <MapPin className="w-4 h-4 text-violet-600" />
@@ -505,7 +505,7 @@ export default function CreateJobRentPage() {
         )}
 
         {/* Section 2: Description */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
               <FileText className="w-4 h-4 text-blue-600" />
@@ -522,7 +522,7 @@ export default function CreateJobRentPage() {
         </div>
 
         {/* Section 3: Photos */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
               <Upload className="w-4 h-4 text-amber-600" />
@@ -564,7 +564,7 @@ export default function CreateJobRentPage() {
         </div>
 
         {/* Section 4: Contact */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center">
               <Phone className="w-4 h-4 text-emerald-600" />
@@ -639,7 +639,7 @@ export default function CreateJobRentPage() {
         </div>
 
         {/* Section 5: Services */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <button
             onClick={() => setServicesOpen(!servicesOpen)}
             className="w-full flex items-center justify-between"
@@ -688,7 +688,7 @@ export default function CreateJobRentPage() {
         </div>
 
         {/* Section 6: Duration / Purchase */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
               <Zap className="w-4 h-4 text-brand" />

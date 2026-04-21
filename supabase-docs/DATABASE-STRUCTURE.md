@@ -43,6 +43,12 @@
 - product_type: 'ad_package', 'banner_package'
 ```
 
+### `banners` tabela
+```
+- placement: 'feed_wide' | 'feed_card' | 'sidebar_left' (default feed_wide; see supabase-docs/ALTER-banners-add-placement.sql)
+- Jedan aktivan red po (owner_id, placement) — partial unique index u migraciji
+```
+
 ### `club_photos` tabela
 ```
 - id, club_id (FK → profiles.id), file_path, file_name

@@ -68,8 +68,8 @@ export default function ContactPage() {
       <div style={{ background: '#fce9f3', minHeight: '100vh' }}>
         {/* Minimal header */}
         <div style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-semibold text-slate-900">Contact</h1>
+          <div className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-8">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Contact</h1>
             <p className="text-sm text-slate-500 mt-1">Reach out anytime.</p>
             <p className="text-sm text-slate-600 mt-3 px-3 py-2 rounded-lg max-w-2xl" style={{ background: 'rgba(236,72,153,0.08)', border: '1px solid rgba(236,72,153,0.20)' }}>
               <span className="font-medium text-slate-900">Beta:</span> We're still improving the site. If you notice any issues or have feedback, please get in touch — we'd love to hear from you.
@@ -77,13 +77,13 @@ export default function ContactPage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 pt-12 pb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto px-3 pt-6 pb-12 sm:px-4 sm:pt-12 sm:pb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-8">
             
             {/* Contact Information - Left Side */}
-            <div className="lg:col-span-1 space-y-4">
+            <div className="lg:col-span-1 space-y-3 sm:space-y-4">
               {/* Contact */}
-              <div className="rounded-xl p-5" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+              <div className="rounded-xl p-4 sm:p-5" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
                 <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(236,72,153,0.10)' }}>
@@ -134,8 +134,8 @@ export default function ContactPage() {
               </div>
 
               {/* Quick Info */}
-              <div className="rounded-xl p-5" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-                <h3 className="text-sm font-semibold text-slate-800 mb-3">Quick Info</h3>
+              <div className="rounded-xl p-4 sm:p-5" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-2 sm:mb-3">Quick Info</h3>
                 <ul className="space-y-2 text-sm">
                   {['24/7 platform access', 'Verified profiles', 'Safe & secure', 'Switzerland wide'].map(item => (
                     <li key={item} className="flex items-center gap-2 text-slate-600">
@@ -149,9 +149,9 @@ export default function ContactPage() {
 
             {/* Contact Form - Right Side */}
             <div className="lg:col-span-2">
-              <div className="rounded-xl p-6 sm:p-7" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-slate-900">Send a message</h2>
+              <div className="rounded-xl p-4 sm:p-7" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+                <div className="mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Send a message</h2>
                   <p className="text-sm mt-1 text-slate-500">We'll get back to you as soon as possible.</p>
                 </div>
 
@@ -162,7 +162,7 @@ export default function ContactPage() {
                     <p className="text-sm text-slate-500">We'll reply within 24 hours.</p>
                   </div>
                 ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5">
+                  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                     {error && (
                       <div className="rounded-lg p-3 flex items-start gap-2" style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
                         <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
@@ -184,7 +184,7 @@ export default function ContactPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
                           Phone
@@ -266,15 +266,15 @@ export default function ContactPage() {
                 )}
               </div>
 
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-xl p-4" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                  <h3 className="text-sm font-semibold text-slate-800 mb-1">For models</h3>
+              <div className="mt-3 sm:mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <div className="rounded-xl p-3 sm:p-4" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-1">For models</h3>
                   <p className="text-xs text-slate-500">
                     Registration, verification or advertising — we're here to help.
                   </p>
                 </div>
-                <div className="rounded-xl p-4" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                  <h3 className="text-sm font-semibold text-slate-800 mb-1">For clubs & agencies</h3>
+                <div className="rounded-xl p-3 sm:p-4" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-1">For clubs & agencies</h3>
                   <p className="text-xs text-slate-500">
                     List your club or agency. Contact us for packages and benefits.
                   </p>

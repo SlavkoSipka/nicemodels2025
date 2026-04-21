@@ -57,7 +57,7 @@ export default function StatisticsPage() {
   ]
 
   return (
-    <div className="flex-1 p-6 ml-[280px] bg-gray-50 min-h-screen">
+    <div className="flex-1 p-4 md:p-6 ml-0 md:ml-[280px] bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -70,7 +70,7 @@ export default function StatisticsPage() {
               <p className="text-xs text-gray-500">Track your profile performance</p>
             </div>
           </div>
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 overflow-x-auto whitespace-nowrap">
             {tabBtn('all', 'All Time')}
             {tabBtn('week', 'Last 7 Days')}
             {tabBtn('month', 'Last Month')}
@@ -81,7 +81,7 @@ export default function StatisticsPage() {
         {/* Stat cards */}
         <div>
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Statistics · {rangeLabel}</p>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-2 md:gap-3">
             {stats.map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -90,7 +90,7 @@ export default function StatisticsPage() {
                     <Icon className="w-4 h-4" />
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">{value}</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-900">{value}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{rangeLabel}</p>
               </div>
             ))}
@@ -100,7 +100,7 @@ export default function StatisticsPage() {
         {/* Daily Activity table */}
         {dailyStats.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100">
+            <div className="px-3 md:px-5 py-3 border-b border-gray-100">
               <p className="text-sm font-bold text-gray-800">Recent Daily Activity</p>
             </div>
             <div className="overflow-x-auto">

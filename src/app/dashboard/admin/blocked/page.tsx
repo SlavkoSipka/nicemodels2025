@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { ArrowLeft, User, Building2, UserX, UserCheck } from 'lucide-react'
+import { ArrowLeft, User, Building2, UserX, UserCheck, UserCircle, Shield } from 'lucide-react'
 
 interface BlockedUser {
   id: string
@@ -11,33 +10,67 @@ interface BlockedUser {
   username: string
   role: string
   created_at: string
-  blocked_at: string
+  blocked_at: string | null
   blocked_reason: string | null
   model_details?: { showname: string }
-  club_details?: { club_name: string }
+  club_details?: { club_name: string; display_name?: string | null }
 }
 
 export default function AdminBlockedPage() {
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([])
 
   useEffect(() => { load() }, [])
 
   const load = async () => {
-    const supabase = createClient()
-
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, email, username, public_id, role, created_at, blocked_at, blocked_reason, model_details (showname), club_details (club_name)')
-      .eq('is_blocked', true)
-      .order('blocked_at', { ascending: false })
-
-    setBlockedUsers((data || []).map(u => ({
-      ...u,
-      model_details: Array.isArray(u.model_details) ? u.model_details[0] : u.model_details,
-      club_details: Array.isArray(u.club_details) ? u.club_details[0] : u.club_details,
-    })))
+    setLoadError(null)
+    setLoading(true)
+    const res = await fetch('/api/admin/blocked-users')
+    const json = await res.json()
+    if (!res.ok) {
+      setLoadError(typeof json.error === 'string' ? json.error : 'Could not load blocked users')
+      setBlockedUsers([])
+      setLoading(false)
+      return
+    }
+    const list = (json.users || []) as BlockedUser[]
+    setBlockedUsers(list)
     setLoading(false)
+  }
+
+  const displayName = (user: BlockedUser) => {
+    if (user.role === 'model') return user.model_details?.showname || user.username || '—'
+    if (user.role === 'company') {
+      return user.club_details?.display_name || user.club_details?.club_name || user.username || '—'
+    }
+    return user.username || user.email || '—'
+  }
+
+  const roleBadgeClass = (role: string) => {
+    switch (role) {
+      case 'model':
+        return 'bg-brand/10 text-brand'
+      case 'company':
+        return 'bg-blue-50 text-blue-700'
+      case 'admin':
+        return 'bg-violet-50 text-violet-700'
+      default:
+        return 'bg-slate-100 text-slate-700'
+    }
+  }
+
+  const roleIcon = (role: string) => {
+    switch (role) {
+      case 'model':
+        return <User className="w-4 h-4 text-brand" />
+      case 'company':
+        return <Building2 className="w-4 h-4 text-blue-600" />
+      case 'admin':
+        return <Shield className="w-4 h-4 text-violet-600" />
+      default:
+        return <UserCircle className="w-4 h-4 text-slate-600" />
+    }
   }
 
   const handleUnblock = async (userId: string) => {
@@ -75,6 +108,12 @@ export default function AdminBlockedPage() {
             </div>
           </div>
 
+          {loadError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+              {loadError}
+            </div>
+          )}
+
           {/* Table */}
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
@@ -91,13 +130,15 @@ export default function AdminBlockedPage() {
                     <tr key={user.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${user.role === 'model' ? 'bg-brand/10' : 'bg-blue-50'}`}>
-                            {user.role === 'model' ? <User className="w-4 h-4 text-brand" /> : <Building2 className="w-4 h-4 text-blue-600" />}
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                            user.role === 'model' ? 'bg-brand/10' : user.role === 'company' ? 'bg-blue-50' : user.role === 'admin' ? 'bg-violet-50' : 'bg-slate-100'
+                          }`}>
+                            {roleIcon(user.role)}
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">
-                              {user.role === 'model' ? user.model_details?.showname || user.username || 'N/A' : user.club_details?.club_name || user.username || 'N/A'}
-                              {user.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{user.public_id}</span>}
+                              {displayName(user)}
+                              {user.public_id != null && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{user.public_id}</span>}
                             </p>
                             <p className="text-xs text-gray-400">@{user.username || 'no-username'}</p>
                           </div>
@@ -105,11 +146,13 @@ export default function AdminBlockedPage() {
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate"><a href={`mailto:${user.email}`} className="hover:text-brand hover:underline">{user.email}</a></td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${user.role === 'model' ? 'bg-brand/10 text-brand' : 'bg-blue-50 text-blue-700'}`}>
+                        <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${roleBadgeClass(user.role)}`}>
                           {user.role === 'company' ? 'club' : user.role}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{new Date(user.blocked_at).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500">
+                        {user.blocked_at ? new Date(user.blocked_at).toLocaleDateString() : '—'}
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate">{user.blocked_reason || '—'}</td>
                       <td className="px-4 py-3">
                         <button onClick={() => handleUnblock(user.id)}

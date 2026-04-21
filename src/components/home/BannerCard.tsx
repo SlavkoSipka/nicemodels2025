@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { trackBannerImpression, trackBannerClick } from '@/lib/tracking'
+import type { BannerPlacement } from '@/lib/bannerPlacement'
 
 export interface BannerData {
   id: string
@@ -12,6 +13,8 @@ export interface BannerData {
   title: string
   image_url: string | null
   cta_url?: string | null
+  /** Defaults to feed_wide when omitted (legacy rows). */
+  placement?: BannerPlacement
 }
 
 interface BannerCardProps {

@@ -1,6 +1,14 @@
+import type { Metadata } from 'next'
 import SearchFilters from '@/components/search/SearchFilters'
 import ProfileGrid from '@/components/search/ProfileGrid'
 import { Suspense } from 'react'
+
+export const metadata: Metadata = {
+  title: 'Escort-Models suchen – Schweiz',
+  description:
+    'Finde dein perfektes Escort-Model in der Schweiz. Filtern nach Stadt, Alter, Services und mehr auf NiceModels.ch.',
+  alternates: { canonical: 'https://www.nicemodels.ch/search' },
+}
 
 export default function SearchPage() {
   return (

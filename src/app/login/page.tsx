@@ -190,16 +190,16 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-1 bg-gray-50 py-6 px-4">
+      <div className="flex-1 bg-gray-50 py-4 sm:py-6 px-3 sm:px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <div className="inline-flex bg-white border border-gray-200 rounded-lg shadow-sm p-1">
-              <div className="px-6 py-2 text-sm font-bold text-white bg-brand rounded-md shadow-sm">
+              <div className="px-4 sm:px-6 py-2 text-xs sm:text-sm font-bold text-white bg-brand rounded-md shadow-sm">
                 Sign in
               </div>
               <Link
                 href="/register"
-                className="px-6 py-2 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all"
+                className="px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all"
               >
                 Register
               </Link>
@@ -208,10 +208,10 @@ export default function LoginPage() {
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="bg-[#1f2126] p-8 flex flex-col justify-between">
+              <div className="bg-[#1f2126] p-5 sm:p-8 flex flex-col justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-white mb-1">Welcome back!</h1>
-                  <p className="text-sm text-gray-400 mb-8">Sign in to your account</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Welcome back!</h1>
+                  <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-8">Sign in to your account</p>
 
                   <div className="space-y-4">
                     {[
@@ -232,7 +232,7 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <div className="mt-10 pt-6 border-t border-gray-700">
+                <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-700">
                   <p className="text-xs text-gray-500">Don&apos;t have an account?{' '}
                     <Link href="/register" className="text-brand hover:text-brand-hover font-semibold transition-colors">
                       Register here
@@ -241,7 +241,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="p-8">
+              <div className="p-5 sm:p-8">
                 <Suspense fallback={<div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand" /></div>}>
                   <LoginFormInner />
                 </Suspense>
@@ -250,7 +250,9 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-      <Footer />
+      <div className="hidden md:block">
+        <Footer />
+      </div>
     </div>
   )
 }

@@ -158,7 +158,7 @@ export default function CompanyNotificationsPage() {
   if (loading) return null
 
   return (
-      <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
+      <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">

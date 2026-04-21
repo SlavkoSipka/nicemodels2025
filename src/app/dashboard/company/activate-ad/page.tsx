@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ShoppingCart, Zap, Clock, Calendar, CheckCircle, Building2 } from 'lucide-react'
+import { ShoppingCart, Zap, Clock, Calendar, CheckCircle, Building2, Info } from 'lucide-react'
 
 interface Product {
   id: string
@@ -34,6 +34,7 @@ export default function CompanyActivateAdPage() {
   const [activationDate, setActivationDate] = useState<string>('')
   const [hasActiveAd, setHasActiveAd] = useState(false)
   const [activeAdExpiry, setActiveAdExpiry] = useState<string | null>(null)
+  const [lastExpiredAd, setLastExpiredAd] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState<string>('')
 
   useEffect(() => {
@@ -66,6 +67,9 @@ export default function CompanyActivateAdPage() {
       if (!data || data.length === 0) return
 
       const now = new Date()
+      const fmt = { day: 'numeric' as const, month: 'long' as const, year: 'numeric' as const, hour: '2-digit' as const, minute: '2-digit' as const }
+      let latestExpiry: Date | null = null
+
       for (const item of data) {
         const order = (item as any).orders
         const product = (item as any).products
@@ -77,12 +81,17 @@ export default function CompanyActivateAdPage() {
 
         if (startDate <= now && expiryDate > now) {
           setHasActiveAd(true)
-          setActiveAdExpiry(expiryDate.toLocaleDateString('en-CH', {
-            day: 'numeric', month: 'long', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-          }))
+          setActiveAdExpiry(expiryDate.toLocaleDateString('en-CH', fmt))
           return
         }
+
+        if (expiryDate <= now && (!latestExpiry || expiryDate > latestExpiry)) {
+          latestExpiry = expiryDate
+        }
+      }
+
+      if (latestExpiry) {
+        setLastExpiredAd(latestExpiry.toLocaleDateString('en-CH', fmt))
       }
     } catch (e) {
       console.error('Error checking active ad:', e)
@@ -210,7 +219,7 @@ export default function CompanyActivateAdPage() {
   if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-6xl mx-auto space-y-4">
 
         {/* Header */}
@@ -258,7 +267,7 @@ export default function CompanyActivateAdPage() {
 
         {/* Active ad status */}
         {hasActiveAd && (
-          <div className="bg-white border border-emerald-200 rounded-lg p-5 flex items-start gap-3">
+          <div className="bg-white border border-emerald-200 rounded-lg p-3.5 md:p-5 flex items-start gap-3">
             <div className="w-9 h-9 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
               <CheckCircle className="w-5 h-5 text-emerald-600" />
             </div>
@@ -274,11 +283,27 @@ export default function CompanyActivateAdPage() {
           </div>
         )}
 
+        {/* Expired ad notice */}
+        {!hasActiveAd && lastExpiredAd && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3.5 md:p-5 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
+              <Info className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-800 mb-1">Your previous ad has expired</p>
+              <p className="text-sm text-gray-600">
+                It expired on <span className="font-semibold">{lastExpiredAd}</span>. Your club is no longer visible in search results.
+              </p>
+              <p className="text-xs text-gray-400 mt-1">Activate a new ad below to go live again.</p>
+            </div>
+          </div>
+        )}
+
         {/* Package cards */}
         {!hasActiveAd && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-4">Select duration:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
                 const isInCart = cart.some(item => item.product.id === pkg.id)
@@ -298,7 +323,7 @@ export default function CompanyActivateAdPage() {
                     <div className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white ${isInCart ? 'bg-emerald-500' : 'bg-emerald-500'}`}>
                       {isInCart ? 'Added to cart' : 'Beta — Free'}
                     </div>
-                    <div className="p-5 text-center">
+                    <div className="p-3.5 md:p-5 text-center">
                       <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
                       <p className="text-xs text-gray-400">{pkg.description}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
@@ -328,7 +353,7 @@ export default function CompanyActivateAdPage() {
 
         {/* Activation type */}
         {!hasActiveAd && selectedPackage && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-3">Activation date:</p>
             <div className="flex flex-wrap gap-2">
               {[
@@ -377,7 +402,7 @@ export default function CompanyActivateAdPage() {
 
         {/* Cart */}
         {!hasActiveAd && cart.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-3">Your cart:</p>
             <div className="space-y-2">
               {cart.map((item, index) => (

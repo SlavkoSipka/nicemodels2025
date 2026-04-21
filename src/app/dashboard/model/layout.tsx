@@ -10,7 +10,9 @@ export default function ModelDashboardLayout({
     <>
       <DashboardSidebar userRole="model" />
       <LiveLocationGate />
-      {children}
+      <div className="pt-14 md:pt-0">
+        {children}
+      </div>
     </>
   )
 }

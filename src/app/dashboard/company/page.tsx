@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, Users,
-  Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Bell
+  Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Bell, Megaphone
 } from 'lucide-react'
 
 export default function CompanyDashboardPage() {
@@ -76,12 +76,12 @@ export default function CompanyDashboardPage() {
   const strength = hasPhotos && hasModels ? 100 : hasPhotos || hasModels ? 65 : 35
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-6 ml-[280px]">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+      <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
 
         {/* Blocked account */}
         {profile?.is_blocked && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-5">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3.5 md:p-5">
             <div className="flex items-start gap-3">
               <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div className="flex-1">
@@ -114,12 +114,12 @@ export default function CompanyDashboardPage() {
 
         {/* Unread notifications banner */}
         {notifications.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5 flex items-center justify-between gap-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 flex items-center justify-between gap-3 md:gap-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-md bg-brand/10 flex items-center justify-center shrink-0">
                 <Bell className="w-5 h-5 text-brand" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-bold text-gray-900">
                   {notifications.length} unread notification{notifications.length > 1 ? 's' : ''}
                 </p>
@@ -138,26 +138,50 @@ export default function CompanyDashboardPage() {
         {/* Welcome header */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-lg md:text-xl font-bold text-gray-900">
               Welcome back, <span className="text-brand">{clubName}</span>
             </h1>
             <p className="text-xs text-gray-400 mt-0.5 font-mono">Agency ID: {clientCode}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {!profile?.is_blocked && (
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard/company/buy-banner')}
+            className="w-full text-left rounded-xl border border-violet-300/60 bg-gradient-to-r from-violet-600 to-fuchsia-600 p-4 md:p-5 shadow-md shadow-violet-500/25 hover:from-violet-700 hover:to-fuchsia-700 transition-all group"
+          >
+            <div className="flex items-start gap-3 md:gap-4">
+              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                <Megaphone className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 px-2 py-0.5 rounded-full">Promotion</span>
+                  <span className="text-sm md:text-base font-bold text-white">Buy a homepage banner</span>
+                </div>
+                <p className="text-xs md:text-sm text-white/90 leading-snug">
+                  Promote your club with a banner on the homepage — use <span className="font-semibold">Buy Banner</span> in the sidebar to pick a slot.
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-white/90 shrink-0 mt-1 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+          </button>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-5">
 
           {/* Left / main */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-3 md:space-y-4">
 
             {/* Photo alert */}
             {!hasPhotos && (
-              <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between gap-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-4 flex items-center justify-between gap-3 md:gap-4">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-md bg-rose-100 flex items-center justify-center shrink-0">
                     <Camera className="w-4 h-4 text-rose-600" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900">Your club profile needs photos</p>
                     <p className="text-xs text-gray-500">Upload at least 1 photo to improve your profile visibility</p>
                   </div>
@@ -172,15 +196,15 @@ export default function CompanyDashboardPage() {
             )}
 
             {/* Beta notice */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-brand bg-brand/10 border border-brand/20 px-2 py-0.5 rounded-full">Beta</span>
                 <p className="text-sm font-bold text-gray-900">Welcome to the early access</p>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 mb-3 md:mb-4">
                 You're one of the first clubs/agencies on <span className="font-semibold text-gray-900">nicemodels.ch</span>. Everything is free while we test and improve the platform.
               </p>
-              <div className="space-y-1.5 mb-4">
+              <div className="space-y-1.5 mb-3 md:mb-4">
                 {[
                   'No prices, no payments during beta',
                   'Help us test, give feedback and shape the portal',
@@ -193,7 +217,7 @@ export default function CompanyDashboardPage() {
                 ))}
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-400">Complete your club profile and add models to maximize visibility when we go live.</p>
+                <p className="text-xs text-gray-400 hidden md:block">Complete your club profile and add models to maximize visibility when we go live.</p>
                 <button
                   onClick={() => router.push('/dashboard/company/profile/basic-info')}
                   className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 ml-4"
@@ -204,8 +228,8 @@ export default function CompanyDashboardPage() {
             </div>
 
             {/* How to get started */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <div className="flex items-center gap-2 mb-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+              <div className="flex items-center gap-2 mb-3 md:mb-4">
                 <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                   <Lightbulb className="w-4 h-4 text-brand" />
                 </div>
@@ -262,7 +286,7 @@ export default function CompanyDashboardPage() {
             </div>
 
             {/* Agency tips */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                   <Lightbulb className="w-4 h-4 text-amber-600" />
@@ -286,11 +310,11 @@ export default function CompanyDashboardPage() {
           </div>
 
           {/* Right sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
 
             {/* Stats */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <div className="flex items-center gap-2 mb-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+              <div className="flex items-center gap-2 mb-3 md:mb-4">
                 <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                   <BarChart2 className="w-4 h-4 text-brand" />
                 </div>
@@ -314,12 +338,12 @@ export default function CompanyDashboardPage() {
             </div>
 
             {/* Profile strength */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-bold text-gray-800">Profile strength</p>
                 <span className="text-sm font-bold text-brand">{strength}%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5 mb-4">
+              <div className="w-full bg-gray-100 rounded-full h-1.5 mb-3 md:mb-4">
                 <div className="bg-brand h-1.5 rounded-full transition-all duration-500" style={{ width: `${strength}%` }} />
               </div>
               <div className="space-y-2">
@@ -342,7 +366,7 @@ export default function CompanyDashboardPage() {
             </div>
 
             {/* Support */}
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
                   <LifeBuoy className="w-4 h-4 text-blue-600" />

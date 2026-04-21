@@ -41,9 +41,11 @@ BEGIN
       (oi.activation_date IS NULL OR oi.activation_date <= NOW())
     )
     AND (
-      -- Check if ad is still active (activation_date + duration_hours > NOW)
-      -- If activation_date is NULL, use order created_at
-      COALESCE(oi.activation_date, o.created_at) + (pr.duration_hours || ' hours')::INTERVAL > NOW()
+      -- Must match clubs_with_active_ads, activate-ad UI, and diagnostic SQL:
+      -- duration_days + duration_hours (do not use only hours — seed uses both for same window).
+      COALESCE(oi.activation_date, o.created_at)
+        + (pr.duration_days * INTERVAL '1 day')
+        + (pr.duration_hours * INTERVAL '1 hour') > NOW()
     )
   ORDER BY p.created_at DESC;
 END;

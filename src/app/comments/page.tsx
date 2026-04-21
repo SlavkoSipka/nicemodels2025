@@ -1,6 +1,14 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import CommentsPageClient from './CommentsPageClient'
+
+export const metadata: Metadata = {
+  title: 'Bewertungen & Kommentare',
+  description:
+    'Lese echte Bewertungen und Kommentare zu Escort-Models auf NiceModels.ch.',
+  alternates: { canonical: 'https://www.nicemodels.ch/comments' },
+}
 
 export default async function CommentsPage() {
   const supabase = await createClient()

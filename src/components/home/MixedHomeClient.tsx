@@ -6,13 +6,17 @@ import Footer from '@/components/layout/Footer'
 import ModelCard from './ModelCard'
 import ClubCard, { type ClubCardData } from './ClubCard'
 import BannerCard, { type BannerData } from './BannerCard'
+import BannerCardFeedCard from './BannerCardFeedCard'
+import BannerSidebarRail from './BannerSidebarRail'
 import ListingBannerCard, { type ListingBannerData } from './ListingBannerCard'
+import { partitionBannersByPlacement } from '@/lib/bannerPlacement'
 import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
 import AvailableForChat, { type ChatModel } from './AvailableForChat'
 import { type StatusMessage } from './HomePageClient'
 import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { randomShuffle } from '@/lib/randomShuffle'
 
 const CANTON_NAMES: Record<string, string> = {
   AG: 'Aargau', AI: 'Appenzell I.', AR: 'Appenzell A.', BE: 'Bern',
@@ -57,6 +61,7 @@ type CardItem =
   | { type: 'model'; data: Model }
   | { type: 'club'; data: ClubCardData }
   | { type: 'banner'; data: BannerData }
+  | { type: 'banner_card'; data: BannerData }
   | { type: 'listing'; data: ListingBannerData }
 
 interface MixedHomeClientProps {
@@ -68,25 +73,43 @@ interface MixedHomeClientProps {
   chatModels: ChatModel[]
 }
 
-function randomShuffle<T>(arr: T[]): T[] {
-  const copy = [...arr]
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[copy[i], copy[j]] = [copy[j], copy[i]]
-  }
-  return copy
-}
-
 const WIDE_PER_PAGE = 3
 const CARDS_PER_SLOT = 4
+
+function buildInitialCards(
+  models: Model[],
+  clubs: ClubCardData[],
+  banners: BannerData[],
+  listings: ListingBannerData[],
+) {
+  const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(banners)
+  return {
+    cards: [
+      ...models.map(m => ({ type: 'model' as const, data: m })),
+      ...clubs.map(c => ({ type: 'club' as const, data: c })),
+      ...feedCard.map(b => ({ type: 'banner_card' as const, data: b })),
+    ] as CardItem[],
+    wideSlots: [
+      ...feedWide.map(b => ({ type: 'banner' as const, data: b })),
+      ...listings.map(l => ({ type: 'listing' as const, data: l })),
+    ] as CardItem[],
+    sidebarRail: sidebarLeft.slice(0, 1),
+  }
+}
 
 export default function MixedHomeClient({
   models, clubs, banners, listings, statusMessages, chatModels,
 }: MixedHomeClientProps) {
-  const [mounted, setMounted] = useState(false)
-  const [cards, setCards] = useState<CardItem[]>([])
-  const [wideSlots, setWideSlots] = useState<CardItem[]>([])
+  const initial = useMemo(
+    () => buildInitialCards(models, clubs, banners, listings),
+    [models, clubs, banners, listings],
+  )
+
+  const [cards, setCards] = useState<CardItem[]>(initial.cards)
+  const [wideSlots, setWideSlots] = useState<CardItem[]>(initial.wideSlots)
+  const [sidebarRail, setSidebarRail] = useState<BannerData[]>(initial.sidebarRail)
   const [page, setPage] = useState(0)
+  const shouldScrollTop = useRef(false)
 
   // Filter state
   const [selectedRegion, setSelectedRegion] = useState('all')
@@ -167,13 +190,6 @@ export default function MixedHomeClient({
     setCityOpen(false)
   }
 
-  const showCityPanel =
-    cityOpen &&
-    (hasLiveLocations ||
-      cityResults.length > 0 ||
-      cityLoading ||
-      (cityQuery.length >= 1 && !cityLoading))
-
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -225,6 +241,13 @@ export default function MixedHomeClient({
   )
 
   const hasLiveLocations = sortedLiveLocations.length > 0
+
+  const showCityPanel =
+    cityOpen &&
+    (hasLiveLocations ||
+      cityResults.length > 0 ||
+      cityLoading ||
+      (cityQuery.length >= 1 && !cityLoading))
 
   /** Canton for each live_location_city string (from first model that has both). */
   const liveLocationToCanton = useMemo(() => {
@@ -292,54 +315,317 @@ export default function MixedHomeClient({
 
   const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || selectedLiveLocation !== 'all' || searchQuery.trim() !== ''
 
-  // Only shuffle on the client after hydration
+  // Shuffle on the client after hydration for fair rotation; cards are already
+  // visible from the deterministic initial build (no skeleton gate needed).
   useEffect(() => {
-    setCards(randomShuffle([
-      ...models.map(m => ({ type: 'model' as const, data: m })),
-      ...clubs.map(c => ({ type: 'club' as const, data: c })),
-    ]))
-    setWideSlots(randomShuffle([
-      ...banners.map(b => ({ type: 'banner' as const, data: b })),
-      ...listings.map(l => ({ type: 'listing' as const, data: l })),
-    ]))
-    setMounted(true)
-  }, [])
+    const fresh = buildInitialCards(models, clubs, banners, listings)
+    setCards(randomShuffle([...fresh.cards]))
+    setWideSlots(randomShuffle([...fresh.wideSlots]))
+    const side = fresh.sidebarRail.length <= 1
+      ? fresh.sidebarRail
+      : randomShuffle([...fresh.sidebarRail])
+    setSidebarRail(side.slice(0, 1))
+  }, [banners, models, clubs, listings])
 
-  // When filters change, rebuild cards from filtered data
   const activeCards = useMemo(() => {
+    const { feedCard } = partitionBannersByPlacement(banners)
     if (!isFiltering) return cards
     return randomShuffle([
       ...filteredModels.map(m => ({ type: 'model' as const, data: m })),
       ...filteredClubs.map(c => ({ type: 'club' as const, data: c })),
+      ...feedCard.map(b => ({ type: 'banner_card' as const, data: b })),
     ])
-  }, [isFiltering, filteredModels, filteredClubs, cards])
+  }, [isFiltering, filteredModels, filteredClubs, cards, banners])
 
   const activeWideSlots = useMemo(() => {
+    const { feedWide } = partitionBannersByPlacement(banners)
     if (!isFiltering) return wideSlots
     return randomShuffle([
-      ...banners.map(b => ({ type: 'banner' as const, data: b })),
+      ...feedWide.map(b => ({ type: 'banner' as const, data: b })),
       ...filteredListings.map(l => ({ type: 'listing' as const, data: l })),
     ])
   }, [isFiltering, banners, filteredListings, wideSlots])
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
-  // How many pages — driven by wide slots; if no wide slots, page by cards
-  const totalWidePages = activeWideSlots.length > 0
-    ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE)
-    : Math.ceil(activeCards.length / (WIDE_PER_PAGE * CARDS_PER_SLOT)) || 1
-
-  const totalPages = totalWidePages
+  // Page count must cover BOTH wide slots and mixed feed cards. Previously, when any wide
+  // slot existed, only ceil(wides/3) was used — so with 3 listings/banners, totalPages
+  // stayed 1 while activeCards could be 40+; only the first 12 cards were ever sliced,
+  // so shuffled models could never appear on any page.
+  const cardSlotsPerPage = WIDE_PER_PAGE * CARDS_PER_SLOT
+  const pagesFromWide =
+    activeWideSlots.length > 0 ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE) : 1
+  const pagesFromCards = Math.max(1, Math.ceil(activeCards.length / cardSlotsPerPage))
+  const totalPages = Math.max(pagesFromWide, pagesFromCards)
 
   const pageWide = activeWideSlots.slice(page * WIDE_PER_PAGE, (page + 1) * WIDE_PER_PAGE)
   const pageCards = activeCards.slice(
-    page * WIDE_PER_PAGE * CARDS_PER_SLOT,
-    (page + 1) * WIDE_PER_PAGE * CARDS_PER_SLOT,
+    page * cardSlotsPerPage,
+    (page + 1) * cardSlotsPerPage,
   )
 
+  useEffect(() => {
+    if (shouldScrollTop.current) {
+      shouldScrollTop.current = false
+      window.scrollTo(0, 0)
+    }
+  }, [page])
+
   const goTo = (p: number) => {
+    shouldScrollTop.current = true
     setPage(p)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const renderFilterBar = () => (
+    <div className="w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] gap-2 sm:gap-3 items-center pb-3 sm:pb-5">
+        <div className="relative min-w-0" ref={regionDropdownRef}>
+          <button
+            type="button"
+            className="appearance-none"
+            onClick={() => setRegionOpen(v => !v)}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              gap: 8, width: '100%', padding: '10px 16px', borderRadius: 10,
+              fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
+              border: selectedRegion !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
+              backgroundColor: selectedRegion !== 'all' ? '#fef7fa' : '#ffffff',
+              backgroundImage: 'none',
+              color: selectedRegion !== 'all' ? '#be185d' : '#64748b',
+              fontWeight: selectedRegion !== 'all' ? 600 : 500,
+            }}
+          >
+            <span className="truncate">
+              {selectedRegion === 'all' ? 'Region' : cantonName(selectedRegion)}
+            </span>
+            <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
+          </button>
+          {regionOpen && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+              padding: '4px 0', borderRadius: 10, zIndex: 50,
+              maxHeight: 280, overflowY: 'auto',
+              background: '#ffffff', border: '1px solid #e2e8f0',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
+            }}>
+              {[['all', models.length + clubs.length] as [string, number], ...sortedRegions].map(([canton, count]) => (
+                <button
+                  key={canton}
+                  type="button"
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#fef7fa] hover:text-[#be185d] transition-colors"
+                  onClick={() => { setSelectedRegion(canton); setRegionOpen(false); setPage(0) }}
+                >
+                  {canton === 'all' ? 'All regions' : cantonName(canton)}
+                  <span className="ml-1 text-gray-400">({count})</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="relative min-w-0" ref={cityRef}>
+          <MapPin style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8', zIndex: 1 }} />
+          <input
+            type="text"
+            value={cityQuery}
+            onChange={e => handleCityInput(e.target.value)}
+            onFocus={() => setCityOpen(true)}
+            placeholder="City, postal code, or live location"
+            className="w-full appearance-none"
+            style={{
+              paddingLeft: 34, paddingRight: 32, paddingTop: 10, paddingBottom: 10,
+              borderRadius: 10, fontSize: 13, fontWeight: (selectedCity !== 'all' || selectedLiveLocation !== 'all') ? 600 : 400,
+              outline: 'none', transition: 'all 0.2s',
+              backgroundColor: selectedLiveLocation !== 'all' ? '#ecfdf5' : selectedCity !== 'all' ? '#fef7fa' : '#ffffff',
+              backgroundImage: 'none',
+              border: selectedLiveLocation !== 'all' ? '1px solid #6ee7b7' : selectedCity !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
+              color: selectedLiveLocation !== 'all' ? '#047857' : selectedCity !== 'all' ? '#be185d' : '#64748b',
+            }}
+          />
+          {cityLoading && (
+            <Loader2 style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#94a3b8' }} className="animate-spin" />
+          )}
+          {cityQuery && !cityLoading && (
+            <button type="button" onClick={clearCity}
+              style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              <X style={{ width: 14, height: 14, color: '#94a3b8' }} />
+            </button>
+          )}
+          {showCityPanel && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
+              padding: '4px 0', borderRadius: 10, zIndex: 50,
+              maxHeight: 320, overflowY: 'auto',
+              background: '#ffffff', border: '1px solid #e2e8f0',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
+            }}>
+              {hasLiveLocations &&
+                sortedLiveLocations.map(([city, count]) => (
+                  <button
+                    key={`live-${city}`}
+                    type="button"
+                    className="block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors hover:bg-emerald-50"
+                    style={{ color: '#047857' }}
+                    onClick={() => selectLiveFromDropdown(city)}
+                  >
+                    <span className="flex items-center gap-2">
+                      <span className="relative flex h-2 w-2 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                      </span>
+                      <span>Live: {city}</span>
+                      <span className="text-emerald-600/70 font-normal">({count})</span>
+                    </span>
+                  </button>
+                ))}
+              {cityQuery.length >= 1 && (cityResults.length > 0 || cityLoading) && (
+                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-gray-100">
+                  Search cities
+                </div>
+              )}
+              {cityResults.map(city => (
+                <button
+                  key={city.id} type="button"
+                  className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#fef7fa] hover:text-[#be185d] transition-colors"
+                  onClick={() => handleCitySelect(city)}
+                >
+                  <span className="font-medium">{city.name}</span>
+                  {city.postal_code && <span className="text-gray-400 ml-1">({city.postal_code})</span>}
+                  {city.canton && <span className="text-gray-300 ml-1">· {cantonName(city.canton)}</span>}
+                </button>
+              ))}
+              {cityQuery.length >= 1 && !cityLoading && cityResults.length === 0 && (
+                <div className="px-4 py-3 text-center text-sm text-gray-400 border-t border-gray-100">
+                  No cities match “{cityQuery}”
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="relative min-w-0">
+          <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8' }} />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); setPage(0) }}
+            placeholder="Search all cards..."
+            className="w-full appearance-none"
+            style={{
+              paddingLeft: 34, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
+              borderRadius: 10, fontSize: 13, fontWeight: 400, outline: 'none',
+              backgroundColor: '#ffffff',
+              backgroundImage: 'none',
+              border: '1px solid #e2e8f0',
+              color: '#1a1a2e',
+            }}
+            onFocus={e => { e.currentTarget.style.border = '1px solid #f9a8d4'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236,72,153,0.06)' }}
+            onBlur={e => { e.currentTarget.style.border = '1px solid #e2e8f0'; e.currentTarget.style.boxShadow = 'none' }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderFeed = () => {
+    if (activeCards.length === 0 && activeWideSlots.length === 0) {
+      return (
+        <div
+          className="text-center py-20 rounded-xl"
+          style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)' }}
+        >
+          <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>
+            {isFiltering ? 'No results found' : 'No content yet'}
+          </p>
+          <p style={{ color: '#94a3b8' }}>
+            {isFiltering ? 'Try changing your filters' : 'Check back soon'}
+          </p>
+        </div>
+      )
+    }
+    return (
+      <>
+        <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
+          {(() => {
+            const nodes: React.ReactNode[] = []
+            let cardIdx = 0
+
+            for (let s = 0; s < Math.max(pageWide.length, Math.ceil(pageCards.length / CARDS_PER_SLOT)); s++) {
+              if (s < pageWide.length) {
+                const slot = pageWide[s]
+                if (slot.type === 'banner') {
+                  nodes.push(<BannerCard key={`b-${slot.data.id}`} banner={slot.data} />)
+                } else if (slot.type === 'listing') {
+                  nodes.push(<ListingBannerCard key={`l-${slot.data.id}`} listing={slot.data} />)
+                }
+              }
+
+              const chunk = pageCards.slice(cardIdx, cardIdx + CARDS_PER_SLOT)
+              cardIdx += CARDS_PER_SLOT
+              chunk.forEach((item, i) => {
+                const isTop = page === 0 && s === 0 && i < 4
+                if (item.type === 'model') {
+                  nodes.push(<ModelCard key={`m-${item.data.id}`} model={item.data} priority={isTop} />)
+                } else if (item.type === 'club') {
+                  nodes.push(<ClubCard key={`c-${item.data.id}`} club={item.data} priority={isTop} />)
+                } else if (item.type === 'banner_card') {
+                  nodes.push(<BannerCardFeedCard key={`bc-${item.data.id}`} banner={item.data} priority={isTop} />)
+                }
+              })
+            }
+
+            return nodes
+          })()}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex w-full items-center justify-center gap-1 sm:mt-10 sm:gap-2">
+            <button
+              onClick={() => goTo(page - 1)}
+              disabled={page === 0}
+              className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
+            >
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Prev</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }).map((_, i) => {
+                const show = i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1
+                if (!show) {
+                  const prevShown = i === 1 ? true : (i - 1 === 0 || i - 1 === totalPages - 1 || Math.abs(i - 1 - page) <= 1)
+                  if (prevShown) return <span key={i} className="text-xs text-gray-400 px-0.5">…</span>
+                  return null
+                }
+                return (
+                  <button
+                    key={i}
+                    onClick={() => goTo(i)}
+                    className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-bold transition-all"
+                    style={
+                      i === page
+                        ? { background: '#ec4899', color: '#ffffff', border: '1px solid #ec4899' }
+                        : { background: '#ffffff', color: '#374151', border: '1px solid rgba(0,0,0,0.10)' }
+                    }
+                  >
+                    {i + 1}
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => goTo(page + 1)}
+              disabled={page === totalPages - 1}
+              className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
+            >
+              <span className="hidden sm:inline">Next</span> <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+          </div>
+        )}
+      </>
+    )
   }
 
   return (
@@ -348,264 +634,28 @@ export default function MixedHomeClient({
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
         <StoriesSection />
 
-        <div className="max-w-[1280px] mx-auto">
-
-          {/* Filters */}
-          <div className="px-4 pt-4 w-full">
-            {/* Filter bar: Region | Live Location | City | Search */}
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr] gap-3 items-center pb-5">
-
-              {/* Region dropdown */}
-              <div className="relative min-w-0" ref={regionDropdownRef}>
-                <button
-                  type="button"
-                  className="appearance-none"
-                  onClick={() => setRegionOpen(v => !v)}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    gap: 8, width: '100%', padding: '10px 16px', borderRadius: 10,
-                    fontSize: 13, cursor: 'pointer', transition: 'all 0.2s',
-                    border: selectedRegion !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
-                    backgroundColor: selectedRegion !== 'all' ? '#fef7fa' : '#ffffff',
-                    backgroundImage: 'none',
-                    color: selectedRegion !== 'all' ? '#be185d' : '#64748b',
-                    fontWeight: selectedRegion !== 'all' ? 600 : 500,
-                  }}
-                >
-                  <span className="truncate">
-                    {selectedRegion === 'all' ? 'Region' : cantonName(selectedRegion)}
-                  </span>
-                  <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
-                </button>
-                {regionOpen && (
-                  <div style={{
-                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                    padding: '4px 0', borderRadius: 10, zIndex: 50,
-                    maxHeight: 280, overflowY: 'auto',
-                    background: '#ffffff', border: '1px solid #e2e8f0',
-                    boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
-                  }}>
-                    {[['all', models.length + clubs.length] as [string, number], ...sortedRegions].map(([canton, count]) => (
-                      <button
-                        key={canton}
-                        type="button"
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#fef7fa] hover:text-[#be185d] transition-colors"
-                        onClick={() => { setSelectedRegion(canton); setRegionOpen(false); setPage(0) }}
-                      >
-                        {canton === 'all' ? 'All regions' : cantonName(canton)}
-                        <span className="ml-1 text-gray-400">({count})</span>
-                      </button>
-                    ))}
+        <div className="w-full pt-3 sm:pt-4 pb-4 sm:pb-6">
+          {sidebarRail.length > 0 ? (
+            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1280px)_minmax(0,1fr)] lg:items-start lg:gap-x-4">
+              <div className="hidden min-h-0 justify-end lg:flex lg:self-start">
+                <aside className="sticky top-[120px] z-10 w-[220px] shrink-0 xl:w-[240px]">
+                  <div className="max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
+                    <BannerSidebarRail banners={sidebarRail} />
                   </div>
-                )}
+                </aside>
               </div>
-
-              {/* City search + live locations in same dropdown */}
-              <div className="relative min-w-0" ref={cityRef}>
-                <MapPin style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8', zIndex: 1 }} />
-                <input
-                  type="text"
-                  value={cityQuery}
-                  onChange={e => handleCityInput(e.target.value)}
-                  onFocus={() => setCityOpen(true)}
-                  placeholder="City, postal code, or live location"
-                  className="w-full appearance-none"
-                  style={{
-                    paddingLeft: 34, paddingRight: 32, paddingTop: 10, paddingBottom: 10,
-                    borderRadius: 10, fontSize: 13, fontWeight: (selectedCity !== 'all' || selectedLiveLocation !== 'all') ? 600 : 400,
-                    outline: 'none', transition: 'all 0.2s',
-                    backgroundColor: selectedLiveLocation !== 'all' ? '#ecfdf5' : selectedCity !== 'all' ? '#fef7fa' : '#ffffff',
-                    backgroundImage: 'none',
-                    border: selectedLiveLocation !== 'all' ? '1px solid #6ee7b7' : selectedCity !== 'all' ? '1px solid #f9a8d4' : '1px solid #e2e8f0',
-                    color: selectedLiveLocation !== 'all' ? '#047857' : selectedCity !== 'all' ? '#be185d' : '#64748b',
-                  }}
-                />
-                {cityLoading && (
-                  <Loader2 style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, color: '#94a3b8' }} className="animate-spin" />
-                )}
-                {cityQuery && !cityLoading && (
-                  <button type="button" onClick={clearCity}
-                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                    <X style={{ width: 14, height: 14, color: '#94a3b8' }} />
-                  </button>
-                )}
-                {showCityPanel && (
-                  <div style={{
-                    position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                    padding: '4px 0', borderRadius: 10, zIndex: 50,
-                    maxHeight: 320, overflowY: 'auto',
-                    background: '#ffffff', border: '1px solid #e2e8f0',
-                    boxShadow: '0 12px 36px rgba(0,0,0,0.10)',
-                  }}>
-                    {hasLiveLocations &&
-                      sortedLiveLocations.map(([city, count]) => (
-                        <button
-                          key={`live-${city}`}
-                          type="button"
-                          className="block w-full text-left px-4 py-2.5 text-sm font-medium transition-colors hover:bg-emerald-50"
-                          style={{ color: '#047857' }}
-                          onClick={() => selectLiveFromDropdown(city)}
-                        >
-                          <span className="flex items-center gap-2">
-                            <span className="relative flex h-2 w-2 shrink-0">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                            </span>
-                            <span>Live: {city}</span>
-                            <span className="text-emerald-600/70 font-normal">({count})</span>
-                          </span>
-                        </button>
-                      ))}
-                    {cityQuery.length >= 1 && (cityResults.length > 0 || cityLoading) && (
-                      <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-gray-100">
-                        Search cities
-                      </div>
-                    )}
-                    {cityResults.map(city => (
-                      <button
-                        key={city.id} type="button"
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#fef7fa] hover:text-[#be185d] transition-colors"
-                        onClick={() => handleCitySelect(city)}
-                      >
-                        <span className="font-medium">{city.name}</span>
-                        {city.postal_code && <span className="text-gray-400 ml-1">({city.postal_code})</span>}
-                        {city.canton && <span className="text-gray-300 ml-1">· {cantonName(city.canton)}</span>}
-                      </button>
-                    ))}
-                    {cityQuery.length >= 1 && !cityLoading && cityResults.length === 0 && (
-                      <div className="px-4 py-3 text-center text-sm text-gray-400 border-t border-gray-100">
-                        No cities match “{cityQuery}”
-                      </div>
-                    )}
-                  </div>
-                )}
+              <div className="flex min-w-0 flex-col gap-4 px-2 sm:px-4">
+                {renderFilterBar()}
+                {renderFeed()}
               </div>
-
-              {/* Search all cards */}
-              <div className="relative min-w-0">
-                <Search style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 14, height: 14, pointerEvents: 'none', color: '#94a3b8' }} />
-                <input
-                  type="search"
-                  value={searchQuery}
-                  onChange={e => { setSearchQuery(e.target.value); setPage(0) }}
-                  placeholder="Search all cards..."
-                  className="w-full appearance-none"
-                  style={{
-                    paddingLeft: 34, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
-                    borderRadius: 10, fontSize: 13, fontWeight: 400, outline: 'none',
-                    backgroundColor: '#ffffff',
-                    backgroundImage: 'none',
-                    border: '1px solid #e2e8f0',
-                    color: '#1a1a2e',
-                  }}
-                  onFocus={e => { e.currentTarget.style.border = '1px solid #f9a8d4'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(236,72,153,0.06)' }}
-                  onBlur={e => { e.currentTarget.style.border = '1px solid #e2e8f0'; e.currentTarget.style.boxShadow = 'none' }}
-                />
-              </div>
+              <div className="hidden min-h-0 lg:block" aria-hidden />
             </div>
-          </div>
-
-          <div className="px-4 py-6 w-full">
-            {!mounted ? (
-              // Skeleton shown during SSR / before hydration
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="animate-pulse rounded-xl"
-                    style={{ height: 180, background: 'rgba(0,0,0,0.06)' }}
-                  />
-                ))}
-              </div>
-            ) : activeCards.length === 0 && activeWideSlots.length === 0 ? (
-              <div
-                className="text-center py-20 rounded-xl"
-                style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)' }}
-              >
-                <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>
-                  {isFiltering ? 'No results found' : 'No content yet'}
-                </p>
-                <p style={{ color: '#94a3b8' }}>
-                  {isFiltering ? 'Try changing your filters' : 'Check back soon'}
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                  {(() => {
-                    const nodes: React.ReactNode[] = []
-                    let cardIdx = 0
-
-                    for (let s = 0; s < Math.max(pageWide.length, Math.ceil(pageCards.length / CARDS_PER_SLOT)); s++) {
-                      // Wide slot
-                      if (s < pageWide.length) {
-                        const slot = pageWide[s]
-                        if (slot.type === 'banner') {
-                          nodes.push(<BannerCard key={`b-${slot.data.id}`} banner={slot.data} />)
-                        } else if (slot.type === 'listing') {
-                          nodes.push(<ListingBannerCard key={`l-${slot.data.id}`} listing={slot.data} />)
-                        }
-                      }
-
-                      // 4 cards
-                      const chunk = pageCards.slice(cardIdx, cardIdx + CARDS_PER_SLOT)
-                      cardIdx += CARDS_PER_SLOT
-                      chunk.forEach((item, i) => {
-                        const isTop = page === 0 && s === 0 && i < 4
-                        if (item.type === 'model') {
-                          nodes.push(<ModelCard key={`m-${item.data.id}`} model={item.data} priority={isTop} />)
-                        } else if (item.type === 'club') {
-                          nodes.push(<ClubCard key={`c-${item.data.id}`} club={item.data} priority={isTop} />)
-                        }
-                      })
-                    }
-
-                    return nodes
-                  })()}
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-10">
-                    <button
-                      onClick={() => goTo(page - 1)}
-                      disabled={page === 0}
-                      className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
-                    >
-                      <ChevronLeft className="w-4 h-4" /> Prev
-                    </button>
-
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: totalPages }).map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => goTo(i)}
-                          className="w-9 h-9 rounded-lg text-sm font-bold transition-all"
-                          style={
-                            i === page
-                              ? { background: '#ec4899', color: '#ffffff', border: '1px solid #ec4899' }
-                              : { background: '#ffffff', color: '#374151', border: '1px solid rgba(0,0,0,0.10)' }
-                          }
-                        >
-                          {i + 1}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => goTo(page + 1)}
-                      disabled={page === totalPages - 1}
-                      className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                      style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
-                    >
-                      Next <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          ) : (
+            <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-2 sm:px-4">
+              {renderFilterBar()}
+              {renderFeed()}
+            </div>
+          )}
         </div>
 
         {hasSidebar && (

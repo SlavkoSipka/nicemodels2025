@@ -140,7 +140,7 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
               animation: fadingOut ? 'none' : 'loader-logo-pulse 1.4s ease-in-out infinite 0.5s',
             }}>
               <Image
-                src="/logo2.png"
+                src="/logo.webp"
                 alt="nicemodels.ch"
                 width={220}
                 height={55}

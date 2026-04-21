@@ -1,9 +1,32 @@
-export default function GlobalLoading() {
+import Navbar from '@/components/layout/Navbar'
+
+export default function HomeLoading() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+    <>
+      <Navbar />
+      <div className="min-h-screen" style={{ background: '#fce9f3' }}>
+        <div className="max-w-[1280px] mx-auto px-2 sm:px-4 pt-4 animate-pulse">
+          {/* Filter bar skeleton */}
+          <div className="flex gap-2 sm:gap-3 mb-4">
+            <div className="h-10 flex-1 bg-white/60 rounded-lg" />
+            <div className="h-10 flex-1 bg-white/60 rounded-lg" />
+            <div className="h-10 flex-1 bg-white/60 rounded-lg hidden sm:block" />
+          </div>
+
+          {/* Cards grid skeleton */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden bg-white/50">
+                <div className="aspect-[3/4] bg-pink-200/40" />
+                <div className="p-2.5 space-y-2">
+                  <div className="h-4 w-3/4 bg-pink-200/40 rounded" />
+                  <div className="h-3 w-1/2 bg-pink-200/30 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

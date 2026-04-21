@@ -1,85 +1,104 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import ClubProfileClient from './ClubProfileClient'
+import { cache } from 'react'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
 
+const getClubMeta = cache(async (id: string) => {
+  const admin = createAdminClient()
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+  const [{ data: club }, { data: photo }] = await Promise.all([
+    admin
+      .from('club_details')
+      .select('club_name, display_name, area, description')
+      .eq('club_id', id)
+      .single(),
+    admin
+      .from('club_photos')
+      .select('file_path')
+      .eq('club_id', id)
+      .eq('is_approved', true)
+      .order('uploaded_at', { ascending: false })
+      .limit(1)
+      .single(),
+  ])
+
+  return { club, photo, SUPA_URL }
+})
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const { club, photo, SUPA_URL } = await getClubMeta(id)
+
+  if (!club) return { title: 'Club nicht gefunden' }
+
+  const name = club.display_name || club.club_name || 'Club'
+  const area = club.area || 'Schweiz'
+  const title = `${name} – Club in ${area}`
+  const desc =
+    club.description?.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd() ||
+    `${name} – Club & Agentur in ${area}. Jetzt Profil ansehen auf NiceModels.ch`
+
+  const ogImage = photo?.file_path
+    ? `${SUPA_URL}/storage/v1/object/public/club-photos/${photo.file_path}`
+    : '/logo.webp'
+
+  return {
+    title,
+    description: desc,
+    openGraph: {
+      title, description: desc, type: 'profile',
+      images: [{ url: ogImage, alt: name }],
+    },
+    twitter: {
+      card: 'summary_large_image', title, description: desc, images: [ogImage],
+    },
+    alternates: { canonical: `https://www.nicemodels.ch/clubs/${id}` },
+  }
+}
+
 export default async function ClubPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
-
-  // Fetch club profile. Blocked clubs are hidden from public view.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', id)
-    .eq('role', 'company')
-    .eq('is_blocked', false)
-    .single()
-
-  if (!profile) {
-    notFound()
-  }
-
-  // Fetch club details
-  const { data: clubDetails } = await supabase
-    .from('club_details')
-    .select('*')
-    .eq('club_id', id)
-    .single()
-
-  // Fetch club contact details
-  const { data: contactDetails } = await supabase
-    .from('club_contact_details')
-    .select('*')
-    .eq('club_id', id)
-    .maybeSingle()
-
-  // Fetch working hours
-  const { data: workingHours } = await supabase
-    .from('club_working_hours')
-    .select('*')
-    .eq('club_id', id)
-    .maybeSingle()
-
-  // Fetch club photos
-  const { data: photos } = await supabase
-    .from('club_photos')
-    .select('*')
-    .eq('club_id', id)
-    .eq('is_approved', true)
-    .order('uploaded_at', { ascending: false })
-
-  // Transform photos to include public URLs
-  const photosWithUrls = photos?.map(photo => {
-    const { data: urlData } = supabase.storage
-      .from('club-photos')
-      .getPublicUrl(photo.file_path)
-    
-    return {
-      ...photo,
-      url: urlData.publicUrl
-    }
-  }) || []
-
-  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const admin = createAdminClient()
-  let clubModels: any[] = []
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
-  const { data: accepted } = await admin
-    .from('club_invites')
-    .select('invited_model_id')
-    .eq('club_id', id)
-    .eq('status', 'accepted')
+  const [
+    { data: profile },
+    { data: clubDetails },
+    { data: contactDetails },
+    { data: workingHours },
+    { data: photos },
+    { data: accepted },
+  ] = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', id).eq('role', 'company').single(),
+    supabase.from('club_details').select('*').eq('club_id', id).single(),
+    supabase.from('club_contact_details').select('*').eq('club_id', id).maybeSingle(),
+    supabase.from('club_working_hours').select('*').eq('club_id', id).maybeSingle(),
+    supabase.from('club_photos').select('*').eq('club_id', id).eq('is_approved', true).order('uploaded_at', { ascending: false }),
+    admin.from('club_invites').select('invited_model_id').eq('club_id', id).eq('status', 'accepted'),
+  ])
+
+  if (!profile) notFound()
+
+  const photosWithUrls = (photos ?? []).map(photo => ({
+    ...photo,
+    url: `${SUPA_URL}/storage/v1/object/public/club-photos/${photo.file_path}`,
+  }))
+
+  let clubModels: any[] = []
 
   if (accepted?.length) {
     const modelIds = accepted.map((a: any) => a.invited_model_id)
 
     const [{ data: modelProfiles }, { data: modelDetails }, { data: modelPhotos }] = await Promise.all([
-      admin.from('profiles').select('id, username, is_verified').in('id', modelIds).eq('is_blocked', false),
+      admin.from('profiles').select('id, username, is_verified').in('id', modelIds),
       admin.from('model_details').select('model_id, showname, city, age').in('model_id', modelIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', modelIds)
         .eq('is_approved', true).order('uploaded_at', { ascending: false }),

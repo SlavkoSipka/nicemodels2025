@@ -1,13 +1,16 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Megaphone, Upload, X, CheckCircle, AlertCircle, Trash2,
   ShoppingCart,
 } from 'lucide-react'
-import BannerPlacementPreview from '@/components/banner/BannerPlacementPreview'
+import BannerPlacementPreview from '@/components/buy-banner/BannerPlacementPreview'
+import PlacementPicker from '@/components/buy-banner/PlacementPicker'
+import type { BannerPlacement } from '@/lib/bannerPlacement'
+import { normalizePlacement } from '@/lib/bannerPlacement'
 
 interface Product {
   id: string
@@ -30,6 +33,18 @@ interface BannerRow {
   starts_at: string | null
   expires_at: string | null
   created_at: string
+  placement?: string | null
+}
+
+function activePlacementsFromRows(rows: BannerRow[]): Set<BannerPlacement> {
+  const now = new Date()
+  const set = new Set<BannerPlacement>()
+  for (const b of rows) {
+    if (b.status !== 'active') continue
+    if (b.expires_at && new Date(b.expires_at) <= now) continue
+    set.add(normalizePlacement(b.placement))
+  }
+  return set
 }
 
 export default function BuyBannerPage() {
@@ -45,16 +60,39 @@ export default function BuyBannerPage() {
   const [clubDetails, setClubDetails] = useState<any>(null)
   const [packages, setPackages] = useState<Product[]>([])
   const [selectedPackage, setSelectedPackage] = useState<Product | null>(null)
-  const [hasActiveBanner, setHasActiveBanner] = useState(false)
-  const [activeBannerExpiry, setActiveBannerExpiry] = useState<string | null>(null)
   const [banners, setBanners] = useState<BannerRow[]>([])
+  const [activeSlots, setActiveSlots] = useState<Set<BannerPlacement>>(new Set())
 
+  const [selectedPlacement, setSelectedPlacement] = useState<BannerPlacement | null>(null)
   const [ctaUrl, setCtaUrl] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
 
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+  const slotFreeForSelection = useMemo(() => {
+    if (!selectedPlacement) return false
+    return !activeSlots.has(selectedPlacement)
+  }, [selectedPlacement, activeSlots])
+
+  const uploadHint = useMemo(() => {
+    if (selectedPlacement === 'feed_card') return 'Recommended: portrait ~3:4 (like a profile card). Max 10MB.'
+    if (selectedPlacement === 'sidebar_left') return 'Recommended: portrait ~2:3 or 9:16. Max 10MB.'
+    return 'Recommended: wide landscape 4:1. Max 10MB. JPG, PNG, WebP.'
+  }, [selectedPlacement])
+
+  const previewAspectClass = useMemo(() => {
+    if (selectedPlacement === 'feed_card') return 'aspect-[3/4] max-w-xs mx-auto'
+    if (selectedPlacement === 'sidebar_left') return 'aspect-[2/3] max-w-xs mx-auto'
+    return 'aspect-[4/1]'
+  }, [selectedPlacement])
+
+  const uploadAspectClass = useMemo(() => {
+    if (selectedPlacement === 'feed_card') return 'aspect-[3/4] max-w-xs mx-auto'
+    if (selectedPlacement === 'sidebar_left') return 'aspect-[2/3] max-w-xs mx-auto'
+    return 'aspect-[4/1] max-w-lg mx-auto'
+  }, [selectedPlacement])
 
   useEffect(() => {
     load()
@@ -74,21 +112,8 @@ export default function BuyBannerPage() {
 
       if (details) setClubDetails(details)
       if (bannersData) {
-        setBanners(bannersData)
-        const now = new Date()
-        const active = bannersData.find((b: BannerRow) => {
-          if (b.status !== 'active') return false
-          if (b.expires_at && new Date(b.expires_at) <= now) return false
-          return true
-        })
-        if (active) {
-          setHasActiveBanner(true)
-          if (active.expires_at) {
-            setActiveBannerExpiry(new Date(active.expires_at).toLocaleDateString('en-CH', {
-              day: 'numeric', month: 'long', year: 'numeric',
-            }))
-          }
-        }
+        setBanners(bannersData as BannerRow[])
+        setActiveSlots(activePlacementsFromRows(bannersData as BannerRow[]))
       }
       if (pkgData) setPackages(pkgData)
     } catch { /* ignore */ } finally {
@@ -112,6 +137,8 @@ export default function BuyBannerPage() {
 
   const handleActivate = async () => {
     setError(''); setSuccess('')
+    if (!selectedPlacement) { setError('Please select a placement'); return }
+    if (activeSlots.has(selectedPlacement)) { setError('You already have an active banner in this slot'); return }
     if (!selectedPackage) { setError('Please select a package'); return }
     if (!imageFile) { setError('Please upload a banner image'); return }
 
@@ -157,16 +184,15 @@ export default function BuyBannerPage() {
           status: 'active',
           starts_at: now.toISOString(),
           expires_at: expiresAt,
+          placement: selectedPlacement,
         })
         .select()
         .single()
       if (dbErr) throw dbErr
 
-      setBanners([newBanner, ...banners])
-      setHasActiveBanner(true)
-      setActiveBannerExpiry(new Date(expiresAt).toLocaleDateString('en-CH', {
-        day: 'numeric', month: 'long', year: 'numeric',
-      }))
+      const next = [newBanner as BannerRow, ...banners]
+      setBanners(next)
+      setActiveSlots(activePlacementsFromRows(next))
       setSuccess('Banner activated successfully!')
       setSelectedPackage(null)
       clearImage()
@@ -186,16 +212,7 @@ export default function BuyBannerPage() {
       await supabase.from('banners').delete().eq('id', banner.id)
       const updated = banners.filter(b => b.id !== banner.id)
       setBanners(updated)
-      if (banner.status === 'active') {
-        const now = new Date()
-        const stillActive = updated.some(b =>
-          b.status === 'active' && (!b.expires_at || new Date(b.expires_at) > now)
-        )
-        if (!stillActive) {
-          setHasActiveBanner(false)
-          setActiveBannerExpiry(null)
-        }
-      }
+      setActiveSlots(activePlacementsFromRows(updated))
     } catch (e: any) {
       setError(e?.message || 'Failed to delete banner')
     }
@@ -215,13 +232,19 @@ export default function BuyBannerPage() {
     return <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span>
   }
 
+  const placementLabel = (p: string | null | undefined) => {
+    const pl = normalizePlacement(p)
+    if (pl === 'feed_card') return 'Card slot'
+    if (pl === 'sidebar_left') return 'Left column'
+    return 'Wide feed'
+  }
+
   if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-6xl mx-auto space-y-4">
 
-        {/* Header */}
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-md bg-purple-100 flex items-center justify-center">
             <Megaphone className="w-4 h-4 text-purple-600" />
@@ -234,17 +257,16 @@ export default function BuyBannerPage() {
           </div>
         </div>
 
-        {/* Beta info */}
         <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
           <p className="text-sm text-emerald-900">
             <span className="font-bold">Beta Info:</span> Banner placement is currently{' '}
             <span className="font-semibold">free for early clubs</span>.
-            No payment required. We will clearly inform you before any pricing starts.
+            No payment required. You can have one active banner per placement (wide, card, or left column).{' '}
+            <span className="font-medium">Left column</span> does not show on mobile — only on larger screens.
           </p>
         </div>
 
-        {/* Placement preview */}
-        <BannerPlacementPreview previewUrl={imagePreview} />
+        <BannerPlacementPreview ownerType="club" />
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
@@ -259,32 +281,38 @@ export default function BuyBannerPage() {
           </div>
         )}
 
-        {/* Active banner status */}
-        {hasActiveBanner && (
-          <div className="bg-white border border-emerald-200 rounded-lg p-5 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
-              <CheckCircle className="w-5 h-5 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-emerald-800 mb-1">Your banner is currently active</p>
-              <p className="text-sm text-gray-600">
-                Your club banner is live on the homepage.
-              </p>
-              {activeBannerExpiry && (
-                <p className="text-xs text-gray-400 mt-1">Active until: {activeBannerExpiry}</p>
-              )}
-            </div>
+        {activeSlots.size > 0 && (
+          <div className="bg-white border border-emerald-200 rounded-lg p-3.5 md:p-5 space-y-2">
+            <p className="text-sm font-bold text-emerald-800">Active banner slots</p>
+            <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+              {Array.from(activeSlots).map(pl => (
+                <li key={pl}>
+                  <span className="font-medium text-gray-800">{placementLabel(pl)}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
-        {/* Package selection */}
-        {!hasActiveBanner && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <p className="text-sm font-bold text-gray-800 mb-4">1. Select duration:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
+          <p className="text-sm font-bold text-gray-800">1. Choose placement</p>
+          <PlacementPicker
+            value={selectedPlacement}
+            onChange={p => {
+              setSelectedPlacement(p)
+              setSelectedPackage(null)
+              clearImage()
+            }}
+            disabledPlacements={activeSlots}
+          />
+        </div>
+
+        {selectedPlacement && slotFreeForSelection && (
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+            <p className="text-sm font-bold text-gray-800 mb-4">2. Select duration:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
-
                 return (
                   <div
                     key={pkg.id}
@@ -298,7 +326,7 @@ export default function BuyBannerPage() {
                     <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white bg-emerald-500">
                       Beta — Free
                     </div>
-                    <div className="p-5 text-center">
+                    <div className="p-3.5 md:p-5 text-center">
                       <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
                       <p className="text-xs text-gray-400">{pkg.description}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
@@ -320,16 +348,13 @@ export default function BuyBannerPage() {
           </div>
         )}
 
-        {/* Banner image upload */}
-        {!hasActiveBanner && selectedPackage && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-            <p className="text-sm font-bold text-gray-800">2. Upload banner image:</p>
-            <p className="text-xs text-gray-400">
-              Recommended: wide landscape ratio (4:1). Max 10MB. JPG, PNG, WebP.
-            </p>
+        {selectedPlacement && slotFreeForSelection && selectedPackage && (
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
+            <p className="text-sm font-bold text-gray-800">3. Upload banner image:</p>
+            <p className="text-xs text-gray-400">{uploadHint}</p>
             {imagePreview ? (
-              <div className="relative rounded-xl overflow-hidden border border-gray-200 max-w-lg">
-                <img src={imagePreview} alt="Preview" className="w-full aspect-[4/1] object-cover" />
+              <div className={`relative rounded-xl overflow-hidden border border-gray-200 ${previewAspectClass}`}>
+                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={clearImage}
@@ -342,7 +367,7 @@ export default function BuyBannerPage() {
               <button
                 type="button"
                 onClick={() => imageInputRef.current?.click()}
-                className="w-full max-w-lg aspect-[4/1] border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-brand hover:text-brand transition-colors flex flex-col items-center justify-center gap-2"
+                className={`w-full border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-brand hover:text-brand transition-colors flex flex-col items-center justify-center gap-2 ${uploadAspectClass}`}
               >
                 <Upload className="w-8 h-8" />
                 <span className="text-sm font-medium">Click to upload banner</span>
@@ -364,11 +389,10 @@ export default function BuyBannerPage() {
           </div>
         )}
 
-        {/* Confirm activation */}
-        {!hasActiveBanner && selectedPackage && imageFile && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
+        {selectedPlacement && slotFreeForSelection && selectedPackage && imageFile && (
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-bold text-gray-800">3. Confirm:</p>
+              <p className="text-sm font-bold text-gray-800">4. Confirm:</p>
               <div className="text-right">
                 <p className="text-sm font-bold text-gray-900">Total (beta):</p>
                 <p className="text-base font-bold text-emerald-600">Free</p>
@@ -377,7 +401,7 @@ export default function BuyBannerPage() {
             <div className="p-3 bg-gray-50 rounded-lg mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">{selectedPackage.name} — Banner</p>
+                  <p className="text-sm font-semibold text-gray-900">{selectedPackage.name} — {placementLabel(selectedPlacement)}</p>
                   <p className="text-xs text-gray-500">Activate immediately</p>
                 </div>
                 <span className="text-sm font-bold text-emerald-600">Free</span>
@@ -394,18 +418,35 @@ export default function BuyBannerPage() {
           </div>
         )}
 
-        {/* Existing banners */}
+        {selectedPlacement && !slotFreeForSelection && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
+            You already have an active banner in <span className="font-semibold">{placementLabel(selectedPlacement)}</span>.
+            Delete it below to purchase a new one for this slot, or pick another placement above.
+          </div>
+        )}
+
         {banners.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
             <h2 className="text-lg font-bold text-gray-900">Your Banners</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {banners.map(banner => (
                 <div key={banner.id} className="border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
                   {banner.image_path && (
-                    <img src={storageUrl(banner.image_path)!} alt="Banner" className="w-full aspect-[4/1] object-cover" />
+                    <img
+                      src={storageUrl(banner.image_path)!}
+                      alt="Banner"
+                      className={`w-full object-cover ${
+                        normalizePlacement(banner.placement) === 'feed_wide'
+                          ? 'aspect-[4/1]'
+                          : normalizePlacement(banner.placement) === 'sidebar_left'
+                            ? 'aspect-[2/3] max-h-96'
+                            : 'aspect-[3/4] max-h-80'
+                      }`}
+                    />
                   )}
-                  <div className="p-3 flex items-center justify-between">
+                  <div className="p-3 flex items-center justify-between gap-2">
                     <div>
+                      <span className="text-[10px] font-bold uppercase text-violet-700">{placementLabel(banner.placement)}</span>
                       {statusBadge(banner.status)}
                       <p className="text-xs text-gray-400 mt-1">
                         {new Date(banner.created_at).toLocaleDateString()}
@@ -418,7 +459,7 @@ export default function BuyBannerPage() {
                     </div>
                     <button
                       onClick={() => handleDelete(banner)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

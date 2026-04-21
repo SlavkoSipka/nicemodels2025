@@ -52,19 +52,21 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
   return (
     <>
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
-        <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="max-w-7xl mx-auto px-2 py-5 sm:px-4 sm:py-10">
 
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Jobs & Rent</h1>
-            <p className="text-sm text-slate-500 mt-1">Browse job opportunities and rental listings</p>
+          <div className="mb-5 sm:mb-8">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Jobs & Rent</h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">Browse job opportunities and rental listings</p>
           </div>
 
           {/* Stats + filter */}
-          <div className="flex flex-wrap items-center gap-4 mb-8 pb-6 border-b border-gray-200">
-            <span className="text-2xl font-semibold text-slate-900">{listings.length}</span>
-            <span className="text-sm text-slate-500">{listings.length === 1 ? 'listing' : 'listings'}</span>
-            <div className="ml-auto flex gap-2">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200">
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl sm:text-2xl font-semibold text-slate-900">{listings.length}</span>
+              <span className="text-xs sm:text-sm text-slate-500">{listings.length === 1 ? 'listing' : 'listings'}</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-auto">
               {[
                 { val: 'all' as FilterType, label: 'All', count: listings.length },
                 { val: 'job' as FilterType, label: 'Jobs', count: jobCount },
@@ -73,7 +75,7 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
                 <button
                   key={val}
                   onClick={() => setFilter(val)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+                  className={`px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-colors ${
                     filter === val
                       ? 'bg-[#ec4899] text-white'
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:text-gray-900'
@@ -88,13 +90,13 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
 
           {/* Listings */}
           {filtered.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="bg-white rounded-lg border border-gray-200 p-8 sm:p-12 text-center">
               <Briefcase className="w-10 h-10 text-gray-300 mx-auto mb-3" />
               <p className="text-sm font-medium text-gray-700">No listings yet</p>
               <p className="text-sm text-gray-500 mt-1">Check back soon for new opportunities.</p>
             </div>
           ) : (
-            <ul className="space-y-4">
+            <ul className="space-y-3 sm:space-y-4">
               {filtered.map(listing => (
                 <ListingCard key={listing.id} listing={listing} />
               ))}
@@ -141,8 +143,8 @@ function ListingCard({ listing }: { listing: ListingData }) {
         {/* Photo */}
         <Link
           href={`/jobs-rents/${listing.id}`}
-          className="relative flex-shrink-0 overflow-hidden block"
-          style={{ width: '100%', maxWidth: 200, minWidth: 140, aspectRatio: '3/4', background: '#e8f4f8' }}
+          className="relative flex-shrink-0 overflow-hidden block w-full max-w-none min-h-[180px] sm:min-w-[140px] sm:w-auto sm:max-w-[200px]"
+          style={{ aspectRatio: '3/4', background: '#e8f4f8' }}
         >
           {/* Blue left accent line */}
           <div style={{
@@ -191,7 +193,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
           {/* Blue top strip */}
           <div style={{ height: 3, background: 'linear-gradient(90deg, #1D4ED8, #3B82F6, #93C5FD)', flexShrink: 0 }} />
 
-          <div className="px-5 py-4 flex flex-col gap-3 flex-1">
+          <div className="px-3 py-3 sm:px-5 sm:py-4 flex flex-col gap-2 sm:gap-3 flex-1 min-w-0">
 
             {/* Type label */}
             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#3B82F6' }}>
@@ -200,17 +202,17 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
             {/* Title */}
             <Link href={`/jobs-rents/${listing.id}`}>
-              <h3 className="font-bold text-base sm:text-lg leading-snug hover:text-blue-600 transition-colors"
+              <h3 className="font-bold text-sm sm:text-lg leading-snug hover:text-blue-600 transition-colors"
                 style={{ color: '#0f172a' }}>
                 {title}
               </h3>
             </Link>
 
             {/* Club + Location */}
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href={`/clubs/${listing.club_id}`}
-                className="flex items-center gap-1.5 text-sm font-semibold transition-colors hover:text-blue-600"
+                className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600 min-w-0"
                 style={{ color: '#475569' }}
                 onClick={e => e.stopPropagation()}
               >
@@ -218,7 +220,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
                 {listing.club_name}
               </Link>
               <span style={{ color: '#cbd5e1' }}>·</span>
-              <span className="flex items-center gap-1.5 text-sm" style={{ color: '#64748b' }}>
+              <span className="flex items-center gap-1.5 text-xs sm:text-sm min-w-0" style={{ color: '#64748b' }}>
                 <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: '#EC4899' }} />
                 {listing.location}
               </span>
@@ -226,7 +228,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
             {/* Description */}
             {shortDesc && (
-              <p className="text-sm leading-relaxed flex-1" style={{ color: '#64748b' }}>
+              <p className="text-xs sm:text-sm leading-relaxed flex-1" style={{ color: '#64748b' }}>
                 {shortDesc}
               </p>
             )}
@@ -254,14 +256,14 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
             {/* Contact row */}
             <div
-              className="flex flex-wrap items-center gap-4 pt-3 mt-auto"
+              className="flex flex-wrap items-center gap-2 sm:gap-4 pt-2 sm:pt-3 mt-auto"
               style={{ borderTop: '1px solid #e2e8f0' }}
             >
               {listing.phone_number && (
                 <a
                   href={`tel:${listing.country_code}${listing.phone_number}`}
                   onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-2 text-sm font-semibold transition-opacity hover:opacity-70"
+                  className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold transition-opacity hover:opacity-70 break-all"
                   style={{ color: '#334155' }}
                 >
                   <Phone className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
@@ -277,7 +279,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
                 <a
                   href={`mailto:${listing.email}`}
                   onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+                  className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-opacity hover:opacity-70 break-all min-w-0"
                   style={{ color: '#64748b' }}
                 >
                   <Mail className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
@@ -290,7 +292,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+                  className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-opacity hover:opacity-70"
                   style={{ color: '#64748b' }}
                 >
                   <Globe className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />

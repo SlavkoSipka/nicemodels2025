@@ -1,34 +1,48 @@
+import type { Metadata } from 'next'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Navbar from '@/components/layout/Navbar'
 import JobsRentsPageClient from './JobsRentsPageClient'
 
-export const revalidate = 60
+export const metadata: Metadata = {
+  title: 'Jobs & Miete – Stellenangebote und Mietangebote',
+  description:
+    'Finde aktuelle Job-Angebote und Mietmöglichkeiten in der Schweizer Erotikbranche auf NiceModels.ch.',
+  alternates: { canonical: 'https://www.nicemodels.ch/jobs-rents' },
+}
 
 export default async function JobsRentsPage() {
-  const admin = createAdminClient()
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-  const now = new Date().toISOString()
 
-  const { data: rawListings } = await admin
-    .from('job_listings')
-    .select('*')
-    .eq('status', 'active')
-    .or(`starts_at.is.null,starts_at.lte.${now}`)
-    .or(`expires_at.is.null,expires_at.gt.${now}`)
-    .order('created_at', { ascending: false })
+  let rawListings: any[] | null = null
 
-  // Hide listings whose owning club is blocked
-  const candidateClubIds = [...new Set((rawListings ?? []).map(l => l.club_id).filter(Boolean))]
-  let blockedClubIds = new Set<string>()
-  if (candidateClubIds.length > 0) {
-    const { data: clubProfiles } = await admin
-      .from('profiles')
-      .select('id, is_blocked')
-      .in('id', candidateClubIds)
-    blockedClubIds = new Set((clubProfiles ?? []).filter(p => p.is_blocked).map(p => p.id))
+  try {
+    const supabase = await createClient()
+    const { data } = await supabase
+      .from('job_listings')
+      .select('*')
+      .eq('status', 'active')
+      .eq('is_blocked', false)
+      .order('created_at', { ascending: false })
+    rawListings = data
+  } catch {
+    const admin = createAdminClient()
+    const { data } = await admin
+      .from('job_listings')
+      .select('*')
+      .eq('status', 'active')
+      .eq('is_blocked', false)
+      .order('created_at', { ascending: false })
+    rawListings = data
   }
 
-  const allListings = (rawListings ?? []).filter(l => !blockedClubIds.has(l.club_id))
+  const now = new Date()
+  // Match home page: visibility = status active + not blocked; no expires_at filter.
+  const allListings = (rawListings ?? []).filter(l => {
+    if (l.starts_at && new Date(l.starts_at) > now) return false
+    return true
+  })
+
   const listingIds = allListings.map(l => l.id)
   const clubIds = [...new Set(allListings.map(l => l.club_id))]
 
@@ -37,6 +51,7 @@ export default async function JobsRentsPage() {
   let servicesMap = new Map<string, any[]>()
 
   if (listingIds.length > 0) {
+    const admin = createAdminClient()
     const [{ data: clubDetails }, { data: photos }, { data: serviceLinks }] = await Promise.all([
       admin.from('club_details').select('club_id, club_name, display_name, area').in('club_id', clubIds),
       admin.from('job_listing_photos').select('listing_id, file_path').in('listing_id', listingIds).order('display_order'),

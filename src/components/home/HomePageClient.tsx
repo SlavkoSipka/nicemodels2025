@@ -1,10 +1,14 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { randomShuffle } from '@/lib/randomShuffle'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ModelCard from './ModelCard'
 import BannerCard, { BannerData } from './BannerCard'
+import BannerCardFeedCard from './BannerCardFeedCard'
+import BannerSidebarRail from './BannerSidebarRail'
+import { partitionBannersByPlacement } from '@/lib/bannerPlacement'
 import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
@@ -63,6 +67,20 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
   const [selectedLiveLocation, setSelectedLiveLocation] = useState<string>('all')
   const [searchQuery,          setSearchQuery]          = useState<string>('')
 
+  /** Per-placement pools; shuffled for fair rotation when multiple advertisers exist. */
+  const [widePool, setWidePool] = useState<BannerData[]>([])
+  const [cardPool, setCardPool] = useState<BannerData[]>([])
+  const [sidebarPool, setSidebarPool] = useState<BannerData[]>([])
+
+  useEffect(() => {
+    const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(initialBanners)
+    setWidePool(feedWide.length <= 1 ? feedWide : randomShuffle([...feedWide]))
+    setCardPool(feedCard.length <= 1 ? feedCard : randomShuffle([...feedCard]))
+    // Left rail: only one banner visible; which advertiser wins is random each load/refresh.
+    const sideShuffled = sidebarLeft.length <= 1 ? sidebarLeft : randomShuffle([...sidebarLeft])
+    setSidebarPool(sideShuffled.length ? [sideShuffled[0]] : [])
+  }, [initialBanners])
+
   const filteredModels = useMemo(() => {
     let result = initialModels
     if (selectedRegion !== 'all') {
@@ -106,6 +124,48 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
+  const renderModelFeed = () => {
+    if (filteredModels.length === 0) {
+      return (
+        <div
+          className="text-center py-20 rounded-xl"
+          style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+        >
+          <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>No models found</p>
+          <p style={{ color: '#94a3b8' }}>Try changing filters</p>
+        </div>
+      )
+    }
+    const WIDE_GAP = 6
+    const CARD_GAP = 4
+    const items: React.ReactNode[] = []
+    let wideIdx = 0
+    let cardIdx = 0
+    if (widePool.length > 0 && wideIdx < widePool.length) {
+      items.push(<BannerCard key={`banner-wide-${widePool[wideIdx].id}-0`} banner={widePool[wideIdx]} priority />)
+      wideIdx++
+    }
+    filteredModels.forEach((model, i) => {
+      items.push(<ModelCard key={model.id} model={model} priority={i < 4} />)
+      const n = i + 1
+      if (n % WIDE_GAP === 0 && wideIdx < widePool.length) {
+        items.push(<BannerCard key={`banner-wide-${widePool[wideIdx].id}-${n}`} banner={widePool[wideIdx]} />)
+        wideIdx++
+      }
+      if (n % CARD_GAP === 0 && cardIdx < cardPool.length) {
+        items.push(
+          <BannerCardFeedCard key={`banner-card-${cardPool[cardIdx].id}-${n}`} banner={cardPool[cardIdx]} />
+        )
+        cardIdx++
+      }
+    })
+    return (
+      <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
+        {items}
+      </div>
+    )
+  }
+
   return (
     <>
       <Navbar />
@@ -114,60 +174,51 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
         {/* Stories */}
         <StoriesSection />
 
-        {/* Main content */}
-        <div className="max-w-[1280px] mx-auto">
-          <CitySelector
-            selectedRegion={selectedRegion}             setSelectedRegion={setSelectedRegion}
-            selectedCity={selectedCity}                 setSelectedCity={setSelectedCity}
-            selectedCategory={selectedCategory}         setSelectedCategory={setSelectedCategory}
-            selectedOffer={selectedOffer}               setSelectedOffer={setSelectedOffer}
-            selectedLiveLocation={selectedLiveLocation} setSelectedLiveLocation={setSelectedLiveLocation}
-            searchQuery={searchQuery}                   setSearchQuery={setSearchQuery}
-            totalModels={initialModels.length}
-            models={initialModels}
-          />
-          <div className="px-4 py-6 w-full">
-            {filteredModels.length === 0 ? (
-              <div
-                className="text-center py-20 rounded-xl"
-                style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
-              >
-                <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>No models found</p>
-                <p style={{ color: '#94a3b8' }}>Try changing filters</p>
+        {/* Main: full-bleed row (lg); center column matches StoriesSection `max-w-[1280px] px-2 sm:px-4`; banner in left 1fr */}
+        <div className="w-full pt-3 sm:pt-4 pb-4 sm:pb-6">
+          {sidebarPool.length > 0 ? (
+            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1280px)_minmax(0,1fr)] lg:items-start lg:gap-x-4">
+              <div className="hidden min-h-0 justify-end lg:flex lg:self-start">
+                {/*
+                  Sticky must not share overflow-* on the same node (breaks sticking to viewport).
+                  Scroll lives on the inner wrapper.
+                */}
+                <aside className="sticky top-[120px] z-10 w-[220px] shrink-0 xl:w-[240px]">
+                  <div className="max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
+                    <BannerSidebarRail banners={sidebarPool} />
+                  </div>
+                </aside>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                {(() => {
-                  const BANNER_GAP = 6
-                  const items: React.ReactNode[] = []
-                  let bannerIdx = 0
-
-                  if (initialBanners.length > 0 && bannerIdx < initialBanners.length) {
-                    items.push(
-                      <BannerCard key={`banner-${initialBanners[bannerIdx].id}`} banner={initialBanners[bannerIdx]} />
-                    )
-                    bannerIdx++
-                  }
-
-                  filteredModels.forEach((model, i) => {
-                    items.push(<ModelCard key={model.id} model={model} priority={i < 4} />)
-
-                    if (
-                      bannerIdx < initialBanners.length &&
-                      (i + 1) % BANNER_GAP === 0
-                    ) {
-                      items.push(
-                        <BannerCard key={`banner-${initialBanners[bannerIdx].id}`} banner={initialBanners[bannerIdx]} />
-                      )
-                      bannerIdx++
-                    }
-                  })
-
-                  return items
-                })()}
+              <div className="flex min-w-0 flex-col gap-4 px-2 sm:px-4">
+                <CitySelector
+                  selectedRegion={selectedRegion}             setSelectedRegion={setSelectedRegion}
+                  selectedCity={selectedCity}                 setSelectedCity={setSelectedCity}
+                  selectedCategory={selectedCategory}         setSelectedCategory={setSelectedCategory}
+                  selectedOffer={selectedOffer}               setSelectedOffer={setSelectedOffer}
+                  selectedLiveLocation={selectedLiveLocation} setSelectedLiveLocation={setSelectedLiveLocation}
+                  searchQuery={searchQuery}                   setSearchQuery={setSearchQuery}
+                  totalModels={initialModels.length}
+                  models={initialModels}
+                />
+                {renderModelFeed()}
               </div>
-            )}
-          </div>
+              <div className="hidden min-h-0 lg:block" aria-hidden />
+            </div>
+          ) : (
+            <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-2 sm:px-4">
+              <CitySelector
+                selectedRegion={selectedRegion}             setSelectedRegion={setSelectedRegion}
+                selectedCity={selectedCity}                 setSelectedCity={setSelectedCity}
+                selectedCategory={selectedCategory}         setSelectedCategory={setSelectedCategory}
+                selectedOffer={selectedOffer}               setSelectedOffer={setSelectedOffer}
+                selectedLiveLocation={selectedLiveLocation} setSelectedLiveLocation={setSelectedLiveLocation}
+                searchQuery={searchQuery}                   setSearchQuery={setSearchQuery}
+                totalModels={initialModels.length}
+                models={initialModels}
+              />
+              {renderModelFeed()}
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}

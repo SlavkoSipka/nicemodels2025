@@ -94,7 +94,7 @@ export default function ServicesPage() {
   if (loading) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6 ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
