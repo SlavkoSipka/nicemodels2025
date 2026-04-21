@@ -14,6 +14,9 @@ export default function AreaPage() {
   const [error, setError] = useState('')
   const [user, setUser] = useState<any>(null)
   const [city, setCity] = useState('')
+  const [zipCode, setZipCode] = useState('')
+  const [street, setStreet] = useState('')
+  const [streetNumber, setStreetNumber] = useState('')
   const [incallOptions, setIncallOptions] = useState<string[]>([])
   const [outcallOptions, setOutcallOptions] = useState<string[]>([])
 
@@ -38,6 +41,9 @@ export default function AreaPage() {
           .single()
         if (md) {
           setCity(md.city || '')
+          setZipCode(md.zip_code || '')
+          setStreet(md.street || '')
+          setStreetNumber(md.street_number || '')
           setIncallOptions(md.incall_options || [])
           setOutcallOptions(md.outcall_options || [])
           setShareLiveLocation(md.share_live_location || false)
@@ -118,6 +124,9 @@ export default function AreaPage() {
       const { error: e } = await supabase.from('model_details').upsert({
         model_id: user.id,
         city,
+        zip_code: zipCode || null,
+        street: street || null,
+        street_number: streetNumber || null,
         incall_options: incallOptions.length > 0 ? incallOptions : null,
         outcall_options: outcallOptions.length > 0 ? outcallOptions : null,
       }, { onConflict: 'model_id' })
@@ -227,11 +236,50 @@ export default function AreaPage() {
           <div>
             <CitySearch
               value={city}
-              onChange={(c) => setCity(c?.name || '')}
+              postalCode={zipCode}
+              onChange={(c) => {
+                setCity(c?.name || '')
+                if (c?.postal_code) setZipCode(c.postal_code)
+              }}
               label="City"
               required
               placeholder="Search city or PLZ..."
             />
+          </div>
+
+          {/* Address */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">Postal Code (PLZ)</label>
+              <input
+                type="text"
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value)}
+                placeholder="e.g. 8001"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+              <p className="text-xs text-gray-400 mt-0.5">Auto-filled when selecting a city</p>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">Street</label>
+              <input
+                type="text"
+                value={street}
+                onChange={(e) => setStreet(e.target.value)}
+                placeholder="e.g. Bahnhofstrasse"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-800 mb-1">Street Number</label>
+              <input
+                type="text"
+                value={streetNumber}
+                onChange={(e) => setStreetNumber(e.target.value)}
+                placeholder="e.g. 12a"
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
+              />
+            </div>
           </div>
 
           {/* Incall */}

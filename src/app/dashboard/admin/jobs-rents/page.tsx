@@ -119,9 +119,6 @@ export default function AdminJobsRentsPage() {
 
           {/* Header */}
           <div>
-            <Link href="/dashboard/admin" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Dashboard
-            </Link>
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-purple-600" />

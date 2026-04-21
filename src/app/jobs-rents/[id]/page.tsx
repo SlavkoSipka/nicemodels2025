@@ -19,6 +19,16 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
 
   if (!listing) notFound()
 
+  // Hide listings owned by blocked clubs from public view
+  if (listing.club_id) {
+    const { data: clubProfile } = await admin
+      .from('profiles')
+      .select('is_blocked')
+      .eq('id', listing.club_id)
+      .single()
+    if (clubProfile?.is_blocked) notFound()
+  }
+
   const [{ data: clubDetails }, { data: photos }, { data: serviceLinks }] = await Promise.all([
     admin.from('club_details').select('club_id, club_name, display_name, area').eq('club_id', listing.club_id).single(),
     admin.from('job_listing_photos').select('id, file_path, display_order').eq('listing_id', id).order('display_order'),
@@ -45,6 +55,7 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           has_whatsapp: listing.has_whatsapp,
           has_viber: listing.has_viber,
           has_telegram: listing.has_telegram,
+          has_sms: listing.has_sms ?? false,
           email: listing.email,
           website: listing.website,
           created_at: listing.created_at,
@@ -53,6 +64,16 @@ export default async function ListingDetailPage({ params }: { params: Promise<{ 
           club_area: clubDetails?.area || null,
           photos: photoUrls,
           services,
+          rent_price_daily: listing.rent_price_daily ?? null,
+          rent_price_weekly: listing.rent_price_weekly ?? null,
+          rent_price_monthly: listing.rent_price_monthly ?? null,
+          rent_work_permit: listing.rent_work_permit ?? false,
+          rent_room_size: listing.rent_room_size ?? null,
+          rent_furnished: listing.rent_furnished ?? false,
+          rent_kitchen: listing.rent_kitchen ?? false,
+          rent_bathroom: listing.rent_bathroom ?? false,
+          rent_air_conditioning: listing.rent_air_conditioning ?? false,
+          rent_towels: listing.rent_towels ?? false,
         }}
       />
     </>

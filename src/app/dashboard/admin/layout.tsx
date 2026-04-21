@@ -1,5 +1,31 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import AdminSidebar, { AdminSidebarCounts } from '@/components/layout/AdminSidebar'
+
+async function loadPendingCounts(): Promise<AdminSidebarCounts> {
+  const supabase = await createClient()
+  try {
+    const [verifications, reports, mediaPhotos, mediaVideos, banners, comments, blocked] = await Promise.all([
+      supabase.from('verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('model_photos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
+      supabase.from('model_videos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
+      supabase.from('banners').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_blocked', true),
+    ])
+    return {
+      verifications: verifications.count ?? 0,
+      reports: reports.count ?? 0,
+      media: (mediaPhotos.count ?? 0) + (mediaVideos.count ?? 0),
+      banners: banners.count ?? 0,
+      comments: comments.count ?? 0,
+      blocked: blocked.count ?? 0,
+    }
+  } catch {
+    return {}
+  }
+}
 
 export default async function AdminDashboardLayout({
   children,
@@ -23,5 +49,12 @@ export default async function AdminDashboardLayout({
     redirect('/dashboard')
   }
 
-  return <>{children}</>
+  const counts = await loadPendingCounts()
+
+  return (
+    <div className="min-h-screen flex bg-gray-50">
+      <AdminSidebar counts={counts} />
+      <main className="flex-1 min-w-0 overflow-x-hidden">{children}</main>
+    </div>
+  )
 }

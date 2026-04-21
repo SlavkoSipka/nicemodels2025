@@ -11,12 +11,13 @@ export default async function ClubPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
 
-  // Fetch club profile
+  // Fetch club profile. Blocked clubs are hidden from public view.
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', id)
     .eq('role', 'company')
+    .eq('is_blocked', false)
     .single()
 
   if (!profile) {
@@ -78,7 +79,7 @@ export default async function ClubPage({ params }: PageProps) {
     const modelIds = accepted.map((a: any) => a.invited_model_id)
 
     const [{ data: modelProfiles }, { data: modelDetails }, { data: modelPhotos }] = await Promise.all([
-      admin.from('profiles').select('id, username, is_verified').in('id', modelIds),
+      admin.from('profiles').select('id, username, is_verified').in('id', modelIds).eq('is_blocked', false),
       admin.from('model_details').select('model_id, showname, city, age').in('model_id', modelIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', modelIds)
         .eq('is_approved', true).order('uploaded_at', { ascending: false }),

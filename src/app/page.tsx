@@ -18,7 +18,7 @@ export default async function HomePage() {
 
   let models: any[] = []
   if (modelIds.length > 0) {
-    const [{ data: allDetails }, { data: allServices }, { data: allPhotos }] = await Promise.all([
+    const [{ data: allDetails }, { data: allServices }, { data: allPhotos }, { data: allContacts }] = await Promise.all([
       supabase.from('model_details')
         .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for, share_live_location, live_location_city, live_location_postal_code, live_location_updated_at')
         .in('model_id', modelIds),
@@ -30,6 +30,10 @@ export default async function HomePage() {
         .in('model_id', modelIds)
         .eq('is_approved', true)
         .order('uploaded_at', { ascending: false }),
+      supabase.from('model_contact_details')
+        .select('model_id, show_phone_on_card, country_code, phone_number')
+        .in('model_id', modelIds)
+        .eq('show_phone_on_card', true),
     ])
 
     const TWO_HOURS = 2 * 60 * 60 * 1000
@@ -54,12 +58,19 @@ export default async function HomePage() {
       if (!photosMap.has(p.model_id) && p.file_path)
         photosMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
     }
+    const contactPhoneMap = new Map<string, string>()
+    for (const c of allContacts ?? []) {
+      if (c.show_phone_on_card && c.phone_number) {
+        contactPhoneMap.set(c.model_id, `${c.country_code || ''}${c.phone_number}`)
+      }
+    }
 
     models = modelsData.map((m: any) => ({
       ...m,
       model_details: detailsMap.get(m.id) ?? null,
       model_services_list: servicesMap.get(m.id) ?? [],
       photoUrl: photosMap.get(m.id) ?? null,
+      cardPhone: contactPhoneMap.get(m.id) ?? null,
     }))
 
     const modelCityNames = [...new Set(
@@ -172,8 +183,20 @@ export default async function HomePage() {
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('display_order')
 
+  // Hide banners whose owner is blocked
+  const bannerOwnerIds = [...new Set((bannersRaw ?? []).map((b: any) => b.owner_id).filter(Boolean))]
+  let blockedOwnerIds = new Set<string>()
+  if (bannerOwnerIds.length > 0) {
+    const { data: ownerProfiles } = await admin
+      .from('profiles')
+      .select('id, is_blocked')
+      .in('id', bannerOwnerIds)
+    blockedOwnerIds = new Set((ownerProfiles ?? []).filter(p => p.is_blocked).map(p => p.id))
+  }
+
   const seenOwners = new Set<string>()
   const banners = (bannersRaw ?? [])
+    .filter((b: any) => !blockedOwnerIds.has(b.owner_id))
     .filter((b: any) => { if (seenOwners.has(b.owner_id)) return false; seenOwners.add(b.owner_id); return true })
     .map((b: any) => ({
       id: b.id, owner_type: b.owner_type, owner_id: b.owner_id, title: b.title,
@@ -237,7 +260,7 @@ export default async function HomePage() {
   if (statusRaw?.length) {
     const msgIds = [...new Set(statusRaw.map(s => s.model_id))]
     const [{ data: p1 }, { data: d1 }, { data: ph1 }] = await Promise.all([
-      admin.from('profiles').select('id, username').in('id', msgIds),
+      admin.from('profiles').select('id, username').in('id', msgIds).eq('is_blocked', false),
       admin.from('model_details').select('model_id, showname').in('model_id', msgIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', msgIds)
         .eq('is_approved', true).order('uploaded_at', { ascending: false }),
@@ -246,7 +269,7 @@ export default async function HomePage() {
     const dMap = new Map((d1 || []).map(x => [x.model_id, x]))
     const phMap = new Map<string, string>()
     for (const p of ph1 || []) { if (!phMap.has(p.model_id) && p.file_path) phMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`) }
-    statusMessages = statusRaw.map(s => ({
+    statusMessages = statusRaw.filter(s => pMap.has(s.model_id)).map(s => ({
       id: s.id, model_id: s.model_id, caption: s.message, created_at: s.created_at,
       model_name: dMap.get(s.model_id)?.showname || pMap.get(s.model_id)?.username || 'Model',
       model_photo: phMap.get(s.model_id) || null,
@@ -261,14 +284,14 @@ export default async function HomePage() {
   if (chatRaw?.length) {
     const cIds = chatRaw.map(m => m.model_id)
     const [{ data: cp }, { data: cph }] = await Promise.all([
-      admin.from('profiles').select('id, username').in('id', cIds),
+      admin.from('profiles').select('id, username').in('id', cIds).eq('is_blocked', false),
       admin.from('model_photos').select('model_id, file_path').in('model_id', cIds)
         .eq('is_approved', true).order('uploaded_at', { ascending: false }),
     ])
     const cpMap = new Map((cp || []).map(x => [x.id, x]))
     const cphMap = new Map<string, string>()
     for (const p of cph || []) { if (!cphMap.has(p.model_id) && p.file_path) cphMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`) }
-    chatModels = chatRaw.map(m => ({
+    chatModels = chatRaw.filter(m => cpMap.has(m.model_id)).map(m => ({
       id: m.model_id, model_name: m.showname || cpMap.get(m.model_id)?.username || 'Model',
       city: m.city || null, model_photo: cphMap.get(m.model_id) || null,
     }))

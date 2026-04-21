@@ -2,6 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useRef } from 'react'
+import { trackBannerImpression, trackBannerClick } from '@/lib/tracking'
 
 export interface BannerData {
   id: string
@@ -21,12 +23,43 @@ const BLUR =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z'
 
 export default function BannerCard({ banner, priority = false }: BannerCardProps) {
+  const ref = useRef<HTMLAnchorElement | null>(null)
+  const fired = useRef(false)
+
+  useEffect(() => {
+    if (!ref.current || fired.current) return
+    if (typeof IntersectionObserver === 'undefined') {
+      fired.current = true
+      trackBannerImpression(banner.id)
+      return
+    }
+    const io = new IntersectionObserver(
+      entries => {
+        for (const e of entries) {
+          if (e.isIntersecting && !fired.current) {
+            fired.current = true
+            trackBannerImpression(banner.id)
+            io.disconnect()
+          }
+        }
+      },
+      { threshold: 0.5 }
+    )
+    io.observe(ref.current)
+    return () => io.disconnect()
+  }, [banner.id])
+
   if (!banner.image_url) return null
 
   const href = banner.cta_url || `/${banner.owner_type === 'club' ? 'clubs' : 'models'}/${banner.owner_id}`
 
   return (
-    <Link href={href} className="block group w-full col-span-1 sm:col-span-2">
+    <Link
+      ref={ref}
+      href={href}
+      onClick={() => trackBannerClick(banner.id, 'profile')}
+      className="block group w-full col-span-1 sm:col-span-2"
+    >
       <div
         className="relative overflow-hidden w-full transition-all duration-300"
         style={{

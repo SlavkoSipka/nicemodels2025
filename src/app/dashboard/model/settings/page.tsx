@@ -59,10 +59,15 @@ export default function SettingsPage() {
     if (!confirm('FINAL WARNING: This will permanently delete your account. Are you absolutely sure?')) return
     setSaving(true)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { error } = await supabase.from('profiles').delete().eq('id', user.id)
-      if (error) throw error
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Self-deletion from model settings' }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete')
+      }
       await supabase.auth.signOut()
       router.push('/')
     } catch { alert('Failed to delete account. Please contact support.') }

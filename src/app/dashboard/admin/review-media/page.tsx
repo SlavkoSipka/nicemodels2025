@@ -160,9 +160,6 @@ export default function ReviewMediaPage() {
 
           {/* Header */}
           <div>
-            <Link href="/dashboard/admin" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Dashboard
-            </Link>
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
                 <Image className="w-5 h-5 text-amber-600" />
@@ -301,7 +298,7 @@ export default function ReviewMediaPage() {
                   {selectedMedia.owner_name}
                   {selectedMedia.owner_public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{selectedMedia.owner_public_id}</span>}
                 </p>
-                <span className="text-xs text-gray-400">{selectedMedia.owner_email}</span>
+                <a href={`mailto:${selectedMedia.owner_email}`} className="text-xs text-gray-400 hover:text-brand hover:underline">{selectedMedia.owner_email}</a>
               </div>
               <div className="flex items-center gap-4 text-xs text-gray-500">
                 <span>Uploaded: {new Date(selectedMedia.uploaded_at).toLocaleString()}</span>

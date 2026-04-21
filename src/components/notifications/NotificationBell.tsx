@@ -133,6 +133,8 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
         return '✨'
       case 'verification_approved':
         return '✅'
+      case 'verification_rejected':
+        return '❌'
       case 'new_comment':
         return '💬'
       case 'photo_like':
@@ -271,9 +273,11 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
               <div className="p-3 border-t border-gray-200 bg-gray-50">
                 <button
                   onClick={() => {
-                    const url = userRole === 'model' 
-                      ? '/dashboard/model/notifications' 
-                      : '/dashboard/company/notifications'
+                    const url = userRole === 'model'
+                      ? '/dashboard/model/notifications'
+                      : userRole === 'company'
+                        ? '/dashboard/company/notifications'
+                        : '/dashboard/user/notifications'
                     router.push(url)
                     setIsOpen(false)
                   }}

@@ -4,20 +4,26 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera, Pencil } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
+import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
 
 interface Model {
   id: string
   email: string
   username: string
+  public_id?: number | null
   created_at: string
   is_blocked: boolean
   onboarding_completed: boolean
   is_verified: boolean
   model_details?: { showname: string; city: string }
   photoUrl?: string | null
+  contact_phone?: string | null
+  contact_email?: string | null
 }
+
+type SortKey = 'showname' | 'email' | 'city' | 'created_at' | 'is_verified' | 'is_blocked'
 
 export default function AdminModelsPage() {
   const [loading, setLoading] = useState(true)
@@ -25,6 +31,8 @@ export default function AdminModelsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedModel, setSelectedModel] = useState<Model | null>(null)
   const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey>('created_at')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => { loadModels() }, [])
 
@@ -41,12 +49,18 @@ export default function AdminModelsPage() {
     if (error) { setLoading(false); return }
 
     const modelIds = (data || []).map((m: any) => m.id)
-    const { data: photos } = await supabase
-      .from('model_photos')
-      .select('model_id, file_path')
-      .in('model_id', modelIds)
-      .eq('is_approved', true)
-      .order('uploaded_at', { ascending: false })
+    const [{ data: photos }, { data: contacts }] = await Promise.all([
+      supabase
+        .from('model_photos')
+        .select('model_id, file_path')
+        .in('model_id', modelIds)
+        .eq('is_approved', true)
+        .order('uploaded_at', { ascending: false }),
+      supabase
+        .from('model_contact_details')
+        .select('model_id, country_code, phone_number, email')
+        .in('model_id', modelIds),
+    ])
 
     const photoMap: Record<string, string> = {}
     const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -56,10 +70,18 @@ export default function AdminModelsPage() {
       }
     }
 
+    const contactMap: Record<string, { phone: string | null; email: string | null }> = {}
+    for (const c of contacts || []) {
+      const phone = c.phone_number ? `${c.country_code || ''} ${c.phone_number}`.trim() : null
+      contactMap[c.model_id] = { phone, email: c.email || null }
+    }
+
     setModels((data || []).map((m: any) => ({
       ...m,
       model_details: Array.isArray(m.model_details) ? m.model_details[0] : m.model_details,
       photoUrl: photoMap[m.id] || null,
+      contact_phone: contactMap[m.id]?.phone || null,
+      contact_email: contactMap[m.id]?.email || null,
     })))
     setLoading(false)
   }
@@ -79,13 +101,82 @@ export default function AdminModelsPage() {
     loadModels()
   }
 
+  const handleDelete = async (model: Model) => {
+    const name = model.model_details?.showname || model.username || model.email
+    const confirmation = prompt(`Type DELETE to permanently remove model "${name}".\nThis will delete their account, photos, and all data. This cannot be undone.`)
+    if (confirmation !== 'DELETE') return
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: model.id, reason: 'Deleted by admin' }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete')
+      }
+      setModels(prev => prev.filter(m => m.id !== model.id))
+    } catch (e: any) {
+      alert(e.message || 'Failed to delete model')
+    }
+  }
+
   const filtered = models.filter(m => {
     const q = searchTerm.toLowerCase()
+    if (!q) return true
     if (m.public_id && (`#${m.public_id}` === q || String(m.public_id) === q)) return true
     return m.email.toLowerCase().includes(q) ||
       m.username?.toLowerCase().includes(q) ||
       m.model_details?.showname?.toLowerCase().includes(q)
   })
+
+  const sortValue = (m: Model, key: SortKey): string | number => {
+    switch (key) {
+      case 'showname': return (m.model_details?.showname || m.username || '').toLowerCase()
+      case 'email': return (m.email || '').toLowerCase()
+      case 'city': return (m.model_details?.city || '').toLowerCase()
+      case 'created_at': return new Date(m.created_at || 0).getTime()
+      case 'is_verified': return m.is_verified ? 1 : 0
+      case 'is_blocked': return m.is_blocked ? 1 : 0
+    }
+  }
+
+  const sorted = [...filtered].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1
+    const va = sortValue(a, sortKey)
+    const vb = sortValue(b, sortKey)
+    if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * dir
+    return String(va).localeCompare(String(vb)) * dir
+  })
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
+    else { setSortKey(key); setSortDir(key === 'created_at' ? 'desc' : 'asc') }
+  }
+
+  const SortIcon = ({ k }: { k: SortKey }) => {
+    if (sortKey !== k) return <ArrowUpDown className="w-3 h-3 text-gray-300" />
+    return sortDir === 'asc'
+      ? <ArrowUp className="w-3 h-3 text-gray-700" />
+      : <ArrowDown className="w-3 h-3 text-gray-700" />
+  }
+
+  const handleDownloadCsv = () => {
+    downloadCsv('nicemodels-models', sorted, [
+      { header: 'Public ID', value: m => m.public_id ?? '' },
+      { header: 'Showname', value: m => m.model_details?.showname || '' },
+      { header: 'Username', value: m => m.username || '' },
+      { header: 'Account Email', value: m => m.email || '' },
+      { header: 'Contact Email', value: m => m.contact_email || '' },
+      { header: 'Phone', value: m => m.contact_phone || '' },
+      { header: 'City', value: m => m.model_details?.city || '' },
+      { header: 'Joined', value: m => fmtDateTime(m.created_at) },
+      { header: 'Verified', value: m => m.is_verified ? 'Yes' : 'No' },
+      { header: 'Onboarded', value: m => m.onboarding_completed ? 'Yes' : 'No' },
+      { header: 'Blocked', value: m => m.is_blocked ? 'Yes' : 'No' },
+      { header: 'User ID', value: m => m.id },
+    ])
+  }
 
   if (loading) return null
 
@@ -96,19 +187,25 @@ export default function AdminModelsPage() {
 
           {/* Header */}
           <div>
-            <Link href="/dashboard/admin" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Dashboard
-            </Link>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
                   <Users className="w-5 h-5 text-brand" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Models Management</h1>
-                  <p className="text-xs text-gray-500">{models.length} total models</p>
+                  <p className="text-xs text-gray-500">{models.length} total · {sorted.length} shown</p>
                 </div>
               </div>
+              <button
+                onClick={handleDownloadCsv}
+                disabled={sorted.length === 0}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Download visible rows as CSV (Excel)"
+              >
+                <Download className="w-4 h-4" />
+                Download CSV ({sorted.length})
+              </button>
             </div>
           </div>
 
@@ -126,13 +223,26 @@ export default function AdminModelsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    {['Model', 'Email', 'City', 'Joined', 'Verified', 'Status', 'Actions'].map(h => (
-                      <th key={h} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
+                    {([
+                      { label: 'Model', key: 'showname' as SortKey },
+                      { label: 'Email', key: 'email' as SortKey },
+                      { label: 'City', key: 'city' as SortKey },
+                      { label: 'Joined', key: 'created_at' as SortKey },
+                      { label: 'Verified', key: 'is_verified' as SortKey },
+                      { label: 'Status', key: 'is_blocked' as SortKey },
+                    ]).map(col => (
+                      <th key={col.key} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <button onClick={() => toggleSort(col.key)} className="inline-flex items-center gap-1 hover:text-gray-900">
+                          {col.label}
+                          <SortIcon k={col.key} />
+                        </button>
+                      </th>
                     ))}
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filtered.map(model => (
+                  {sorted.map(model => (
                     <tr key={model.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3">
                         <Link href={`/dashboard/admin/models/${model.id}`}
@@ -159,7 +269,7 @@ export default function AdminModelsPage() {
                           </div>
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate">{model.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate"><a href={`mailto:${model.email}`} className="hover:text-brand hover:underline">{model.email}</a></td>
                       <td className="px-4 py-3 text-sm text-gray-700">{model.model_details?.city || '—'}</td>
                       <td className="px-4 py-3 text-xs text-gray-500">{new Date(model.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
@@ -205,6 +315,13 @@ export default function AdminModelsPage() {
                             }`}>
                             {model.is_blocked ? 'Unblock' : 'Block'}
                           </button>
+                          <button
+                            onClick={() => handleDelete(model)}
+                            className="p-1.5 text-xs font-semibold rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
+                            title="Delete account permanently"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -212,7 +329,7 @@ export default function AdminModelsPage() {
                 </tbody>
               </table>
             </div>
-            {filtered.length === 0 && (
+            {sorted.length === 0 && (
               <div className="text-center py-10">
                 <p className="text-sm text-gray-400">No models found</p>
               </div>

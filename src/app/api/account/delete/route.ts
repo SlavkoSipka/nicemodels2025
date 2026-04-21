@@ -1,0 +1,108 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+
+/**
+ * Permanently delete an account.
+ *
+ * - Authenticated user calling without `userId` → deletes self.
+ * - Admin calling with `userId` → deletes the target user.
+ *
+ * Flow:
+ *   1. Snapshot profile (+ role-specific details) into `deleted_accounts`.
+ *   2. Call `admin.auth.admin.deleteUser(userId)` which removes the row from
+ *      `auth.users`, frees the email for re-registration and (via the FK
+ *      cascade on `profiles.id`) wipes the public profile.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json().catch(() => ({}))
+    const targetId: string | undefined = body.userId
+    const reason: string | null = (body.reason ?? null) as string | null
+
+    let userIdToDelete = user.id
+    let deletedBy = 'self'
+
+    if (targetId && targetId !== user.id) {
+      const { data: callerProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      if (callerProfile?.role !== 'admin') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+
+      userIdToDelete = targetId
+      deletedBy = user.id
+    }
+
+    const admin = createAdminClient()
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('*')
+      .eq('id', userIdToDelete)
+      .single()
+
+    if (!profile) {
+      // Nothing to archive, but still attempt to clean up the auth row.
+      await admin.auth.admin.deleteUser(userIdToDelete)
+      return NextResponse.json({ success: true })
+    }
+
+    const role = profile.role as string | null
+    const snapshot: Record<string, any> = { profile }
+
+    if (role === 'model') {
+      const [details, photos, videos, contact] = await Promise.all([
+        admin.from('model_details').select('*').eq('model_id', userIdToDelete).maybeSingle(),
+        admin.from('model_photos').select('*').eq('model_id', userIdToDelete),
+        admin.from('model_videos').select('*').eq('model_id', userIdToDelete),
+        admin.from('model_contact_details').select('*').eq('model_id', userIdToDelete).maybeSingle(),
+      ])
+      snapshot.model_details = details.data
+      snapshot.model_photos = photos.data
+      snapshot.model_videos = videos.data
+      snapshot.model_contact_details = contact.data
+    } else if (role === 'company') {
+      const [details, photos, contact, listings] = await Promise.all([
+        admin.from('club_details').select('*').eq('club_id', userIdToDelete).maybeSingle(),
+        admin.from('club_photos').select('*').eq('club_id', userIdToDelete),
+        admin.from('club_contact_details').select('*').eq('club_id', userIdToDelete).maybeSingle(),
+        admin.from('job_listings').select('*').eq('club_id', userIdToDelete),
+      ])
+      snapshot.club_details = details.data
+      snapshot.club_photos = photos.data
+      snapshot.club_contact_details = contact.data
+      snapshot.job_listings = listings.data
+    }
+
+    await admin.from('deleted_accounts').insert({
+      original_user_id: userIdToDelete,
+      email: profile.email,
+      username: profile.username,
+      role,
+      reason,
+      deleted_by: deletedBy,
+      snapshot,
+    })
+
+    const { error: deleteError } = await admin.auth.admin.deleteUser(userIdToDelete)
+    if (deleteError) {
+      return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
+  }
+}

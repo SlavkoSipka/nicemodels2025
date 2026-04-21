@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { X, ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX, UserRound } from 'lucide-react';
 import Link from 'next/link';
 
 interface Story {
@@ -263,9 +263,6 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
                 <p className="text-white/80 text-xs">
                   {Math.floor((Date.now() - new Date(currentStory.created_at).getTime()) / 3600000)}h ago
                 </p>
-                <p className="text-white/55 text-[10px] mt-0.5 leading-tight">
-                  Go to the profile
-                </p>
               </div>
             </Link>
 
@@ -321,9 +318,10 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
           aria-label="Next"
         />
 
-        {/* Controls */}
-        <div className="absolute bottom-20 right-4 flex flex-col gap-3 z-20">
+        {/* Controls — above bottom-right profile CTA */}
+        <div className="absolute bottom-28 right-4 flex flex-col gap-3 z-40 pointer-events-auto">
           <button
+            type="button"
             onClick={togglePause}
             className="p-3 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
           >
@@ -331,12 +329,28 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
           </button>
           {currentStory.media_type === 'video' && (
             <button
+              type="button"
               onClick={toggleMute}
               className="p-3 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
             >
               {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             </button>
           )}
+        </div>
+
+        {/* Go to profile — bottom right, clearly clickable */}
+        <div className="absolute bottom-6 right-4 z-40 max-w-[min(100%,calc(100%-2rem))] pointer-events-auto">
+          <Link
+            href={`/models/${modelStory.model_id}`}
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-bold text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] hover:shadow-xl border-2 border-white/30"
+            style={{
+              background: 'linear-gradient(90deg, #9D174D, #EC4899)',
+              boxShadow: '0 4px 24px rgba(236,72,153,0.45)',
+            }}
+          >
+            <UserRound className="w-5 h-5 shrink-0" aria-hidden />
+            Go to the Profile
+          </Link>
         </div>
 
         {/* Views Count */}

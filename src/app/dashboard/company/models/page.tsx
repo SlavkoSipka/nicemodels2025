@@ -3,13 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Edit, Trash2, Eye, UserPlus, X, Clock, Users, CheckCircle } from 'lucide-react'
+import { Trash2, Eye, UserPlus, X, Clock, Users, CheckCircle, MapPin } from 'lucide-react'
 
 interface Model {
   id: string
   username: string
+  public_id?: string | null
   is_verified: boolean
   created_at: string
+  showname?: string | null
+  city?: string | null
+  age?: number | null
+  hasActiveAd?: boolean
 }
 
 interface Invite {
@@ -53,13 +58,31 @@ export default function ManageModelsPage() {
 
       if (acceptedInvites && acceptedInvites.length > 0) {
         const modelIds = acceptedInvites.map(inv => inv.invited_model_id)
-        const { data: modelProfiles } = await supabase
-          .from('profiles')
-          .select('id, username, public_id, is_verified, created_at')
-          .in('id', modelIds)
-          .order('created_at', { ascending: false })
+        const [{ data: modelProfiles }, { data: detailsRows }, { data: activeAds }] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('id, username, public_id, is_verified, created_at')
+            .in('id', modelIds)
+            .order('created_at', { ascending: false }),
+          supabase.from('model_details').select('model_id, showname, city, age').in('model_id', modelIds),
+          supabase.rpc('models_with_active_ads'),
+        ])
 
-        setModels(modelProfiles || [])
+        const detailsMap = new Map((detailsRows || []).map((d: { model_id: string }) => [d.model_id, d]))
+        const activeSet = new Set((activeAds || []).map((r: { id: string }) => r.id))
+
+        const merged: Model[] = (modelProfiles || []).map((p) => {
+          const d = detailsMap.get(p.id) as { showname?: string | null; city?: string | null; age?: number | null } | undefined
+          return {
+            ...p,
+            showname: d?.showname ?? null,
+            city: d?.city ?? null,
+            age: d?.age ?? null,
+            hasActiveAd: activeSet.has(p.id),
+          }
+        })
+
+        setModels(merged)
       }
 
       const { data: invitesData, error: invitesError } = await supabase
@@ -215,16 +238,24 @@ export default function ManageModelsPage() {
                         key={model.id}
                         className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
                       >
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center gap-3 mb-2">
                           <div className="w-10 h-10 rounded-full bg-brand/10 flex items-center justify-center text-brand font-bold text-sm shrink-0">
-                            {model.username?.charAt(0).toUpperCase() || 'M'}
+                            {(model.showname || model.username)?.charAt(0).toUpperCase() || 'M'}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-900 truncate">
-                              {model.username}
+                              {model.showname || model.username}
                               {model.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{model.public_id}</span>}
                             </p>
                             <p className="text-xs text-gray-500 truncate">@{model.username}</p>
+                            {(model.city || model.age != null) && (
+                              <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 truncate">
+                                <MapPin className="w-3 h-3 shrink-0 text-gray-400" />
+                                <span className="truncate">
+                                  {[model.city, model.age != null ? `${model.age} yrs` : null].filter(Boolean).join(' · ')}
+                                </span>
+                              </p>
+                            )}
                           </div>
                           {model.is_verified ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200 shrink-0">
@@ -237,18 +268,24 @@ export default function ManageModelsPage() {
                           )}
                         </div>
 
+                        <div className="mb-3">
+                          {model.hasActiveAd ? (
+                            <span className="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-800 text-[11px] font-semibold rounded-md border border-emerald-200">
+                              Active on site
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-900 text-[11px] font-semibold rounded-md border border-amber-200">
+                              No active ad — not listed publicly
+                            </span>
+                          )}
+                        </div>
+
                         <div className="flex gap-1.5">
                           <button
-                            onClick={() => router.push(`/models/${model.username}`)}
+                            onClick={() => router.push(`/models/${model.id}`)}
                             className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View
-                          </button>
-                          <button
-                            onClick={() => router.push(`/dashboard/company/models/${model.id}/edit`)}
-                            className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-brand/10 text-brand rounded-lg text-xs font-semibold hover:bg-brand/20 transition-colors"
-                          >
-                            <Edit className="w-3.5 h-3.5" /> Edit
+                            <Eye className="w-3.5 h-3.5" /> View public profile
                           </button>
                           <button
                             onClick={() => handleDelete(model.id)}

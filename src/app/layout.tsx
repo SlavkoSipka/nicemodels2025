@@ -3,6 +3,8 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import PageLoader from "@/components/layout/PageLoader";
+import PageTracker from "@/components/analytics/PageTracker";
+import { Suspense } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -22,6 +24,9 @@ export default function RootLayout({
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
         <PageLoader>
           <ScrollToTop />
+          <Suspense fallback={null}>
+            <PageTracker />
+          </Suspense>
           {children}
         </PageLoader>
       </body>

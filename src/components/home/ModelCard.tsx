@@ -1,9 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, Phone } from 'lucide-react'
 import { trackProfileView } from '@/lib/tracking'
+
+/** Strip spaces for tel:/sms: URIs */
+function phoneUri(raw: string): { tel: string; sms: string } {
+  const n = raw.replace(/[\s\u00a0\-]/g, '')
+  return { tel: `tel:${n}`, sms: `sms:${n}` }
+}
 
 interface ModelCardProps {
   model: {
@@ -12,6 +19,7 @@ interface ModelCardProps {
     created_at?: string
     photoUrl?: string | null
     public_id?: number | null
+    cardPhone?: string | null
     model_details: {
       showname: string
       city: string
@@ -40,6 +48,7 @@ function timeAgo(dateStr?: string): string {
 }
 
 export default function ModelCard({ model, priority = false }: ModelCardProps) {
+  const [cardHover, setCardHover] = useState(false)
   const details     = model.model_details
   const title       = details?.showname || model.username
   const city        = details?.city || ''
@@ -56,32 +65,34 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
       ? `Live: ${liveCity}${details?.live_location_postal_code ? ` (${details.live_location_postal_code})` : ''}`
       : null
 
+  const phoneUris = model.cardPhone ? phoneUri(model.cardPhone) : null
+
+  const cardStyle = {
+    background: '#ffffff' as const,
+    borderRadius: '12px',
+    border: `1px solid ${cardHover ? 'rgba(236,72,153,0.18)' : 'rgba(0,0,0,0.06)'}`,
+    boxShadow: cardHover
+      ? '0 8px 28px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)'
+      : '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)',
+    transform: cardHover ? 'translateY(-2px)' : 'translateY(0)',
+  }
+
   return (
-    <Link
-      href={`/models/${model.id}`}
-      onClick={() => trackProfileView(model.id)}
-      className="block group w-full"
+    <div
+      className="relative block group w-full rounded-[12px]"
+      onMouseEnter={() => setCardHover(true)}
+      onMouseLeave={() => setCardHover(false)}
     >
+      {/* Full-card link behind content; tel/sms sit above with pointer-events-auto */}
+      <Link
+        href={`/models/${model.id}`}
+        onClick={() => trackProfileView(model.id)}
+        className="absolute inset-0 z-0 rounded-[12px]"
+        aria-label={`View profile: ${title}`}
+      />
       <div
-        className="overflow-hidden flex flex-row w-full transition-all duration-300"
-        style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          border: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)',
-        }}
-        onMouseEnter={e => {
-          const el = e.currentTarget as HTMLDivElement
-          el.style.transform  = 'translateY(-2px)'
-          el.style.boxShadow  = '0 8px 28px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)'
-          el.style.borderColor = 'rgba(236,72,153,0.18)'
-        }}
-        onMouseLeave={e => {
-          const el = e.currentTarget as HTMLDivElement
-          el.style.transform  = 'translateY(0)'
-          el.style.boxShadow  = '0 1px 3px rgba(0,0,0,0.04), 0 1px 8px rgba(0,0,0,0.02)'
-          el.style.borderColor = 'rgba(0,0,0,0.06)'
-        }}
+        className="relative z-10 pointer-events-none overflow-hidden flex flex-row w-full transition-all duration-300"
+        style={cardStyle}
       >
         {/* Photo */}
         <div
@@ -141,13 +152,37 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
               Premium
             </span>
 
-            {/* Name */}
-            <h3
-              className="font-bold text-[15px] sm:text-base leading-snug transition-colors group-hover:text-pink-500"
-              style={{ color: '#1a1a2e' }}
-            >
-              {title}
-            </h3>
+            {/* Name + Phone (tel/sms links — not nested inside profile <a>) */}
+            <div className="flex items-center justify-between gap-2">
+              <h3
+                className="font-bold text-[15px] sm:text-base leading-snug transition-colors group-hover:text-pink-500 truncate"
+                style={{ color: '#1a1a2e' }}
+              >
+                {title}
+              </h3>
+              {model.cardPhone && phoneUris && (
+                <span className="inline-flex items-center gap-0.5 shrink-0">
+                  <a
+                    href={phoneUris.tel}
+                    className="pointer-events-auto inline-flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md rounded-r-none border border-r-0 hover:opacity-90"
+                    style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
+                    aria-label={`Call ${model.cardPhone}`}
+                  >
+                    <Phone className="w-3 h-3 shrink-0" />
+                    {model.cardPhone}
+                  </a>
+                  <a
+                    href={phoneUris.sms}
+                    className="pointer-events-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md rounded-l-none border hover:opacity-90 leading-none self-stretch flex items-center"
+                    style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
+                    title="Send SMS"
+                    aria-label={`Send SMS to ${model.cardPhone}`}
+                  >
+                    SMS
+                  </a>
+                </span>
+              )}
+            </div>
 
             {/* City + Age */}
             {(city || age) && (
@@ -191,6 +226,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }

@@ -23,6 +23,12 @@ export interface Database {
           invite_token: string | null
           invited_by: string | null
           onboarding_completed: boolean
+          phone: string | null
+          date_of_birth: string | null
+          first_name: string | null
+          last_name: string | null
+          city: string | null
+          description: string | null
           created_at: string
           updated_at: string
         }
@@ -39,6 +45,12 @@ export interface Database {
           invite_token?: string | null
           invited_by?: string | null
           onboarding_completed?: boolean
+          phone?: string | null
+          date_of_birth?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          city?: string | null
+          description?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -55,6 +67,12 @@ export interface Database {
           invite_token?: string | null
           invited_by?: string | null
           onboarding_completed?: boolean
+          phone?: string | null
+          date_of_birth?: string | null
+          first_name?: string | null
+          last_name?: string | null
+          city?: string | null
+          description?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -309,6 +327,9 @@ export interface Database {
           live_location_city: string | null
           live_location_postal_code: string | null
           live_location_updated_at: string | null
+          zip_code: string | null
+          street: string | null
+          street_number: string | null
           created_at: string
           updated_at: string
         }
@@ -327,6 +348,9 @@ export interface Database {
           live_location_city?: string | null
           live_location_postal_code?: string | null
           live_location_updated_at?: string | null
+          zip_code?: string | null
+          street?: string | null
+          street_number?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -345,8 +369,200 @@ export interface Database {
           live_location_city?: string | null
           live_location_postal_code?: string | null
           live_location_updated_at?: string | null
+          zip_code?: string | null
+          street?: string | null
+          street_number?: string | null
           created_at?: string
           updated_at?: string
+        }
+      }
+      job_listings: {
+        Row: {
+          id: string
+          club_id: string
+          listing_type: 'job' | 'rent'
+          title: string | null
+          location: string
+          description: string
+          country_code: string | null
+          phone_number: string | null
+          has_whatsapp: boolean
+          has_viber: boolean
+          has_telegram: boolean
+          has_sms: boolean
+          email: string | null
+          website: string | null
+          status: 'active' | 'expired' | 'deleted'
+          starts_at: string
+          expires_at: string | null
+          rent_price_daily: number | null
+          rent_price_weekly: number | null
+          rent_price_monthly: number | null
+          rent_work_permit: boolean
+          rent_room_size: string | null
+          rent_furnished: boolean
+          rent_kitchen: boolean
+          rent_bathroom: boolean
+          rent_air_conditioning: boolean
+          rent_towels: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          club_id: string
+          listing_type?: 'job' | 'rent'
+          title?: string | null
+          location: string
+          description: string
+          country_code?: string | null
+          phone_number?: string | null
+          has_whatsapp?: boolean
+          has_viber?: boolean
+          has_telegram?: boolean
+          has_sms?: boolean
+          email?: string | null
+          website?: string | null
+          status?: 'active' | 'expired' | 'deleted'
+          starts_at?: string
+          expires_at?: string | null
+          rent_price_daily?: number | null
+          rent_price_weekly?: number | null
+          rent_price_monthly?: number | null
+          rent_work_permit?: boolean
+          rent_room_size?: string | null
+          rent_furnished?: boolean
+          rent_kitchen?: boolean
+          rent_bathroom?: boolean
+          rent_air_conditioning?: boolean
+          rent_towels?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          club_id?: string
+          listing_type?: 'job' | 'rent'
+          title?: string | null
+          location?: string
+          description?: string
+          country_code?: string | null
+          phone_number?: string | null
+          has_whatsapp?: boolean
+          has_viber?: boolean
+          has_telegram?: boolean
+          has_sms?: boolean
+          email?: string | null
+          website?: string | null
+          status?: 'active' | 'expired' | 'deleted'
+          starts_at?: string
+          expires_at?: string | null
+          rent_price_daily?: number | null
+          rent_price_weekly?: number | null
+          rent_price_monthly?: number | null
+          rent_work_permit?: boolean
+          rent_room_size?: string | null
+          rent_furnished?: boolean
+          rent_kitchen?: boolean
+          rent_bathroom?: boolean
+          rent_air_conditioning?: boolean
+          rent_towels?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      verifications: {
+        Row: {
+          id: string
+          user_id: string
+          first_name: string
+          surname: string
+          date_of_birth: string
+          id_number: string
+          id_card_photo_path: string
+          selfie_photo_path: string
+          video_path: string | null
+          status: 'pending' | 'approved' | 'rejected'
+          submitted_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          rejection_reason: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          first_name: string
+          surname: string
+          date_of_birth: string
+          id_number: string
+          id_card_photo_path: string
+          selfie_photo_path: string
+          video_path?: string | null
+          status?: 'pending' | 'approved' | 'rejected'
+          submitted_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          rejection_reason?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          first_name?: string
+          surname?: string
+          date_of_birth?: string
+          id_number?: string
+          id_card_photo_path?: string
+          selfie_photo_path?: string
+          video_path?: string | null
+          status?: 'pending' | 'approved' | 'rejected'
+          submitted_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          rejection_reason?: string | null
+          created_at?: string
+        }
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          title: string
+          message: string
+          is_read: boolean
+          related_entity_type: string | null
+          related_entity_id: string | null
+          action_url: string | null
+          created_at: string
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          title: string
+          message: string
+          is_read?: boolean
+          related_entity_type?: string | null
+          related_entity_id?: string | null
+          action_url?: string | null
+          created_at?: string
+          read_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: string
+          title?: string
+          message?: string
+          is_read?: boolean
+          related_entity_type?: string | null
+          related_entity_id?: string | null
+          action_url?: string | null
+          created_at?: string
+          read_at?: string | null
         }
       }
       photos: {
@@ -403,6 +619,119 @@ export interface Database {
           icon_url?: string | null
           created_at?: string
         }
+      }
+      listing_views: {
+        Row: {
+          id: string
+          listing_id: string
+          viewer_id: string | null
+          viewer_role: string | null
+          user_agent: string | null
+          ip_address: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          listing_id: string
+          viewer_id?: string | null
+          viewer_role?: string | null
+          user_agent?: string | null
+          ip_address?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['listing_views']['Insert']>
+      }
+      listing_clicks: {
+        Row: {
+          id: string
+          listing_id: string
+          viewer_id: string | null
+          click_type: 'phone' | 'sms' | 'email' | 'website' | 'whatsapp' | 'viber' | 'telegram'
+          user_agent: string | null
+          ip_address: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          listing_id: string
+          viewer_id?: string | null
+          click_type: 'phone' | 'sms' | 'email' | 'website' | 'whatsapp' | 'viber' | 'telegram'
+          user_agent?: string | null
+          ip_address?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['listing_clicks']['Insert']>
+      }
+      banner_impressions: {
+        Row: {
+          id: string
+          banner_id: string
+          viewer_id: string | null
+          page_path: string | null
+          user_agent: string | null
+          ip_address: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          banner_id: string
+          viewer_id?: string | null
+          page_path?: string | null
+          user_agent?: string | null
+          ip_address?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['banner_impressions']['Insert']>
+      }
+      banner_clicks: {
+        Row: {
+          id: string
+          banner_id: string
+          viewer_id: string | null
+          click_type: string | null
+          page_path: string | null
+          user_agent: string | null
+          ip_address: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          banner_id: string
+          viewer_id?: string | null
+          click_type?: string | null
+          page_path?: string | null
+          user_agent?: string | null
+          ip_address?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['banner_clicks']['Insert']>
+      }
+      page_views: {
+        Row: {
+          id: string
+          path: string
+          viewer_id: string | null
+          viewer_role: string | null
+          session_id: string | null
+          referrer: string | null
+          user_agent: string | null
+          ip_address: string | null
+          country: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          path: string
+          viewer_id?: string | null
+          viewer_role?: string | null
+          session_id?: string | null
+          referrer?: string | null
+          user_agent?: string | null
+          ip_address?: string | null
+          country?: string | null
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['page_views']['Insert']>
       }
     }
     Views: {

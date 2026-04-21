@@ -23,9 +23,6 @@ function LoginFormInner() {
       setVerifiedMessage(true)
       setTimeout(() => setVerifiedMessage(false), 5000)
     }
-    if (searchParams.get('blocked') === 'true') {
-      setError('Your account has been suspended. Please contact support.')
-    }
   }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,18 +46,12 @@ function LoginFormInner() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('onboarding_completed, role, is_blocked')
+        .select('onboarding_completed, role')
         .eq('id', data.user?.id)
         .single()
 
       if (!profile) {
         setError('Profile not found for this account.')
-        return
-      }
-
-      if (profile.is_blocked) {
-        await supabase.auth.signOut()
-        setError('Your account has been suspended. Please contact support.')
         return
       }
 

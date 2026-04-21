@@ -5,6 +5,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { htmlToPlainText } from '@/lib/plainText'
+import {
+  listingTelHref,
+  listingWhatsAppHref,
+  listingViberHref,
+  listingTelegramHref,
+} from '@/lib/listingContactLinks'
 import { trackModelAction, trackProfileView } from '@/lib/tracking'
 import { usePageLoader } from '@/components/layout/PageLoader'
 import StartChatButton from '@/components/chat/StartChatButton'
@@ -72,6 +79,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     collabModels = [],
     likeCounts: initialLikeCounts = {},
     userLikedPhotoIds: initialUserLiked = [],
+    hasActiveAd = true,
   } = modelData
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
@@ -385,6 +393,21 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
     setSubmittingComment(true)
 
+    // Blocked users cannot post new comments. Also reject if target model is blocked.
+    const { data: blockCheck } = await supabase
+      .from('profiles')
+      .select('id, is_blocked')
+      .in('id', [user.id, profile.id])
+
+    const blockedRow = (blockCheck || []).find((r: any) => r.is_blocked)
+    if (blockedRow) {
+      setSubmittingComment(false)
+      alert(blockedRow.id === user.id
+        ? 'Your account is suspended. You cannot post comments.'
+        : 'This profile is currently unavailable.')
+      return
+    }
+
     const { error } = await supabase
       .from('model_comments')
       .insert({
@@ -665,6 +688,20 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   return (
     <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
+      {!hasActiveAd && (
+        <div
+          className="w-full px-4 py-3 text-center text-sm font-semibold border-b"
+          style={{
+            background: 'linear-gradient(90deg, rgba(254,243,199,0.95), rgba(254,215,170,0.95))',
+            borderColor: '#f59e0b',
+            color: '#78350f',
+          }}
+          role="status"
+        >
+          No active ad package — this profile is not shown in the public directory or homepage until an ad is active.
+        </div>
+      )}
+
       {/* ── Floating prev/next nav ── */}
       {allModelIds.length > 1 && (
         <>
@@ -794,13 +831,16 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         {contactDetails.phone_number ? (
                           <div className="space-y-2">
                             <a
-                              href={`tel:${contactDetails.country_code || ''}${contactDetails.phone_number}`}
-                              className="text-2xl font-bold transition-colors block"
+                              href={listingTelHref(
+                                contactDetails.country_code || '',
+                                contactDetails.phone_number || ''
+                              )}
+                              className="text-2xl font-bold transition-colors block hover:underline underline-offset-2 decoration-2"
                               style={{ color: '#EC4899' }}
                             >
                               {contactDetails.country_code || ''} {contactDetails.phone_number}
                             </a>
-                            {/* Small info line */}
+                            {/* Preference + meta (not app links) */}
                             <div className="flex flex-wrap gap-x-2 gap-y-0.5">
                               {contactDetails.contact_instruction && (
                                 <span className="text-xs" style={{ color: '#94a3b8' }}>
@@ -810,11 +850,68 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                                     : contactDetails.contact_instruction.replace(/_/g, ' ')}
                                 </span>
                               )}
-                              {contactDetails.has_whatsapp && <span className="text-xs" style={{ color: '#94a3b8' }}>WhatsApp</span>}
-                              {contactDetails.has_viber && <span className="text-xs" style={{ color: '#94a3b8' }}>Viber</span>}
-                              {contactDetails.has_telegram && <span className="text-xs" style={{ color: '#94a3b8' }}>Telegram</span>}
                               {contactDetails.no_withheld_numbers && <span className="text-xs" style={{ color: '#94a3b8' }}>No withheld numbers</span>}
                             </div>
+                            {/* Clickable messengers — opens apps / web */}
+                            {(contactDetails.has_whatsapp || contactDetails.has_viber || contactDetails.has_telegram) && (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                {contactDetails.has_whatsapp && (
+                                  <a
+                                    href={listingWhatsAppHref(
+                                      contactDetails.country_code || '',
+                                      contactDetails.phone_number || ''
+                                    )}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                                    style={{
+                                      background: '#ecfdf5',
+                                      borderColor: '#86efac',
+                                      color: '#047857',
+                                    }}
+                                  >
+                                    <MessageCircle className="w-4 h-4 shrink-0" aria-hidden />
+                                    WhatsApp
+                                  </a>
+                                )}
+                                {contactDetails.has_viber && (
+                                  <a
+                                    href={listingViberHref(
+                                      contactDetails.country_code || '',
+                                      contactDetails.phone_number || ''
+                                    )}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                                    style={{
+                                      background: '#f5f3ff',
+                                      borderColor: '#c4b5fd',
+                                      color: '#5b21b6',
+                                    }}
+                                  >
+                                    <MessageCircle className="w-4 h-4 shrink-0" aria-hidden />
+                                    Viber
+                                  </a>
+                                )}
+                                {contactDetails.has_telegram && (
+                                  <a
+                                    href={listingTelegramHref(
+                                      contactDetails.country_code || '',
+                                      contactDetails.phone_number || ''
+                                    )}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold border transition-all cursor-pointer shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                                    style={{
+                                      background: '#eff6ff',
+                                      borderColor: '#93c5fd',
+                                      color: '#1d4ed8',
+                                    }}
+                                  >
+                                    <MessageCircle className="w-4 h-4 shrink-0" aria-hidden />
+                                    Telegram
+                                  </a>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ) : contactDetails.email ? null : (
                           <p className="text-sm text-center py-1" style={{ color: '#94a3b8' }}>No contact details provided yet</p>
@@ -950,7 +1047,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>About me</span>
                 </div>
-                <div className="px-5 py-4 rich-text-content" style={{ color: '#475569' }} dangerouslySetInnerHTML={{ __html: modelDetails.about_me }} />
+                <p className="px-5 py-4 whitespace-pre-wrap" style={{ color: '#475569' }}>{htmlToPlainText(modelDetails.about_me || '')}</p>
               </div>
             )}
 
@@ -1068,7 +1165,21 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 </div>
                 <div className="px-5 py-4">
                   {modelDetails.city && (
-                    <p className="text-sm font-bold" style={{ color: '#0f172a' }}>{modelDetails.city}</p>
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-bold" style={{ color: '#0f172a' }}>
+                        {modelDetails.city}
+                        {modelDetails.zip_code && (
+                          <span className="ml-1.5 text-xs font-semibold" style={{ color: '#64748b' }}>
+                            ({modelDetails.zip_code})
+                          </span>
+                        )}
+                      </p>
+                      {(modelDetails.street || modelDetails.street_number) && (
+                        <p className="text-sm" style={{ color: '#475569' }}>
+                          {[modelDetails.street, modelDetails.street_number].filter(Boolean).join(' ')}
+                        </p>
+                      )}
+                    </div>
                   )}
                   {liveLoc && (
                     <p

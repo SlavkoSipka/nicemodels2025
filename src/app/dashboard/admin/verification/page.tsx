@@ -21,7 +21,7 @@ interface Verification {
   reviewed_by: string | null
   rejection_reason: string | null
   profile?: {
-    email: string; username: string; role: string
+    email: string; username: string; public_id?: number; role: string
     model_details?: { showname: string } | null
     club_details?: { club_name: string } | null
   }
@@ -31,6 +31,7 @@ export default function AdminVerificationPage() {
   const [loading, setLoading] = useState(true)
   const [verifications, setVerifications] = useState<Verification[]>([])
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
+  const [roleFilter, setRoleFilter] = useState<'all' | 'model' | 'user' | 'company'>('all')
   const [selected, setSelected] = useState<Verification | null>(null)
   const [rejectionReason, setRejectionReason] = useState('')
   const [processing, setProcessing] = useState(false)
@@ -78,6 +79,20 @@ export default function AdminVerificationPage() {
     try {
       await supabase.from('verifications').update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: user.id, rejection_reason: null }).eq('id', vId)
       await supabase.from('profiles').update({ is_verified: true }).eq('id', userId)
+
+      const targetProfile = selected?.profile
+      const rolePath = targetProfile?.role === 'model' ? 'model' : targetProfile?.role === 'company' ? 'company' : 'user'
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        type: 'verification_approved',
+        title: 'Verification Approved',
+        message: 'Your identity verification has been approved! You now have a verified badge.',
+        is_read: false,
+        action_url: `/dashboard/${rolePath}/verification`,
+        related_entity_type: 'verification',
+        related_entity_id: vId,
+      })
+
       setSelected(null); loadData()
     } catch { /* */ }
     setProcessing(false)
@@ -91,12 +106,26 @@ export default function AdminVerificationPage() {
     try {
       await supabase.from('verifications').update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: user.id, rejection_reason: rejectionReason }).eq('id', vId)
       await supabase.from('profiles').update({ is_verified: false }).eq('id', userId)
+
+      const targetProfile = selected?.profile
+      const rolePath = targetProfile?.role === 'model' ? 'model' : targetProfile?.role === 'company' ? 'company' : 'user'
+      await supabase.from('notifications').insert({
+        user_id: userId,
+        type: 'verification_rejected',
+        title: 'Verification Rejected',
+        message: `Your verification was rejected: ${rejectionReason}`,
+        is_read: false,
+        action_url: `/dashboard/${rolePath}/verification`,
+        related_entity_type: 'verification',
+        related_entity_id: vId,
+      })
+
       setSelected(null); setRejectionReason(''); loadData()
     } catch { /* */ }
     setProcessing(false)
   }
 
-  const filtered = verifications.filter(v => filter === 'all' || v.status === filter)
+  const filtered = verifications.filter(v => (filter === 'all' || v.status === filter) && (roleFilter === 'all' || v.profile?.role === roleFilter))
   const counts = { all: verifications.length, pending: verifications.filter(v => v.status === 'pending').length, approved: verifications.filter(v => v.status === 'approved').length, rejected: verifications.filter(v => v.status === 'rejected').length }
 
   const tabCls = (active: boolean) => `px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${active ? 'bg-brand text-white' : 'text-gray-600 hover:bg-gray-100'}`
@@ -109,9 +138,6 @@ export default function AdminVerificationPage() {
         <div className="max-w-6xl mx-auto space-y-4">
 
           <div>
-            <Link href="/dashboard/admin" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Dashboard
-            </Link>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
@@ -128,6 +154,12 @@ export default function AdminVerificationPage() {
                 <button onClick={() => setFilter('approved')} className={tabCls(filter === 'approved')}>Approved ({counts.approved})</button>
                 <button onClick={() => setFilter('rejected')} className={tabCls(filter === 'rejected')}>Rejected ({counts.rejected})</button>
               </div>
+            </div>
+            <div className="flex gap-1">
+              <button onClick={() => setRoleFilter('all')} className={tabCls(roleFilter === 'all')}>All Roles</button>
+              <button onClick={() => setRoleFilter('model')} className={tabCls(roleFilter === 'model')}>Models</button>
+              <button onClick={() => setRoleFilter('user')} className={tabCls(roleFilter === 'user')}>Visitors</button>
+              <button onClick={() => setRoleFilter('company')} className={tabCls(roleFilter === 'company')}>Clubs</button>
             </div>
           </div>
 
@@ -153,21 +185,21 @@ export default function AdminVerificationPage() {
                       <tr key={v.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${v.profile?.role === 'model' ? 'bg-brand/10' : 'bg-blue-50'}`}>
-                              {v.profile?.role === 'model' ? <User className="w-4 h-4 text-brand" /> : <Building2 className="w-4 h-4 text-blue-600" />}
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${v.profile?.role === 'model' ? 'bg-brand/10' : v.profile?.role === 'company' ? 'bg-blue-50' : 'bg-purple-50'}`}>
+                              {v.profile?.role === 'model' ? <User className="w-4 h-4 text-brand" /> : v.profile?.role === 'company' ? <Building2 className="w-4 h-4 text-blue-600" /> : <User className="w-4 h-4 text-purple-600" />}
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-gray-900 truncate">
                                 {v.profile?.model_details?.showname || v.profile?.club_details?.club_name || v.profile?.username || 'N/A'}
                                 {v.profile?.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{v.profile.public_id}</span>}
                               </p>
-                              <p className="text-xs text-gray-400 truncate">{v.profile?.email}</p>
+                              <a href={`mailto:${v.profile?.email}`} className="text-xs text-gray-400 truncate hover:text-brand hover:underline">{v.profile?.email}</a>
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${v.profile?.role === 'model' ? 'bg-brand/10 text-brand' : 'bg-blue-50 text-blue-700'}`}>
-                            {v.profile?.role === 'model' ? 'Model' : v.profile?.role === 'company' ? 'Club' : v.profile?.role || '—'}
+                          <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${v.profile?.role === 'model' ? 'bg-brand/10 text-brand' : v.profile?.role === 'company' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
+                            {v.profile?.role === 'model' ? 'Model' : v.profile?.role === 'company' ? 'Club' : v.profile?.role === 'user' ? 'Visitor' : v.profile?.role || '—'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-700">{v.first_name} {v.surname}</td>
@@ -212,9 +244,9 @@ export default function AdminVerificationPage() {
               <div className="bg-gray-50 border border-gray-100 rounded-lg p-4">
                 <p className="text-xs font-bold text-gray-500 uppercase mb-2">User Information</p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-gray-500">Email:</span> <span className="font-semibold ml-1">{selected.profile?.email}</span></div>
+                  <div><span className="text-gray-500">Email:</span> <a href={`mailto:${selected.profile?.email}`} className="font-semibold ml-1 hover:text-brand hover:underline">{selected.profile?.email}</a></div>
                   <div><span className="text-gray-500">Username:</span> <span className="font-semibold ml-1">@{selected.profile?.username}</span></div>
-                  <div><span className="text-gray-500">Type:</span> <span className="font-semibold ml-1 capitalize">{selected.profile?.role === 'company' ? 'Club' : selected.profile?.role}</span></div>
+                  <div><span className="text-gray-500">Type:</span> <span className="font-semibold ml-1 capitalize">{selected.profile?.role === 'company' ? 'Club' : selected.profile?.role === 'user' ? 'Visitor' : selected.profile?.role}</span></div>
                   <div><span className="text-gray-500">Submitted:</span> <span className="font-semibold ml-1">{new Date(selected.submitted_at).toLocaleDateString()}</span></div>
                 </div>
               </div>

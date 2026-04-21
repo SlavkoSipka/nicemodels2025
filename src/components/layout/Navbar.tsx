@@ -25,7 +25,7 @@ export default function Navbar() {
         
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('username, role')
+          .select('username, role, avatar_url')
           .eq('id', user.id)
           .single()
         
@@ -98,7 +98,11 @@ export default function Navbar() {
                     className="flex items-center justify-center gap-2 px-6 text-xs font-bold text-white transition-all border-l hover:brightness-110"
                     style={{ background: 'linear-gradient(135deg, #38bdf8, #89CFF0)', borderColor: 'rgba(137,207,240,0.35)' }}
                   >
-                    <User className="w-3.5 h-3.5" />
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                    ) : (
+                      <User className="w-3.5 h-3.5" />
+                    )}
                     <span>{profile?.username || 'User'}</span>
                   </Link>
                   <button

@@ -21,6 +21,7 @@ import PhotoGallery from '@/components/profile/PhotoGallery'
 import ReviewsList from '@/components/profile/ReviewsList'
 import ContactButtons from '@/components/profile/ContactButtons'
 import SimilarProfiles from '@/components/profile/SimilarProfiles'
+import { htmlToPlainText } from '@/lib/plainText'
 import { getProfileById, getModelRating } from '@/lib/api/profiles'
 import { createClient } from '@/lib/supabase/server'
 
@@ -200,7 +201,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {/* About */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-large p-8 border border-gray-100">
               <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">About Me</h2>
-              <div className="text-gray-700 leading-relaxed text-lg rich-text-content" dangerouslySetInnerHTML={{ __html: profile.bio }} />
+              <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">{htmlToPlainText(profile.bio || '')}</p>
             </div>
 
             {/* Services */}

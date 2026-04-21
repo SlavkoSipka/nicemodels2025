@@ -17,12 +17,15 @@ export default async function CommentsPage() {
       replied_at,
       user:profiles!model_comments_user_id_fkey (
         id,
-        username
+        username,
+        avatar_url,
+        is_blocked
       ),
       model:profiles!model_comments_model_id_fkey (
         id,
         username,
         public_id,
+        is_blocked,
         model_details!model_details_model_id_fkey (
           showname,
           city
@@ -32,8 +35,15 @@ export default async function CommentsPage() {
     .eq('status', 'approved')
     .order('created_at', { ascending: false })
 
+  // Hide comments where commenter or target model is blocked
+  const visibleComments = (comments || []).filter(c => {
+    const m = Array.isArray(c.model) ? c.model[0] : (c.model as any)
+    const u = Array.isArray(c.user) ? c.user[0] : (c.user as any)
+    return !m?.is_blocked && !u?.is_blocked
+  })
+
   // Fetch model photos separately for approved comments
-  const modelIds = comments?.map(c => (c.model as any)?.id).filter(Boolean) || []
+  const modelIds = visibleComments.map(c => (Array.isArray(c.model) ? c.model[0] : (c.model as any))?.id).filter(Boolean)
   const { data: photos } = await supabase
     .from('model_photos')
     .select('model_id, file_path')
@@ -50,12 +60,12 @@ export default async function CommentsPage() {
   })
 
   // Attach photos to comments and transform structure
-  const commentsWithPhotos = comments?.map(comment => {
+  const commentsWithPhotos = visibleComments.map(comment => {
     const model = Array.isArray(comment.model) ? comment.model[0] : comment.model
     const user = Array.isArray(comment.user) ? comment.user[0] : comment.user
     return {
       ...comment,
-      user: user || { id: '', username: 'Unknown' },
+      user: user || { id: '', username: 'Unknown', avatar_url: null },
       model: model || { id: '', username: '', model_details: [] },
       modelPhoto: photoMap[model?.id] || null
     }

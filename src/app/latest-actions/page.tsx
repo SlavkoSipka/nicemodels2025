@@ -18,8 +18,8 @@ export default async function LatestActionsPage() {
     { count: totalBanners },
     { data: actions },
   ] = await Promise.all([
-    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model').eq('onboarding_completed', true),
-    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company').eq('onboarding_completed', true),
+    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model').eq('onboarding_completed', true).eq('is_blocked', false),
+    admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company').eq('onboarding_completed', true).eq('is_blocked', false),
     admin.from('model_photos').select('id', { count: 'exact', head: true }).eq('is_approved', true),
     admin.from('model_videos').select('id', { count: 'exact', head: true }).eq('is_approved', true),
     admin.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
@@ -35,7 +35,7 @@ export default async function LatestActionsPage() {
 
   if (actorIds.length) {
     const [{ data: profiles }, { data: details }, { data: photos }] = await Promise.all([
-      admin.from('profiles').select('id, username, role').in('id', actorIds),
+      admin.from('profiles').select('id, username, role, avatar_url').in('id', actorIds).eq('is_blocked', false),
       admin.from('model_details').select('model_id, showname').in('model_id', actorIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', actorIds)
         .eq('is_approved', true).order('uploaded_at', { ascending: false }),
@@ -53,15 +53,18 @@ export default async function LatestActionsPage() {
       actorMap[prof.id] = {
         username: prof.username,
         showname: detMap.get(prof.id)?.showname,
-        photoUrl: pMap.get(prof.id),
+        photoUrl: pMap.get(prof.id) || prof.avatar_url || undefined,
       }
     }
   }
 
-  const enrichedActions = (actions || []).map(a => ({
-    ...a,
-    actor: a.actor_id ? actorMap[a.actor_id] || null : null,
-  }))
+  // Drop actions whose actor is blocked (actorMap won't contain them)
+  const enrichedActions = (actions || [])
+    .filter(a => !a.actor_id || actorMap[a.actor_id])
+    .map(a => ({
+      ...a,
+      actor: a.actor_id ? actorMap[a.actor_id] || null : null,
+    }))
 
   const stats = {
     models: totalModels || 0,

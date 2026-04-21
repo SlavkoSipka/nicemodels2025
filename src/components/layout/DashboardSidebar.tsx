@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase, Handshake } from 'lucide-react'
+import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase, Handshake, ShieldCheck } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardSidebarProps {
@@ -85,6 +85,18 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               >
                 <User className="w-5 h-5" />
                 <span>Profile</span>
+              </Link>
+
+              <Link
+                href="/dashboard/user/verification"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
+                  isActive('/dashboard/user/verification')
+                    ? 'text-white bg-gradient-to-r from-pink-500 to-rose-600 shadow-sm'
+                    : 'text-gray-700 hover:bg-pink-50 hover:text-pink-600'
+                }`}
+              >
+                <ShieldCheck className="w-5 h-5" />
+                <span>Verification</span>
               </Link>
 
               <Link

@@ -6,9 +6,19 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   MapPin, Calendar, Phone, Mail, Globe,
-  Building2, ArrowLeft, Pencil, Briefcase
+  Building2, ArrowLeft, Pencil, Briefcase, MessageSquare,
 } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
+import { htmlToPlainText } from '@/lib/plainText'
+import {
+  listingTelHref,
+  listingSmsHref,
+  listingWhatsAppHref,
+  listingViberHref,
+  listingTelegramHref,
+  listingPhoneDigits,
+} from '@/lib/listingContactLinks'
+import { trackListingView, trackListingClick } from '@/lib/tracking'
 
 interface ListingDetail {
   id: string
@@ -21,6 +31,7 @@ interface ListingDetail {
   has_whatsapp: boolean
   has_viber: boolean
   has_telegram: boolean
+  has_sms: boolean
   email: string | null
   website: string | null
   created_at: string
@@ -29,6 +40,16 @@ interface ListingDetail {
   club_area: string | null
   photos: string[]
   services: { id: string; name: string }[]
+  rent_price_daily: number | null
+  rent_price_weekly: number | null
+  rent_price_monthly: number | null
+  rent_work_permit: boolean
+  rent_room_size: string | null
+  rent_furnished: boolean
+  rent_kitchen: boolean
+  rent_bathroom: boolean
+  rent_air_conditioning: boolean
+  rent_towels: boolean
 }
 
 export default function ListingDetailClient({ listing }: { listing: ListingDetail }) {
@@ -36,6 +57,9 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
 
   const isJob = listing.listing_type === 'job'
   const displayTitle = listing.title || (isJob ? 'Job Listing' : 'Rent Listing')
+  const cc = listing.country_code || '+41'
+  const phone = listing.phone_number
+  const phoneDigitsOk = phone ? listingPhoneDigits(cc, phone).length >= 8 : false
   const dateStr = new Date(listing.created_at).toLocaleDateString('en-GB', {
     day: '2-digit', month: 'long', year: 'numeric',
   })
@@ -48,6 +72,11 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
     }
     checkOwner()
   }, [listing.club_id])
+
+  useEffect(() => {
+    const t = setTimeout(() => trackListingView(listing.id), 800)
+    return () => clearTimeout(t)
+  }, [listing.id])
 
   return (
     <>
@@ -138,12 +167,90 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                 <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
                   Description
                 </p>
-                <div
-                  className="text-sm sm:text-base leading-relaxed rich-text-content"
-                  style={{ color: '#475569' }}
-                  dangerouslySetInnerHTML={{ __html: listing.description }}
-                />
+                <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>
+                  {htmlToPlainText(listing.description)}
+                </p>
               </div>
+
+              {/* ── Rent Details ──────────────────────── */}
+              {listing.listing_type === 'rent' && (
+                <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6 space-y-5">
+                  {/* Pricing */}
+                  {(listing.rent_price_daily || listing.rent_price_weekly || listing.rent_price_monthly) && (
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#94a3b8' }}>
+                        Pricing
+                      </p>
+                      <div className="grid grid-cols-3 gap-3">
+                        {listing.rent_price_daily != null && (
+                          <div className="rounded-xl p-4 text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                            <p className="text-xl font-bold" style={{ color: '#0f172a' }}>CHF {listing.rent_price_daily}</p>
+                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>per day</p>
+                          </div>
+                        )}
+                        {listing.rent_price_weekly != null && (
+                          <div className="rounded-xl p-4 text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                            <p className="text-xl font-bold" style={{ color: '#0f172a' }}>CHF {listing.rent_price_weekly}</p>
+                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>per week</p>
+                          </div>
+                        )}
+                        {listing.rent_price_monthly != null && (
+                          <div className="rounded-xl p-4 text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                            <p className="text-xl font-bold" style={{ color: '#0f172a' }}>CHF {listing.rent_price_monthly}</p>
+                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>per month</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Room details & amenities */}
+                  {(listing.rent_room_size || listing.rent_work_permit || listing.rent_furnished || listing.rent_kitchen || listing.rent_bathroom || listing.rent_air_conditioning || listing.rent_towels) && (
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#94a3b8' }}>
+                        Room Details & Amenities
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {listing.rent_room_size && (
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(59,130,246,0.08)', color: '#1D4ED8', border: '1px solid rgba(59,130,246,0.20)' }}>
+                            Size: {listing.rent_room_size}
+                          </span>
+                        )}
+                        {listing.rent_work_permit && (
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(16,185,129,0.08)', color: '#047857', border: '1px solid rgba(16,185,129,0.20)' }}>
+                            Work Permit Allowed
+                          </span>
+                        )}
+                        {listing.rent_furnished && (
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
+                            Furnished
+                          </span>
+                        )}
+                        {listing.rent_kitchen && (
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
+                            Kitchen
+                          </span>
+                        )}
+                        {listing.rent_bathroom && (
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
+                            Shower + WC
+                          </span>
+                        )}
+                        {listing.rent_air_conditioning && (
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
+                            Air Conditioning
+                          </span>
+                        )}
+                        {listing.rent_towels && (
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
+                            Towels
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ── Services ───────────────────────────── */}
               {listing.services.length > 0 && (
@@ -172,78 +279,144 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
               {/* ── Contact ────────────────────────────── */}
               {(listing.phone_number || listing.email || listing.website) && (
                 <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
-                  <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
+                  <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>
                     Contact
+                  </p>
+                  <p className="text-xs mb-4" style={{ color: '#94a3b8' }}>
+                    Reach out via phone, SMS, email, or the apps you prefer.
                   </p>
                   <div
                     className="rounded-xl p-5 space-y-4"
                     style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
                   >
                     {listing.phone_number && (
-                      <div className="flex items-center gap-4">
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
-                        >
-                          <Phone className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                        </div>
-                        <div>
-                          <a
-                            href={`tel:${listing.country_code}${listing.phone_number}`}
-                            className="text-sm font-semibold transition-opacity hover:opacity-70"
-                            style={{ color: '#0f172a' }}
+                      <>
+                        <div className="flex items-start gap-4">
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                            style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
                           >
-                            {listing.country_code} {listing.phone_number}
-                          </a>
-                          {(listing.has_whatsapp || listing.has_viber || listing.has_telegram) && (
-                            <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-                              Available on{' '}
-                              {[
-                                listing.has_whatsapp && 'WhatsApp',
-                                listing.has_viber && 'Viber',
-                                listing.has_telegram && 'Telegram',
-                              ].filter(Boolean).join(' · ')}
-                            </p>
-                          )}
+                            <Phone className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Phone</p>
+                            <a
+                              href={phoneDigitsOk ? listingTelHref(cc, phone!) : '#'}
+                              onClick={() => phoneDigitsOk && trackListingClick(listing.id, 'phone')}
+                              className="text-sm font-semibold transition-opacity hover:opacity-70 break-all"
+                              style={{ color: '#0f172a' }}
+                            >
+                              {cc} {listing.phone_number}
+                            </a>
+                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>Tap to call</p>
+                          </div>
                         </div>
-                      </div>
+
+                        {listing.has_sms && phoneDigitsOk && (
+                          <div className="flex items-start gap-4">
+                            <div
+                              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                              style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.18)' }}
+                            >
+                              <MessageSquare className="w-4 h-4" style={{ color: '#059669' }} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>SMS</p>
+                              <a
+                                href={listingSmsHref(cc, phone!)}
+                                onClick={() => trackListingClick(listing.id, 'sms')}
+                                className="text-sm font-semibold text-emerald-700 hover:underline"
+                              >
+                                Send SMS
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {(listing.has_whatsapp || listing.has_viber || listing.has_telegram) && phoneDigitsOk && (
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Messaging</p>
+                            <div className="flex flex-wrap gap-2">
+                              {listing.has_whatsapp && (
+                                <a
+                                  href={listingWhatsAppHref(cc, phone!)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => trackListingClick(listing.id, 'whatsapp')}
+                                  className="inline-flex items-center px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#25D366] hover:opacity-90 transition-opacity"
+                                >
+                                  WhatsApp
+                                </a>
+                              )}
+                              {listing.has_viber && (
+                                <a
+                                  href={listingViberHref(cc, phone!)}
+                                  onClick={() => trackListingClick(listing.id, 'viber')}
+                                  className="inline-flex items-center px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#7360f2] hover:opacity-90 transition-opacity"
+                                >
+                                  Viber
+                                </a>
+                              )}
+                              {listing.has_telegram && (
+                                <a
+                                  href={listingTelegramHref(cc, phone!)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={() => trackListingClick(listing.id, 'telegram')}
+                                  className="inline-flex items-center px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#26A5E4] hover:opacity-90 transition-opacity"
+                                >
+                                  Telegram
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {listing.email && (
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-4">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                           style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
                         >
                           <Mail className="w-4 h-4" style={{ color: '#3B82F6' }} />
                         </div>
-                        <a
-                          href={`mailto:${listing.email}`}
-                          className="text-sm font-semibold transition-opacity hover:opacity-70"
-                          style={{ color: '#334155' }}
-                        >
-                          {listing.email}
-                        </a>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Email</p>
+                          <a
+                            href={`mailto:${listing.email}`}
+                            onClick={() => trackListingClick(listing.id, 'email')}
+                            className="text-sm font-semibold transition-opacity hover:opacity-70 break-all"
+                            style={{ color: '#334155' }}
+                          >
+                            {listing.email}
+                          </a>
+                        </div>
                       </div>
                     )}
 
                     {listing.website && (
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-4">
                         <div
                           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                           style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
                         >
                           <Globe className="w-4 h-4" style={{ color: '#3B82F6' }} />
                         </div>
-                        <a
-                          href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-semibold transition-opacity hover:opacity-70"
-                          style={{ color: '#334155' }}
-                        >
-                          {listing.website}
-                        </a>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Website</p>
+                          <a
+                            href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => trackListingClick(listing.id, 'website')}
+                            className="text-sm font-semibold transition-opacity hover:opacity-70 break-all"
+                            style={{ color: '#334155' }}
+                          >
+                            {listing.website}
+                          </a>
+                        </div>
                       </div>
                     )}
                   </div>

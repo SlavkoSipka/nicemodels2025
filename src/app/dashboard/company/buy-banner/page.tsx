@@ -7,6 +7,7 @@ import {
   Megaphone, Upload, X, CheckCircle, AlertCircle, Trash2,
   ShoppingCart,
 } from 'lucide-react'
+import BannerPlacementPreview from '@/components/banner/BannerPlacementPreview'
 
 interface Product {
   id: string
@@ -241,6 +242,9 @@ export default function BuyBannerPage() {
             No payment required. We will clearly inform you before any pricing starts.
           </p>
         </div>
+
+        {/* Placement preview */}
+        <BannerPlacementPreview previewUrl={imagePreview} />
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">

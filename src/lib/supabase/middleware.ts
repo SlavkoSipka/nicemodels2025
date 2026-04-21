@@ -47,24 +47,9 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  if (user && isProtectedRoute) {
-    const isAdminRoute = request.nextUrl.pathname.startsWith('/dashboard/admin')
-    if (!isAdminRoute) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_blocked')
-        .eq('id', user.id)
-        .single()
-
-      if (profile?.is_blocked) {
-        await supabase.auth.signOut()
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        url.searchParams.set('blocked', 'true')
-        return NextResponse.redirect(url)
-      }
-    }
-  }
+  // NOTE: Blocked users (`profiles.is_blocked = true`) are intentionally allowed
+  // to log in and use their own dashboard. They are only hidden from public-facing
+  // surfaces (sedcard, search, comments, banners, stories, listings, etc.).
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:

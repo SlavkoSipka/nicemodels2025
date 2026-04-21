@@ -20,7 +20,8 @@ export default async function AdminCommentsPage() {
         email,
         phone,
         city,
-        description
+        description,
+        avatar_url
       ),
       model:profiles!model_comments_model_id_fkey (
         id,

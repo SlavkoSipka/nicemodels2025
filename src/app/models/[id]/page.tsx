@@ -12,12 +12,13 @@ interface ModelPageProps {
 async function getModelData(id: string) {
   const supabase = await createClient()
 
-  // Profile must exist first
+  // Profile must exist first. Blocked models are hidden from the public sedcard.
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', id)
     .eq('role', 'model')
+    .eq('is_blocked', false)
     .single()
 
   if (profileError || !profile) return null
@@ -44,7 +45,7 @@ async function getModelData(id: string) {
     supabase.from('model_contact_details').select('*').eq('model_id', id).single(),
     supabase
       .from('model_comments')
-      .select('id, comment_text, rating, created_at, reply_text, replied_at, user:profiles!model_comments_user_id_fkey(id, username)')
+      .select('id, comment_text, rating, created_at, reply_text, replied_at, user:profiles!model_comments_user_id_fkey(id, username, is_blocked)')
       .eq('model_id', id)
       .eq('status', 'approved')
       .order('created_at', { ascending: false }),
@@ -92,7 +93,7 @@ async function getModelData(id: string) {
 
   if (partnerIds.length) {
     const [{ data: partnerProfiles }, { data: partnerDetails }, { data: partnerPhotos }] = await Promise.all([
-      admin.from('profiles').select('id, username, is_verified').in('id', partnerIds),
+      admin.from('profiles').select('id, username, is_verified').in('id', partnerIds).eq('is_blocked', false),
       admin.from('model_details').select('model_id, showname, city, age').in('model_id', partnerIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', partnerIds)
         .eq('is_approved', true).order('uploaded_at', { ascending: false }),
@@ -128,6 +129,9 @@ async function getModelData(id: string) {
     modelDetailsForClient = md
   }
 
+  const { data: activeRows } = await supabase.rpc('models_with_active_ads')
+  const hasActiveAd = !!(activeRows || []).find((r: { id: string }) => r.id === id)
+
   return {
     profile,
     modelDetails: modelDetailsForClient,
@@ -138,10 +142,14 @@ async function getModelData(id: string) {
     languages:    languages     || [],
     workingHours: workingHours  || [],
     contactDetails,
-    comments:     comments      || [],
+    comments:     (comments || []).filter((c: any) => {
+      const u = Array.isArray(c.user) ? c.user[0] : c.user
+      return !u?.is_blocked
+    }),
     collabModels,
     likeCounts,
     userLikedPhotoIds,
+    hasActiveAd,
   }
 }
 
@@ -161,6 +169,7 @@ async function getCachedAllModelIds(): Promise<string[]> {
       .from('profiles')
       .select('id')
       .eq('role', 'model')
+      .eq('is_blocked', false)
       .order('created_at', { ascending: true })
     ids = (fallback || []).map((m: any) => m.id as string)
   } else {

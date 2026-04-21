@@ -95,19 +95,17 @@ export default function SettingsPage() {
     }
 
     try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Self-deletion from company settings' }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete')
+      }
+
       const supabase = createClient()
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-          is_blocked: true,
-          blocked_reason: 'Account deletion requested by user',
-          blocked_at: new Date().toISOString()
-        })
-        .eq('id', user.id)
-
-      if (updateError) throw updateError
-
-      alert('Your account has been marked for deletion. You will be logged out now.')
       await supabase.auth.signOut()
       router.push('/')
     } catch (err: any) {

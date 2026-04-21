@@ -31,7 +31,10 @@ export async function POST(request: NextRequest) {
     const allowed = [
       'title', 'location', 'status', 'listing_type', 'description',
       'country_code', 'phone_number', 'has_whatsapp', 'has_viber',
-      'has_telegram', 'email', 'website',
+      'has_telegram', 'has_sms', 'email', 'website',
+      'rent_price_daily', 'rent_price_weekly', 'rent_price_monthly',
+      'rent_work_permit', 'rent_room_size', 'rent_furnished',
+      'rent_kitchen', 'rent_bathroom', 'rent_air_conditioning', 'rent_towels',
     ]
 
     const updates: Record<string, unknown> = {}

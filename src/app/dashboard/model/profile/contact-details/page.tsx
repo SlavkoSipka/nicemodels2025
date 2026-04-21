@@ -29,6 +29,7 @@ export default function ContactDetailsPage() {
   const [success, setSuccess] = useState(false)
 
   const [showPhoneNumber, setShowPhoneNumber] = useState(false)
+  const [showPhoneOnCard, setShowPhoneOnCard] = useState(false)
   const [countryCode, setCountryCode] = useState('+41')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [hasViber, setHasViber] = useState(false)
@@ -47,6 +48,7 @@ export default function ContactDetailsPage() {
         if (e && e.code !== 'PGRST116') throw e
         if (data) {
           setShowPhoneNumber(data.show_phone_number || false)
+          setShowPhoneOnCard(data.show_phone_on_card || false)
           setCountryCode(data.country_code || '+41')
           setPhoneNumber(data.phone_number || '')
           setHasViber(data.has_viber || false)
@@ -69,9 +71,9 @@ export default function ContactDetailsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
       const { error: e } = await supabase.from('model_contact_details').upsert({
-        model_id: user.id, show_phone_number: showPhoneNumber, country_code: countryCode,
-        phone_number: phoneNumber, has_viber: hasViber, has_whatsapp: hasWhatsapp,
-        has_telegram: hasTelegram, contact_instruction: contactInstruction,
+        model_id: user.id, show_phone_number: showPhoneNumber, show_phone_on_card: showPhoneOnCard,
+        country_code: countryCode, phone_number: phoneNumber, has_viber: hasViber,
+        has_whatsapp: hasWhatsapp, has_telegram: hasTelegram, contact_instruction: contactInstruction,
         no_withheld_numbers: noWithheldNumbers, other_instructions: otherInstructions,
         updated_at: new Date().toISOString()
       }, { onConflict: 'model_id' })
@@ -128,6 +130,16 @@ export default function ContactDetailsPage() {
               className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand" />
             <span className="text-sm font-semibold text-gray-900">Show phone number on profile</span>
           </label>
+
+          {/* Show phone on listing card toggle */}
+          <div className="pl-1">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={showPhoneOnCard} onChange={e => setShowPhoneOnCard(e.target.checked)}
+                className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand" />
+              <span className="text-sm font-semibold text-gray-900">Show phone number on listing card</span>
+            </label>
+            <p className="text-xs text-gray-500 mt-0.5 ml-6">Your number will be visible directly on your card in the model directory, without needing to open your profile.</p>
+          </div>
 
           {/* Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

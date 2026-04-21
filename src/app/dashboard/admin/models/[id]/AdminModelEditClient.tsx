@@ -119,6 +119,9 @@ export default function AdminModelEditClient({
 
   // ── Area ──
   const [city, setCity] = useState(modelDetails?.city || '')
+  const [zipCode, setZipCode] = useState(modelDetails?.zip_code || '')
+  const [addrStreet, setAddrStreet] = useState(modelDetails?.street || '')
+  const [streetNumber, setStreetNumber] = useState(modelDetails?.street_number || '')
   const [incallOptions, setIncallOptions] = useState<string[]>(modelDetails?.incall_options || [])
   const [outcallOptions, setOutcallOptions] = useState<string[]>(modelDetails?.outcall_options || [])
 
@@ -196,97 +199,109 @@ export default function AdminModelEditClient({
     setSaving(true)
 
     try {
-      // 1) Profile
-      const { error: e1 } = await supabase.from('profiles').update({
-        username: profileData.username,
-        is_verified: profileData.is_verified,
-        is_blocked: profileData.is_blocked,
-        blocked_at: profileData.is_blocked ? new Date().toISOString() : null,
-      }).eq('id', modelId)
-      if (e1) throw e1
-
-      // 2) Model details
-      const { error: e2 } = await supabase.from('model_details').upsert({
-        model_id: modelId,
-        showname: bio.showname,
-        slogan: bio.slogan || null,
-        gender: bio.gender || null,
-        ethnicity: bio.ethnicity || null,
-        nationality: bio.nationality || null,
-        age: bio.age ? parseInt(bio.age) : null,
-        hair_color: bio.hair_color || null,
-        eye_color: bio.eye_color || null,
-        height_cm: bio.height_cm ? parseInt(bio.height_cm) : null,
-        weight_kg: bio.weight_kg ? parseFloat(bio.weight_kg) : null,
-        dress_size: bio.dress_size || null,
-        bust_cm: bio.bust_cm ? parseInt(bio.bust_cm) : null,
-        waist_cm: bio.waist_cm ? parseInt(bio.waist_cm) : null,
-        hip_cm: bio.hip_cm ? parseInt(bio.hip_cm) : null,
-        pubic_hair: bio.pubic_hair || null,
-        smoking: bio.smoking || null,
-        drinking: bio.drinking || null,
-        special_characteristics: bio.special_characteristics || null,
-        about_me: bio.about_me || null,
-        city: city || null,
-        incall_options: incallOptions.length > 0 ? incallOptions : null,
-        outcall_options: outcallOptions.length > 0 ? outcallOptions : null,
-        sexual_orientation: sexualOrientation || null,
-        services_for: servicesFor.length > 0 ? servicesFor : null,
-        other_services: (() => {
-          const t = (otherServices || '').trim()
-          return t.length > 0 ? t.slice(0, 2000) : null
-        })(),
-      }, { onConflict: 'model_id' })
-      if (e2) throw e2
-
-      // 3) Contact details
-      const { error: e3 } = await supabase.from('model_contact_details').upsert({
-        model_id: modelId,
-        show_phone_number: contact.show_phone_number,
-        country_code: contact.country_code,
-        phone_number: contact.phone_number,
-        has_viber: contact.has_viber,
-        has_whatsapp: contact.has_whatsapp,
-        has_telegram: contact.has_telegram,
-        contact_instruction: contact.contact_instruction,
-        no_withheld_numbers: contact.no_withheld_numbers,
-        other_instructions: contact.other_instructions,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'model_id' })
-      if (e3) throw e3
-
-      // 4) Languages
-      await supabase.from('model_languages').delete().eq('model_id', modelId)
       const validLangs = langs.filter((l: any) => l.language)
-      if (validLangs.length > 0) {
-        const { error: e4 } = await supabase.from('model_languages').insert(
-          validLangs.map((l: any) => ({ model_id: modelId, language: l.language, level: starToLevel(l.stars) }))
-        )
-        if (e4) throw e4
-      }
-
-      // 5) Services
-      await supabase.from('model_services').delete().eq('model_id', modelId)
-      if (selectedServices.length > 0) {
-        const { error: e5 } = await supabase.from('model_services').insert(
-          selectedServices.map(id => ({ model_id: modelId, service_id: id }))
-        )
-        if (e5) throw e5
-      }
-
-      // 6) Working hours
-      await supabase.from('model_working_hours').delete().eq('model_id', modelId)
-      const whInsert: any[] = []
+      const whRows: any[] = []
       if (scheduleType === '24_7') {
-        DAYS.forEach(d => whInsert.push({ model_id: modelId, day_of_week: d, start_time: '00:00', end_time: '23:59' }))
+        DAYS.forEach(d => whRows.push({ model_id: modelId, day_of_week: d, start_time: '00:00', end_time: '23:59' }))
       } else if (scheduleType === 'same_every_day' && sameHours.from && sameHours.to) {
-        DAYS.forEach(d => whInsert.push({ model_id: modelId, day_of_week: d, start_time: sameHours.from, end_time: sameHours.to }))
+        DAYS.forEach(d => whRows.push({ model_id: modelId, day_of_week: d, start_time: sameHours.from, end_time: sameHours.to }))
       } else if (scheduleType === 'custom') {
-        DAYS.forEach(d => { if (customHours[d].from && customHours[d].to) whInsert.push({ model_id: modelId, day_of_week: d, start_time: customHours[d].from, end_time: customHours[d].to }) })
+        DAYS.forEach(d => { if (customHours[d].from && customHours[d].to) whRows.push({ model_id: modelId, day_of_week: d, start_time: customHours[d].from, end_time: customHours[d].to }) })
       }
-      if (whInsert.length > 0) {
-        const { error: e6 } = await supabase.from('model_working_hours').insert(whInsert)
-        if (e6) throw e6
+
+      const operations: any[] = [
+        {
+          action: 'update', table: 'profiles',
+          data: {
+            username: profileData.username,
+            is_verified: profileData.is_verified,
+            is_blocked: profileData.is_blocked,
+            blocked_at: profileData.is_blocked ? new Date().toISOString() : null,
+          },
+          match: { id: modelId },
+        },
+        {
+          action: 'upsert', table: 'model_details', onConflict: 'model_id',
+          data: {
+            model_id: modelId,
+            showname: bio.showname,
+            slogan: bio.slogan || null,
+            gender: bio.gender || null,
+            ethnicity: bio.ethnicity || null,
+            nationality: bio.nationality || null,
+            age: bio.age ? parseInt(bio.age) : null,
+            hair_color: bio.hair_color || null,
+            eye_color: bio.eye_color || null,
+            height_cm: bio.height_cm ? parseInt(bio.height_cm) : null,
+            weight_kg: bio.weight_kg ? parseFloat(bio.weight_kg) : null,
+            dress_size: bio.dress_size || null,
+            bust_cm: bio.bust_cm ? parseInt(bio.bust_cm) : null,
+            waist_cm: bio.waist_cm ? parseInt(bio.waist_cm) : null,
+            hip_cm: bio.hip_cm ? parseInt(bio.hip_cm) : null,
+            pubic_hair: bio.pubic_hair || null,
+            smoking: bio.smoking || null,
+            drinking: bio.drinking || null,
+            special_characteristics: bio.special_characteristics || null,
+            about_me: bio.about_me || null,
+            city: city || null,
+            zip_code: zipCode || null,
+            street: addrStreet || null,
+            street_number: streetNumber || null,
+            incall_options: incallOptions.length > 0 ? incallOptions : null,
+            outcall_options: outcallOptions.length > 0 ? outcallOptions : null,
+            sexual_orientation: sexualOrientation || null,
+            services_for: servicesFor.length > 0 ? servicesFor : null,
+            other_services: (() => {
+              const t = (otherServices || '').trim()
+              return t.length > 0 ? t.slice(0, 2000) : null
+            })(),
+          },
+        },
+        {
+          action: 'upsert', table: 'model_contact_details', onConflict: 'model_id',
+          data: {
+            model_id: modelId,
+            show_phone_number: contact.show_phone_number,
+            country_code: contact.country_code,
+            phone_number: contact.phone_number,
+            has_viber: contact.has_viber,
+            has_whatsapp: contact.has_whatsapp,
+            has_telegram: contact.has_telegram,
+            contact_instruction: contact.contact_instruction,
+            no_withheld_numbers: contact.no_withheld_numbers,
+            other_instructions: contact.other_instructions,
+            updated_at: new Date().toISOString(),
+          },
+        },
+        { action: 'delete', table: 'model_languages', match: { model_id: modelId } },
+        { action: 'delete', table: 'model_services', match: { model_id: modelId } },
+        { action: 'delete', table: 'model_working_hours', match: { model_id: modelId } },
+      ]
+
+      if (validLangs.length > 0) {
+        operations.push({
+          action: 'insert', table: 'model_languages',
+          data: validLangs.map((l: any) => ({ model_id: modelId, language: l.language, level: starToLevel(l.stars) })),
+        })
+      }
+      if (selectedServices.length > 0) {
+        operations.push({
+          action: 'insert', table: 'model_services',
+          data: selectedServices.map(id => ({ model_id: modelId, service_id: id })),
+        })
+      }
+      if (whRows.length > 0) {
+        operations.push({ action: 'insert', table: 'model_working_hours', data: whRows })
+      }
+
+      const res = await fetch('/api/admin/write', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operations }),
+      })
+      if (!res.ok) {
+        const body = await res.json()
+        throw new Error(body.error || 'Failed to save')
       }
 
       setSuccess('All changes saved successfully!')
@@ -324,7 +339,7 @@ export default function AdminModelEditClient({
                     {modelDetails?.showname || profile.username}
                     {profile.public_id && <span className="ml-2 text-xs font-mono text-gray-400">#{profile.public_id}</span>}
                   </h1>
-                  <p className="text-xs text-gray-500">{profile.email}</p>
+                  <a href={`mailto:${profile.email}`} className="text-xs text-gray-500 hover:text-brand hover:underline">{profile.email}</a>
                 </div>
                 {profileData.is_verified && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
@@ -513,6 +528,20 @@ export default function AdminModelEditClient({
               <div>
                 <label className={labelCls}>City</label>
                 <input value={city} onChange={e => setCity(e.target.value)} placeholder="City name" className={inputCls} />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className={labelCls}>PLZ</label>
+                  <input value={zipCode} onChange={e => setZipCode(e.target.value)} placeholder="8001" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Street</label>
+                  <input value={addrStreet} onChange={e => setAddrStreet(e.target.value)} placeholder="Bahnhofstrasse" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Nr.</label>
+                  <input value={streetNumber} onChange={e => setStreetNumber(e.target.value)} placeholder="12a" className={inputCls} />
+                </div>
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-800 mb-2">Incall</p>

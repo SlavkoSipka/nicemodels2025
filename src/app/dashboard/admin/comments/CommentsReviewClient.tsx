@@ -19,6 +19,7 @@ interface Comment {
   user: {
     id: string; username: string; email: string
     phone: string | null; city: string | null; description: string | null
+    avatar_url?: string | null
   }
   model: {
     id: string; username: string; email: string; public_id?: number | null
@@ -72,9 +73,6 @@ export default function CommentsReviewClient({ comments: initialComments }: { co
 
           {/* Header */}
           <div>
-            <Link href="/dashboard/admin" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Dashboard
-            </Link>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center">
@@ -170,8 +168,13 @@ export default function CommentsReviewClient({ comments: initialComments }: { co
                             <User className="w-3 h-3 text-blue-600" /> Commenter
                           </p>
                           <div className="space-y-1 text-xs text-gray-600">
-                            <p className="font-semibold text-gray-800">{comment.user.username || '—'}</p>
-                            <p className="flex items-center gap-1"><Mail className="w-3 h-3 text-gray-400" />{comment.user.email}</p>
+                            <div className="flex items-center gap-2 mb-1">
+                              {comment.user.avatar_url ? (
+                                <img src={comment.user.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover shrink-0" />
+                              ) : null}
+                              <p className="font-semibold text-gray-800">{comment.user.username || '—'}</p>
+                            </div>
+                            <a href={`mailto:${comment.user.email}`} className="flex items-center gap-1 hover:text-brand hover:underline"><Mail className="w-3 h-3 text-gray-400" />{comment.user.email}</a>
                             {comment.user.phone && <p className="flex items-center gap-1"><Phone className="w-3 h-3 text-gray-400" />{comment.user.phone}</p>}
                             {comment.user.city && <p className="flex items-center gap-1"><MapPin className="w-3 h-3 text-gray-400" />{comment.user.city}</p>}
                           </div>
@@ -184,7 +187,7 @@ export default function CommentsReviewClient({ comments: initialComments }: { co
                           </p>
                           <div className="space-y-1 text-xs text-gray-600">
                             <p className="font-semibold text-gray-800">{modelName}</p>
-                            <p className="flex items-center gap-1"><Mail className="w-3 h-3 text-gray-400" />{comment.model.email}</p>
+                            <a href={`mailto:${comment.model.email}`} className="flex items-center gap-1 hover:text-brand hover:underline"><Mail className="w-3 h-3 text-gray-400" />{comment.model.email}</a>
                             {contact?.phone_number && (
                               <p className="flex items-center gap-1"><Phone className="w-3 h-3 text-gray-400" />{contact.country_code} {contact.phone_number}</p>
                             )}

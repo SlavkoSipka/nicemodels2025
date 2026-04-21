@@ -11,7 +11,13 @@
 - profile_status ← ENUM: 'pending', 'active', 'inactive', 'suspended'
 - email, username, phone, created_at, updated_at
 - onboarding_completed, is_verified, is_blocked
-- city (za user profile), description (za user bio - max 500 chars)
+- phone (TEXT) — obavezno pri registraciji
+- date_of_birth (DATE) — obavezno pri registraciji (18+ provera)
+- first_name (TEXT, nullable) — opciono, privatno (samo user vidi)
+- last_name (TEXT, nullable) — opciono, privatno (samo user vidi)
+- city (TEXT, nullable) — za user profile
+- description (TEXT, nullable) — za user bio (max 500 chars)
+- avatar_url (TEXT, nullable) — javni URL profilne slike korisnika (user-avatars bucket)
 ```
 
 ### `orders` tabela
@@ -75,6 +81,24 @@
 ⚠️ Tracka profile views i contact button clicks!
 ```
 
+### `job_listings` tabela
+```
+- id, club_id (FK → profiles.id), listing_type ('job' | 'rent')
+- title (TEXT, nullable), location (TEXT), description (TEXT)
+- country_code, phone_number, has_sms, has_whatsapp, has_viber, has_telegram, email, website
+- status ('active', 'expired', 'deleted'), starts_at, expires_at
+- created_at, updated_at
+--- RENT-SPECIFIC FIELDS (nullable, only relevant when listing_type = 'rent') ---
+- rent_price_daily (NUMERIC 10,2), rent_price_weekly (NUMERIC 10,2), rent_price_monthly (NUMERIC 10,2)
+- rent_work_permit (BOOLEAN, default false) — dozvola za rad u prostoru
+- rent_room_size (TEXT, nullable) — veličina sobe
+- rent_furnished (BOOLEAN, default false) — namještaj
+- rent_kitchen (BOOLEAN, default false) — kuhinja
+- rent_bathroom (BOOLEAN, default false) — tuš + WC
+- rent_air_conditioning (BOOLEAN, default false) — klimatizirano
+- rent_towels (BOOLEAN, default false) — peškiri
+```
+
 ## 📦 Storage Buckets
 
 ```
@@ -82,7 +106,49 @@ banner-images         → public, no limit
 club-photos           → public, no limit
 model-photos          → public, 10MB limit
 model-videos          → public, 50MB limit
+user-avatars          → public, 5MB limit (one file per user: {user_id}/avatar.webp)
 verification-documents → PRIVATE, no limit
+```
+
+### `verifications` tabela
+```
+- id (UUID, PK)
+- user_id (FK → profiles.id, UNIQUE) — jedan zahtev po korisniku (upsert on conflict)
+- first_name, surname, date_of_birth, id_number
+- id_card_photo_path, selfie_photo_path, video_path (nullable)
+- status ('pending', 'approved', 'rejected')
+- submitted_at, reviewed_at (nullable), reviewed_by (FK → profiles.id, nullable)
+- rejection_reason (TEXT, nullable)
+- created_at
+⚠️ Koristi se za SVE role (model, user, company) — role se čita iz profiles.role
+⚠️ Storage bucket: verification-documents (PRIVATE)
+⚠️ File path konvencija: {email}/id-card-{timestamp}.{ext}, {email}/selfie-{timestamp}.{ext}, {email}/video-{timestamp}.{ext}
+```
+
+### `deleted_accounts` tabela
+```
+- id (UUID, PK), original_user_id (UUID) — bivši auth.users.id
+- email (TEXT), username (TEXT, nullable), role (TEXT, nullable)
+- reason (TEXT, nullable), deleted_by (TEXT) — 'self' ili admin user_id
+- snapshot (JSONB) — full profile + role-specific details (model_*, club_*, listings)
+- deleted_at (TIMESTAMPTZ, default NOW())
+⚠️ Append-only arhiva. Upis ide preko service-role iz /api/account/delete.
+⚠️ Brisanje accounta uvijek prolazi kroz admin.auth.admin.deleteUser() koji
+   oslobađa email i kaskadno briše profil. Snapshot se piše PRIJE delete-a.
+⚠️ RLS: SELECT samo za admin role.
+⚠️ Fajl: supabase-docs/CREATE-TABLE-deleted-accounts.sql
+```
+
+### `notifications` tabela
+```
+- id (UUID, PK)
+- user_id (FK → profiles.id) — primalac notifikacije
+- type (TEXT) — 'verification_approved', 'verification_rejected', 'club_invite', 'collaboration_invite', 'collaboration_accepted', 'new_comment', 'photo_like', 'system_message'
+- title, message (TEXT)
+- is_read (BOOLEAN, default false)
+- related_entity_type (TEXT, nullable), related_entity_id (TEXT, nullable)
+- action_url (TEXT, nullable) — link na koji vodi notifikacija
+- created_at, read_at (nullable)
 ```
 
 ## 🔗 Važne Relacije

@@ -7,6 +7,15 @@ import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
+function getAge(dateString: string): number {
+  const today = new Date()
+  const birth = new Date(dateString)
+  let age = today.getFullYear() - birth.getFullYear()
+  const m = today.getMonth() - birth.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+  return age
+}
+
 export default function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -14,6 +23,8 @@ export default function RegisterForm() {
     userType: '',
     username: '',
     email: '',
+    phone: '',
+    dateOfBirth: '',
     password: '',
     confirmPassword: '',
   })
@@ -34,9 +45,26 @@ export default function RegisterForm() {
     setError('')
     setSuccess(false)
 
-    // Validation
     if (!formData.userType) {
       setError('Please select a user type')
+      setLoading(false)
+      return
+    }
+
+    if (!formData.phone.trim()) {
+      setError('Phone number is required')
+      setLoading(false)
+      return
+    }
+
+    if (!formData.dateOfBirth) {
+      setError('Date of birth is required')
+      setLoading(false)
+      return
+    }
+
+    if (getAge(formData.dateOfBirth) < 18) {
+      setError('You must be at least 18 years old to register')
       setLoading(false)
       return
     }
@@ -62,7 +90,6 @@ export default function RegisterForm() {
     try {
       const supabase = createClient()
       
-      // Sign up user with email verification
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -71,29 +98,38 @@ export default function RegisterForm() {
           data: {
             username: formData.username,
             role: formData.userType === 'model' ? 'model' : formData.userType === 'company' ? 'company' : 'user',
+            phone: formData.phone,
+            date_of_birth: formData.dateOfBirth,
           },
         },
       })
 
       if (authError) {
-        // Ignore "Refresh Token Not Found" error (harmless Next.js 15 warning)
         if (!authError.message.includes('Refresh Token Not Found')) {
-          setError(authError.message)
+          const msg = /already|exists|registered/i.test(authError.message)
+            ? 'This email is already registered. Please sign in or use a different email.'
+            : authError.message
+          setError(msg)
           setLoading(false)
           return
         }
       }
 
-      // Success - show email verification message
+      // Supabase returns success with empty identities[] when email is already taken
+      // (with email confirmation enabled). Surface a clear error in that case.
+      if (authData?.user && Array.isArray(authData.user.identities) && authData.user.identities.length === 0) {
+        setError('This email is already registered. Please sign in or use a different email.')
+        setLoading(false)
+        return
+      }
+
       setSuccess(true)
       setRegisteredEmail(formData.email)
-      setResendCooldown(60) // 60 seconds cooldown
+      setResendCooldown(60)
     } catch (err: any) {
-      // Ignore "Refresh Token Not Found" error
       if (!err.message?.includes('Refresh Token Not Found')) {
         setError(err.message || 'Registration failed. Please try again.')
       } else {
-        // Still show success even if we get this harmless error
         setSuccess(true)
         setRegisteredEmail(formData.email)
         setResendCooldown(60)
@@ -103,7 +139,6 @@ export default function RegisterForm() {
     }
   }
 
-  // Countdown timer effect
   React.useEffect(() => {
     if (resendCooldown > 0) {
       const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
@@ -126,7 +161,6 @@ export default function RegisterForm() {
       
       if (error) throw error
       
-      // Success - reset cooldown
       setResendCooldown(60)
       alert('Verification email sent! Check your inbox.')
     } catch (err: any) {
@@ -135,6 +169,8 @@ export default function RegisterForm() {
       setLoading(false)
     }
   }
+
+  const inputCls = 'w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50'
 
   if (success) {
     return (
@@ -208,7 +244,7 @@ export default function RegisterForm() {
           value={formData.userType}
           onChange={(e) => setFormData({ ...formData, userType: e.target.value })}
           required
-          className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all text-gray-700 bg-gray-50"
+          className={inputCls + ' text-gray-700'}
         >
           <option value="">Who are you?</option>
           <option value="user">Member / Visitor</option>
@@ -229,7 +265,7 @@ export default function RegisterForm() {
           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
           required
           placeholder="Username"
-          className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+          className={inputCls}
         />
       </div>
 
@@ -245,7 +281,40 @@ export default function RegisterForm() {
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
           placeholder="name@domain.com"
-          className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+          className={inputCls}
+        />
+      </div>
+
+      {/* Phone */}
+      <div>
+        <label htmlFor="phone" className="block text-xs font-bold text-gray-700 mb-1">
+          Phone number<span className="text-pink-600">*</span>
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          required
+          placeholder="+41 79 123 45 67"
+          className={inputCls}
+        />
+      </div>
+
+      {/* Date of Birth */}
+      <div>
+        <label htmlFor="dateOfBirth" className="block text-xs font-bold text-gray-700 mb-1">
+          Date of birth<span className="text-pink-600">*</span>
+          <span className="font-normal text-gray-400 ml-1">(must be 18+)</span>
+        </label>
+        <input
+          id="dateOfBirth"
+          type="date"
+          value={formData.dateOfBirth}
+          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+          required
+          max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+          className={inputCls}
         />
       </div>
 
@@ -262,7 +331,7 @@ export default function RegisterForm() {
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
             placeholder="••••••••••"
-            className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+            className={inputCls + ' pr-10'}
           />
           <button
             type="button"
@@ -287,7 +356,7 @@ export default function RegisterForm() {
             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
             required
             placeholder="••••••••••"
-            className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+            className={inputCls + ' pr-10'}
           />
           <button
             type="button"

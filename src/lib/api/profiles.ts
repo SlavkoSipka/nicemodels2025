@@ -84,6 +84,7 @@ export async function getFeaturedProfiles(limit: number = 4, client: SupabaseCli
     `)
     .eq('role', 'model')
     .eq('is_verified', true)
+    .eq('is_blocked', false)
     .order('created_at', { ascending: false })
     .limit(limit)
 
@@ -141,6 +142,7 @@ export async function searchProfiles(filters: SearchFilters, page: number = 1, p
       model_details(*)
     `, { count: 'exact' })
     .eq('role', 'model')
+    .eq('is_blocked', false)
 
   // Apply filters
   if (filters.verified) {
@@ -229,11 +231,12 @@ export async function getProfileById(id: string, client: SupabaseClient) {
   const supabase = client
 
   try {
-    // First, try to get basic profile
+    // First, try to get basic profile (blocked users are hidden from public lookups)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', id)
+      .eq('is_blocked', false)
       .single()
 
     if (profileError) {
@@ -344,6 +347,7 @@ export async function getSimilarProfiles(profileId: string, city: string, limit:
       model_details(*)
     `)
     .eq('role', 'model')
+    .eq('is_blocked', false)
     .eq('model_details.location_city', city)
     .neq('id', profileId)
     .limit(limit)

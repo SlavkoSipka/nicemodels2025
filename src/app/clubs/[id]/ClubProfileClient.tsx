@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { htmlToPlainText } from '@/lib/plainText'
 import {
   Building2, MapPin, Phone, Mail, Globe, MessageCircle,
   Clock, CheckCircle, Coffee, Waves, Trees, DollarSign,
@@ -200,7 +201,7 @@ export default function ClubProfileClient({
                     </div>
                     <p className="text-sm font-bold text-gray-800">About Us</p>
                   </div>
-                  <div className="text-sm text-gray-600 leading-relaxed rich-text-content" dangerouslySetInnerHTML={{ __html: clubDetails.about_description }} />
+                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{htmlToPlainText(clubDetails.about_description || '')}</p>
                 </div>
               )}
 

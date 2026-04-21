@@ -64,9 +64,6 @@ export default function AdminBlockedPage() {
 
           {/* Header */}
           <div>
-            <Link href="/dashboard/admin" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Dashboard
-            </Link>
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center">
                 <UserX className="w-5 h-5 text-red-600" />
@@ -106,7 +103,7 @@ export default function AdminBlockedPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate">{user.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 max-w-[200px] truncate"><a href={`mailto:${user.email}`} className="hover:text-brand hover:underline">{user.email}</a></td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium capitalize ${user.role === 'model' ? 'bg-brand/10 text-brand' : 'bg-blue-50 text-blue-700'}`}>
                           {user.role === 'company' ? 'club' : user.role}

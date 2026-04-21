@@ -9,7 +9,7 @@ export default async function JobsRentsPage() {
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const now = new Date().toISOString()
 
-  const { data: listings } = await admin
+  const { data: rawListings } = await admin
     .from('job_listings')
     .select('*')
     .eq('status', 'active')
@@ -17,7 +17,18 @@ export default async function JobsRentsPage() {
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('created_at', { ascending: false })
 
-  const allListings = listings ?? []
+  // Hide listings whose owning club is blocked
+  const candidateClubIds = [...new Set((rawListings ?? []).map(l => l.club_id).filter(Boolean))]
+  let blockedClubIds = new Set<string>()
+  if (candidateClubIds.length > 0) {
+    const { data: clubProfiles } = await admin
+      .from('profiles')
+      .select('id, is_blocked')
+      .in('id', candidateClubIds)
+    blockedClubIds = new Set((clubProfiles ?? []).filter(p => p.is_blocked).map(p => p.id))
+  }
+
+  const allListings = (rawListings ?? []).filter(l => !blockedClubIds.has(l.club_id))
   const listingIds = allListings.map(l => l.id)
   const clubIds = [...new Set(allListings.map(l => l.club_id))]
 

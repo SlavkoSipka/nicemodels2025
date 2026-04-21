@@ -123,68 +123,82 @@ export default function AdminClubEditClient({
     setSaving(true)
 
     try {
-      // 1) Profile
-      const { error: e1 } = await supabase.from('profiles').update({
-        username: profileData.username,
-        is_verified: profileData.is_verified,
-        is_blocked: profileData.is_blocked,
-        blocked_at: profileData.is_blocked ? new Date().toISOString() : null,
-      }).eq('id', clubId)
-      if (e1) throw e1
-
-      // 2) Club details
-      const { error: e2 } = await supabase.from('club_details').update({
-        club_name: basic.club_name,
-        display_name: basic.display_name,
-        area: basic.area || null,
-        about_description: basic.about_description || null,
-        is_club: basic.is_club,
-        entrance_fee: basic.entrance_fee,
-        wellness: basic.wellness,
-        food_and_drinks: basic.food_and_drinks,
-        outdoor_area: basic.outdoor_area,
-        city: address.city || null,
-        zip_code: address.zip_code || null,
-        street: address.street || null,
-        street_number: address.street_number || null,
-        additional_info: address.additional_info || null,
-        updated_at: new Date().toISOString(),
-      }).eq('club_id', clubId)
-      if (e2) throw e2
-
-      // 3) Contact details
-      const { error: e3 } = await supabase.from('club_contact_details').upsert({
-        club_id: clubId,
-        country_code: contact.country_code,
-        phone_number: contact.phone_number,
-        has_viber: contact.has_viber,
-        has_whatsapp: contact.has_whatsapp,
-        has_telegram: contact.has_telegram,
-        contact_instruction: contact.contact_instruction,
-        no_withheld_numbers: contact.no_withheld_numbers,
-        other_instructions: contact.other_instructions,
-        email: contact.email,
-        website: contact.website,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'club_id' })
-      if (e3) throw e3
-
-      // 4) Working hours
-      await supabase.from('club_working_hours').delete().eq('club_id', clubId)
-      const whInsert: any[] = []
+      const whRows: any[] = []
       if (scheduleType === '24_7') {
-        DAYS.forEach(d => whInsert.push({ club_id: clubId, day_of_week: d, opens_at: '00:00', closes_at: '23:59' }))
+        DAYS.forEach(d => whRows.push({ club_id: clubId, day_of_week: d, opens_at: '00:00', closes_at: '23:59' }))
       } else if (scheduleType === 'same_every_day' && sameHours.from && sameHours.to) {
-        DAYS.forEach(d => whInsert.push({ club_id: clubId, day_of_week: d, opens_at: sameHours.from, closes_at: sameHours.to }))
+        DAYS.forEach(d => whRows.push({ club_id: clubId, day_of_week: d, opens_at: sameHours.from, closes_at: sameHours.to }))
       } else if (scheduleType === 'custom') {
         DAYS.forEach(d => {
           if (customHours[d].from && customHours[d].to)
-            whInsert.push({ club_id: clubId, day_of_week: d, opens_at: customHours[d].from, closes_at: customHours[d].to })
+            whRows.push({ club_id: clubId, day_of_week: d, opens_at: customHours[d].from, closes_at: customHours[d].to })
         })
       }
-      if (whInsert.length > 0) {
-        const { error: e4 } = await supabase.from('club_working_hours').insert(whInsert)
-        if (e4) throw e4
+
+      const operations: any[] = [
+        {
+          action: 'update', table: 'profiles',
+          data: {
+            username: profileData.username,
+            is_verified: profileData.is_verified,
+            is_blocked: profileData.is_blocked,
+            blocked_at: profileData.is_blocked ? new Date().toISOString() : null,
+          },
+          match: { id: clubId },
+        },
+        {
+          action: 'update', table: 'club_details',
+          data: {
+            club_name: basic.club_name,
+            display_name: basic.display_name,
+            area: basic.area || null,
+            about_description: basic.about_description || null,
+            is_club: basic.is_club,
+            entrance_fee: basic.entrance_fee,
+            wellness: basic.wellness,
+            food_and_drinks: basic.food_and_drinks,
+            outdoor_area: basic.outdoor_area,
+            city: address.city || null,
+            zip_code: address.zip_code || null,
+            street: address.street || null,
+            street_number: address.street_number || null,
+            additional_info: address.additional_info || null,
+            updated_at: new Date().toISOString(),
+          },
+          match: { club_id: clubId },
+        },
+        {
+          action: 'upsert', table: 'club_contact_details', onConflict: 'club_id',
+          data: {
+            club_id: clubId,
+            country_code: contact.country_code,
+            phone_number: contact.phone_number,
+            has_viber: contact.has_viber,
+            has_whatsapp: contact.has_whatsapp,
+            has_telegram: contact.has_telegram,
+            contact_instruction: contact.contact_instruction,
+            no_withheld_numbers: contact.no_withheld_numbers,
+            other_instructions: contact.other_instructions,
+            email: contact.email,
+            website: contact.website,
+            updated_at: new Date().toISOString(),
+          },
+        },
+        { action: 'delete', table: 'club_working_hours', match: { club_id: clubId } },
+      ]
+
+      if (whRows.length > 0) {
+        operations.push({ action: 'insert', table: 'club_working_hours', data: whRows })
+      }
+
+      const res = await fetch('/api/admin/write', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operations }),
+      })
+      if (!res.ok) {
+        const body = await res.json()
+        throw new Error(body.error || 'Failed to save')
       }
 
       setSuccess('All changes saved successfully!')
@@ -216,7 +230,7 @@ export default function AdminClubEditClient({
                     {clubDetails?.display_name || clubDetails?.club_name || profile.username}
                     {profile.public_id && <span className="ml-2 text-xs font-mono text-gray-400">#{profile.public_id}</span>}
                   </h1>
-                  <p className="text-xs text-gray-500">{profile.email}</p>
+                  <a href={`mailto:${profile.email}`} className="text-xs text-gray-500 hover:text-brand hover:underline">{profile.email}</a>
                 </div>
                 {profileData.is_verified && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">

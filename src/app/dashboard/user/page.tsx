@@ -36,7 +36,10 @@ export default async function UserDashboard() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <Link
+              href="/dashboard/user/favorites"
+              className="block bg-white border border-gray-200 rounded-lg p-4 transition-all hover:border-brand hover:shadow-sm hover:bg-brand/[0.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center">
                   <Heart className="w-4 h-4 text-brand" />
@@ -45,9 +48,12 @@ export default async function UserDashboard() {
               </div>
               <p className="text-xs font-semibold text-gray-700">Favorites</p>
               <p className="text-xs text-gray-400">Saved models & clubs</p>
-            </div>
+            </Link>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <Link
+              href="/dashboard/user/comments"
+              className="block bg-white border border-gray-200 rounded-lg p-4 transition-all hover:border-blue-300 hover:shadow-sm hover:bg-blue-50/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center">
                   <MessageSquare className="w-4 h-4 text-blue-600" />
@@ -56,7 +62,7 @@ export default async function UserDashboard() {
               </div>
               <p className="text-xs font-semibold text-gray-700">Comments</p>
               <p className="text-xs text-gray-400">Your reviews</p>
-            </div>
+            </Link>
 
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between mb-2">

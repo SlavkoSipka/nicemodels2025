@@ -24,6 +24,7 @@ interface ConversationData {
     id: string;
     username: string;
     role: string;
+    photo_url?: string | null;
   };
   is_online: boolean;
 }
@@ -188,7 +189,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
     const otherUserId = convData.participant1_id === user.id ? convData.participant2_id : convData.participant1_id;
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, username, role')
+      .select('id, username, role, avatar_url')
       .eq('id', otherUserId)
       .single();
 
@@ -206,6 +207,23 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
       }
     } catch { /* fallback to username */ }
 
+    // Resolve photo: model → model_photos, others → avatar_url
+    let photoUrl: string | null = profile?.avatar_url || null;
+    if (profile?.role === 'model') {
+      const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+      const { data: modelPhoto } = await supabase
+        .from('model_photos')
+        .select('file_path')
+        .eq('model_id', otherUserId)
+        .eq('is_approved', true)
+        .order('uploaded_at', { ascending: false })
+        .limit(1)
+        .single();
+      if (modelPhoto?.file_path) {
+        photoUrl = `${SUPA_URL}/storage/v1/object/public/model-photos/${modelPhoto.file_path}`;
+      }
+    }
+
     // Get online status
     const { data: onlineStatus } = await supabase
       .from('online_status')
@@ -216,8 +234,8 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
     setConversation({
       ...convData,
       other_user: profile
-        ? { ...profile, username: displayUsername }
-        : { id: otherUserId, username: 'User', role: 'user' },
+        ? { ...profile, username: displayUsername, photo_url: photoUrl }
+        : { id: otherUserId, username: 'User', role: 'user', photo_url: null },
       is_online: onlineStatus?.is_online || false,
     });
 
@@ -419,9 +437,17 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
         </button>
 
         <div className="relative flex-shrink-0">
-          <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold">
-            {conversation.other_user.username.charAt(0).toUpperCase()}
-          </div>
+          {conversation.other_user.photo_url ? (
+            <img
+              src={conversation.other_user.photo_url}
+              alt={conversation.other_user.username}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center text-white font-bold">
+              {conversation.other_user.username.charAt(0).toUpperCase()}
+            </div>
+          )}
           {conversation.is_online && (
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
           )}

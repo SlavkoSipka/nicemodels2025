@@ -1,8 +1,5 @@
 'use client'
 
-import { useRef } from 'react'
-import { Editor } from '@tinymce/tinymce-react'
-
 interface RichTextEditorProps {
   value: string
   onChange: (value: string) => void
@@ -22,9 +19,7 @@ export default function RichTextEditor({
   label,
   required = false,
 }: RichTextEditorProps) {
-  const editorRef = useRef<any>(null)
-
-  const charCount = value ? value.replace(/<[^>]*>/g, '').length : 0
+  const charCount = value?.length ?? 0
 
   return (
     <div>
@@ -34,51 +29,21 @@ export default function RichTextEditor({
         </label>
       )}
 
-      <Editor
-        tinymceScriptSrc="/tinymce/tinymce.min.js"
-        onInit={(_evt, editor) => { editorRef.current = editor }}
+      <textarea
         value={value}
-        onEditorChange={(content) => {
-          if (maxLength) {
-            const textOnly = content.replace(/<[^>]*>/g, '')
-            if (textOnly.length > maxLength) return
-          }
-          onChange(content)
+        onChange={(e) => {
+          const v = e.target.value
+          if (maxLength != null && v.length > maxLength) return
+          onChange(v)
         }}
-        init={{
-          height,
-          menubar: false,
-          plugins: [
-            'advlist', 'autolink', 'lists', 'link',
-            'charmap', 'preview',
-            'searchreplace', 'visualblocks',
-            'insertdatetime', 'table', 'wordcount',
-          ],
-          toolbar:
-            'bold italic underline strikethrough | ' +
-            'bullist numlist | link | ' +
-            'alignleft aligncenter alignright | ' +
-            'removeformat',
-          placeholder,
-          content_style: `
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              font-size: 14px;
-              color: #374151;
-              line-height: 1.6;
-              padding: 4px;
-            }
-          `,
-          branding: false,
-          statusbar: false,
-          resize: false,
-          skin: 'oxide',
-          promotion: false,
-          licenseKey: 'gpl',
-        }}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        rows={Math.max(8, Math.ceil(height / 28))}
+        className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-y text-gray-900 placeholder:text-gray-400"
+        style={{ minHeight: height }}
       />
 
-      {maxLength && (
+      {maxLength != null && (
         <p className="text-xs text-gray-400 mt-1 text-right">
           {charCount} / {maxLength}
         </p>

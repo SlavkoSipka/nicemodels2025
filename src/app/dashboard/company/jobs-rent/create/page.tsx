@@ -8,7 +8,8 @@ import CitySearch, { CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import {
   Briefcase, ArrowLeft, MapPin, FileText, Upload, Phone,
-  AlertCircle, CheckCircle, Trash2, Zap, Calendar, ChevronDown, ChevronUp
+  AlertCircle, CheckCircle, Trash2, Zap, Calendar, ChevronDown, ChevronUp,
+  Home, DollarSign
 } from 'lucide-react'
 
 interface Product {
@@ -51,12 +52,25 @@ export default function CreateJobRentPage() {
   // Photos
   const [photos, setPhotos] = useState<UploadedPhoto[]>([])
 
+  // Rent-specific fields
+  const [rentPriceDaily, setRentPriceDaily] = useState('')
+  const [rentPriceWeekly, setRentPriceWeekly] = useState('')
+  const [rentPriceMonthly, setRentPriceMonthly] = useState('')
+  const [rentWorkPermit, setRentWorkPermit] = useState(false)
+  const [rentRoomSize, setRentRoomSize] = useState('')
+  const [rentFurnished, setRentFurnished] = useState(false)
+  const [rentKitchen, setRentKitchen] = useState(false)
+  const [rentBathroom, setRentBathroom] = useState(false)
+  const [rentAirConditioning, setRentAirConditioning] = useState(false)
+  const [rentTowels, setRentTowels] = useState(false)
+
   // Contact
   const [countryCode, setCountryCode] = useState('+41')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [hasWhatsapp, setHasWhatsapp] = useState(false)
   const [hasViber, setHasViber] = useState(false)
   const [hasTelegram, setHasTelegram] = useState(false)
+  const [hasSms, setHasSms] = useState(false)
   const [email, setEmail] = useState('')
   const [website, setWebsite] = useState('')
 
@@ -205,11 +219,24 @@ export default function CreateJobRentPage() {
           has_whatsapp: hasWhatsapp,
           has_viber: hasViber,
           has_telegram: hasTelegram,
+          has_sms: hasSms,
           email: email.trim() || null,
           website: website.trim() || null,
           status: 'active',
           starts_at: startsAt.toISOString(),
           expires_at: expiresAt.toISOString(),
+          ...(listingType === 'rent' ? {
+            rent_price_daily: rentPriceDaily ? parseFloat(rentPriceDaily) : null,
+            rent_price_weekly: rentPriceWeekly ? parseFloat(rentPriceWeekly) : null,
+            rent_price_monthly: rentPriceMonthly ? parseFloat(rentPriceMonthly) : null,
+            rent_work_permit: rentWorkPermit,
+            rent_room_size: rentRoomSize.trim() || null,
+            rent_furnished: rentFurnished,
+            rent_kitchen: rentKitchen,
+            rent_bathroom: rentBathroom,
+            rent_air_conditioning: rentAirConditioning,
+            rent_towels: rentTowels,
+          } : {}),
         })
         .select()
         .single()
@@ -219,35 +246,18 @@ export default function CreateJobRentPage() {
       // 5. Upload photos
       for (let i = 0; i < photos.length; i++) {
         const raw = photos[i].file
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'create/page.tsx:upload-start',message:'Starting photo upload',data:{index:i,fileName:raw.name,fileSize:raw.size,fileType:raw.type,userEmail:user.email},timestamp:Date.now(),hypothesisId:'A,B,C'})}).catch(()=>{});
-        // #endregion
         let processed: File
         try {
           processed = await processImage(raw)
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'create/page.tsx:processImage-done',message:'processImage completed',data:{index:i,processedSize:processed.size,processedType:processed.type},timestamp:Date.now(),hypothesisId:'A,D'})}).catch(()=>{});
-          // #endregion
-        } catch (procErr: any) {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'create/page.tsx:processImage-error',message:'processImage THREW',data:{index:i,error:procErr?.message},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
+        } catch {
           continue
         }
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
         const filePath = `${user.id}/${listing.id}/${fileName}`
 
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'create/page.tsx:pre-upload',message:'About to upload to storage',data:{filePath,processedSize:processed.size,processedType:processed.type},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
-        // #endregion
-
         const { error: upErr } = await supabase.storage
           .from('job-listing-photos')
           .upload(filePath, processed, { contentType: 'image/webp', cacheControl: '3600', upsert: false })
-
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/50cf2ad9-ac74-40dc-906b-756dc9141d3b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6c615d'},body:JSON.stringify({sessionId:'6c615d',location:'create/page.tsx:post-upload',message:'Storage upload result',data:{filePath,success:!upErr,error:upErr?{message:upErr.message,name:(upErr as any).name,statusCode:(upErr as any).statusCode}:null},timestamp:Date.now(),hypothesisId:'B,C,E'})}).catch(()=>{});
-        // #endregion
 
         if (upErr) {
           console.error('Photo upload error:', upErr)
@@ -375,6 +385,125 @@ export default function CreateJobRentPage() {
           </div>
         </div>
 
+        {/* Section: Rent Details (only when type = rent) */}
+        {listingType === 'rent' && (
+          <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
+                <Home className="w-4 h-4 text-amber-600" />
+              </div>
+              <p className="text-sm font-bold text-gray-800">Rent Details</p>
+            </div>
+
+            {/* Pricing */}
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <DollarSign className="w-3.5 h-3.5 text-gray-400" />
+                <p className="text-xs font-bold text-gray-700">Pricing (CHF)</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Day</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={rentPriceDaily}
+                    onChange={e => setRentPriceDaily(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Week</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={rentPriceWeekly}
+                    onChange={e => setRentPriceWeekly(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Month</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={rentPriceMonthly}
+                    onChange={e => setRentPriceMonthly(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Room Size */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Room Size <span className="font-normal text-gray-400">(optional)</span></label>
+              <input
+                type="text"
+                value={rentRoomSize}
+                onChange={e => setRentRoomSize(e.target.value)}
+                placeholder="e.g. 25m², Large, Studio..."
+                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
+              />
+            </div>
+
+            {/* Work Permit */}
+            <div>
+              <p className="text-xs font-bold text-gray-700 mb-2">Work Permit</p>
+              <button
+                type="button"
+                onClick={() => setRentWorkPermit(!rentWorkPermit)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${
+                  rentWorkPermit
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-300'
+                    : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                }`}
+              >
+                <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${rentWorkPermit ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
+                  {rentWorkPermit && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                </span>
+                Allowed to work in the space
+              </button>
+            </div>
+
+            {/* Amenities */}
+            <div>
+              <p className="text-xs font-bold text-gray-700 mb-2">Amenities</p>
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { label: 'Furnished', value: rentFurnished, set: setRentFurnished },
+                  { label: 'Kitchen', value: rentKitchen, set: setRentKitchen },
+                  { label: 'Shower + WC', value: rentBathroom, set: setRentBathroom },
+                  { label: 'Air Conditioning', value: rentAirConditioning, set: setRentAirConditioning },
+                  { label: 'Towels', value: rentTowels, set: setRentTowels },
+                ] as const).map(({ label, value, set }) => (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => set(!value)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      value
+                        ? 'bg-brand/10 text-brand border-brand/30'
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${value ? 'bg-brand border-brand' : 'border-gray-300'}`}>
+                      {value && <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                    </span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Section 2: Description */}
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
           <div className="flex items-center gap-2 mb-1">
@@ -465,8 +594,10 @@ export default function CreateJobRentPage() {
             </div>
           </div>
 
+          <p className="text-xs text-gray-500 mb-2">How applicants can reach you (same number as above for phone-based options):</p>
           <div className="flex flex-wrap gap-3">
             {[
+              { label: 'SMS', value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
               { label: 'WhatsApp', value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
               { label: 'Viber', value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
               { label: 'Telegram', value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },

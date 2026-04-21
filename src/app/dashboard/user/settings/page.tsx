@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Settings, Mail, Bell, Lock, Trash2, CheckCircle } from 'lucide-react'
 
 export default function UserSettings() {
+  const router = useRouter()
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -38,6 +40,30 @@ export default function UserSettings() {
       }
     }
     setSaving(false)
+  }
+
+  const handleDeleteAccount = async () => {
+    const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:')
+    if (confirmation !== 'DELETE') return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Self-deletion from user settings' }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete')
+      }
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push('/')
+    } catch (e: any) {
+      alert(e.message || 'Failed to delete account. Please contact support.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (loading) return null
@@ -116,7 +142,11 @@ export default function UserSettings() {
               <Trash2 className="w-4 h-4 text-red-600" />
               <p className="text-sm font-bold text-red-800">Danger Zone</p>
             </div>
-            <button className="w-full text-left px-3 py-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors">
+            <button
+              onClick={handleDeleteAccount}
+              disabled={saving}
+              className="w-full text-left px-3 py-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors disabled:opacity-50"
+            >
               <p className="text-sm font-semibold text-red-800">Delete Account</p>
               <p className="text-xs text-red-500 mt-0.5">Permanently delete your account and all data</p>
             </button>

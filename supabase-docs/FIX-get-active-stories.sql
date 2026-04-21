@@ -58,6 +58,7 @@ BEGIN
   INNER JOIN model_stories ms ON ms.model_id = p.id
   LEFT JOIN story_views sv ON sv.story_id = ms.id AND sv.viewer_id = auth.uid()
   WHERE p.role = 'model'
+    AND p.is_blocked = FALSE
     AND ms.is_active = TRUE 
     AND ms.expires_at > NOW()
   GROUP BY p.id, p.username, md.showname, mpp.photo_path

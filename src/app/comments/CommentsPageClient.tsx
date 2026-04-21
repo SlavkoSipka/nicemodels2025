@@ -18,6 +18,7 @@ interface Comment {
   user: {
     id: string
     username: string
+    avatar_url?: string | null
   }
   model: {
     id: string
@@ -221,8 +222,12 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                         >
                           <div className="flex items-center gap-4">
                             <span className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: '#e8f4f8' }}>
-                                <User className="w-4 h-4" style={{ color: '#94a3b8' }} />
+                              <div className="w-7 h-7 rounded-full flex items-center justify-center overflow-hidden shrink-0" style={{ background: '#e8f4f8' }}>
+                                {comment.user.avatar_url ? (
+                                  <img src={comment.user.avatar_url} alt={comment.user.username || ''} className="w-full h-full object-cover" />
+                                ) : (
+                                  <User className="w-4 h-4" style={{ color: '#94a3b8' }} />
+                                )}
                               </div>
                               <span className="font-medium" style={{ color: '#475569' }}>{comment.user.username || 'Anonymous'}</span>
                             </span>

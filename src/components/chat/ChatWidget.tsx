@@ -214,7 +214,7 @@ export default function ChatWidget() {
     // Fetch user details for online users
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, username, role')
+      .select('id, username, role, avatar_url')
       .in('id', onlineUserIds)
       .neq('id', currentUserId || '');
 
@@ -278,7 +278,7 @@ export default function ChatWidget() {
         ? (modelPhotoMap.get(profile.id) || null)
         : profile.role === 'company'
           ? (clubPhotoMap.get(profile.id) || null)
-          : null,
+          : (profile.avatar_url || null),
     }));
 
     setOnlineUsers(usersWithPhotos);
@@ -317,7 +317,7 @@ export default function ChatWidget() {
 
     // Fetch profiles, online status, model photos in parallel
     const [{ data: profiles }, { data: onlineStatuses }, { data: modelPhotos }] = await Promise.all([
-      supabase.from('profiles').select('id, username, role').in('id', otherUserIds),
+      supabase.from('profiles').select('id, username, role, avatar_url').in('id', otherUserIds),
       supabase.from('online_status').select('user_id, is_online').in('user_id', otherUserIds),
       supabase.from('model_photos').select('model_id, file_path')
         .in('model_id', otherUserIds).eq('is_approved', true)
@@ -349,17 +349,20 @@ export default function ChatWidget() {
 
     const profileMap = new Map((profiles || []).map((p: any) => {
       const displayName = displayNameMap.get(p.id) || p.username;
-      return [p.id, { id: p.id, username: displayName, role: p.role }];
+      return [p.id, { id: p.id, username: displayName, role: p.role, avatar_url: p.avatar_url }];
     }));
     const onlineMap = new Map((onlineStatuses || []).map(s => [s.user_id, s.is_online]));
 
     const conversationsWithUsers = (data || []).map(conv => {
       const otherUserId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
       const profile = profileMap.get(otherUserId);
+      const resolvedPhoto = profile
+        ? (photoMap.get(otherUserId) || profile.avatar_url || null)
+        : null;
       return {
         ...conv,
         other_user: profile
-          ? { ...profile, photo_url: photoMap.get(otherUserId) || null }
+          ? { ...profile, photo_url: resolvedPhoto }
           : { id: otherUserId, username: 'User', role: 'user', photo_url: null },
         is_online: onlineMap.get(otherUserId) || false,
       };

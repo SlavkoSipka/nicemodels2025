@@ -7,6 +7,7 @@ import RichTextEditor from '@/components/ui/RichTextEditor'
 import {
   ArrowLeft, Save, AlertCircle, CheckCircle, MapPin, FileText,
   Upload, Phone, Briefcase, Trash2, ChevronDown, ChevronUp,
+  Home, DollarSign,
 } from 'lucide-react'
 
 interface ExistingPhoto {
@@ -53,8 +54,21 @@ export default function AdminListingEditClient({
   const [hasWhatsapp, setHasWhatsapp] = useState(listing.has_whatsapp || false)
   const [hasViber, setHasViber] = useState(listing.has_viber || false)
   const [hasTelegram, setHasTelegram] = useState(listing.has_telegram || false)
+  const [hasSms, setHasSms] = useState(listing.has_sms || false)
   const [email, setEmail] = useState(listing.email || '')
   const [website, setWebsite] = useState(listing.website || '')
+
+  // Rent-specific fields
+  const [rentPriceDaily, setRentPriceDaily] = useState(listing.rent_price_daily != null ? String(listing.rent_price_daily) : '')
+  const [rentPriceWeekly, setRentPriceWeekly] = useState(listing.rent_price_weekly != null ? String(listing.rent_price_weekly) : '')
+  const [rentPriceMonthly, setRentPriceMonthly] = useState(listing.rent_price_monthly != null ? String(listing.rent_price_monthly) : '')
+  const [rentWorkPermit, setRentWorkPermit] = useState(listing.rent_work_permit || false)
+  const [rentRoomSize, setRentRoomSize] = useState(listing.rent_room_size || '')
+  const [rentFurnished, setRentFurnished] = useState(listing.rent_furnished || false)
+  const [rentKitchen, setRentKitchen] = useState(listing.rent_kitchen || false)
+  const [rentBathroom, setRentBathroom] = useState(listing.rent_bathroom || false)
+  const [rentAirConditioning, setRentAirConditioning] = useState(listing.rent_air_conditioning || false)
+  const [rentTowels, setRentTowels] = useState(listing.rent_towels || false)
 
   // Photos
   const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>(initialPhotos)
@@ -131,8 +145,19 @@ export default function AdminListingEditClient({
           has_whatsapp: hasWhatsapp,
           has_viber: hasViber,
           has_telegram: hasTelegram,
+          has_sms: hasSms,
           email: email.trim() || null,
           website: website.trim() || null,
+          rent_price_daily: listingType === 'rent' && rentPriceDaily ? parseFloat(rentPriceDaily) : null,
+          rent_price_weekly: listingType === 'rent' && rentPriceWeekly ? parseFloat(rentPriceWeekly) : null,
+          rent_price_monthly: listingType === 'rent' && rentPriceMonthly ? parseFloat(rentPriceMonthly) : null,
+          rent_work_permit: listingType === 'rent' ? rentWorkPermit : false,
+          rent_room_size: listingType === 'rent' ? (rentRoomSize.trim() || null) : null,
+          rent_furnished: listingType === 'rent' ? rentFurnished : false,
+          rent_kitchen: listingType === 'rent' ? rentKitchen : false,
+          rent_bathroom: listingType === 'rent' ? rentBathroom : false,
+          rent_air_conditioning: listingType === 'rent' ? rentAirConditioning : false,
+          rent_towels: listingType === 'rent' ? rentTowels : false,
         }),
       })
       if (!updateRes.ok) {
@@ -260,6 +285,74 @@ export default function AdminListingEditClient({
           </div>
         </div>
 
+        {/* Section: Rent Details (only when type = rent) */}
+        {listingType === 'rent' && (
+          <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
+                <Home className="w-4 h-4 text-amber-600" />
+              </div>
+              <p className="text-sm font-bold text-gray-800">Rent Details</p>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <DollarSign className="w-3.5 h-3.5 text-gray-400" />
+                <p className="text-xs font-bold text-gray-700">Pricing (CHF)</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Day</label>
+                  <input type="number" min="0" step="0.01" value={rentPriceDaily} onChange={e => setRentPriceDaily(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Week</label>
+                  <input type="number" min="0" step="0.01" value={rentPriceWeekly} onChange={e => setRentPriceWeekly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Month</label>
+                  <input type="number" min="0" step="0.01" value={rentPriceMonthly} onChange={e => setRentPriceMonthly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Room Size <span className="font-normal text-gray-400">(optional)</span></label>
+              <input type="text" value={rentRoomSize} onChange={e => setRentRoomSize(e.target.value)} placeholder="e.g. 25m², Large, Studio..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-gray-700 mb-2">Work Permit</p>
+              <button type="button" onClick={() => setRentWorkPermit(!rentWorkPermit)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${rentWorkPermit ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}>
+                <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${rentWorkPermit ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
+                  {rentWorkPermit && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                </span>
+                Allowed to work in the space
+              </button>
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-gray-700 mb-2">Amenities</p>
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { label: 'Furnished', value: rentFurnished, set: setRentFurnished },
+                  { label: 'Kitchen', value: rentKitchen, set: setRentKitchen },
+                  { label: 'Shower + WC', value: rentBathroom, set: setRentBathroom },
+                  { label: 'Air Conditioning', value: rentAirConditioning, set: setRentAirConditioning },
+                  { label: 'Towels', value: rentTowels, set: setRentTowels },
+                ] as const).map(({ label, value, set }) => (
+                  <button key={label} type="button" onClick={() => set(!value)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${value ? 'bg-brand/10 text-brand border-brand/30' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${value ? 'bg-brand border-brand' : 'border-gray-300'}`}>
+                      {value && <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                    </span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Section 2: Description */}
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
           <div className="flex items-center gap-2 mb-1">
@@ -348,8 +441,10 @@ export default function AdminListingEditClient({
             </div>
           </div>
 
+          <p className="text-xs text-gray-500 mb-2">Phone-based options (same number):</p>
           <div className="flex flex-wrap gap-3">
             {[
+              { label: 'SMS', value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
               { label: 'WhatsApp', value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
               { label: 'Viber', value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
               { label: 'Telegram', value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },

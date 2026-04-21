@@ -119,9 +119,6 @@ export default function AdminBannersPage() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Link href="/dashboard/admin" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                <ArrowLeft className="w-4 h-4 text-gray-600" />
-              </Link>
               <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center">
                 <Megaphone className="w-5 h-5 text-purple-600" />
               </div>

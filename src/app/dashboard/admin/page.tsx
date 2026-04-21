@@ -1,180 +1,274 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
-  LayoutDashboard, Users, Building2, Image, Film, UserX, UserCircle,
-  ShieldCheck, MessageSquare, Home, LogOut, ChevronRight, AlertCircle, Megaphone, Flag, Briefcase
+  Users, Building2, UserCircle, Briefcase, Megaphone, ShieldCheck, Flag,
+  DollarSign, TrendingUp, AlertCircle, Eye, MessageSquare,
 } from 'lucide-react'
+import KpiCard from '@/components/admin/charts/KpiCard'
+import StatsAreaChart from '@/components/admin/charts/StatsAreaChart'
+import StatsBarChart from '@/components/admin/charts/StatsBarChart'
+import StatsDonutChart from '@/components/admin/charts/StatsDonutChart'
+import ChartCard from '@/components/admin/charts/ChartCard'
+import { shortDate } from '@/lib/adminUtils'
 
-interface StatCard {
-  label: string
-  value: number
-  icon: React.ReactNode
-  href: string
-  accent: string
-  urgent?: boolean
+interface Overview {
+  kpis: {
+    totalModels: number
+    totalClubs: number
+    totalVisitors: number
+    totalUsers: number
+    activeListings: number
+    activeBanners: number
+    pendingVerifications: number
+    pendingReports: number
+    pendingMedia: number
+    totalComments: number
+    revenueAllTime: number
+    revenue30d: number
+    pageViews30d: number
+    signups30d: number
+  }
+  trafficSeries: { date: string; views: number }[]
+  signupSeries: { date: string; models: number; clubs: number; users: number }[]
+  roleCounts: Record<string, number>
+  topModels: { id: string; name: string; views: number }[]
+  siteActions: any[]
 }
 
-export default function AdminDashboard() {
-  const router = useRouter()
+function money(n: number) {
+  return new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF', maximumFractionDigits: 0 }).format(n || 0)
+}
+
+export default function AdminOverviewPage() {
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
-
-  const [stats, setStats] = useState({
-    totalModels: 0, totalClubs: 0, totalVisitors: 0, totalListings: 0, pendingPhotos: 0,
-    pendingVideos: 0, blockedUsers: 0, pendingVerifications: 0, pendingComments: 0,
-    pendingBanners: 0, pendingReports: 0,
-  })
+  const [data, setData] = useState<Overview | null>(null)
 
   useEffect(() => {
-    const load = async () => {
-      const [models, clubs, visitors, listings, photos, videos, blocked, verifications, comments, banners, reports] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'user'),
-        supabase.from('job_listings').select('id', { count: 'exact', head: true }).neq('status', 'deleted'),
-        supabase.from('model_photos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
-        supabase.from('model_videos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_blocked', true),
-        supabase.from('verifications').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('model_comments').select('id', { count: 'exact', head: true }),
-        supabase.from('banners').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      ])
-
-      setStats({
-        totalModels: models.count || 0, totalClubs: clubs.count || 0,
-        totalVisitors: visitors.count || 0, totalListings: listings.count || 0,
-        pendingPhotos: photos.count || 0, pendingVideos: videos.count || 0,
-        blockedUsers: blocked.count || 0, pendingVerifications: verifications.count || 0,
-        pendingComments: comments.count || 0,
-        pendingBanners: banners.count || 0,
-        pendingReports: reports.count || 0,
+    fetch('/api/admin/stats/overview')
+      .then(r => r.json())
+      .then(d => {
+        setData(d)
+        setLoading(false)
       })
-      setLoading(false)
-    }
-    load()
+      .catch(() => setLoading(false))
   }, [])
 
-  if (loading) return null
+  if (loading || !data) {
+    return (
+      <div className="p-6 lg:p-8">
+        <div className="h-8 w-52 bg-gray-200 rounded animate-pulse mb-6" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-28 bg-gray-200 rounded-xl animate-pulse" />
+          ))}
+        </div>
+        <div className="h-80 bg-gray-200 rounded-xl animate-pulse" />
+      </div>
+    )
+  }
 
-  const cards: StatCard[] = [
-    { label: 'Total Visitors', value: stats.totalVisitors, icon: <UserCircle className="w-4 h-4" />, href: '/dashboard/admin/users', accent: 'text-violet-600 bg-violet-50' },
-    { label: 'Total Models', value: stats.totalModels, icon: <Users className="w-4 h-4" />, href: '/dashboard/admin/models', accent: 'text-brand bg-brand/10' },
-    { label: 'Total Clubs', value: stats.totalClubs, icon: <Building2 className="w-4 h-4" />, href: '/dashboard/admin/clubs', accent: 'text-blue-600 bg-blue-50' },
-    { label: 'Jobs & Rents', value: stats.totalListings, icon: <Briefcase className="w-4 h-4" />, href: '/dashboard/admin/jobs-rents', accent: 'text-purple-600 bg-purple-50' },
-    { label: 'Pending Photos', value: stats.pendingPhotos, icon: <Image className="w-4 h-4" />, href: '/dashboard/admin/review-media', accent: 'text-amber-600 bg-amber-50', urgent: stats.pendingPhotos > 0 },
-    { label: 'Pending Videos', value: stats.pendingVideos, icon: <Film className="w-4 h-4" />, href: '/dashboard/admin/review-media', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingVideos > 0 },
-    { label: 'Blocked Users', value: stats.blockedUsers, icon: <UserX className="w-4 h-4" />, href: '/dashboard/admin/blocked', accent: 'text-red-600 bg-red-50' },
-    { label: 'Pending Verifications', value: stats.pendingVerifications, icon: <ShieldCheck className="w-4 h-4" />, href: '/dashboard/admin/verification', accent: 'text-emerald-600 bg-emerald-50', urgent: stats.pendingVerifications > 0 },
-    { label: 'Total Comments', value: stats.pendingComments, icon: <MessageSquare className="w-4 h-4" />, href: '/dashboard/admin/comments', accent: 'text-orange-600 bg-orange-50' },
-    { label: 'Pending Banners', value: stats.pendingBanners, icon: <Megaphone className="w-4 h-4" />, href: '/dashboard/admin/banners', accent: 'text-purple-600 bg-purple-50', urgent: stats.pendingBanners > 0 },
-    { label: 'Reports', value: stats.pendingReports, icon: <Flag className="w-4 h-4" />, href: '/dashboard/admin/reports', accent: 'text-red-600 bg-red-50', urgent: stats.pendingReports > 0 },
+  const { kpis, trafficSeries, signupSeries, roleCounts, topModels, siteActions } = data
+  const totalPending = kpis.pendingVerifications + kpis.pendingReports + kpis.pendingMedia
+
+  const trafficFmt = trafficSeries.map(d => ({ ...d, date: shortDate(d.date) }))
+  const signupFmt = signupSeries.map(d => ({ ...d, date: shortDate(d.date) }))
+
+  const roleData = [
+    { name: 'Visitors', value: roleCounts.user || 0, color: '#8b5cf6' },
+    { name: 'Models', value: roleCounts.model || 0, color: '#ec4899' },
+    { name: 'Clubs', value: roleCounts.company || 0, color: '#3b82f6' },
+    { name: 'Admins', value: roleCounts.admin || 0, color: '#64748b' },
   ]
-
-  const navItems = [
-    { label: 'Visitors', sub: `${stats.totalVisitors} registered`, icon: <UserCircle className="w-4 h-4 text-violet-600" />, href: '/dashboard/admin/users' },
-    { label: 'Manage Models', sub: `${stats.totalModels} registered`, icon: <Users className="w-4 h-4 text-brand" />, href: '/dashboard/admin/models' },
-    { label: 'Manage Clubs', sub: `${stats.totalClubs} registered`, icon: <Building2 className="w-4 h-4 text-blue-600" />, href: '/dashboard/admin/clubs' },
-    { label: 'Jobs & Rents', sub: `${stats.totalListings} listings`, icon: <Briefcase className="w-4 h-4 text-purple-600" />, href: '/dashboard/admin/jobs-rents' },
-    { label: 'Review Media', sub: `${stats.pendingPhotos + stats.pendingVideos} pending`, icon: <Image className="w-4 h-4 text-amber-600" />, href: '/dashboard/admin/review-media' },
-    { label: 'Blocked Users', sub: `${stats.blockedUsers} blocked`, icon: <UserX className="w-4 h-4 text-red-600" />, href: '/dashboard/admin/blocked' },
-    { label: 'Verifications', sub: `${stats.pendingVerifications} pending`, icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />, href: '/dashboard/admin/verification' },
-    { label: 'Manage Comments', sub: `${stats.pendingComments} total`, icon: <MessageSquare className="w-4 h-4 text-orange-600" />, href: '/dashboard/admin/comments' },
-    { label: 'Manage Banners', sub: `${stats.pendingBanners} pending`, icon: <Megaphone className="w-4 h-4 text-purple-600" />, href: '/dashboard/admin/banners' },
-    { label: 'Reports', sub: `${stats.pendingReports} pending`, icon: <Flag className="w-4 h-4 text-red-500" />, href: '/dashboard/admin/reports' },
-  ]
-
-  const totalPending = stats.pendingPhotos + stats.pendingVideos + stats.pendingVerifications
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
-        <div className="max-w-6xl mx-auto space-y-5">
+    <div className="p-6 lg:p-8 space-y-6">
 
-          {/* Top bar */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
-                <LayoutDashboard className="w-5 h-5 text-brand" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Admin Dashboard</h1>
-                <p className="text-xs text-gray-500">Platform management & content moderation</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <Home className="w-3.5 h-3.5" /> Home
-              </Link>
-              <button onClick={handleLogout}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors">
-                <LogOut className="w-3.5 h-3.5" /> Logout
-              </button>
-            </div>
-          </div>
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Platform overview &amp; key metrics</p>
+        </div>
+        <Link
+          href="/dashboard/admin/statistics/traffic"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand bg-brand/10 rounded-lg hover:bg-brand/20"
+        >
+          <TrendingUp className="w-3.5 h-3.5" />
+          View detailed analytics
+        </Link>
+      </div>
 
-          {/* Urgent notice */}
-          {totalPending > 0 && (
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center gap-2.5">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-              <p className="text-sm text-amber-800">
-                <span className="font-bold">{totalPending} items</span> require your attention &mdash;
-                {stats.pendingPhotos + stats.pendingVideos > 0 && ` ${stats.pendingPhotos + stats.pendingVideos} media,`}
-                {stats.pendingVerifications > 0 && ` ${stats.pendingVerifications} verifications`}
-              </p>
+      {/* Urgent banner */}
+      {totalPending > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-800">
+            <span className="font-bold">{totalPending} items</span> require attention —
+            {kpis.pendingMedia > 0 && ` ${kpis.pendingMedia} media,`}
+            {kpis.pendingVerifications > 0 && ` ${kpis.pendingVerifications} verifications,`}
+            {kpis.pendingReports > 0 && ` ${kpis.pendingReports} reports`}
+          </p>
+        </div>
+      )}
+
+      {/* KPI row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
+        <KpiCard label="Visitors" value={kpis.totalVisitors.toLocaleString()} icon={<UserCircle className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" href="/dashboard/admin/users" />
+        <KpiCard label="Models" value={kpis.totalModels.toLocaleString()} icon={<Users className="w-4 h-4" />} accent="text-brand bg-brand/10" href="/dashboard/admin/models" />
+        <KpiCard label="Clubs" value={kpis.totalClubs.toLocaleString()} icon={<Building2 className="w-4 h-4" />} accent="text-blue-600 bg-blue-50" href="/dashboard/admin/clubs" />
+        <KpiCard label="Active Listings" value={kpis.activeListings.toLocaleString()} icon={<Briefcase className="w-4 h-4" />} accent="text-purple-600 bg-purple-50" href="/dashboard/admin/jobs-rents" />
+        <KpiCard label="Active Banners" value={kpis.activeBanners.toLocaleString()} icon={<Megaphone className="w-4 h-4" />} accent="text-rose-600 bg-rose-50" href="/dashboard/admin/banners" />
+        <KpiCard label="Page Views (30d)" value={kpis.pageViews30d.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" href="/dashboard/admin/statistics/traffic" />
+        <KpiCard label="Revenue (30d)" value={money(kpis.revenue30d)} icon={<DollarSign className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" sub={`${money(kpis.revenueAllTime)} all time`} href="/dashboard/admin/statistics/revenue" />
+        <KpiCard label="Pending Moderation" value={totalPending} icon={<ShieldCheck className="w-4 h-4" />} accent="text-amber-600 bg-amber-50" urgent={totalPending > 0} href="/dashboard/admin/verification" />
+      </div>
+
+      {/* Traffic + signups */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartCard
+          title="Site Traffic"
+          subtitle={`${kpis.pageViews30d.toLocaleString()} page views in last 30 days`}
+          className="lg:col-span-2"
+        >
+          <StatsAreaChart
+            data={trafficFmt}
+            xKey="date"
+            series={[{ key: 'views', name: 'Page views', color: '#ec4899' }]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Role Distribution" subtitle={`${kpis.totalUsers.toLocaleString()} registered users`}>
+          <StatsDonutChart data={roleData} height={240} />
+        </ChartCard>
+      </div>
+
+      {/* Signups + top models */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartCard
+          title="New Signups"
+          subtitle={`${kpis.signups30d} new accounts in last 30 days`}
+          className="lg:col-span-2"
+        >
+          <StatsBarChart
+            data={signupFmt}
+            xKey="date"
+            stacked
+            showLegend
+            series={[
+              { key: 'users', name: 'Visitors', color: '#8b5cf6' },
+              { key: 'models', name: 'Models', color: '#ec4899' },
+              { key: 'clubs', name: 'Clubs', color: '#3b82f6' },
+            ]}
+          />
+        </ChartCard>
+
+        <ChartCard title="Top Models" subtitle="By profile views (all-time)">
+          {topModels.length === 0 ? (
+            <p className="text-sm text-gray-400 py-6 text-center">No view data yet</p>
+          ) : (
+            <div className="space-y-2">
+              {topModels.slice(0, 8).map((m, i) => (
+                <Link
+                  key={m.id}
+                  href={`/dashboard/admin/models/${m.id}`}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50"
+                >
+                  <span className="w-5 h-5 text-[10px] font-bold rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                    {i + 1}
+                  </span>
+                  <span className="text-sm font-medium text-gray-800 flex-1 truncate">{m.name}</span>
+                  <span className="text-xs font-bold text-gray-500 tabular-nums">
+                    {m.views.toLocaleString()}
+                  </span>
+                </Link>
+              ))}
             </div>
           )}
+        </ChartCard>
+      </div>
 
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-3">
-            {cards.map(card => (
-              <Link key={card.label} href={card.href}
-                className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-gray-300 hover:shadow-sm transition-all group relative">
-                {card.urgent && (
-                  <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                )}
-                <div className={`w-7 h-7 rounded-md ${card.accent} flex items-center justify-center mb-2`}>
-                  {card.icon}
+      {/* Activity feed + moderation queue */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartCard
+          title="Recent Activity"
+          subtitle="Platform-wide events"
+          className="lg:col-span-2"
+          right={
+            <Link href="/latest-actions" className="text-xs font-semibold text-brand hover:underline">
+              View all
+            </Link>
+          }
+        >
+          {siteActions.length === 0 ? (
+            <p className="text-sm text-gray-400 py-6 text-center">No recent activity</p>
+          ) : (
+            <div className="space-y-1.5 -m-1 max-h-96 overflow-y-auto">
+              {siteActions.map((a: any) => (
+                <div key={a.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50">
+                  <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center shrink-0 text-brand">
+                    <ActivityIcon type={a.action_type} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 truncate">{a.title || a.action_type}</p>
+                    {a.description && (
+                      <p className="text-xs text-gray-500 truncate">{a.description}</p>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-gray-400 whitespace-nowrap">
+                    {new Date(a.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                  </span>
                 </div>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{card.label}</p>
-              </Link>
-            ))}
-          </div>
-
-          {/* Navigation */}
-          <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
-            <div className="px-4 py-3">
-              <p className="text-sm font-bold text-gray-800">Quick Navigation</p>
+              ))}
             </div>
-            {navItems.map(item => (
-              <Link key={item.label} href={item.href}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors group">
-                <div className="w-8 h-8 rounded-md bg-gray-50 flex items-center justify-center group-hover:bg-gray-100">
-                  {item.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand transition-colors">{item.label}</p>
-                  <p className="text-xs text-gray-400">{item.sub}</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-brand transition-colors" />
-              </Link>
-            ))}
-          </div>
+          )}
+        </ChartCard>
 
-        </div>
+        <ChartCard title="Moderation Queue" subtitle="Items awaiting review">
+          <div className="space-y-2">
+            <QueueItem href="/dashboard/admin/verification" label="Verifications" value={kpis.pendingVerifications} icon={<ShieldCheck className="w-4 h-4" />} color="emerald" />
+            <QueueItem href="/dashboard/admin/review-media" label="Photos &amp; Videos" value={kpis.pendingMedia} icon={<Eye className="w-4 h-4" />} color="amber" />
+            <QueueItem href="/dashboard/admin/reports" label="User Reports" value={kpis.pendingReports} icon={<Flag className="w-4 h-4" />} color="rose" />
+            <QueueItem href="/dashboard/admin/comments" label="Comments" value={kpis.totalComments} icon={<MessageSquare className="w-4 h-4" />} color="orange" />
+          </div>
+        </ChartCard>
       </div>
     </div>
+  )
+}
+
+function ActivityIcon({ type }: { type?: string }) {
+  switch (type) {
+    case 'new_model': return <Users className="w-3.5 h-3.5" />
+    case 'new_club': return <Building2 className="w-3.5 h-3.5" />
+    case 'new_photo':
+    case 'new_video': return <Eye className="w-3.5 h-3.5" />
+    case 'new_comment': return <MessageSquare className="w-3.5 h-3.5" />
+    case 'new_banner': return <Megaphone className="w-3.5 h-3.5" />
+    case 'model_verified': return <ShieldCheck className="w-3.5 h-3.5" />
+    default: return <TrendingUp className="w-3.5 h-3.5" />
+  }
+}
+
+function QueueItem({ href, label, value, icon, color }: {
+  href: string; label: string; value: number; icon: React.ReactNode; color: string
+}) {
+  const map: Record<string, string> = {
+    emerald: 'text-emerald-600 bg-emerald-50',
+    amber: 'text-amber-600 bg-amber-50',
+    rose: 'text-rose-600 bg-rose-50',
+    orange: 'text-orange-600 bg-orange-50',
+  }
+  return (
+    <Link href={href} className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:border-gray-300 hover:bg-gray-50 transition-colors">
+      <div className={`w-9 h-9 rounded-lg ${map[color]} flex items-center justify-center`}>{icon}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-gray-800" dangerouslySetInnerHTML={{ __html: label }} />
+      </div>
+      <span className={`text-xl font-bold ${value > 0 ? 'text-gray-900' : 'text-gray-300'} tabular-nums`}>
+        {value}
+      </span>
+    </Link>
   )
 }
