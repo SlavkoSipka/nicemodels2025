@@ -36,7 +36,7 @@ export default function Footer() {
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { href: '/models-page', label: 'Girls', mobileLabel: 'Models' },
+                { href: '/models-page', label: 'Models' },
                 { href: '/clubs',   label: 'Clubs' },
                 { href: '/comments',label: 'Comments' },
                 { href: '/blog',    label: 'Blog' },
@@ -44,12 +44,7 @@ export default function Footer() {
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                    {'mobileLabel' in item && item.mobileLabel ? (
-                      <>
-                        <span className="sm:hidden">{(item as any).mobileLabel}</span>
-                        <span className="hidden sm:inline">{item.label}</span>
-                      </>
-                    ) : item.label}
+                    {item.label}
                   </Link>
                 </li>
               ))}
