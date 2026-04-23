@@ -22,7 +22,14 @@ export async function fetchViewCounts(
   const cfg = RPC_BY_KIND[kind]
   try {
     const { data, error } = await supabase.rpc(cfg.fn, { [cfg.idsArg]: ids })
-    if (error || !data) return out
+    if (error) {
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn(`[viewCounts] ${cfg.fn} failed`, error.message)
+      }
+      return out
+    }
+    if (!data) return out
     for (const row of data as Array<Record<string, unknown>>) {
       const id = row[cfg.idCol] as string | undefined
       const count = Number(row.view_count ?? 0)

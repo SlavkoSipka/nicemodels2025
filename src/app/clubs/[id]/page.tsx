@@ -120,7 +120,7 @@ export default async function ClubPage({ params }: PageProps) {
     }))
   }
 
-  const viewCountMap = await fetchViewCounts(supabase, 'club', [id])
+  const viewCountMap = await fetchViewCounts(admin, 'club', [id])
   const viewCount = viewCountMap.get(id) ?? 0
 
   return (

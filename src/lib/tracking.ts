@@ -30,18 +30,20 @@ export async function trackModelAction(
 }
 
 /**
- * Track profile view with debouncing to prevent multiple rapid fires
+ * Track profile view with debouncing to prevent multiple rapid fires.
+ * One timer per model so clicking another card does not cancel the first model’s pending view.
  */
-let profileViewTimeout: NodeJS.Timeout | null = null
+const profileViewTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
 export function trackProfileView(modelId: string): void {
-  if (profileViewTimeout) {
-    clearTimeout(profileViewTimeout)
-  }
-  
-  profileViewTimeout = setTimeout(() => {
+  const prev = profileViewTimeouts.get(modelId)
+  if (prev) clearTimeout(prev)
+
+  const t = setTimeout(() => {
+    profileViewTimeouts.delete(modelId)
     trackModelAction(modelId, 'profile_view')
-  }, 1000) // Track after 1 second to ensure it's not just a quick scroll
+  }, 1000)
+  profileViewTimeouts.set(modelId, t)
 }
 
 // ==========================================================================

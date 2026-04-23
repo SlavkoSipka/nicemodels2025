@@ -155,7 +155,7 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="hidden lg:flex items-center justify-center gap-1">
             {[
-              { href: '/models-page',    label: 'Girls', mobileLabel: 'Models' as const },
+              { href: '/models-page',    label: 'Models' },
               { href: '/clubs',          label: 'Clubs / Agency' },
               { href: '/jobs-rents',     label: 'Jobs / Rent' },
               { href: '/latest-actions', label: 'Latest Actions' },

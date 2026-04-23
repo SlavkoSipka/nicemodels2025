@@ -107,7 +107,7 @@ export default async function HomePage() {
       liveCityRows = liveRows || []
     }
 
-    const modelViewCountMap = await fetchViewCounts(supabase, 'model', modelIds)
+    const modelViewCountMap = await fetchViewCounts(admin, 'model', modelIds)
 
     models = models.map((m: any) => ({
       ...m,
@@ -180,7 +180,7 @@ export default async function HomePage() {
     }
 
     const clubIds2 = clubs.map((c: any) => c.id)
-    const clubViewCountMap = await fetchViewCounts(supabase, 'club', clubIds2)
+    const clubViewCountMap = await fetchViewCounts(admin, 'club', clubIds2)
     clubs = clubs.map((c: any) => ({ ...c, view_count: clubViewCountMap.get(c.id) ?? 0 }))
   }
 

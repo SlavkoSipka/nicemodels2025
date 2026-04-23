@@ -8,6 +8,7 @@ export const revalidate = 60
 
 export default async function ModelsPage() {
   const supabase = await createClient()
+  const admin = createAdminClient()
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
   const { data: modelsRaw } = await supabase.rpc('models_with_active_ads')
@@ -117,7 +118,7 @@ export default async function ModelsPage() {
       liveCityRows = liveRows || []
     }
 
-    const viewCountMap = await fetchViewCounts(supabase, 'model', modelIds)
+    const viewCountMap = await fetchViewCounts(admin, 'model', modelIds)
 
     models = models.map((m: any) => ({
       ...m,

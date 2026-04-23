@@ -133,7 +133,7 @@ async function getModelData(id: string) {
   const { data: activeRows } = await supabase.rpc('models_with_active_ads')
   const hasActiveAd = !!(activeRows || []).find((r: { id: string }) => r.id === id)
 
-  const viewCountMap = await fetchViewCounts(supabase, 'model', [id])
+  const viewCountMap = await fetchViewCounts(admin, 'model', [id])
   const viewCount = viewCountMap.get(id) ?? 0
 
   return {

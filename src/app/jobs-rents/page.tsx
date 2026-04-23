@@ -72,8 +72,8 @@ export default async function JobsRentsPage() {
     }
   }
 
-  const supabaseForCounts = await createClient()
-  const listingViewCountMap = await fetchViewCounts(supabaseForCounts, 'listing', listingIds)
+  const adminForCounts = createAdminClient()
+  const listingViewCountMap = await fetchViewCounts(adminForCounts, 'listing', listingIds)
 
   const enriched = allListings.map(l => ({
     id: l.id,
