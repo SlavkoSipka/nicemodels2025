@@ -170,7 +170,6 @@ export default async function ModelsPage() {
       cta_url: b.cta_url,
     }))
 
-  const admin = createAdminClient()
   const { data: statusRaw } = await admin
     .from('model_status_messages')
     .select('id, model_id, message, created_at')
