@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
+import { fetchViewCounts } from '@/lib/viewCounts'
 
 export const revalidate = 60
 
@@ -116,6 +117,8 @@ export default async function ModelsPage() {
       liveCityRows = liveRows || []
     }
 
+    const viewCountMap = await fetchViewCounts(supabase, 'model', modelIds)
+
     models = models.map((m: any) => ({
       ...m,
       canton: m.model_details?.city ? cityCantonMap.get(m.model_details.city) || null : null,
@@ -124,6 +127,7 @@ export default async function ModelsPage() {
         m.model_details?.live_location_postal_code,
         liveCityRows,
       ),
+      view_count: viewCountMap.get(m.id) ?? 0,
     }))
   }
 

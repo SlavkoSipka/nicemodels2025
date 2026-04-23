@@ -13,6 +13,8 @@ import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
 import AvailableForChat, { type ChatModel } from './AvailableForChat'
+import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
+import { useNearbyIds } from '@/lib/useNearbyIds'
 
 interface ModelService { id: number; name: string }
 
@@ -22,6 +24,7 @@ interface Model {
   created_at?: string
   photoUrl?: string | null
   public_id?: number | null
+  view_count?: number
   canton?: string | null
   live_location_canton?: string | null
   model_details: {
@@ -66,6 +69,8 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
   const [selectedOffer,        setSelectedOffer]        = useState<string>('all')
   const [selectedLiveLocation, setSelectedLiveLocation] = useState<string>('all')
   const [searchQuery,          setSearchQuery]          = useState<string>('')
+  const [nearby,               setNearby]               = useState<NearbyValue>({ originCity: null, radiusKm: null })
+  const { ids: nearbyModelIds } = useNearbyIds('model', nearby.originCity, nearby.radiusKm)
 
   /** Per-placement pools; shuffled for fair rotation when multiple advertisers exist. */
   const [widePool, setWidePool] = useState<BannerData[]>([])
@@ -101,6 +106,9 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       result = result.filter(m => m.model_details?.ethnicity === selectedCategory)
     if (selectedOffer !== 'all')
       result = result.filter(m => m.model_services_list?.some(s => s.name === selectedOffer))
+    if (nearbyModelIds) {
+      result = result.filter(m => nearbyModelIds.has(m.id))
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
       result = result.filter(m => {
@@ -120,9 +128,39 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       })
     }
     return result
-  }, [initialModels, selectedRegion, selectedCity, selectedLiveLocation, selectedCategory, selectedOffer, searchQuery])
+  }, [initialModels, selectedRegion, selectedCity, selectedLiveLocation, selectedCategory, selectedOffer, searchQuery, nearbyModelIds])
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
+
+  const isFiltered =
+    selectedRegion !== 'all' ||
+    selectedCity !== 'all' ||
+    selectedCategory !== 'all' ||
+    selectedOffer !== 'all' ||
+    selectedLiveLocation !== 'all' ||
+    searchQuery.trim().length > 0 ||
+    !!nearbyModelIds
+
+  const renderCount = () => (
+    <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+      <div className="flex items-baseline gap-2">
+        <span className="text-lg sm:text-xl font-bold text-slate-900">
+          {filteredModels.length.toLocaleString()}
+        </span>
+        <span className="text-xs sm:text-sm text-slate-600 font-medium">
+          {filteredModels.length === 1 ? 'model' : 'models'}
+          {isFiltered && initialModels.length !== filteredModels.length && (
+            <span className="text-slate-400"> of {initialModels.length.toLocaleString()}</span>
+          )}
+        </span>
+      </div>
+      <NearbyFilter
+        value={nearby}
+        onChange={setNearby}
+        matchCount={nearbyModelIds ? nearbyModelIds.size : null}
+      />
+    </div>
+  )
 
   const renderModelFeed = () => {
     if (filteredModels.length === 0) {
@@ -200,6 +238,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
                   totalModels={initialModels.length}
                   models={initialModels}
                 />
+                {renderCount()}
                 {renderModelFeed()}
               </div>
               <div className="hidden min-h-0 lg:block" aria-hidden />
@@ -216,6 +255,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
                 totalModels={initialModels.length}
                 models={initialModels}
               />
+              {renderCount()}
               {renderModelFeed()}
             </div>
           )}

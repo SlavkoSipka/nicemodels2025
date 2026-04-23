@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ShoppingCart, Calendar, Zap, Clock, CheckCircle, AlertTriangle, User, Camera, ChevronRight, Info } from 'lucide-react'
+import TermsAcceptance from '@/components/ui/TermsAcceptance'
+import SitePreview from '@/components/preview/SitePreview'
 
 interface Product {
   id: string
@@ -36,6 +38,7 @@ export default function ActivateAdPage() {
   const [activeAdExpiry, setActiveAdExpiry] = useState<string | null>(null)
   const [lastExpiredAd, setLastExpiredAd] = useState<string | null>(null)
   const [checkoutError, setCheckoutError] = useState<string>('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   useEffect(() => {
     loadAll()
@@ -163,6 +166,10 @@ export default function ActivateAdPage() {
   const goToCheckout = async () => {
     if (cart.length === 0) return
     setCheckoutError('')
+    if (!termsAccepted) {
+      setCheckoutError('Please accept the terms and conditions')
+      return
+    }
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -311,6 +318,12 @@ export default function ActivateAdPage() {
             </div>
           </div>
         </div>
+
+        <SitePreview
+          page="home"
+          highlight="ad-card"
+          title="Where your profile card will appear"
+        />
 
         {checkoutError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
@@ -486,9 +499,16 @@ export default function ActivateAdPage() {
               <p className="text-base font-bold text-emerald-600">Free</p>
             </div>
 
+            <div className="mt-3">
+              <TermsAcceptance
+                checked={termsAccepted}
+                onChange={setTermsAccepted}
+              />
+            </div>
             <button
               onClick={goToCheckout}
-              className="w-full mt-3 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700"
+              disabled={!termsAccepted}
+              className="w-full mt-3 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Confirm free activation (beta)
             </button>

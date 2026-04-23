@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -80,10 +80,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     likeCounts: initialLikeCounts = {},
     userLikedPhotoIds: initialUserLiked = [],
     hasActiveAd = true,
+    viewCount = 0,
   } = modelData
 
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
+  const touchStartX = useRef<number | null>(null)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [showContact, setShowContact] = useState(false)
   const [idCopied, setIdCopied] = useState(false)
@@ -722,7 +724,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0'; (e.currentTarget as HTMLButtonElement).style.color = '' }}
           >
             <ChevronLeft className="w-5 h-5" style={{ color: '#64748b' }} />
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>prev</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>Previous Sedcard</span>
           </button>
 
           {/* NEXT */}
@@ -741,7 +743,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0' }}
           >
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>next</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>Next Sedcard</span>
             <ChevronRight className="w-5 h-5" style={{ color: '#64748b' }} />
           </button>
         </>
@@ -756,7 +758,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           style={{ color: '#64748b' }}
         >
           <ChevronLeft className="w-5 h-5" />
-          <span>Back to all models</span>
+          <span>Back to all Sedcards</span>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-8">
@@ -774,18 +776,6 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     <h1 className="text-3xl font-bold leading-tight tracking-tight" style={{ color: '#0f172a' }}>
                       {modelDetails?.showname || profile.username}
                     </h1>
-                    <button
-                      onClick={handleCopyId}
-                      title="Copy ID"
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-xs font-semibold transition-all cursor-pointer select-none"
-                      style={{
-                        background: idCopied ? 'rgba(16,185,129,0.12)' : '#f1f5f9',
-                        border: idCopied ? '1px solid rgba(16,185,129,0.4)' : '1px solid #e2e8f0',
-                        color: idCopied ? '#059669' : '#94a3b8',
-                      }}
-                    >
-                      {idCopied ? '✓ copied' : publicIdLabel}
-                    </button>
                   </div>
                   {profile.is_verified && (
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white px-2.5 py-1 rounded-full shrink-0 mt-1" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(16,185,129,0.4)' }}>
@@ -796,6 +786,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
                 {/* City / age line */}
                 <div className="flex items-center gap-3 mb-3">
+                  {viewCount > 0 && (
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: '#64748b' }}>
+                      <Eye className="w-4 h-4" />
+                      {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+                    </span>
+                  )}
                   {modelDetails?.city && (
                     <span className="text-sm font-medium" style={{ color: '#64748b' }}>
                       {modelDetails.city}
@@ -1554,6 +1550,15 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             <div
               className="sticky top-[125px] relative overflow-hidden rounded-lg bg-black"
               style={{ height: '75vh' }}
+              onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+              onTouchEnd={(e) => {
+                if (touchStartX.current === null) return
+                const dx = e.changedTouches[0].clientX - touchStartX.current
+                touchStartX.current = null
+                if (Math.abs(dx) < 40) return
+                if (dx < 0) setSelectedPhotoIndex(prev => (prev + 1) % mediaItems.length)
+                else setSelectedPhotoIndex(prev => (prev - 1 + mediaItems.length) % mediaItems.length)
+              }}
             >
               {mediaItems.length > 0 ? (
                 <>
@@ -1768,6 +1773,16 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           className="fixed inset-0 z-[9999] flex items-center justify-center"
           style={{ background: 'rgba(0,0,0,0.92)' }}
           onClick={() => setLightboxOpen(false)}
+          onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+          onTouchEnd={(e) => {
+            if (touchStartX.current === null) return
+            const dx = e.changedTouches[0].clientX - touchStartX.current
+            touchStartX.current = null
+            if (Math.abs(dx) < 40) return
+            e.stopPropagation()
+            if (dx < 0) setLightboxIndex(i => (i + 1) % mediaItems.length)
+            else setLightboxIndex(i => (i - 1 + mediaItems.length) % mediaItems.length)
+          }}
         >
           {/* Close button */}
           <button

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Sparkles, Phone } from 'lucide-react'
 import { trackProfileView } from '@/lib/tracking'
+import ViewCount from '@/components/ui/ViewCount'
 
 /** Strip spaces for tel:/sms: URIs */
 function phoneUri(raw: string): { tel: string; sms: string } {
@@ -20,6 +21,7 @@ interface ModelCardProps {
     photoUrl?: string | null
     public_id?: number | null
     cardPhone?: string | null
+    view_count?: number
     model_details: {
       showname: string
       city: string
@@ -117,15 +119,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             </div>
           )}
 
-          {/* ID badge */}
-          {model.public_id && (
-            <span
-              className="absolute top-2 left-2 text-[9px] font-semibold px-1.5 py-0.5 rounded"
-              style={{ background: 'rgba(0,0,0,0.45)', color: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', fontFamily: 'monospace' }}
-            >
-              #{model.public_id}
-            </span>
-          )}
 
           {/* Time badge */}
           {ago && (
@@ -136,6 +129,11 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
               {ago}
             </span>
           )}
+
+          {/* View-count badge */}
+          <span className="absolute top-2 left-2">
+            <ViewCount count={model.view_count ?? 0} />
+          </span>
         </div>
 
         {/* Content */}

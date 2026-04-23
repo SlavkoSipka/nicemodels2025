@@ -8,6 +8,9 @@ import {
   Building2
 } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
+import ViewCount from '@/components/ui/ViewCount'
+import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
+import { useNearbyIds } from '@/lib/useNearbyIds'
 
 interface ListingData {
   id: string
@@ -28,6 +31,7 @@ interface ListingData {
   club_area: string | null
   photos: string[]
   services: { id: string; name: string }[]
+  view_count?: number
 }
 
 type FilterType = 'all' | 'job' | 'rent'
@@ -35,6 +39,8 @@ type FilterType = 'all' | 'job' | 'rent'
 export default function JobsRentsPageClient({ listings: initialListings }: { listings: ListingData[] }) {
   const [filter, setFilter] = useState<FilterType>('all')
   const [listings, setListings] = useState<ListingData[]>(initialListings)
+  const [nearby, setNearby] = useState<NearbyValue>({ originCity: null, radiusKm: null })
+  const { ids: nearbyListingIds } = useNearbyIds('listing', nearby.originCity, nearby.radiusKm)
 
   useEffect(() => {
     const shuffled = [...initialListings]
@@ -45,7 +51,8 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
     setListings(shuffled)
   }, [])
 
-  const filtered = filter === 'all' ? listings : listings.filter(l => l.listing_type === filter)
+  const filteredByType = filter === 'all' ? listings : listings.filter(l => l.listing_type === filter)
+  const filtered = nearbyListingIds ? filteredByType.filter(l => nearbyListingIds.has(l.id)) : filteredByType
   const jobCount = listings.filter(l => l.listing_type === 'job').length
   const rentCount = listings.filter(l => l.listing_type === 'rent').length
 
@@ -63,9 +70,20 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
           {/* Stats + filter */}
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4 mb-6 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200">
             <div className="flex items-baseline gap-2">
-              <span className="text-xl sm:text-2xl font-semibold text-slate-900">{listings.length}</span>
-              <span className="text-xs sm:text-sm text-slate-500">{listings.length === 1 ? 'listing' : 'listings'}</span>
+              <span className="text-xl sm:text-2xl font-semibold text-slate-900">{filtered.length}</span>
+              <span className="text-xs sm:text-sm text-slate-500">
+                {filtered.length === 1 ? 'listing' : 'listings'}
+                {filter !== 'all' && filtered.length !== listings.length && (
+                  <span className="text-slate-400"> of {listings.length}</span>
+                )}
+              </span>
             </div>
+            <NearbyFilter
+              value={nearby}
+              onChange={setNearby}
+              matchCount={nearbyListingIds ? nearbyListingIds.size : null}
+              compact
+            />
             <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-auto">
               {[
                 { val: 'all' as FilterType, label: 'All', count: listings.length },
@@ -185,6 +203,11 @@ function ListingCard({ listing }: { listing: ListingData }) {
             style={{ background: 'rgba(0,0,0,0.5)', color: 'rgba(255,255,255,0.75)' }}
           >
             {dateStr}
+          </span>
+
+          {/* View-count badge */}
+          <span className="absolute top-2.5 left-3 z-10">
+            <ViewCount count={listing.view_count ?? 0} />
           </span>
         </Link>
 

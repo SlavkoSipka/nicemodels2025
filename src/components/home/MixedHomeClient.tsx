@@ -34,6 +34,7 @@ interface Model {
   created_at?: string
   photoUrl?: string | null
   public_id?: number | null
+  view_count?: number
   canton?: string | null
   /** Canton derived from live_location_city (+ postal) via `cities` table — for region filter */
   live_location_canton?: string | null

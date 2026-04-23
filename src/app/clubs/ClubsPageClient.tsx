@@ -7,6 +7,10 @@ import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/layout/Navbar'
 import { Building2, Search, ChevronDown, MapPin } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
+import ViewCount from '@/components/ui/ViewCount'
+import { fetchViewCounts } from '@/lib/viewCounts'
+import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
+import { useNearbyIds } from '@/lib/useNearbyIds'
 
 interface Club {
   id: string
@@ -22,6 +26,7 @@ interface Club {
   website: string
   photoUrl: string | null
   extraPhotos: string[]
+  view_count?: number
 }
 
 export default function ClubsPageClient() {
@@ -30,6 +35,8 @@ export default function ClubsPageClient() {
   const [selectedArea, setSelectedArea] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [areaOpen, setAreaOpen] = useState(false)
+  const [nearby, setNearby] = useState<NearbyValue>({ originCity: null, radiusKm: null })
+  const { ids: nearbyClubIds } = useNearbyIds('club', nearby.originCity, nearby.radiusKm)
 
   useEffect(() => {
     loadClubs()
@@ -99,7 +106,10 @@ export default function ClubsPageClient() {
         const j = Math.floor(Math.random() * (i + 1))
         ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
       }
-      setClubs(shuffled)
+
+      const viewCountMap = await fetchViewCounts(supabase, 'club', shuffled.map((c) => c.id))
+      const withCounts = shuffled.map((c) => ({ ...c, view_count: viewCountMap.get(c.id) ?? 0 }))
+      setClubs(withCounts)
     } catch (e) {
       console.error('Error loading clubs:', e)
     } finally {
@@ -123,6 +133,7 @@ export default function ClubsPageClient() {
   const filtered = useMemo(() => {
     return clubs.filter((c) => {
       if (selectedArea !== 'all' && c.area !== selectedArea) return false
+      if (nearbyClubIds && !nearbyClubIds.has(c.id)) return false
       if (search.trim()) {
         const q = search.toLowerCase()
         return (
@@ -132,7 +143,7 @@ export default function ClubsPageClient() {
       }
       return true
     })
-  }, [clubs, selectedArea, search])
+  }, [clubs, selectedArea, search, nearbyClubIds])
 
   if (loading) {
     return (
@@ -232,10 +243,23 @@ export default function ClubsPageClient() {
               />
             </div>
 
+            <NearbyFilter
+              value={nearby}
+              onChange={setNearby}
+              matchCount={nearbyClubIds ? nearbyClubIds.size : null}
+              compact
+            />
+
             {/* Results count */}
-            <span className="text-sm text-gray-500 ml-auto">
-              {filtered.length} {filtered.length === 1 ? 'result' : 'results'}
-            </span>
+            <div className="ml-auto flex items-baseline gap-2">
+              <span className="text-lg font-bold text-slate-900">{filtered.length.toLocaleString()}</span>
+              <span className="text-sm text-slate-600 font-medium">
+                {filtered.length === 1 ? 'club' : 'clubs'}
+                {filtered.length !== clubs.length && (
+                  <span className="text-slate-400"> of {clubs.length.toLocaleString()}</span>
+                )}
+              </span>
+            </div>
           </div>
 
           {/* Club cards - 2 per row, 16:9 image, description + tags */}
@@ -276,6 +300,9 @@ export default function ClubsPageClient() {
                     <h3 className="absolute bottom-0 left-0 right-0 p-4 text-white text-xl font-bold drop-shadow-lg">
                       {club.display_name || club.club_name}
                     </h3>
+                    <span className="absolute top-3 right-3">
+                      <ViewCount count={club.view_count ?? 0} />
+                    </span>
                   </div>
 
                   {/* Description + tags */}

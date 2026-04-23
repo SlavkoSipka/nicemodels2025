@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { ArrowLeft, CreditCard, Smartphone, Phone, CheckCircle, ShoppingBag } from 'lucide-react'
+import TermsAcceptance from '@/components/ui/TermsAcceptance'
 
 interface CartItem {
   product: {
@@ -46,6 +47,7 @@ export default function CheckoutPage() {
   const [bannerCart, setBannerCart] = useState<BannerCartItem[]>([])
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'twint' | 'phone'>('card')
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   useEffect(() => {
     loadCart()
@@ -79,6 +81,10 @@ export default function CheckoutPage() {
   const handleConfirmOrder = async () => {
     if (getTotalItems() === 0) {
       alert('Your cart is empty!')
+      return
+    }
+    if (!termsAccepted) {
+      alert('Please accept the terms and conditions')
       return
     }
 
@@ -333,10 +339,19 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        {/* Terms */}
+        <div className="mb-4">
+          <TermsAcceptance
+            checked={termsAccepted}
+            onChange={setTermsAccepted}
+            disabled={loading}
+          />
+        </div>
+
         {/* Confirm Button */}
         <button
           onClick={handleConfirmOrder}
-          disabled={loading}
+          disabled={loading || !termsAccepted}
           className="w-full px-8 py-4 bg-pink-600 text-white rounded-lg font-bold hover:bg-pink-700 transition-all shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed text-lg"
         >
           {loading ? 'Processing...' : `CONFIRM ORDER - CHF ${getTotalAmount().toFixed(2)}`}

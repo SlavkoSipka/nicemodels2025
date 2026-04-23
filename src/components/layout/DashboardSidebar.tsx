@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase, Handshake, Menu, X, ShieldCheck } from 'lucide-react'
+import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase, Handshake, Menu, X, ShieldCheck, Search as SearchIcon, Bell } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
 
 interface DashboardSidebarProps {
@@ -109,6 +109,14 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               <Link href="/dashboard/user/favorites" className={navLinkCls('/dashboard/user/favorites')}>
                 <Heart className="w-5 h-5 shrink-0" />
                 <span>Favorites</span>
+              </Link>
+              <Link href="/dashboard/user/saved-searches" className={navLinkCls('/dashboard/user/saved-searches')}>
+                <SearchIcon className="w-5 h-5 shrink-0" />
+                <span>Saved Searches</span>
+              </Link>
+              <Link href="/dashboard/user/notifications" className={navLinkCls('/dashboard/user/notifications')}>
+                <Bell className="w-5 h-5 shrink-0" />
+                <span>Inbox</span>
               </Link>
               <Link href="/dashboard/user/comments" className={navLinkCls('/dashboard/user/comments')}>
                 <MessageSquare className="w-5 h-5 shrink-0" />

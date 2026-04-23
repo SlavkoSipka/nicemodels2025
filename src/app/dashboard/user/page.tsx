@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { LayoutDashboard, Heart, MessageSquare, Home } from 'lucide-react'
+import { LayoutDashboard, Heart, MessageSquare, Home, Search as SearchIcon } from 'lucide-react'
 import Link from 'next/link'
+import InYourAreaSection from '@/components/dashboard/InYourAreaSection'
 
 export default async function UserDashboard() {
   const supabase = await createClient()
@@ -11,9 +12,11 @@ export default async function UserDashboard() {
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
   if (!profile) redirect('/login')
 
-  const [{ count: favoritesCount }, { count: commentsCount }] = await Promise.all([
+  const [{ count: favoritesCount }, { count: commentsCount }, { count: savedSearchCount }, { count: unreadCount }] = await Promise.all([
     supabase.from('favorites').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
     supabase.from('model_comments').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('saved_searches').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_active', true),
+    supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
   ])
 
   return (
@@ -35,7 +38,7 @@ export default async function UserDashboard() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Link
               href="/dashboard/user/favorites"
               className="block bg-white border border-gray-200 rounded-lg p-4 transition-all hover:border-brand hover:shadow-sm hover:bg-brand/[0.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
@@ -64,17 +67,37 @@ export default async function UserDashboard() {
               <p className="text-xs text-gray-400">Your reviews</p>
             </Link>
 
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <Link
+              href="/dashboard/user/saved-searches"
+              className="block bg-white border border-gray-200 rounded-lg p-4 transition-all hover:border-violet-300 hover:shadow-sm hover:bg-violet-50/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
+            >
               <div className="flex items-center justify-between mb-2">
-                <div className="w-8 h-8 rounded-md bg-emerald-50 flex items-center justify-center">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="w-8 h-8 rounded-md bg-violet-50 flex items-center justify-center">
+                  <SearchIcon className="w-4 h-4 text-violet-600" />
                 </div>
-                <span className="text-2xl font-bold text-gray-900">Active</span>
+                <span className="text-2xl font-bold text-gray-900">{savedSearchCount || 0}</span>
               </div>
-              <p className="text-xs font-semibold text-gray-700">Account Status</p>
-              <p className="text-xs text-gray-400">Everything is working</p>
-            </div>
+              <p className="text-xs font-semibold text-gray-700">Saved searches</p>
+              <p className="text-xs text-gray-400">Alerts when matches appear</p>
+            </Link>
+
+            <Link
+              href="/dashboard/user/notifications"
+              className="block bg-white border border-gray-200 rounded-lg p-4 transition-all hover:border-pink-300 hover:shadow-sm hover:bg-pink-50/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-8 h-8 rounded-md bg-pink-50 flex items-center justify-center">
+                  <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">{unreadCount || 0}</span>
+              </div>
+              <p className="text-xs font-semibold text-gray-700">Inbox</p>
+              <p className="text-xs text-gray-400">Unread notifications</p>
+            </Link>
           </div>
+
+          {/* In your area */}
+          <InYourAreaSection originCity={profile.city || null} />
 
           {/* Quick Actions */}
           <div className="bg-white border border-gray-200 rounded-lg p-5">

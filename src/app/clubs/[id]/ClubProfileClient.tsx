@@ -10,7 +10,7 @@ import { htmlToPlainText } from '@/lib/plainText'
 import {
   Building2, MapPin, Phone, Mail, Globe, MessageCircle,
   Clock, CheckCircle, Coffee, Waves, Trees, DollarSign,
-  ChevronLeft, ChevronRight, Users, Sparkles
+  ChevronLeft, ChevronRight, Users, Sparkles, Eye
 } from 'lucide-react'
 
 interface ClubProfileClientProps {
@@ -20,6 +20,7 @@ interface ClubProfileClientProps {
   workingHours: any
   photos: any[]
   clubModels?: any[]
+  viewCount?: number
 }
 
 export default function ClubProfileClient({
@@ -28,7 +29,8 @@ export default function ClubProfileClient({
   contactDetails,
   workingHours,
   photos,
-  clubModels = []
+  clubModels = [],
+  viewCount = 0,
 }: ClubProfileClientProps) {
   const [showContact, setShowContact] = useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
@@ -171,6 +173,12 @@ export default function ClubProfileClient({
                       </button>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
+                      {viewCount > 0 && (
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+                          <Eye className="w-3.5 h-3.5" />
+                          {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+                        </span>
+                      )}
                       {profile.is_verified && (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-500 px-2.5 py-1 rounded-full shadow-sm">
                           <CheckCircle className="w-3.5 h-3.5" /> Verified

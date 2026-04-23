@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ModelProfileClient from './ModelProfileClient'
+import { fetchViewCounts } from '@/lib/viewCounts'
 
 interface ModelPageProps {
   params: Promise<{ id: string }>
@@ -132,6 +133,9 @@ async function getModelData(id: string) {
   const { data: activeRows } = await supabase.rpc('models_with_active_ads')
   const hasActiveAd = !!(activeRows || []).find((r: { id: string }) => r.id === id)
 
+  const viewCountMap = await fetchViewCounts(supabase, 'model', [id])
+  const viewCount = viewCountMap.get(id) ?? 0
+
   return {
     profile,
     modelDetails: modelDetailsForClient,
@@ -150,6 +154,7 @@ async function getModelData(id: string) {
     likeCounts,
     userLikedPhotoIds,
     hasActiveAd,
+    viewCount,
   }
 }
 

@@ -2,14 +2,13 @@
 
 import type { BannerPlacement } from '@/lib/bannerPlacement'
 import { LayoutGrid, PanelLeft, Square } from 'lucide-react'
-import { WireframeFeedWide, WireframeFeedCard, WireframeSidebarLeft } from './bannerWireframes'
+import PlacementMockup from './PlacementMockup'
 
 const OPTIONS: {
   id: BannerPlacement
   title: string
   zone: string
   desc: string
-  Wire: typeof WireframeFeedWide
   Icon: typeof LayoutGrid
 }[] = [
   {
@@ -17,7 +16,6 @@ const OPTIONS: {
     title: 'Wide banner',
     zone: 'Spans both columns',
     desc: 'Full-width strip in the listing — repeats every 6 profile cards (4:1).',
-    Wire: WireframeFeedWide,
     Icon: LayoutGrid,
   },
   {
@@ -25,7 +23,6 @@ const OPTIONS: {
     title: 'Card slot',
     zone: 'Inside the grid',
     desc: 'Same cell size as a profile card — appears every 4 cards (3:4).',
-    Wire: WireframeFeedCard,
     Icon: Square,
   },
   {
@@ -34,7 +31,6 @@ const OPTIONS: {
     zone: 'Beside the feed',
     desc:
       'One vertical slot next to the grid on desktop/laptop. Not shown on phones — on mobile, only wide and card placements appear in the feed. Random pick per page load on desktop.',
-    Wire: WireframeSidebarLeft,
     Icon: PanelLeft,
   },
 ]
@@ -43,66 +39,48 @@ interface PlacementPickerProps {
   value: BannerPlacement | null
   onChange: (p: BannerPlacement) => void
   disabledPlacements?: Set<BannerPlacement>
+  previewUrl?: string | null
 }
 
-function PlacementPreviewLegend() {
+export default function PlacementPicker({
+  value,
+  onChange,
+  disabledPlacements,
+  previewUrl,
+}: PlacementPickerProps) {
   return (
-    <div
-      className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-200/80 bg-slate-50/90 px-3.5 py-2.5 text-[12px] text-slate-600"
-      role="note"
-    >
-      <span className="font-semibold text-slate-700">Preview key</span>
-      <span className="flex items-center gap-2">
-        <span
-          className="h-4 w-4 shrink-0 rounded border border-slate-300/90 bg-gradient-to-b from-slate-200/95 to-slate-100 shadow-sm"
-          aria-hidden
-        />
-        <span>Grey cells = profile cards (models &amp; clubs) in the listing</span>
-      </span>
-      <span className="hidden sm:inline text-slate-300" aria-hidden>
-        ·
-      </span>
-      <span className="flex items-center gap-2">
-        <span
-          className="h-4 w-7 shrink-0 rounded border-2 border-violet-400/70 bg-gradient-to-r from-violet-300/90 to-fuchsia-200/85 shadow-sm"
-          aria-hidden
-        />
-        <span>Violet = your ad</span>
-      </span>
-      <span className="hidden sm:inline text-slate-300" aria-hidden>
-        ·
-      </span>
-      <span className="text-slate-600 sm:max-w-none">
-        <span className="font-semibold text-slate-700">Left column</span> is{' '}
-        <span className="font-semibold text-slate-800">desktop only</span> — it does not appear on mobile.
-      </span>
-    </div>
-  )
-}
-
-export default function PlacementPicker({ value, onChange, disabledPlacements }: PlacementPickerProps) {
-  return (
-    <div className="space-y-3">
-      <PlacementPreviewLegend />
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
       {OPTIONS.map(opt => {
         const disabled = disabledPlacements?.has(opt.id)
         const selected = value === opt.id
-        const W = opt.Wire
         const Icon = opt.Icon
+
+        const handleSelect = () => {
+          if (disabled) return
+          onChange(opt.id)
+        }
+
         return (
-          <button
+          <div
             key={opt.id}
-            type="button"
-            disabled={disabled}
+            role="button"
+            tabIndex={disabled ? -1 : 0}
             aria-pressed={selected}
-            onClick={() => onChange(opt.id)}
-            className={`group text-left rounded-2xl border-2 p-4 sm:p-5 transition-all flex flex-col gap-4 min-h-0 ${
+            aria-disabled={disabled}
+            onClick={handleSelect}
+            onKeyDown={(e) => {
+              if (disabled) return
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleSelect()
+              }
+            }}
+            className={`group text-left rounded-2xl border-2 p-4 sm:p-5 transition-all flex flex-col gap-3 min-h-0 outline-none ${
               disabled
                 ? 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'
                 : selected
-                  ? 'border-violet-500 bg-gradient-to-b from-violet-50/95 to-white shadow-lg shadow-violet-500/10 ring-2 ring-violet-400/25'
-                  : 'border-slate-200/90 bg-white hover:border-violet-300 hover:bg-slate-50/90 hover:shadow-md'
+                  ? 'border-violet-500 bg-gradient-to-b from-violet-50/95 to-white shadow-lg shadow-violet-500/10 ring-2 ring-violet-400/25 cursor-pointer'
+                  : 'border-slate-200/90 bg-white hover:border-violet-300 hover:bg-slate-50/90 hover:shadow-md cursor-pointer focus-visible:ring-2 focus-visible:ring-violet-400/40'
             }`}
           >
             <div className="flex items-start justify-between gap-3">
@@ -121,31 +99,25 @@ export default function PlacementPicker({ value, onChange, disabledPlacements }:
                   <p className="text-base font-bold text-slate-900 leading-tight mt-0.5">{opt.title}</p>
                 </div>
               </div>
+              {selected && (
+                <span className="shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full bg-violet-600 text-white text-[10px] font-bold shadow">
+                  ✓
+                </span>
+              )}
             </div>
 
-            <div
-              className={`pointer-events-none relative flex min-h-[160px] sm:min-h-[180px] items-center justify-center rounded-xl border p-4 sm:p-5 ${
-                selected
-                  ? 'border-violet-200/80 bg-gradient-to-b from-white to-violet-50/40 shadow-inner'
-                  : 'border-slate-100 bg-gradient-to-b from-slate-50/90 to-slate-100/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]'
-              }`}
-            >
-              <div className="w-full max-w-[260px] scale-[1.02] sm:scale-105 origin-center">
-                <W showProfileCardLabels />
-              </div>
-            </div>
+            <PlacementMockup placement={opt.id} previewUrl={selected ? previewUrl : undefined} />
 
-            <p className="text-[13px] text-slate-600 leading-relaxed flex-1">{opt.desc}</p>
+            <p className="text-[12px] text-slate-600 leading-relaxed flex-1">{opt.desc}</p>
 
             {disabled && (
               <p className="text-[11px] font-semibold text-emerald-700 rounded-lg bg-emerald-50 px-2.5 py-1.5 border border-emerald-100">
                 Active in this slot
               </p>
             )}
-          </button>
+          </div>
         )
       })}
-      </div>
     </div>
   )
 }

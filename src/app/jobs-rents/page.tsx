@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Navbar from '@/components/layout/Navbar'
 import JobsRentsPageClient from './JobsRentsPageClient'
+import { fetchViewCounts } from '@/lib/viewCounts'
 
 export const metadata: Metadata = {
   title: 'Jobs & Miete – Stellenangebote und Mietangebote',
@@ -71,6 +72,9 @@ export default async function JobsRentsPage() {
     }
   }
 
+  const supabaseForCounts = await createClient()
+  const listingViewCountMap = await fetchViewCounts(supabaseForCounts, 'listing', listingIds)
+
   const enriched = allListings.map(l => ({
     id: l.id,
     listing_type: l.listing_type,
@@ -90,6 +94,7 @@ export default async function JobsRentsPage() {
     club_area: clubDetailsMap.get(l.club_id)?.area || null,
     photos: photosMap.get(l.id) || [],
     services: servicesMap.get(l.id) || [],
+    view_count: listingViewCountMap.get(l.id) ?? 0,
   }))
 
   return (

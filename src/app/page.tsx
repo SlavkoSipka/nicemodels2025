@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MixedHomeClient from '@/components/home/MixedHomeClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
+import { fetchViewCounts } from '@/lib/viewCounts'
 
 export const revalidate = 60
 
@@ -106,6 +107,8 @@ export default async function HomePage() {
       liveCityRows = liveRows || []
     }
 
+    const modelViewCountMap = await fetchViewCounts(supabase, 'model', modelIds)
+
     models = models.map((m: any) => ({
       ...m,
       canton: m.model_details?.city ? cityCantonMap.get(m.model_details.city) || null : null,
@@ -114,6 +117,7 @@ export default async function HomePage() {
         m.model_details?.live_location_postal_code,
         liveCityRows,
       ),
+      view_count: modelViewCountMap.get(m.id) ?? 0,
     }))
   }
 
@@ -174,6 +178,10 @@ export default async function HomePage() {
         canton: c.city ? clubCityCantonMap.get(c.city) || null : null,
       }))
     }
+
+    const clubIds2 = clubs.map((c: any) => c.id)
+    const clubViewCountMap = await fetchViewCounts(supabase, 'club', clubIds2)
+    clubs = clubs.map((c: any) => ({ ...c, view_count: clubViewCountMap.get(c.id) ?? 0 }))
   }
 
   // ── 3. Banners ──

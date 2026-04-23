@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import BannerPlacementPreview from '@/components/buy-banner/BannerPlacementPreview'
 import PlacementPicker from '@/components/buy-banner/PlacementPicker'
+import TermsAcceptance from '@/components/ui/TermsAcceptance'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
 import { normalizePlacement } from '@/lib/bannerPlacement'
 
@@ -68,6 +69,8 @@ export default function BuyBannerPage() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const afterPlacementRef = useRef<HTMLDivElement | null>(null)
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
@@ -97,6 +100,18 @@ export default function BuyBannerPage() {
   useEffect(() => {
     load()
   }, [])
+
+  useEffect(() => {
+    if (!selectedPlacement) return
+    const t = window.setTimeout(() => {
+      afterPlacementRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest',
+      })
+    }, 80)
+    return () => window.clearTimeout(t)
+  }, [selectedPlacement, selectedPackage])
 
   const load = async () => {
     try {
@@ -141,6 +156,7 @@ export default function BuyBannerPage() {
     if (activeSlots.has(selectedPlacement)) { setError('You already have an active banner in this slot'); return }
     if (!selectedPackage) { setError('Please select a package'); return }
     if (!imageFile) { setError('Please upload a banner image'); return }
+    if (!termsAccepted) { setError('Please accept the terms and conditions'); return }
 
     setSaving(true)
     try {
@@ -304,10 +320,13 @@ export default function BuyBannerPage() {
               clearImage()
             }}
             disabledPlacements={activeSlots}
+            previewUrl={imagePreview}
           />
         </div>
 
-        {selectedPlacement && slotFreeForSelection && (
+        {selectedPlacement && (
+          <div ref={afterPlacementRef} className="space-y-4">
+        {slotFreeForSelection && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-4">2. Select duration:</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
@@ -348,7 +367,7 @@ export default function BuyBannerPage() {
           </div>
         )}
 
-        {selectedPlacement && slotFreeForSelection && selectedPackage && (
+        {slotFreeForSelection && selectedPackage && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
             <p className="text-sm font-bold text-gray-800">3. Upload banner image:</p>
             <p className="text-xs text-gray-400">{uploadHint}</p>
@@ -389,7 +408,7 @@ export default function BuyBannerPage() {
           </div>
         )}
 
-        {selectedPlacement && slotFreeForSelection && selectedPackage && imageFile && (
+        {slotFreeForSelection && selectedPackage && imageFile && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-bold text-gray-800">4. Confirm:</p>
@@ -407,9 +426,16 @@ export default function BuyBannerPage() {
                 <span className="text-sm font-bold text-emerald-600">Free</span>
               </div>
             </div>
+            <div className="mb-3">
+              <TermsAcceptance
+                checked={termsAccepted}
+                onChange={setTermsAccepted}
+                disabled={saving}
+              />
+            </div>
             <button
               onClick={handleActivate}
-              disabled={saving}
+              disabled={saving || !termsAccepted}
               className="w-full py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
@@ -418,10 +444,12 @@ export default function BuyBannerPage() {
           </div>
         )}
 
-        {selectedPlacement && !slotFreeForSelection && (
+        {!slotFreeForSelection && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
             You already have an active banner in <span className="font-semibold">{placementLabel(selectedPlacement)}</span>.
             Delete it below to purchase a new one for this slot, or pick another placement above.
+          </div>
+        )}
           </div>
         )}
 

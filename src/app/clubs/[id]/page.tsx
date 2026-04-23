@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import ClubProfileClient from './ClubProfileClient'
 import { cache } from 'react'
+import { fetchViewCounts } from '@/lib/viewCounts'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -119,6 +120,9 @@ export default async function ClubPage({ params }: PageProps) {
     }))
   }
 
+  const viewCountMap = await fetchViewCounts(supabase, 'club', [id])
+  const viewCount = viewCountMap.get(id) ?? 0
+
   return (
     <ClubProfileClient
       profile={profile}
@@ -127,6 +131,7 @@ export default async function ClubPage({ params }: PageProps) {
       workingHours={workingHours}
       photos={photosWithUrls}
       clubModels={clubModels}
+      viewCount={viewCount}
     />
   )
 }

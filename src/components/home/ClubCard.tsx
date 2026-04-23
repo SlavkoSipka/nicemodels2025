@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Building2 } from 'lucide-react'
+import ViewCount from '@/components/ui/ViewCount'
 
 export interface ClubCardData {
   id: string
@@ -13,6 +14,7 @@ export interface ClubCardData {
   description: string
   photoUrl: string | null
   canton?: string | null
+  view_count?: number
 }
 
 interface ClubCardProps {
@@ -84,6 +86,11 @@ export default function ClubCard({ club, priority = false }: ClubCardProps) {
             style={{ background: 'rgba(0,0,0,0.45)', color: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)' }}
           >
             {typeLabel}
+          </span>
+
+          {/* View-count badge */}
+          <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2">
+            <ViewCount count={club.view_count ?? 0} />
           </span>
 
           {/* Mobile: name + location overlay */}

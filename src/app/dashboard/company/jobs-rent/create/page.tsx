@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import { processImage } from '@/lib/imageProcessor'
 import CitySearch, { CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
+import TermsAcceptance from '@/components/ui/TermsAcceptance'
+import SitePreview from '@/components/preview/SitePreview'
 import {
   Briefcase, ArrowLeft, MapPin, FileText, Upload, Phone,
   AlertCircle, CheckCircle, Trash2, Zap, Calendar, ChevronDown, ChevronUp,
@@ -38,6 +40,7 @@ export default function CreateJobRentPage() {
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -173,6 +176,7 @@ export default function CreateJobRentPage() {
     if (!location.trim()) { setError('Location is required'); return }
     if (!description.trim()) { setError('Description is required'); return }
     if (!selectedPackage) { setError('Please select a duration package'); return }
+    if (!termsAccepted) { setError('Please accept the terms and conditions'); return }
 
     setError('')
     setSubmitting(true)
@@ -384,6 +388,14 @@ export default function CreateJobRentPage() {
             />
           </div>
         </div>
+
+        <SitePreview
+          page="jobs-rents"
+          highlight={listingType === 'job' ? 'listing-job' : 'listing-rent'}
+          title={`Where your ${listingType === 'job' ? 'job' : 'rent'} listing will appear`}
+          listingTitle={title}
+          listingLocation={location}
+        />
 
         {/* Section: Rent Details (only when type = rent) */}
         {listingType === 'rent' && (
@@ -769,6 +781,15 @@ export default function CreateJobRentPage() {
           )}
         </div>
 
+        {/* Terms */}
+        <div className="pt-2">
+          <TermsAcceptance
+            checked={termsAccepted}
+            onChange={setTermsAccepted}
+            disabled={submitting}
+          />
+        </div>
+
         {/* Submit */}
         <div className="flex items-center justify-between pt-2">
           <button
@@ -779,7 +800,7 @@ export default function CreateJobRentPage() {
           </button>
           <button
             onClick={handleSubmit}
-            disabled={submitting || !title.trim() || !location.trim() || !description.trim() || !selectedPackage}
+            disabled={submitting || !title.trim() || !location.trim() || !description.trim() || !selectedPackage || !termsAccepted}
             className="flex items-center gap-1.5 px-6 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Briefcase className="w-4 h-4" />
