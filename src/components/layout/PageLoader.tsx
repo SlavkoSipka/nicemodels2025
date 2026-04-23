@@ -159,7 +159,7 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
               animation: fadingOut ? 'none' : 'loader-logo-pulse 1.4s ease-in-out infinite 0.5s',
             }}
           >
-            models
+            Models
           </p>
 
           {/* Progress bar */}

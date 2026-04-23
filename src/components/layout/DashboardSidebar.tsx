@@ -388,7 +388,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               href="/models-page"
               className="flex items-center justify-center gap-2 px-3 py-2.5 md:px-4 md:py-3 bg-gradient-to-r from-gray-700 to-gray-800 text-white hover:from-gray-800 hover:to-gray-900 rounded-lg transition-all shadow-sm group font-medium text-sm"
             >
-              <span className="sm:hidden">View Models Page</span><span className="hidden sm:inline">View Girls Page</span>
+              <span>View Models Page</span>
               <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Link>
           </div>
