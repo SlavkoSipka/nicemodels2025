@@ -61,7 +61,7 @@ export default function BannerCard({ banner, priority = false }: BannerCardProps
       ref={ref}
       href={href}
       onClick={() => trackBannerClick(banner.id, 'profile')}
-      className="block group w-full col-span-1 sm:col-span-2"
+      className="block group w-full col-span-2"
     >
       <div
         className="relative overflow-hidden w-full transition-all duration-300"

@@ -93,20 +93,20 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
         aria-label={`View profile: ${title}`}
       />
       <div
-        className="relative z-10 pointer-events-none overflow-hidden flex flex-row w-full transition-all duration-300"
+        className="relative z-10 pointer-events-none overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
         style={cardStyle}
       >
         {/* Photo */}
         <div
-          className="relative flex-shrink-0 overflow-hidden"
-          style={{ width: '36%', minWidth: 120, aspectRatio: '3/4', background: '#f1f5f9' }}
+          className="relative flex-shrink-0 overflow-hidden w-full sm:w-[36%] sm:min-w-[120px]"
+          style={{ aspectRatio: '3/4', background: '#f1f5f9' }}
         >
           {model.photoUrl ? (
             <Image
               src={model.photoUrl}
               alt={title}
               fill
-              sizes="(max-width: 640px) 42vw, 22vw"
+              sizes="(max-width: 640px) 48vw, 22vw"
               priority={priority}
               quality={80}
               placeholder="blur"
@@ -123,7 +123,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           {/* Time badge */}
           {ago && (
             <span
-              className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full"
+              className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full sm:bottom-2"
               style={{ background: 'rgba(0,0,0,0.50)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}
             >
               {ago}
@@ -134,10 +134,23 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           <span className="absolute top-2 left-2">
             <ViewCount count={model.view_count ?? 0} />
           </span>
+
+          {/* Mobile: name + meta overlay */}
+          <div
+            className="absolute bottom-0 left-0 right-0 sm:hidden p-2 pt-10"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}
+          >
+            <h3 className="text-white font-bold text-[12px] leading-tight truncate">{title}</h3>
+            {(city || age) && (
+              <p className="text-white/70 text-[10px] mt-0.5 truncate">
+                {[city, age].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Content - desktop only */}
+        <div className="flex-1 hidden sm:flex flex-col min-w-0 overflow-hidden">
           {/* Thin blue accent line at top */}
           <div style={{ height: 2, background: 'linear-gradient(90deg, #89CFF0, #bae6fd)', flexShrink: 0 }} />
 
