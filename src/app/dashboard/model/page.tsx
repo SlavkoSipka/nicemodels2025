@@ -300,6 +300,57 @@ export default function ModelDashboardPage() {
             </div>
           )}
 
+          {/* ── How to get started ── */}
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+            <div className="flex items-center gap-2 mb-3 md:mb-4">
+              <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+                <Lightbulb className="w-4 h-4 text-brand" />
+              </div>
+              <p className="text-sm font-bold text-gray-800">How to get started</p>
+            </div>
+            <div className="space-y-2.5 md:space-y-3">
+              {[
+                {
+                  step: '1',
+                  title: 'Complete your profile',
+                  desc: 'Go to My Profile and fill in your biography, details and services. Make sure everything is accurate — this is exactly what clients will see.',
+                  action: 'Open My Profile',
+                  href: '/dashboard/model/profile/biography',
+                },
+                {
+                  step: '2',
+                  title: 'Upload your photos',
+                  desc: 'Add at least 3 high-quality photos so clients can see you. The better the photos, the more interest you will get.',
+                  action: 'Upload photos',
+                  href: '/dashboard/model/profile/pictures-video',
+                },
+                {
+                  step: '3',
+                  title: 'Activate your ad',
+                  desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your profile will appear in search results.',
+                  action: 'Activate Ad',
+                  href: '/dashboard/model/activate-ad',
+                },
+              ].map(({ step, title, desc, action, href }) => (
+                <div key={step} className="flex gap-3">
+                  <div className="w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    {step}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900 mb-0.5">{title}</p>
+                    <p className="text-xs text-gray-500 mb-1.5">{desc}</p>
+                    <button
+                      onClick={() => router.push(href)}
+                      className="text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 transition-colors"
+                    >
+                      {action} <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* ── Club invites ── */}
           {pendingInvites.length > 0 && (
             <div className="bg-white border border-gray-200 rounded-lg p-3 md:p-5 flex items-center justify-between gap-3 md:gap-4">
@@ -554,57 +605,6 @@ export default function ModelDashboardPage() {
                   >
                     Complete profile <ChevronRight className="w-4 h-4" />
                   </button>
-                </div>
-              </div>
-
-              {/* How it works */}
-              <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-                <div className="flex items-center gap-2 mb-3 md:mb-4">
-                  <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
-                    <Lightbulb className="w-4 h-4 text-brand" />
-                  </div>
-                  <p className="text-sm font-bold text-gray-800">How to get started</p>
-                </div>
-                <div className="space-y-2.5 md:space-y-3">
-                  {[
-                    {
-                      step: '1',
-                      title: 'Complete your profile',
-                      desc: 'Go to My Profile and fill in your biography, details and services. Make sure everything is accurate — this is exactly what clients will see.',
-                      action: 'Open My Profile',
-                      href: '/dashboard/model/profile/biography',
-                    },
-                    {
-                      step: '2',
-                      title: 'Upload your photos',
-                      desc: 'Add at least 3 high-quality photos so clients can see you. The better the photos, the more interest you will get.',
-                      action: 'Upload photos',
-                      href: '/dashboard/model/profile/pictures-video',
-                    },
-                    {
-                      step: '3',
-                      title: 'Activate your ad',
-                      desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your profile will appear in search results.',
-                      action: 'Activate Ad',
-                      href: '/dashboard/model/activate-ad',
-                    },
-                  ].map(({ step, title, desc, action, href }) => (
-                    <div key={step} className="flex gap-3">
-                      <div className="w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                        {step}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900 mb-0.5">{title}</p>
-                        <p className="text-xs text-gray-500 mb-1.5">{desc}</p>
-                        <button
-                          onClick={() => router.push(href)}
-                          className="text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 transition-colors"
-                        >
-                          {action} <ChevronRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
 
