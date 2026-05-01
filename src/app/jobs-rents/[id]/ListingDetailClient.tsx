@@ -86,17 +86,43 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
   return (
     <>
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto px-3 py-4 sm:px-4 sm:py-8">
 
           {/* Back link */}
           <Link
             href="/jobs-rents"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6 transition-colors hover:text-pink-600"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold mb-4 sm:mb-6 transition-colors hover:text-pink-600"
             style={{ color: '#64748b' }}
           >
             <ArrowLeft className="w-4 h-4" />
             Back to listings
           </Link>
+
+          {/* ── Photos (top) ────────────────────────── */}
+          {listing.photos.length > 0 && (
+            <div className="mb-4 sm:mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                {listing.photos.map((url, i) => (
+                  <a
+                    key={i}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative aspect-square rounded-xl overflow-hidden transition-opacity hover:opacity-80"
+                    style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}
+                  >
+                    <Image
+                      src={url}
+                      alt={`Photo ${i + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Expired banner */}
           {isExpired && (
@@ -126,7 +152,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
             {/* Blue top accent */}
             <div style={{ height: 3, background: 'linear-gradient(90deg, #1D4ED8, #3B82F6, #93C5FD)' }} />
 
-            <div className="p-6 sm:p-8 space-y-7">
+            <div className="p-4 sm:p-8 space-y-5 sm:space-y-7">
 
               {/* ── Header ─────────────────────────────── */}
               <div className="flex items-start justify-between gap-4">
@@ -443,35 +469,6 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   </div>
                 )}
               </div>
-
-              {/* ── Photos ─────────────────────────────── */}
-              {listing.photos.length > 0 && (
-                <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
-                  <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
-                    Photos
-                  </p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                    {listing.photos.map((url, i) => (
-                      <a
-                        key={i}
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative aspect-square rounded-xl overflow-hidden transition-opacity hover:opacity-80"
-                        style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}
-                      >
-                        <Image
-                          src={url}
-                          alt={`Photo ${i + 1}`}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-                        />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* ── Club link ──────────────────────────── */}
               <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">

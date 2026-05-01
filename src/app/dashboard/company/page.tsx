@@ -112,6 +112,64 @@ export default function CompanyDashboardPage() {
           </div>
         )}
 
+        {/* How to get started */}
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+          <div className="flex items-center gap-2 mb-3 md:mb-4">
+            <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+              <Lightbulb className="w-4 h-4 text-brand" />
+            </div>
+            <p className="text-sm font-bold text-gray-800">How to get started</p>
+          </div>
+          <div className="space-y-3">
+            {[
+              {
+                step: '1',
+                title: 'Complete your club profile',
+                desc: 'Go to Club Profile and fill in your basic info, contact details and working hours. This is exactly what clients will see.',
+                action: 'Open Club Profile',
+                href: '/dashboard/company/profile/basic-info',
+              },
+              {
+                step: '2',
+                title: 'Upload club photos',
+                desc: 'Add high-quality photos of your venue. A well-presented club profile attracts far more interest.',
+                action: 'Upload photos',
+                href: '/dashboard/company/profile/club-photos',
+              },
+              {
+                step: '3',
+                title: 'Add models to your roster',
+                desc: 'Invite or create model profiles and link them to your club. More models means more visibility in search results.',
+                action: 'Manage models',
+                href: '/dashboard/company/models',
+              },
+              {
+                step: '4',
+                title: 'Activate your ad',
+                desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your club will appear in search results.',
+                action: 'Activate Ad',
+                href: '/dashboard/company/activate-ad',
+              },
+            ].map(({ step, title, desc, action, href }) => (
+              <div key={step} className="flex gap-3">
+                <div className="w-6 h-6 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                  {step}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900 mb-0.5">{title}</p>
+                  <p className="text-xs text-gray-500 mb-1.5">{desc}</p>
+                  <button
+                    onClick={() => router.push(href)}
+                    className="text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 transition-colors"
+                  >
+                    {action} <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Unread notifications banner */}
         {notifications.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 flex items-center justify-between gap-3 md:gap-4">

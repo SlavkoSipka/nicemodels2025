@@ -92,10 +92,10 @@ export default function ClubProfileClient({
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-8">
 
           {/* ── Hero image (horizontal) ── */}
-          <div className="relative w-full aspect-[16/7] bg-gray-200 rounded-lg overflow-hidden mb-8 shadow-sm">
+          <div className="relative w-full aspect-[4/3] sm:aspect-[16/7] bg-gray-200 rounded-lg overflow-hidden mb-4 sm:mb-8 shadow-sm">
             {photos.length > 0 ? (
               <>
                 <Image

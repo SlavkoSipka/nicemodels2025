@@ -90,6 +90,13 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [showContact, setShowContact] = useState(false)
   const [idCopied, setIdCopied] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const publicIdLabel = profile.public_id ? `#${profile.public_id}` : `#${profile.id.slice(0, 6)}`
   const handleCopyId = () => {
@@ -712,11 +719,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
       {/* ── Floating prev/next nav ── */}
       {allModelIds.length > 1 && (
         <>
-          {/* PREV */}
+          {/* PREV (desktop – tall with label) */}
           <button
             onClick={goToPrev}
             aria-label="Previous model"
-            className="fixed left-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
+            className="hidden lg:flex fixed left-3 top-1/2 -translate-y-1/2 z-40 flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
             style={{
               width: 48, height: 96,
               background: 'rgba(255,255,255,0.92)',
@@ -732,11 +739,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>Previous Sedcard</span>
           </button>
 
-          {/* NEXT */}
+          {/* NEXT (desktop – tall with label) */}
           <button
             onClick={goToNext}
             aria-label="Next model"
-            className="fixed right-3 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
+            className="hidden lg:flex fixed right-3 top-1/2 -translate-y-1/2 z-40 flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
             style={{
               width: 48, height: 96,
               background: 'rgba(255,255,255,0.92)',
@@ -751,34 +758,64 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>Next Sedcard</span>
             <ChevronRight className="w-5 h-5" style={{ color: '#64748b' }} />
           </button>
+
+          {/* PREV (mobile – compact round, appears on scroll) */}
+          <button
+            onClick={goToPrev}
+            aria-label="Previous model"
+            className={`lg:hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 active:scale-95 ${scrolled ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+            style={{
+              background: 'rgba(255,255,255,0.65)',
+              border: '1px solid rgba(0,0,0,0.06)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <ChevronLeft className="w-4 h-4" style={{ color: '#64748b' }} />
+          </button>
+
+          {/* NEXT (mobile – compact round, appears on scroll) */}
+          <button
+            onClick={goToNext}
+            aria-label="Next model"
+            className={`lg:hidden fixed right-2 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 active:scale-95 ${scrolled ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+            style={{
+              background: 'rgba(255,255,255,0.65)',
+              border: '1px solid rgba(0,0,0,0.06)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            <ChevronRight className="w-4 h-4" style={{ color: '#64748b' }} />
+          </button>
         </>
       )}
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-8">
         {/* Back Button */}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 mb-6 transition-colors hover:text-pink-600 font-medium text-sm"
+          className="inline-flex items-center gap-2 mb-4 sm:mb-6 transition-colors hover:text-pink-600 font-medium text-sm"
           style={{ color: '#64748b' }}
         >
           <ChevronLeft className="w-5 h-5" />
           <span>Back to all Sedcards</span>
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-4 sm:gap-8">
           {/* Left Column - info */}
-          <div className="space-y-3">
+          <div className="space-y-3 order-2 lg:order-1">
 
             {/* ── Hero card ── */}
             <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
               {/* Header */}
-              <div className="px-6 pt-6 pb-5" style={{ background: '#ffffff' }}>
+              <div className="px-4 pt-4 pb-4 sm:px-6 sm:pt-6 sm:pb-5" style={{ background: '#ffffff' }}>
 
                 {/* Name + ID + verified */}
                 <div className="flex items-start justify-between gap-3 mb-1">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <h1 className="text-3xl font-bold leading-tight tracking-tight" style={{ color: '#0f172a' }}>
+                    <h1 className="text-2xl sm:text-3xl font-bold leading-tight tracking-tight" style={{ color: '#0f172a' }}>
                       {modelDetails?.showname || profile.username}
                     </h1>
                   </div>
@@ -1484,7 +1521,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           </div>
 
           {/* Right Column - sticky media viewer (photos + videos) */}
-          <div>
+          <div className="order-1 lg:order-2">
 
             {/* ── Quick Action Panel – only for logged-in models & clubs ── */}
             {isLoggedIn && currentUserId !== profile.id &&
@@ -1577,8 +1614,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             )}
 
             <div
-              className="sticky top-[125px] relative overflow-hidden rounded-lg bg-black"
-              style={{ height: '75vh' }}
+              className="relative lg:sticky lg:top-[125px] overflow-hidden rounded-lg bg-black h-[65vh] lg:h-[75vh]"
               onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
               onTouchEnd={(e) => {
                 if (touchStartX.current === null) return
