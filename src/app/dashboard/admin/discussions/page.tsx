@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -21,6 +22,8 @@ interface TopicRow {
 }
 
 export default function AdminDiscussionsPage() {
+  const t = useTranslations('admin.discussions')
+  const tc = useTranslations('admin.common')
   const [loading, setLoading] = useState(true)
   const [topics, setTopics] = useState<TopicRow[]>([])
   const [creating, setCreating] = useState(false)
@@ -54,7 +57,7 @@ export default function AdminDiscussionsPage() {
       setSchemaMissing(missing)
       setError(
         missing
-          ? 'Database tables for discussions are not installed yet. Run the SQL in supabase-docs/CREATE-discussion-topics.sql in the Supabase SQL Editor, then reload this page.'
+          ? t('schemaMissing')
           : qErr.message,
       )
       setTopics([])
@@ -75,7 +78,7 @@ export default function AdminDiscussionsPage() {
     const ext = file.name.split('.').pop() || 'jpg'
     const path = `covers/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
     const { error: upErr } = await supabase.storage.from('discussion-images').upload(path, file, { upsert: true })
-    if (upErr) { setError(`Image upload failed: ${upErr.message}`); return null }
+    if (upErr) { setError(t('imageUploadFailed', { message: upErr.message })); return null }
     return path
   }
 
@@ -115,7 +118,7 @@ export default function AdminDiscussionsPage() {
     const data = await res.json()
     setCreating(false)
     if (!res.ok) {
-      setError(data.error || 'Failed to create')
+      setError(data.error || t('createFailed'))
       return
     }
     setTitle('')
@@ -139,20 +142,20 @@ export default function AdminDiscussionsPage() {
     const data = await res.json()
     setSavingId(null)
     if (!res.ok) {
-      setError(data.error || 'Update failed')
+      setError(data.error || t('updateFailed'))
       return
     }
     await load()
   }
 
   const removeTopic = async (id: string) => {
-    if (!confirm('Delete this topic and all posts? This cannot be undone.')) return
+    if (!confirm(t('confirmDelete'))) return
     setSavingId(id)
     const res = await fetch(`/api/admin/discussion-topics?id=${encodeURIComponent(id)}`, { method: 'DELETE' })
     const data = await res.json()
     setSavingId(null)
     if (!res.ok) {
-      setError(data.error || 'Delete failed')
+      setError(data.error || t('deleteFailed'))
       return
     }
     await load()
@@ -161,31 +164,31 @@ export default function AdminDiscussionsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center text-sm text-gray-500">
-        Loading…
+        {tc('loading')}
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
-        <div className="max-w-4xl mx-auto space-y-8">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
+        <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
           <div className="flex items-center gap-4">
             <Link
               href="/dashboard/admin"
               className="inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900"
             >
-              <ArrowLeft className="w-4 h-4" /> Admin
+              <ArrowLeft className="w-4 h-4" /> {t('back')}
             </Link>
           </div>
 
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <MessageSquarePlus className="w-7 h-7 text-pink-600" />
-              Discussion topics
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <MessageSquarePlus className="w-6 h-6 sm:w-7 sm:h-7 text-pink-600 shrink-0" />
+              <span className="truncate">{t('title')}</span>
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Create a topic, set it to Active for it to appear on the public blog. Participants reply in a thread.
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              {t('subtitle')}
             </p>
           </div>
 
@@ -201,34 +204,34 @@ export default function AdminDiscussionsPage() {
             </div>
           )}
 
-          <form onSubmit={submitCreate} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900">New topic</h2>
+          <form onSubmit={submitCreate} className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 space-y-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900">{t('newTopic')}</h2>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Title</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('fieldTitle')}</label>
               <input
                 required
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
-                placeholder="Topic title"
+                placeholder={t('titlePlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Slug (optional)</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('fieldSlug')}</label>
               <input
                 value={slug}
                 onChange={e => setSlug(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono"
-                placeholder="auto from title if empty"
+                placeholder={t('slugPlaceholder')}
               />
             </div>
-            <RichTextEditor label="Opening post / description" value={body} onChange={setBody} height={220} />
+            <RichTextEditor label={t('openingPost')} value={body} onChange={setBody} height={220} />
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Cover image (optional)</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('coverImage')}</label>
               {coverPreview ? (
                 <div className="relative inline-block">
-                  <Image src={coverPreview} alt="Cover preview" width={320} height={180} className="rounded-lg object-cover border border-gray-200" style={{ maxHeight: 180 }} />
+                  <Image src={coverPreview} alt={t('coverPreview')} width={320} height={180} className="rounded-lg object-cover border border-gray-200" style={{ maxHeight: 180 }} />
                   <button type="button" onClick={() => handleCoverFile(null)} className="absolute -top-2 -right-2 bg-white border border-gray-300 rounded-full p-0.5 shadow hover:bg-red-50">
                     <X className="w-4 h-4 text-red-600" />
                   </button>
@@ -236,140 +239,140 @@ export default function AdminDiscussionsPage() {
               ) : (
                 <label className="flex items-center gap-2 cursor-pointer w-fit px-4 py-2 border border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-pink-400 hover:text-pink-600 transition-colors">
                   <ImagePlus className="w-4 h-4" />
-                  Choose image
+                  {t('chooseImage')}
                   <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleCoverFile(f) }} />
                 </label>
               )}
             </div>
 
-            <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-wrap gap-3 sm:gap-4 items-end">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('fieldStatus')}</label>
                 <select
                   value={status}
                   onChange={e => setStatus(e.target.value as typeof status)}
                   className="px-3 py-2 border border-gray-200 rounded-lg text-sm"
                 >
-                  <option value="draft">Draft</option>
-                  <option value="active">Active (visible on site)</option>
-                  <option value="archived">Archived</option>
+                  <option value="draft">{t('statusDraft')}</option>
+                  <option value="active">{t('statusActive')}</option>
+                  <option value="archived">{t('statusArchived')}</option>
                 </select>
               </div>
-              <label className="flex items-center gap-2 mt-6 text-sm text-gray-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer pb-2">
                 <input
                   type="checkbox"
                   checked={isPinned}
                   onChange={e => setIsPinned(e.target.checked)}
                   className="rounded border-gray-300"
                 />
-                Pin (sorts to top)
+                {t('pin')}
               </label>
               <button
                 type="submit"
                 disabled={creating}
-                className="mt-6 ml-auto px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                className="ml-auto px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
               >
-                {creating ? 'Creating…' : 'Create topic'}
+                {creating ? t('creating') : t('createTopic')}
               </button>
             </div>
           </form>
 
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-gray-900">All topics</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('allTopics')}</h2>
             {topics.length === 0 ? (
-              <p className="text-sm text-gray-500">No topics yet.</p>
+              <p className="text-sm text-gray-500">{t('noTopics')}</p>
             ) : (
               <ul className="space-y-2">
-                {topics.map(t => (
+                {topics.map(topic => (
                   <li
-                    key={t.id}
+                    key={topic.id}
                     className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-start gap-3"
                   >
-                    {coverUrl(t.cover_image) && (
-                      <Image src={coverUrl(t.cover_image)!} alt="" width={96} height={64} className="rounded-md object-cover shrink-0 border border-gray-100" style={{ width: 96, height: 64 }} />
+                    {coverUrl(topic.cover_image) && (
+                      <Image src={coverUrl(topic.cover_image)!} alt="" width={96} height={64} className="rounded-md object-cover shrink-0 border border-gray-100" style={{ width: 96, height: 64 }} />
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        {t.is_pinned && (
-                          <Pin className="w-4 h-4 text-amber-500 shrink-0" aria-label="Pinned" />
+                        {topic.is_pinned && (
+                          <Pin className="w-4 h-4 text-amber-500 shrink-0" aria-label={t('pinned')} />
                         )}
-                        <span className="font-semibold text-gray-900 truncate">{t.title}</span>
+                        <span className="font-semibold text-gray-900 truncate">{topic.title}</span>
                         <span
                           className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
-                            t.status === 'active'
+                            topic.status === 'active'
                               ? 'bg-emerald-100 text-emerald-800'
-                              : t.status === 'draft'
+                              : topic.status === 'draft'
                                 ? 'bg-gray-100 text-gray-600'
                                 : 'bg-amber-50 text-amber-800'
                           }`}
                         >
-                          {t.status}
+                          {topic.status}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 font-mono mt-1">/blog/{t.slug}</p>
+                      <p className="text-xs text-gray-400 font-mono mt-1">/blog/{topic.slug}</p>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0">
-                      {t.status !== 'active' && (
+                      {topic.status !== 'active' && (
                         <button
                           type="button"
-                          disabled={savingId === t.id}
-                          onClick={() => patchTopic(t.id, { status: 'active' })}
+                          disabled={savingId === topic.id}
+                          onClick={() => patchTopic(topic.id, { status: 'active' })}
                           className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
                         >
-                          Set active
+                          {t('setActive')}
                         </button>
                       )}
-                      {t.status === 'active' && (
+                      {topic.status === 'active' && (
                         <button
                           type="button"
-                          disabled={savingId === t.id}
-                          onClick={() => patchTopic(t.id, { status: 'archived' })}
+                          disabled={savingId === topic.id}
+                          onClick={() => patchTopic(topic.id, { status: 'archived' })}
                           className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200 disabled:opacity-50"
                         >
-                          Archive
+                          {t('archive')}
                         </button>
                       )}
                       <button
                         type="button"
-                        disabled={savingId === t.id}
-                        onClick={() => patchTopic(t.id, { is_pinned: !t.is_pinned })}
+                        disabled={savingId === topic.id}
+                        onClick={() => patchTopic(topic.id, { is_pinned: !topic.is_pinned })}
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
                       >
-                        {t.is_pinned ? 'Unpin' : 'Pin'}
+                        {topic.is_pinned ? t('unpin') : 'Pin'}
                       </button>
                       <label className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer disabled:opacity-50">
                         <ImagePlus className="w-3 h-3" />
-                        {t.cover_image ? 'Change cover' : 'Add cover'}
+                        {topic.cover_image ? t('changeCover') : t('addCover')}
                         <input type="file" accept="image/*" className="hidden" onChange={async e => {
                           const f = e.target.files?.[0]
                           if (!f) return
                           const path = await uploadCover(f)
-                          if (path) await patchTopic(t.id, { cover_image: path })
+                          if (path) await patchTopic(topic.id, { cover_image: path })
                         }} />
                       </label>
-                      {t.cover_image && (
+                      {topic.cover_image && (
                         <button
                           type="button"
-                          disabled={savingId === t.id}
-                          onClick={() => patchTopic(t.id, { cover_image: null })}
+                          disabled={savingId === topic.id}
+                          onClick={() => patchTopic(topic.id, { cover_image: null })}
                           className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 text-gray-600"
                         >
-                          Remove cover
+                          {t('removeCover')}
                         </button>
                       )}
                       <Link
-                        href={`/blog/${t.slug}`}
+                        href={`/blog/${topic.slug}`}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg border border-pink-200 text-pink-700 hover:bg-pink-50"
                       >
-                        View <ExternalLink className="w-3 h-3" />
+                        {t('view')} <ExternalLink className="w-3 h-3" />
                       </Link>
                       <button
                         type="button"
-                        disabled={savingId === t.id}
-                        onClick={() => removeTopic(t.id)}
+                        disabled={savingId === topic.id}
+                        onClick={() => removeTopic(topic.id)}
                         className="px-3 py-1.5 text-xs font-semibold rounded-lg text-red-600 border border-red-200 hover:bg-red-50 disabled:opacity-50 inline-flex items-center gap-1"
                       >
-                        <Trash2 className="w-3 h-3" /> Delete
+                        <Trash2 className="w-3 h-3" /> {t('delete')}
                       </button>
                     </div>
                   </li>

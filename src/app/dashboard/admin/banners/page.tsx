@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { ArrowLeft, Megaphone, CheckCircle, XCircle, Trash2, Mail, ExternalLink } from 'lucide-react'
@@ -26,6 +27,9 @@ interface Banner {
 type Filter = 'all' | 'pending' | 'active' | 'expired' | 'rejected'
 
 export default function AdminBannersPage() {
+  const t = useTranslations('admin.banners')
+  const tc = useTranslations('admin.common')
+  const tSb = useTranslations('admin.sidebar')
   const [loading, setLoading] = useState(true)
   const [banners, setBanners] = useState<Banner[]>([])
   const [filter, setFilter] = useState<Filter>('all')
@@ -83,7 +87,7 @@ export default function AdminBannersPage() {
   }
 
   const deleteBanner = async (banner: Banner) => {
-    if (!confirm(`Delete banner "${banner.title}"?`)) return
+    if (!confirm(t('confirmDelete', { title: banner.title }))) return
     const supabase = createClient()
     if (banner.image_path) await supabase.storage.from('banners').remove([banner.image_path])
     await supabase.from('banners').delete().eq('id', banner.id)
@@ -112,25 +116,32 @@ export default function AdminBannersPage() {
 
   if (loading) return null
 
+  const filterLabel = (f: Filter) =>
+    f === 'all' ? t('filterAll') :
+    f === 'pending' ? t('filterPending') :
+    f === 'active' ? t('filterActive') :
+    f === 'expired' ? t('filterExpired') :
+    t('filterRejected')
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
-        <div className="max-w-6xl mx-auto space-y-5">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
+        <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                 <Megaphone className="w-5 h-5 text-purple-600" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Manage Banners</h1>
-                <p className="text-xs text-gray-500">{banners.length} total banners</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+                <p className="text-xs text-gray-500">{t('totalBanners', { count: banners.length })}</p>
               </div>
             </div>
           </div>
 
           {/* Filter tabs */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {(['all', 'pending', 'active', 'expired', 'rejected'] as Filter[]).map(f => (
               <button
                 key={f}
@@ -141,7 +152,7 @@ export default function AdminBannersPage() {
                     : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                {f} ({counts[f]})
+                {filterLabel(f)} ({counts[f]})
               </button>
             ))}
           </div>
@@ -149,7 +160,7 @@ export default function AdminBannersPage() {
           {/* Banners list */}
           {filtered.length === 0 ? (
             <div className="text-center py-16 bg-white border border-gray-200 rounded-xl">
-              <p className="text-gray-400 font-medium">No banners found</p>
+              <p className="text-gray-400 font-medium">{t('noBannersFound')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -174,16 +185,16 @@ export default function AdminBannersPage() {
                       <div>
                         <p className="text-sm font-bold text-gray-900">{banner.title}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          by {banner.owner_name}{banner.owner_public_id ? ` #${banner.owner_public_id}` : ''} ({banner.owner_type})
+                          {t('by')} {banner.owner_name}{banner.owner_public_id ? ` #${banner.owner_public_id}` : ''} ({banner.owner_type})
                         </p>
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${statusCls[banner.status] || statusCls.pending}`}>
-                        {banner.status}
+                        {filterLabel(banner.status as Filter)}
                       </span>
                     </div>
 
                     <p className="text-xs text-gray-400">
-                      Created {new Date(banner.created_at).toLocaleDateString()}
+                      {t('createdOn', { date: new Date(banner.created_at).toLocaleDateString() })}
                     </p>
 
                     {/* Actions */}
@@ -193,7 +204,7 @@ export default function AdminBannersPage() {
                           onClick={() => updateStatus(banner.id, 'active')}
                           className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors"
                         >
-                          <CheckCircle className="w-3.5 h-3.5" /> Activate
+                          <CheckCircle className="w-3.5 h-3.5" /> {t('activate')}
                         </button>
                       )}
                       {banner.status !== 'rejected' && (
@@ -201,7 +212,7 @@ export default function AdminBannersPage() {
                           onClick={() => updateStatus(banner.id, 'rejected')}
                           className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                         >
-                          <XCircle className="w-3.5 h-3.5" /> Reject
+                          <XCircle className="w-3.5 h-3.5" /> {t('reject')}
                         </button>
                       )}
                       {banner.status === 'active' && (
@@ -209,7 +220,7 @@ export default function AdminBannersPage() {
                           onClick={() => updateStatus(banner.id, 'expired')}
                           className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                         >
-                          Expire
+                          {t('expire')}
                         </button>
                       )}
                       {banner.owner_email && (
@@ -217,7 +228,7 @@ export default function AdminBannersPage() {
                           href={`mailto:${banner.owner_email}`}
                           className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                         >
-                          <Mail className="w-3.5 h-3.5" /> Contact
+                          <Mail className="w-3.5 h-3.5" /> {t('contact')}
                         </a>
                       )}
                       {banner.cta_url && (
@@ -227,14 +238,14 @@ export default function AdminBannersPage() {
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
                         >
-                          <ExternalLink className="w-3.5 h-3.5" /> Link
+                          <ExternalLink className="w-3.5 h-3.5" /> {t('link')}
                         </a>
                       )}
                       <button
                         onClick={() => deleteBanner(banner)}
                         className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors ml-auto"
                       >
-                        <Trash2 className="w-3.5 h-3.5" /> Delete
+                        <Trash2 className="w-3.5 h-3.5" /> {tc('delete')}
                       </button>
                     </div>
                   </div>

@@ -3,15 +3,9 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Sparkles, Phone } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { trackProfileView } from '@/lib/tracking'
 import ViewCount from '@/components/ui/ViewCount'
-
-/** Strip spaces for tel:/sms: URIs */
-function phoneUri(raw: string): { tel: string; sms: string } {
-  const n = raw.replace(/[\s\u00a0\-]/g, '')
-  return { tel: `tel:${n}`, sms: `sms:${n}` }
-}
 
 interface ModelCardProps {
   model: {
@@ -20,7 +14,6 @@ interface ModelCardProps {
     created_at?: string
     photoUrl?: string | null
     public_id?: number | null
-    cardPhone?: string | null
     view_count?: number
     model_details: {
       showname: string
@@ -66,8 +59,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
     liveCity
       ? `Live: ${liveCity}${details?.live_location_postal_code ? ` (${details.live_location_postal_code})` : ''}`
       : null
-
-  const phoneUris = model.cardPhone ? phoneUri(model.cardPhone) : null
 
   const cardStyle = {
     background: '#ffffff' as const,
@@ -150,37 +141,13 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
               Premium
             </span>
 
-            {/* Name + Phone (tel/sms links — not nested inside profile <a>) */}
-            <div className="flex items-center justify-between gap-2">
-              <h3
-                className="font-bold text-[15px] sm:text-base leading-snug transition-colors group-hover:text-pink-500 truncate"
-                style={{ color: '#1a1a2e' }}
-              >
-                {title}
-              </h3>
-              {model.cardPhone && phoneUris && (
-                <span className="inline-flex items-center gap-0.5 shrink-0">
-                  <a
-                    href={phoneUris.tel}
-                    className="pointer-events-auto inline-flex items-center gap-1 text-[11px] font-semibold whitespace-nowrap px-1.5 py-0.5 rounded-md rounded-r-none border border-r-0 hover:opacity-90"
-                    style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
-                    aria-label={`Call ${model.cardPhone}`}
-                  >
-                    <Phone className="w-3 h-3 shrink-0" />
-                    {model.cardPhone}
-                  </a>
-                  <a
-                    href={phoneUris.sms}
-                    className="pointer-events-auto text-[10px] font-bold px-1.5 py-0.5 rounded-md rounded-l-none border hover:opacity-90 leading-none self-stretch flex items-center"
-                    style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
-                    title="Send SMS"
-                    aria-label={`Send SMS to ${model.cardPhone}`}
-                  >
-                    SMS
-                  </a>
-                </span>
-              )}
-            </div>
+            {/* Name */}
+            <h3
+              className="font-bold text-[15px] sm:text-base leading-snug transition-colors group-hover:text-pink-500 truncate"
+              style={{ color: '#1a1a2e' }}
+            >
+              {title}
+            </h3>
 
             {/* City + Age */}
             {(city || age) && (

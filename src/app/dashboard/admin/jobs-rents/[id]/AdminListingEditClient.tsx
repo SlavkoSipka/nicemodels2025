@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import {
@@ -9,6 +10,7 @@ import {
   Upload, Phone, Briefcase, Trash2, ChevronDown, ChevronUp,
   Home, DollarSign,
 } from 'lucide-react'
+import AdminMessageButton from '@/components/admin/AdminMessageButton'
 
 interface ExistingPhoto {
   id: string
@@ -38,6 +40,8 @@ export default function AdminListingEditClient({
   supaUrl,
 }: Props) {
   const router = useRouter()
+  const t = useTranslations('admin.listingEdit')
+  const tc = useTranslations('admin.common')
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -95,7 +99,7 @@ export default function AdminListingEditClient({
   }
 
   const removeExistingPhoto = async (photoId: string) => {
-    if (!confirm('Delete this photo?')) return
+    if (!confirm(t('photoConfirmDelete'))) return
     const res = await fetch('/api/admin/listing-photo', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -105,7 +109,7 @@ export default function AdminListingEditClient({
       setExistingPhotos(prev => prev.filter(p => p.id !== photoId))
     } else {
       const data = await res.json()
-      alert(data.error || 'Failed to delete photo')
+      alert(data.error || t('photoDeleteFailed'))
     }
   }
 
@@ -121,9 +125,9 @@ export default function AdminListingEditClient({
   }
 
   const handleSubmit = async () => {
-    if (!title.trim()) { setError('Title is required'); return }
-    if (!location.trim()) { setError('Location is required'); return }
-    if (!description.trim()) { setError('Description is required'); return }
+    if (!title.trim()) { setError(t('titleRequired')); return }
+    if (!location.trim()) { setError(t('locationRequired')); return }
+    if (!description.trim()) { setError(t('descriptionRequired')); return }
 
     setError('')
     setSubmitting(true)
@@ -162,7 +166,7 @@ export default function AdminListingEditClient({
       })
       if (!updateRes.ok) {
         const d = await updateRes.json()
-        throw new Error(d.error || 'Failed to update listing')
+        throw new Error(d.error || tc('failedToUpdate'))
       }
 
       // 2. Upload new photos
@@ -190,32 +194,41 @@ export default function AdminListingEditClient({
         body: JSON.stringify({ listingId: listing.id, serviceIds: selectedServices }),
       })
 
-      setSuccess('Listing updated successfully!')
+      setSuccess(t('successMessage'))
       setTimeout(() => router.push('/dashboard/admin/jobs-rents'), 1500)
     } catch (err: any) {
-      setError(err.message || 'Failed to update listing')
+      setError(err.message || tc('failedToUpdate'))
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 px-6">
+    <div className="min-h-screen bg-gray-50 py-4 px-3 sm:py-6 sm:px-6">
       <div className="max-w-4xl mx-auto space-y-4">
 
         {/* Header */}
         <div>
           <Link href="/dashboard/admin/jobs-rents" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-            <ArrowLeft className="w-3 h-3" /> Back to Jobs & Rents
+            <ArrowLeft className="w-3 h-3" /> {t('back')}
           </Link>
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-purple-600" />
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                <Briefcase className="w-5 h-5 text-purple-600" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+                <p className="text-xs text-gray-500">{t('subtitle')}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Edit Listing</h1>
-              <p className="text-xs text-gray-500">Admin — full listing edit</p>
-            </div>
+            {listing.club_id && (
+              <AdminMessageButton
+                userId={listing.club_id}
+                recipientName={listing.title || (listing.listing_type === 'rent' ? t('rentOwner') : t('jobOwner'))}
+                defaultSubject={listing.listing_type === 'rent' ? t('messageSubjectRent') : t('messageSubjectJob')}
+              />
+            )}
           </div>
         </div>
 
@@ -233,24 +246,24 @@ export default function AdminListingEditClient({
         )}
 
         {/* Section 1: About */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
               <MapPin className="w-4 h-4 text-violet-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">About</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionAbout')}</p>
           </div>
 
           {/* Type */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Type</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('type')}</label>
             <div className="flex gap-2">
-              {(['job', 'rent'] as const).map(t => (
-                <button key={t} onClick={() => setListingType(t)}
+              {(['job', 'rent'] as const).map(lt => (
+                <button key={lt} onClick={() => setListingType(lt)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-                    listingType === t ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    listingType === lt ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}>
-                  {t === 'job' ? 'Job' : 'Rent'}
+                  {lt === 'job' ? t('typeJob') : t('typeRent')}
                 </button>
               ))}
             </div>
@@ -258,90 +271,90 @@ export default function AdminListingEditClient({
 
           {/* Status */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Status</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('status')}</label>
             <select value={status} onChange={e => setStatus(e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400">
-              <option value="active">Active</option>
-              <option value="expired">Expired</option>
-              <option value="deleted">Deleted</option>
+              <option value="active">{t('statusActive')}</option>
+              <option value="expired">{t('statusExpired')}</option>
+              <option value="deleted">{t('statusDeleted')}</option>
             </select>
           </div>
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Title *</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('fieldTitle')} *</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)}
-              placeholder="e.g. Looking for experienced dancers..."
+              placeholder={t('fieldTitlePlaceholder')}
               maxLength={200}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Location *</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('fieldLocation')} *</label>
             <input type="text" value={location} onChange={e => setLocation(e.target.value)}
-              placeholder="City or location..."
+              placeholder={t('fieldLocationPlaceholder')}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
           </div>
         </div>
 
         {/* Section: Rent Details (only when type = rent) */}
         {listingType === 'rent' && (
-          <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                 <Home className="w-4 h-4 text-amber-600" />
               </div>
-              <p className="text-sm font-bold text-gray-800">Rent Details</p>
+              <p className="text-sm font-bold text-gray-800">{t('sectionRentDetails')}</p>
             </div>
 
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-                <p className="text-xs font-bold text-gray-700">Pricing (CHF)</p>
+                <p className="text-xs font-bold text-gray-700">{t('pricing')}</p>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Day</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perDay')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceDaily} onChange={e => setRentPriceDaily(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Week</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perWeek')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceWeekly} onChange={e => setRentPriceWeekly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Month</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perMonth')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceMonthly} onChange={e => setRentPriceMonthly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Room Size <span className="font-normal text-gray-400">(optional)</span></label>
-              <input type="text" value={rentRoomSize} onChange={e => setRentRoomSize(e.target.value)} placeholder="e.g. 25m², Large, Studio..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('roomSize')} <span className="font-normal text-gray-400">{tc('optional')}</span></label>
+              <input type="text" value={rentRoomSize} onChange={e => setRentRoomSize(e.target.value)} placeholder={t('roomSizePlaceholder')} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
 
             <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">Work Permit</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t('workPermit')}</p>
               <button type="button" onClick={() => setRentWorkPermit(!rentWorkPermit)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${rentWorkPermit ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}>
                 <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${rentWorkPermit ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
                   {rentWorkPermit && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </span>
-                Allowed to work in the space
+                {t('workPermitAllowed')}
               </button>
             </div>
 
             <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">Amenities</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t('amenities')}</p>
               <div className="flex flex-wrap gap-2">
                 {([
-                  { label: 'Furnished', value: rentFurnished, set: setRentFurnished },
-                  { label: 'Kitchen', value: rentKitchen, set: setRentKitchen },
-                  { label: 'Shower + WC', value: rentBathroom, set: setRentBathroom },
-                  { label: 'Air Conditioning', value: rentAirConditioning, set: setRentAirConditioning },
-                  { label: 'Towels', value: rentTowels, set: setRentTowels },
-                ] as const).map(({ label, value, set }) => (
-                  <button key={label} type="button" onClick={() => set(!value)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${value ? 'bg-brand/10 text-brand border-brand/30' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                  { key: 'furnished', label: t('amenityFurnished'), value: rentFurnished, set: setRentFurnished },
+                  { key: 'kitchen', label: t('amenityKitchen'), value: rentKitchen, set: setRentKitchen },
+                  { key: 'showerWc', label: t('amenityShowerWc'), value: rentBathroom, set: setRentBathroom },
+                  { key: 'airCon', label: t('amenityAirCon'), value: rentAirConditioning, set: setRentAirConditioning },
+                  { key: 'towels', label: t('amenityTowels'), value: rentTowels, set: setRentTowels },
+                ] as const).map(({ key, label, value, set }) => (
+                  <button key={key} type="button" onClick={() => set(!value)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${value ? 'bg-brand/10 text-brand border-brand/30' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
                     <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${value ? 'bg-brand border-brand' : 'border-gray-300'}`}>
                       {value && <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                     </span>
@@ -354,39 +367,39 @@ export default function AdminListingEditClient({
         )}
 
         {/* Section 2: Description */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
               <FileText className="w-4 h-4 text-blue-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Description *</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionDescription')} *</p>
           </div>
           <RichTextEditor
             value={description}
             onChange={setDescription}
-            placeholder="Describe the job position or rental property in detail..."
+            placeholder={t('descriptionPlaceholder')}
             maxLength={5000}
             height={250}
           />
         </div>
 
         {/* Section 3: Photos */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
               <Upload className="w-4 h-4 text-amber-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Photos</p>
-            <span className="text-xs text-gray-400">(optional)</span>
+            <p className="text-sm font-bold text-gray-800">{t('sectionPhotos')}</p>
+            <span className="text-xs text-gray-400">{tc('optional')}</span>
           </div>
 
           <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-gray-300 transition-colors">
             <label className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700">
               <Upload className="w-4 h-4" />
-              Add Photos
+              {t('addPhotos')}
               <input type="file" accept="image/*" multiple onChange={handlePhotoSelect} className="hidden" />
             </label>
-            <p className="text-xs text-gray-500 mt-2">JPG, PNG or WEBP — Max 10MB per file</p>
+            <p className="text-xs text-gray-500 mt-2">{t('photoFormatHint')}</p>
           </div>
 
           {(existingPhotos.length > 0 || newPhotoFiles.length > 0) && (
@@ -405,7 +418,7 @@ export default function AdminListingEditClient({
               {newPhotoFiles.map((p, i) => (
                 <div key={`new-${i}`} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-purple-300">
                   <img src={p.preview} alt="" className="w-full h-full object-cover" />
-                  <span className="absolute top-1 left-1 text-[9px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded">NEW</span>
+                  <span className="absolute top-1 left-1 text-[9px] font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded">{t('photoNew')}</span>
                   <button
                     onClick={() => removeNewPhoto(i)}
                     className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
@@ -419,37 +432,37 @@ export default function AdminListingEditClient({
         </div>
 
         {/* Section 4: Contact */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center">
               <Phone className="w-4 h-4 text-emerald-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Contact</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionContact')}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Code</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('code')}</label>
               <input type="text" value={countryCode} onChange={e => setCountryCode(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Phone Number</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('phoneNumber')}</label>
               <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)}
-                placeholder="Phone number"
+                placeholder={t('phonePlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
             </div>
           </div>
 
-          <p className="text-xs text-gray-500 mb-2">Phone-based options (same number):</p>
+          <p className="text-xs text-gray-500 mb-2">{t('phoneOptions')}</p>
           <div className="flex flex-wrap gap-3">
             {[
-              { label: 'SMS', value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
-              { label: 'WhatsApp', value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
-              { label: 'Viber', value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
-              { label: 'Telegram', value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },
-            ].map(({ label, value, set, color }) => (
-              <button key={label} onClick={() => set(!value)}
+              { key: 'sms', label: t('sms'), value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
+              { key: 'whatsapp', label: t('whatsapp'), value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
+              { key: 'viber', label: t('viber'), value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
+              { key: 'telegram', label: t('telegram'), value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },
+            ].map(({ key, label, value, set, color }) => (
+              <button key={key} onClick={() => set(!value)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
                   value ? color : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
                 }`}>
@@ -460,32 +473,32 @@ export default function AdminListingEditClient({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Email <span className="font-normal text-gray-400">(optional)</span></label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('email')} <span className="font-normal text-gray-400">{tc('optional')}</span></label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="contact@example.com"
+                placeholder={t('emailPlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Website <span className="font-normal text-gray-400">(optional)</span></label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('website')} <span className="font-normal text-gray-400">{tc('optional')}</span></label>
               <input type="text" value={website} onChange={e => setWebsite(e.target.value)}
-                placeholder="https://..."
+                placeholder={t('websitePlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
             </div>
           </div>
         </div>
 
         {/* Section 5: Services */}
-        <div className="bg-white border border-gray-200 rounded-lg p-5">
+        <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
           <button onClick={() => setServicesOpen(!servicesOpen)} className="w-full flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 text-rose-600" />
               </div>
-              <p className="text-sm font-bold text-gray-800">Services</p>
-              <span className="text-xs text-gray-400">(optional)</span>
+              <p className="text-sm font-bold text-gray-800">{t('sectionServices')}</p>
+              <span className="text-xs text-gray-400">{tc('optional')}</span>
               {selectedServices.length > 0 && (
                 <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
-                  {selectedServices.length} selected
+                  {t('selectedCount', { count: selectedServices.length })}
                 </span>
               )}
             </div>
@@ -518,18 +531,18 @@ export default function AdminListingEditClient({
         </div>
 
         {/* Submit */}
-        <div className="flex items-center justify-between pt-2 pb-8">
+        <div className="flex items-center justify-between gap-3 pt-2 pb-8 flex-wrap">
           <Link href="/dashboard/admin/jobs-rents"
             className="text-sm font-semibold text-gray-600 hover:text-gray-900">
-            Cancel
+            {tc('cancel')}
           </Link>
           <button
             onClick={handleSubmit}
             disabled={submitting || !title.trim() || !location.trim() || !description.trim()}
-            className="flex items-center gap-1.5 px-6 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-4 sm:px-6 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-bold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
-            {submitting ? 'Saving...' : 'Save Changes'}
+            {submitting ? tc('saving') : t('saveChanges')}
           </button>
         </div>
 

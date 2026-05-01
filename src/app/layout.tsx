@@ -5,6 +5,8 @@ import ScrollToTop from "@/components/layout/ScrollToTop";
 import PageLoader from "@/components/layout/PageLoader";
 import PageTracker from "@/components/analytics/PageTracker";
 import { Suspense } from "react";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 
 const inter = Inter({ subsets: ["latin"] });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
@@ -85,13 +87,15 @@ export const metadata: Metadata = {
   verification: {},
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
   return (
-    <html lang="de" className={playfair.variable}>
+    <html lang={locale} className={playfair.variable}>
       <head>
         <script
           type="application/ld+json"
@@ -125,13 +129,15 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
-        <PageLoader>
-          <ScrollToTop />
-          <Suspense fallback={null}>
-            <PageTracker />
-          </Suspense>
-          {children}
-        </PageLoader>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <PageLoader>
+            <ScrollToTop />
+            <Suspense fallback={null}>
+              <PageTracker />
+            </Suspense>
+            {children}
+          </PageLoader>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

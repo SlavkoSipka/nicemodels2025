@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Megaphone, Eye, MousePointerClick, TrendingUp } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
@@ -26,6 +27,8 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 export default function BannersStatsPage() {
+  const t = useTranslations('admin.stats')
+  const tc = useTranslations('admin.common')
   const [range, setRange] = useState<RangeKey>('30d')
   const [data, setData] = useState<Resp | null>(null)
   const [loading, setLoading] = useState(true)
@@ -39,13 +42,13 @@ export default function BannersStatsPage() {
   }, [range])
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-rose-500" /> Banner Analytics
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-rose-500 shrink-0" /> {t('bannersTitle')}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Impressions, clicks &amp; click-through rates</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t('bannersSubtitle')}</p>
         </div>
         <DateRangePicker value={range} onChange={setRange} />
       </div>
@@ -54,28 +57,28 @@ export default function BannersStatsPage() {
         <div className="h-80 bg-gray-200 rounded-xl animate-pulse" />
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <KpiCard label="Impressions" value={data.kpis.totalImpressions.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" />
-            <KpiCard label="Clicks" value={data.kpis.totalClicks.toLocaleString()} icon={<MousePointerClick className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" />
-            <KpiCard label="Overall CTR" value={`${data.kpis.overallCtr}%`} icon={<TrendingUp className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" />
-            <KpiCard label="Active" value={data.kpis.activeBanners.toLocaleString()} icon={<Megaphone className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" href="/dashboard/admin/banners" />
-            <KpiCard label="Pending" value={data.kpis.pendingBanners.toLocaleString()} icon={<Megaphone className="w-4 h-4" />} accent="text-amber-600 bg-amber-50" href="/dashboard/admin/banners" urgent={data.kpis.pendingBanners > 0} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+            <KpiCard label={t('impressions')} value={data.kpis.totalImpressions.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" />
+            <KpiCard label={t('clicks')} value={data.kpis.totalClicks.toLocaleString()} icon={<MousePointerClick className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" />
+            <KpiCard label={t('overallCtr')} value={`${data.kpis.overallCtr}%`} icon={<TrendingUp className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" />
+            <KpiCard label={t('active')} value={data.kpis.activeBanners.toLocaleString()} icon={<Megaphone className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" href="/dashboard/admin/banners" />
+            <KpiCard label={t('pending')} value={data.kpis.pendingBanners.toLocaleString()} icon={<Megaphone className="w-4 h-4" />} accent="text-amber-600 bg-amber-50" href="/dashboard/admin/banners" urgent={data.kpis.pendingBanners > 0} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <ChartCard title="Impressions vs Clicks" subtitle="Daily breakdown" className="lg:col-span-2">
+            <ChartCard title={t('impressionsVsClicks')} subtitle={t('dailyBreakdown')} className="lg:col-span-2">
               <StatsLineChart
                 data={data.series.map(d => ({ ...d, date: shortDate(d.date) }))}
                 xKey="date"
                 series={[
-                  { key: 'impressions', name: 'Impressions', color: '#0ea5e9' },
-                  { key: 'clicks', name: 'Clicks', color: '#ec4899' },
+                  { key: 'impressions', name: t('impressions'), color: '#0ea5e9' },
+                  { key: 'clicks', name: t('clicks'), color: '#ec4899' },
                 ]}
                 height={320}
               />
             </ChartCard>
 
-            <ChartCard title="Banner Status" subtitle="All banners">
+            <ChartCard title={t('bannerStatus')} subtitle={t('allBanners')}>
               <StatsDonutChart
                 data={Object.entries(data.statusCounts).map(([k, v]) => ({
                   name: k.charAt(0).toUpperCase() + k.slice(1),
@@ -87,21 +90,21 @@ export default function BannersStatsPage() {
             </ChartCard>
           </div>
 
-          <ChartCard title="Top Performing Banners" subtitle="Ranked by clicks in selected range">
+          <ChartCard title={t('topBanners')} subtitle={t('topBannersSub')}>
             {data.topBanners.length === 0 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No data yet</p>
+              <p className="text-sm text-gray-400 py-8 text-center">{tc('noDataYet')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                      <th className="text-left py-2 px-2">#</th>
+                      <th className="text-left py-2 px-2">{t('colHash')}</th>
                       <th className="text-left py-2 px-2">Banner</th>
-                      <th className="text-center py-2 px-2">Owner</th>
-                      <th className="text-center py-2 px-2">Status</th>
-                      <th className="text-right py-2 px-2">Impressions</th>
-                      <th className="text-right py-2 px-2">Clicks</th>
-                      <th className="text-right py-2 px-2">CTR</th>
+                      <th className="text-center py-2 px-2">{t('colOwner')}</th>
+                      <th className="text-center py-2 px-2">{t('colStatus')}</th>
+                      <th className="text-right py-2 px-2">{t('colImpressions')}</th>
+                      <th className="text-right py-2 px-2">{t('colClicks')}</th>
+                      <th className="text-right py-2 px-2">{t('colCtr')}</th>
                     </tr>
                   </thead>
                   <tbody>

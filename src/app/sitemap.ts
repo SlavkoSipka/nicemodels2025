@@ -72,10 +72,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   let listingPages: MetadataRoute.Sitemap = []
+  const sitemapNowIso = new Date().toISOString()
   const { data: listings } = await admin
     .from('job_listings')
     .select('id, created_at')
     .eq('status', 'active')
+    .or(`expires_at.is.null,expires_at.gt.${sitemapNowIso}`)
     .order('created_at', { ascending: false })
     .limit(2000)
 

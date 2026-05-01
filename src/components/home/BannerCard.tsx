@@ -60,6 +60,8 @@ export default function BannerCard({ banner, priority = false }: BannerCardProps
     <Link
       ref={ref}
       href={href}
+      target="_blank"
+      rel="noopener noreferrer"
       onClick={() => trackBannerClick(banner.id, 'profile')}
       className="block group w-full col-span-1 sm:col-span-2"
     >

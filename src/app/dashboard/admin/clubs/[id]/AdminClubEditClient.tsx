@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -9,6 +10,7 @@ import {
   ArrowLeft, Save, CheckCircle, AlertCircle, Building2, MapPin, Phone,
   Clock, ShieldCheck, Ban, ImageIcon, Film,
 } from 'lucide-react'
+import AdminMessageButton from '@/components/admin/AdminMessageButton'
 
 interface Props {
   clubId: string
@@ -33,6 +35,8 @@ export default function AdminClubEditClient({
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
+  const t = useTranslations('admin.clubEdit')
+  const tc = useTranslations('admin.common')
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -118,8 +122,8 @@ export default function AdminClubEditClient({
   // ── Save All ──
   const handleSave = async () => {
     setError(''); setSuccess('')
-    if (!basic.club_name) { setError('Club name is required'); return }
-    if (!basic.display_name) { setError('Display name is required'); return }
+    if (!basic.club_name) { setError(t('clubNameRequired')); return }
+    if (!basic.display_name) { setError(t('displayNameRequired')); return }
     setSaving(true)
 
     try {
@@ -194,17 +198,27 @@ export default function AdminClubEditClient({
       const res = await fetch('/api/admin/write', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ operations }),
+        body: JSON.stringify({
+          operations,
+          notify: {
+            userId: clubId,
+            title: t('notifyTitle'),
+            message: t('notifyMessage'),
+            actionUrl: '/dashboard/company/profile/basic-info',
+            relatedEntityType: 'profile',
+            relatedEntityId: clubId,
+          },
+        }),
       })
       if (!res.ok) {
         const body = await res.json()
-        throw new Error(body.error || 'Failed to save')
+        throw new Error(body.error || tc('failedToSave'))
       }
 
-      setSuccess('All changes saved successfully!')
+      setSuccess(tc('savedSuccess'))
       setTimeout(() => setSuccess(''), 4000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save. Please try again.')
+      setError(e?.message || tc('failedToSaveTry'))
     } finally {
       setSaving(false)
     }
@@ -212,42 +226,50 @@ export default function AdminClubEditClient({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-5xl mx-auto space-y-4">
 
           {/* Header */}
           <div>
             <Link href="/dashboard/admin/clubs" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Clubs
+              <ArrowLeft className="w-3 h-3" /> {t('back')}
             </Link>
             <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+              <div className="flex items-center gap-3 flex-wrap min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                   <Building2 className="w-5 h-5 text-blue-600" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">
                     {clubDetails?.display_name || clubDetails?.club_name || profile.username}
                     {profile.public_id && <span className="ml-2 text-xs font-mono text-gray-400">#{profile.public_id}</span>}
                   </h1>
-                  <a href={`mailto:${profile.email}`} className="text-xs text-gray-500 hover:text-brand hover:underline">{profile.email}</a>
+                  <a href={`mailto:${profile.email}`} className="text-xs text-gray-500 hover:text-brand hover:underline break-all">{profile.email}</a>
                 </div>
                 {profileData.is_verified && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                    <ShieldCheck className="w-3 h-3" /> Verified
+                    <ShieldCheck className="w-3 h-3" /> {tc('verified')}
                   </span>
                 )}
                 {profileData.is_blocked && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700">
-                    <Ban className="w-3 h-3" /> Blocked
+                    <Ban className="w-3 h-3" /> {tc('blocked')}
                   </span>
                 )}
               </div>
-              <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving…' : 'Save All Changes'}
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <AdminMessageButton
+                  userId={clubId}
+                  recipientEmail={profile.email}
+                  recipientName={clubDetails?.display_name || clubDetails?.club_name || profile.username}
+                  defaultSubject={t('messageSubject')}
+                />
+                <button onClick={handleSave} disabled={saving}
+                  className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
+                  <Save className="w-4 h-4" />
+                  {saving ? tc('savingDots') : <><span className="hidden sm:inline">{tc('saveAll')}</span><span className="sm:hidden">{tc('save')}</span></>}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -264,42 +286,42 @@ export default function AdminClubEditClient({
             </div>
           )}
 
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-1.5">
+          {/* Tabs — horizontally scrollable on mobile */}
+          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap pb-1 sm:pb-0">
             {[
-              { id: 'basic', label: 'Basic Info', icon: Building2 },
-              { id: 'address', label: 'Address', icon: MapPin },
-              { id: 'contact', label: 'Contact', icon: Phone },
-              { id: 'hours', label: 'Working Hours', icon: Clock },
-              { id: 'media', label: 'Media', icon: ImageIcon },
-              { id: 'account', label: 'Account', icon: ShieldCheck },
-            ].map(t => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)}
-                className={`${tabBtn(t.id)} flex items-center gap-1.5`}>
-                <t.icon className="w-3.5 h-3.5" /> {t.label}
+              { id: 'basic', label: t('tabBasic'), icon: Building2 },
+              { id: 'address', label: t('tabAddress'), icon: MapPin },
+              { id: 'contact', label: t('tabContact'), icon: Phone },
+              { id: 'hours', label: t('tabHours'), icon: Clock },
+              { id: 'media', label: t('tabMedia'), icon: ImageIcon },
+              { id: 'account', label: t('tabAccount'), icon: ShieldCheck },
+            ].map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className={`${tabBtn(tab.id)} flex items-center gap-1.5 shrink-0`}>
+                <tab.icon className="w-3.5 h-3.5" /> {tab.label}
               </button>
             ))}
           </div>
 
           {/* ════════ BASIC INFO ════════ */}
           {activeTab === 'basic' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Club Name <span className="text-red-500">*</span></label>
+                  <label className={labelCls}>{t('clubName')} <span className="text-red-500">*</span></label>
                   <input value={basic.club_name} onChange={e => setBasic(p => ({ ...p, club_name: e.target.value }))} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Display Name <span className="text-red-500">*</span></label>
+                  <label className={labelCls}>{t('displayName')} <span className="text-red-500">*</span></label>
                   <input value={basic.display_name} onChange={e => setBasic(p => ({ ...p, display_name: e.target.value }))} className={inputCls} />
                 </div>
               </div>
               <div>
-                <label className={labelCls}>Area / Region</label>
-                <input value={basic.area} onChange={e => setBasic(p => ({ ...p, area: e.target.value }))} placeholder="e.g. Zurich Center" className={inputCls} />
+                <label className={labelCls}>{t('areaRegion')}</label>
+                <input value={basic.area} onChange={e => setBasic(p => ({ ...p, area: e.target.value }))} placeholder={t('areaPlaceholder')} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>About (HTML)</label>
+                <label className={labelCls}>{t('aboutHtml')}</label>
                 <textarea value={basic.about_description} onChange={e => setBasic(p => ({ ...p, about_description: e.target.value }))}
                   rows={6} className={inputCls + ' resize-y font-mono text-xs'} />
               </div>
@@ -307,16 +329,16 @@ export default function AdminClubEditClient({
                 <input type="checkbox" checked={basic.is_club}
                   onChange={e => setBasic(p => ({ ...p, is_club: e.target.checked }))}
                   className="w-4 h-4 text-brand rounded" />
-                <span className="text-sm font-semibold text-gray-900">Physical club/venue</span>
+                <span className="text-sm font-semibold text-gray-900">{t('physicalClub')}</span>
               </label>
               <div className="pt-3 border-t border-gray-100">
-                <p className="text-xs font-bold text-gray-800 mb-2">Amenities</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('amenities')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                   {[
-                    { key: 'entrance_fee', label: 'Entrance', opts: [{ v: 'na', l: 'N/A' }, { v: 'free', l: 'Free' }, { v: 'with_cost', l: 'With cost' }] },
-                    { key: 'wellness', label: 'Wellness', opts: [{ v: 'na', l: 'N/A' }, { v: 'yes', l: 'Yes' }, { v: 'no', l: 'No' }] },
-                    { key: 'food_and_drinks', label: 'Food & Drinks', opts: [{ v: 'na', l: 'N/A' }, { v: 'yes', l: 'Yes' }, { v: 'no', l: 'No' }] },
-                    { key: 'outdoor_area', label: 'Outdoor', opts: [{ v: 'na', l: 'N/A' }, { v: 'yes', l: 'Yes' }, { v: 'no', l: 'No' }] },
+                    { key: 'entrance_fee', label: t('amenityEntrance'), opts: [{ v: 'na', l: t('amenityNa') }, { v: 'free', l: t('amenityFree') }, { v: 'with_cost', l: t('amenityWithCost') }] },
+                    { key: 'wellness', label: t('amenityWellness'), opts: [{ v: 'na', l: t('amenityNa') }, { v: 'yes', l: tc('yes') }, { v: 'no', l: tc('no') }] },
+                    { key: 'food_and_drinks', label: t('amenityFood'), opts: [{ v: 'na', l: t('amenityNa') }, { v: 'yes', l: tc('yes') }, { v: 'no', l: tc('no') }] },
+                    { key: 'outdoor_area', label: t('amenityOutdoor'), opts: [{ v: 'na', l: t('amenityNa') }, { v: 'yes', l: tc('yes') }, { v: 'no', l: tc('no') }] },
                   ].map(a => (
                     <div key={a.key}>
                       <label className="block text-xs text-gray-500 mb-0.5">{a.label}</label>
@@ -334,28 +356,28 @@ export default function AdminClubEditClient({
 
           {/* ════════ ADDRESS ════════ */}
           {activeTab === 'address' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4">
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <label className={labelCls}>Street</label>
+                  <label className={labelCls}>{t('addressStreet')}</label>
                   <input value={address.street} onChange={e => setAddress(p => ({ ...p, street: e.target.value }))} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Number</label>
+                  <label className={labelCls}>{t('addressNumber')}</label>
                   <input value={address.street_number} onChange={e => setAddress(p => ({ ...p, street_number: e.target.value }))} className={inputCls} />
                 </div>
               </div>
               <div>
-                <label className={labelCls}>Additional Info</label>
-                <input value={address.additional_info} onChange={e => setAddress(p => ({ ...p, additional_info: e.target.value }))} placeholder="Floor, etc." className={inputCls} />
+                <label className={labelCls}>{t('addressAdditionalInfo')}</label>
+                <input value={address.additional_info} onChange={e => setAddress(p => ({ ...p, additional_info: e.target.value }))} placeholder={t('addressAdditionalPlaceholder')} className={inputCls} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>City</label>
+                  <label className={labelCls}>{t('addressCity')}</label>
                   <input value={address.city} onChange={e => setAddress(p => ({ ...p, city: e.target.value }))} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>ZIP Code</label>
+                  <label className={labelCls}>{t('addressZip')}</label>
                   <input value={address.zip_code} onChange={e => setAddress(p => ({ ...p, zip_code: e.target.value }))} className={inputCls} />
                 </div>
               </div>
@@ -364,22 +386,22 @@ export default function AdminClubEditClient({
 
           {/* ════════ CONTACT ════════ */}
           {activeTab === 'contact' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
               <div>
-                <p className="text-sm font-bold text-gray-800 mb-3">Phone</p>
+                <p className="text-sm font-bold text-gray-800 mb-3">{t('phone')}</p>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className={labelCls}>Country Code</label>
+                    <label className={labelCls}>{t('countryCode')}</label>
                     <input value={contact.country_code} onChange={e => setContact(p => ({ ...p, country_code: e.target.value }))} className={inputCls} />
                   </div>
                   <div className="col-span-2">
-                    <label className={labelCls}>Phone Number</label>
+                    <label className={labelCls}>{t('phoneNumber')}</label>
                     <input value={contact.phone_number} onChange={e => setContact(p => ({ ...p, phone_number: e.target.value }))} className={inputCls} />
                   </div>
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-800 mb-2">Available on</p>
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('availableOn')}</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { key: 'has_viber', label: 'Viber' },
@@ -395,12 +417,12 @@ export default function AdminClubEditClient({
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-800 mb-2">Contact Preference</p>
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('contactPreference')}</p>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { value: 'sms_and_call', label: 'SMS & Call' },
-                    { value: 'sms_only', label: 'SMS Only' },
-                    { value: 'call_only', label: 'Call Only' },
+                    { value: 'sms_and_call', label: t('smsAndCall') },
+                    { value: 'sms_only', label: t('smsOnly') },
+                    { value: 'call_only', label: t('callOnly') },
                   ].map(opt => (
                     <button key={opt.value} type="button"
                       onClick={() => setContact(p => ({ ...p, contact_instruction: opt.value }))}
@@ -414,23 +436,23 @@ export default function AdminClubEditClient({
                 <input type="checkbox" checked={contact.no_withheld_numbers}
                   onChange={e => setContact(p => ({ ...p, no_withheld_numbers: e.target.checked }))}
                   className="w-4 h-4 text-brand rounded" />
-                <span className="text-sm font-semibold text-gray-900">No withheld numbers</span>
+                <span className="text-sm font-semibold text-gray-900">{t('noWithheldNumbers')}</span>
               </label>
               <div>
-                <label className={labelCls}>Other Instructions</label>
+                <label className={labelCls}>{t('otherInstructions')}</label>
                 <textarea value={contact.other_instructions}
                   onChange={e => setContact(p => ({ ...p, other_instructions: e.target.value }))}
                   rows={3} className={inputCls + ' resize-none'} />
               </div>
               <div className="pt-3 border-t border-gray-100">
-                <p className="text-sm font-bold text-gray-800 mb-3">Online Contact</p>
-                <div className="grid grid-cols-2 gap-3">
+                <p className="text-sm font-bold text-gray-800 mb-3">{t('onlineContact')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>Email</label>
+                    <label className={labelCls}>{t('email')}</label>
                     <input type="email" value={contact.email} onChange={e => setContact(p => ({ ...p, email: e.target.value }))} className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>Website</label>
+                    <label className={labelCls}>{t('website')}</label>
                     <input type="url" value={contact.website} onChange={e => setContact(p => ({ ...p, website: e.target.value }))} className={inputCls} />
                   </div>
                 </div>
@@ -440,33 +462,33 @@ export default function AdminClubEditClient({
 
           {/* ════════ WORKING HOURS ════════ */}
           {activeTab === 'hours' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
               <div className="flex gap-2 mb-5 flex-wrap">
                 {[
-                  { id: '24_7' as const, label: 'Available 24/7' },
-                  { id: 'same_every_day' as const, label: 'Same every day' },
-                  { id: 'custom' as const, label: 'Custom schedule' },
-                ].map(t => (
-                  <button key={t.id} type="button" onClick={() => setScheduleType(t.id)}
-                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${scheduleType === t.id ? 'bg-brand text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                    {t.label}
+                  { id: '24_7' as const, label: t('available247') },
+                  { id: 'same_every_day' as const, label: t('sameEveryDay') },
+                  { id: 'custom' as const, label: t('customSchedule') },
+                ].map(opt => (
+                  <button key={opt.id} type="button" onClick={() => setScheduleType(opt.id)}
+                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${scheduleType === opt.id ? 'bg-brand text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                    {opt.label}
                   </button>
                 ))}
               </div>
               {scheduleType === '24_7' && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                  <p className="text-sm text-emerald-800 font-semibold">Open 24/7</p>
+                  <p className="text-sm text-emerald-800 font-semibold">{t('open247')}</p>
                 </div>
               )}
               {scheduleType === 'same_every_day' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>Opens</label>
+                    <label className={labelCls}>{t('opens')}</label>
                     <input type="time" value={sameHours.from}
                       onChange={e => setSameHours(p => ({ ...p, from: e.target.value }))} className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>Closes</label>
+                    <label className={labelCls}>{t('closes')}</label>
                     <input type="time" value={sameHours.to}
                       onChange={e => setSameHours(p => ({ ...p, to: e.target.value }))} className={inputCls} />
                   </div>
@@ -494,12 +516,12 @@ export default function AdminClubEditClient({
           {/* ════════ MEDIA ════════ */}
           {activeTab === 'media' && (
             <div className="space-y-4">
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
                 <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-brand" /> Photos ({photos.length})
+                  <ImageIcon className="w-4 h-4 text-brand" /> {t('photos', { count: photos.length })}
                 </p>
                 {photos.length === 0 ? (
-                  <p className="text-sm text-gray-400">No photos uploaded.</p>
+                  <p className="text-sm text-gray-400">{t('noPhotos')}</p>
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                     {photos.map((p: any) => (
@@ -509,7 +531,7 @@ export default function AdminClubEditClient({
                           {p.is_approved ? (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">OK</span>
                           ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">Pending</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">{tc('pending')}</span>
                           )}
                         </div>
                       </div>
@@ -517,12 +539,12 @@ export default function AdminClubEditClient({
                   </div>
                 )}
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
                 <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <Film className="w-4 h-4 text-brand" /> Videos ({videos.length})
+                  <Film className="w-4 h-4 text-brand" /> {t('videos', { count: videos.length })}
                 </p>
                 {videos.length === 0 ? (
-                  <p className="text-sm text-gray-400">No videos uploaded.</p>
+                  <p className="text-sm text-gray-400">{t('noVideos')}</p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {videos.map((v: any) => (
@@ -532,7 +554,7 @@ export default function AdminClubEditClient({
                           {v.is_approved ? (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">OK</span>
                           ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">Pending</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">{tc('pending')}</span>
                           )}
                         </div>
                       </div>
@@ -545,29 +567,29 @@ export default function AdminClubEditClient({
 
           {/* ════════ ACCOUNT ════════ */}
           {activeTab === 'account' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Username</label>
+                  <label className={labelCls}>{t('username')}</label>
                   <input value={profileData.username} onChange={e => setProfileData(p => ({ ...p, username: e.target.value }))} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Email (read-only)</label>
+                  <label className={labelCls}>{t('emailReadOnly')}</label>
                   <input value={profileData.email} disabled className={inputCls + ' bg-gray-50 text-gray-500'} />
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-6 flex-wrap">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={profileData.is_verified}
                     onChange={e => setProfileData(p => ({ ...p, is_verified: e.target.checked }))}
                     className="w-4 h-4 text-blue-600 rounded" />
-                  <span className="text-sm font-semibold text-gray-900">Verified</span>
+                  <span className="text-sm font-semibold text-gray-900">{tc('verified')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={profileData.is_blocked}
                     onChange={e => setProfileData(p => ({ ...p, is_blocked: e.target.checked }))}
                     className="w-4 h-4 text-red-600 rounded" />
-                  <span className="text-sm font-semibold text-gray-900">Blocked</span>
+                  <span className="text-sm font-semibold text-gray-900">{tc('blocked')}</span>
                 </label>
               </div>
               <div className="text-xs text-gray-400 space-y-0.5">
@@ -580,11 +602,11 @@ export default function AdminClubEditClient({
 
           {/* Bottom save */}
           <div className="flex items-center justify-end gap-3 pb-6">
-            <Link href="/dashboard/admin/clubs" className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</Link>
+            <Link href="/dashboard/admin/clubs" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{tc('cancel')}</Link>
             <button onClick={handleSave} disabled={saving}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
+              className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
               <Save className="w-4 h-4" />
-              {saving ? 'Saving…' : 'Save All Changes'}
+              {saving ? tc('savingDots') : <><span className="hidden sm:inline">{tc('saveAll')}</span><span className="sm:hidden">{tc('save')}</span></>}
             </button>
           </div>
 

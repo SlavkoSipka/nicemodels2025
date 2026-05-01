@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { notifyAdminAction } from '@/lib/admin/notify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -47,6 +48,12 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = createAdminClient()
+    const { data: listingBefore } = await admin
+      .from('job_listings')
+      .select('club_id, title, listing_type')
+      .eq('id', listingId)
+      .single()
+
     const { error } = await admin
       .from('job_listings')
       .update(updates)
@@ -54,6 +61,18 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (listingBefore?.club_id) {
+      const typeLabel = listingBefore.listing_type === 'rent' ? 'rent listing' : 'job listing'
+      await notifyAdminAction({
+        userId: listingBefore.club_id,
+        title: `Your ${typeLabel} was updated`,
+        message: `An administrator updated "${listingBefore.title || typeLabel}".`,
+        actionUrl: '/dashboard/company/jobs-rent',
+        relatedEntityType: 'job_listing',
+        relatedEntityId: listingId,
+      })
     }
 
     return NextResponse.json({ success: true })

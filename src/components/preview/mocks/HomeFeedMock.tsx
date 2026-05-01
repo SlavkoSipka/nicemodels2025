@@ -31,10 +31,10 @@ function ModelCardMock({
 }) {
   return (
     <div
-      className={`relative overflow-hidden rounded-lg bg-white flex flex-col ${
+      className={`relative overflow-hidden rounded-lg bg-white flex flex-col transition-all ${
         highlighted
-          ? 'ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.25)]'
-          : 'border border-slate-200 shadow-sm'
+          ? 'ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.3),0_8px_24px_-6px_rgba(139,92,246,0.45)] z-10'
+          : 'border border-slate-200 shadow-sm grayscale opacity-60'
       }`}
     >
       <div className={`aspect-[3/4] bg-gradient-to-br ${model.tone} relative overflow-hidden`}>
@@ -98,7 +98,7 @@ function ModelCardMock({
 
 function BannerSlotWide({ previewUrl }: { previewUrl?: string }) {
   return (
-    <div className="relative rounded-xl overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_4px_rgba(139,92,246,0.25)]">
+    <div className="relative rounded-xl overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_4px_rgba(139,92,246,0.3),0_10px_28px_-8px_rgba(139,92,246,0.5)] z-10">
       {previewUrl ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -128,7 +128,7 @@ function BannerSlotWide({ previewUrl }: { previewUrl?: string }) {
 
 function BannerSlotCard({ previewUrl }: { previewUrl?: string }) {
   return (
-    <div className="relative rounded-lg overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.25)] aspect-[3/4]">
+    <div className="relative rounded-lg overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.3),0_8px_24px_-6px_rgba(139,92,246,0.5)] aspect-[3/4] z-10">
       {previewUrl ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -158,7 +158,7 @@ function BannerSlotCard({ previewUrl }: { previewUrl?: string }) {
 
 function BannerSlotSidebar({ previewUrl }: { previewUrl?: string }) {
   return (
-    <div className="relative rounded-lg overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.25)] h-full min-h-[200px]">
+    <div className="relative rounded-lg overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.3),0_8px_24px_-6px_rgba(139,92,246,0.5)] h-full min-h-[200px] z-10">
       {previewUrl ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}

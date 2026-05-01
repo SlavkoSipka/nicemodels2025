@@ -31,6 +31,9 @@ export async function GET(req: NextRequest) {
     })(),
   ])
 
+  if (viewsQ.error) console.error('[admin/stats/listings] listing_views error:', viewsQ.error)
+  if (clicksQ.error) console.error('[admin/stats/listings] listing_clicks error:', clicksQ.error)
+
   const views = (viewsQ.data || []) as any[]
   const clicks = (clicksQ.data || []) as any[]
 
@@ -79,11 +82,30 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  // Listing status totals
+  // Listing status totals.
+  // We treat "expired" as expires_at in the past (excluding deleted), regardless of the
+  // status column — there is no cron that flips status to 'expired'.
+  // "Active" = status='active' AND not yet past expires_at.
+  const nowIso = new Date().toISOString()
   const [{ count: activeJobsC }, { count: activeRentsC }, { count: expiredC }] = await Promise.all([
-    admin.from('job_listings').select('id', { count: 'exact', head: true }).eq('listing_type', 'job').eq('status', 'active'),
-    admin.from('job_listings').select('id', { count: 'exact', head: true }).eq('listing_type', 'rent').eq('status', 'active'),
-    admin.from('job_listings').select('id', { count: 'exact', head: true }).eq('status', 'expired'),
+    admin
+      .from('job_listings')
+      .select('id', { count: 'exact', head: true })
+      .eq('listing_type', 'job')
+      .eq('status', 'active')
+      .or(`expires_at.is.null,expires_at.gte.${nowIso}`),
+    admin
+      .from('job_listings')
+      .select('id', { count: 'exact', head: true })
+      .eq('listing_type', 'rent')
+      .eq('status', 'active')
+      .or(`expires_at.is.null,expires_at.gte.${nowIso}`),
+    admin
+      .from('job_listings')
+      .select('id', { count: 'exact', head: true })
+      .neq('status', 'deleted')
+      .not('expires_at', 'is', null)
+      .lt('expires_at', nowIso),
   ])
 
   return NextResponse.json({

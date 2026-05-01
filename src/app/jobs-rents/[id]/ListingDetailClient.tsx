@@ -35,6 +35,7 @@ interface ListingDetail {
   email: string | null
   website: string | null
   created_at: string
+  expires_at: string | null
   club_id: string
   club_name: string
   club_area: string | null
@@ -63,6 +64,10 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
   const dateStr = new Date(listing.created_at).toLocaleDateString('en-GB', {
     day: '2-digit', month: 'long', year: 'numeric',
   })
+  const isExpired = listing.expires_at ? new Date(listing.expires_at) < new Date() : false
+  const expiredDateStr = listing.expires_at
+    ? new Date(listing.expires_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
+    : ''
 
   useEffect(() => {
     const checkOwner = async () => {
@@ -92,6 +97,21 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
             <ArrowLeft className="w-4 h-4" />
             Back to listings
           </Link>
+
+          {/* Expired banner */}
+          {isExpired && (
+            <div className="mb-4 rounded-xl p-4 flex items-start gap-3" style={{ background: '#fff7ed', border: '1px solid #fed7aa' }}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(234,88,12,0.10)' }}>
+                <Calendar className="w-5 h-5" style={{ color: '#ea580c' }} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold" style={{ color: '#9a3412' }}>This listing has expired</p>
+                <p className="text-xs mt-0.5" style={{ color: '#9a3412' }}>
+                  Expired on {expiredDateStr}. {isOwner ? 'Edit it from your dashboard to renew or extend.' : 'The advertiser may not respond.'}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Main card */}
           <div
@@ -277,151 +297,152 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
               )}
 
               {/* ── Contact ────────────────────────────── */}
-              {(listing.phone_number || listing.email || listing.website) && (
-                <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
-                  <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>
-                    Contact
-                  </p>
+              <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
+                <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>
+                  Contact
+                </p>
+                {(listing.phone_number || listing.email || listing.website) ? (
+                <>
                   <p className="text-xs mb-4" style={{ color: '#94a3b8' }}>
-                    Reach out via phone, SMS, email, or the apps you prefer.
+                    Tap any option below to get in touch.
                   </p>
-                  <div
-                    className="rounded-xl p-5 space-y-4"
-                    style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
-                  >
-                    {listing.phone_number && (
-                      <>
-                        <div className="flex items-start gap-4">
-                          <div
-                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                            style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
-                          >
-                            <Phone className="w-4 h-4" style={{ color: '#3B82F6' }} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Phone</p>
-                            <a
-                              href={phoneDigitsOk ? listingTelHref(cc, phone!) : '#'}
-                              onClick={() => phoneDigitsOk && trackListingClick(listing.id, 'phone')}
-                              className="text-sm font-semibold transition-opacity hover:opacity-70 break-all"
-                              style={{ color: '#0f172a' }}
-                            >
-                              {cc} {listing.phone_number}
-                            </a>
-                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>Tap to call</p>
-                          </div>
+                  <div className="space-y-2.5">
+                    {listing.phone_number && phoneDigitsOk && (
+                      <a
+                        href={listingTelHref(cc, phone!)}
+                        onClick={() => trackListingClick(listing.id, 'phone')}
+                        className="group flex items-center gap-3 p-3.5 rounded-xl bg-white border border-blue-200 hover:border-blue-400 hover:bg-blue-50/40 active:scale-[0.99] transition-all shadow-sm hover:shadow-md"
+                      >
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 group-hover:bg-blue-100 transition-colors">
+                          <Phone className="w-5 h-5 text-blue-600" />
                         </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Call now</p>
+                          <p className="text-sm font-bold text-slate-900 break-all">{cc} {listing.phone_number}</p>
+                        </div>
+                        <span className="text-blue-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </a>
+                    )}
 
-                        {listing.has_sms && phoneDigitsOk && (
-                          <div className="flex items-start gap-4">
-                            <div
-                              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                              style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.18)' }}
-                            >
-                              <MessageSquare className="w-4 h-4" style={{ color: '#059669' }} />
+                    {listing.has_sms && phoneDigitsOk && (
+                      <a
+                        href={listingSmsHref(cc, phone!)}
+                        onClick={() => trackListingClick(listing.id, 'sms')}
+                        className="group flex items-center gap-3 p-3.5 rounded-xl bg-white border border-emerald-200 hover:border-emerald-400 hover:bg-emerald-50/40 active:scale-[0.99] transition-all shadow-sm hover:shadow-md"
+                      >
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50 group-hover:bg-emerald-100 transition-colors">
+                          <MessageSquare className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Send SMS</p>
+                          <p className="text-sm font-bold text-slate-900 break-all">{cc} {listing.phone_number}</p>
+                        </div>
+                        <span className="text-emerald-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </a>
+                    )}
+
+                    {(listing.has_whatsapp || listing.has_viber || listing.has_telegram) && phoneDigitsOk && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {listing.has_whatsapp && (
+                          <a
+                            href={listingWhatsAppHref(cc, phone!)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => trackListingClick(listing.id, 'whatsapp')}
+                            className="group flex items-center gap-3 p-3.5 rounded-xl text-white bg-[#25D366] hover:bg-[#1fb955] active:scale-[0.99] transition-all shadow-sm hover:shadow-md"
+                          >
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white/20">
+                              <MessageSquare className="w-5 h-5" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>SMS</p>
-                              <a
-                                href={listingSmsHref(cc, phone!)}
-                                onClick={() => trackListingClick(listing.id, 'sms')}
-                                className="text-sm font-semibold text-emerald-700 hover:underline"
-                              >
-                                Send SMS
-                              </a>
+                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Chat on</p>
+                              <p className="text-sm font-bold">WhatsApp</p>
                             </div>
-                          </div>
+                            <span className="text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
+                          </a>
                         )}
-
-                        {(listing.has_whatsapp || listing.has_viber || listing.has_telegram) && phoneDigitsOk && (
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Messaging</p>
-                            <div className="flex flex-wrap gap-2">
-                              {listing.has_whatsapp && (
-                                <a
-                                  href={listingWhatsAppHref(cc, phone!)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={() => trackListingClick(listing.id, 'whatsapp')}
-                                  className="inline-flex items-center px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#25D366] hover:opacity-90 transition-opacity"
-                                >
-                                  WhatsApp
-                                </a>
-                              )}
-                              {listing.has_viber && (
-                                <a
-                                  href={listingViberHref(cc, phone!)}
-                                  onClick={() => trackListingClick(listing.id, 'viber')}
-                                  className="inline-flex items-center px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#7360f2] hover:opacity-90 transition-opacity"
-                                >
-                                  Viber
-                                </a>
-                              )}
-                              {listing.has_telegram && (
-                                <a
-                                  href={listingTelegramHref(cc, phone!)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={() => trackListingClick(listing.id, 'telegram')}
-                                  className="inline-flex items-center px-3 py-2 rounded-lg text-xs font-bold text-white bg-[#26A5E4] hover:opacity-90 transition-opacity"
-                                >
-                                  Telegram
-                                </a>
-                              )}
+                        {listing.has_viber && (
+                          <a
+                            href={listingViberHref(cc, phone!)}
+                            onClick={() => trackListingClick(listing.id, 'viber')}
+                            className="group flex items-center gap-3 p-3.5 rounded-xl text-white bg-[#7360f2] hover:bg-[#5e4dd9] active:scale-[0.99] transition-all shadow-sm hover:shadow-md"
+                          >
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white/20">
+                              <Phone className="w-5 h-5" />
                             </div>
-                          </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Chat on</p>
+                              <p className="text-sm font-bold">Viber</p>
+                            </div>
+                            <span className="text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
+                          </a>
                         )}
-                      </>
+                        {listing.has_telegram && (
+                          <a
+                            href={listingTelegramHref(cc, phone!)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => trackListingClick(listing.id, 'telegram')}
+                            className="group flex items-center gap-3 p-3.5 rounded-xl text-white bg-[#26A5E4] hover:bg-[#1e8bc1] active:scale-[0.99] transition-all shadow-sm hover:shadow-md"
+                          >
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-white/20">
+                              <MessageSquare className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Chat on</p>
+                              <p className="text-sm font-bold">Telegram</p>
+                            </div>
+                            <span className="text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
+                          </a>
+                        )}
+                      </div>
                     )}
 
                     {listing.email && (
-                      <div className="flex items-start gap-4">
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
-                        >
-                          <Mail className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                      <a
+                        href={`mailto:${listing.email}`}
+                        onClick={() => trackListingClick(listing.id, 'email')}
+                        className="group flex items-center gap-3 p-3.5 rounded-xl bg-white border border-pink-200 hover:border-pink-400 hover:bg-pink-50/40 active:scale-[0.99] transition-all shadow-sm hover:shadow-md"
+                      >
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-pink-50 group-hover:bg-pink-100 transition-colors">
+                          <Mail className="w-5 h-5 text-pink-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Email</p>
-                          <a
-                            href={`mailto:${listing.email}`}
-                            onClick={() => trackListingClick(listing.id, 'email')}
-                            className="text-sm font-semibold transition-opacity hover:opacity-70 break-all"
-                            style={{ color: '#334155' }}
-                          >
-                            {listing.email}
-                          </a>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-pink-600">Send email</p>
+                          <p className="text-sm font-bold text-slate-900 break-all">{listing.email}</p>
                         </div>
-                      </div>
+                        <span className="text-pink-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </a>
                     )}
 
                     {listing.website && (
-                      <div className="flex items-start gap-4">
-                        <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                          style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.18)' }}
-                        >
-                          <Globe className="w-4 h-4" style={{ color: '#3B82F6' }} />
+                      <a
+                        href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => trackListingClick(listing.id, 'website')}
+                        className="group flex items-center gap-3 p-3.5 rounded-xl bg-white border border-violet-200 hover:border-violet-400 hover:bg-violet-50/40 active:scale-[0.99] transition-all shadow-sm hover:shadow-md"
+                      >
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-violet-50 group-hover:bg-violet-100 transition-colors">
+                          <Globe className="w-5 h-5 text-violet-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Website</p>
-                          <a
-                            href={listing.website.startsWith('http') ? listing.website : `https://${listing.website}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => trackListingClick(listing.id, 'website')}
-                            className="text-sm font-semibold transition-opacity hover:opacity-70 break-all"
-                            style={{ color: '#334155' }}
-                          >
-                            {listing.website}
-                          </a>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-violet-600">Visit website</p>
+                          <p className="text-sm font-bold text-slate-900 break-all">{listing.website}</p>
                         </div>
-                      </div>
+                        <span className="text-violet-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </a>
                     )}
                   </div>
-                </div>
-              )}
+                </>
+                ) : (
+                  <div className="rounded-xl p-4 bg-amber-50 border border-amber-200">
+                    <p className="text-sm text-amber-800">
+                      The advertiser hasn&apos;t provided contact info for this listing yet.
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* ── Photos ─────────────────────────────── */}
               {listing.photos.length > 0 && (

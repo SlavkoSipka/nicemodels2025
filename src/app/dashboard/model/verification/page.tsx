@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ShieldCheck, Upload, X, CheckCircle, AlertCircle, Clock } from 'lucide-react'
+import DobInput from '@/components/forms/DobInput'
 
 export default function VerificationPage() {
   const router = useRouter()
@@ -235,7 +236,7 @@ export default function VerificationPage() {
                 </div>
                 <div>
                   <label className={labelCls}>Date of Birth <span className="text-red-500">*</span></label>
-                  <input type="date" value={formData.date_of_birth} onChange={e => setFormData({ ...formData, date_of_birth: e.target.value })} className={inputCls} required />
+                  <DobInput value={formData.date_of_birth} onChange={iso => setFormData({ ...formData, date_of_birth: iso })} className={inputCls} required />
                 </div>
                 <div>
                   <label className={labelCls}>ID Number <span className="text-red-500">*</span></label>

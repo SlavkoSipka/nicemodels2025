@@ -8,9 +8,9 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { htmlToPlainText } from '@/lib/plainText'
 import {
-  Building2, MapPin, Phone, Mail, Globe, MessageCircle,
+  Building2, MapPin, Phone, Mail, Globe, MessageCircle, MessageSquare,
   Clock, CheckCircle, Coffee, Waves, Trees, DollarSign,
-  ChevronLeft, ChevronRight, Users, Sparkles, Eye
+  ChevronLeft, ChevronRight, Users, Sparkles, Eye, Send
 } from 'lucide-react'
 
 interface ClubProfileClientProps {
@@ -357,52 +357,158 @@ export default function ClubProfileClient({
                     >
                       <Phone className="w-4 h-4" /> Show Contact Info
                     </button>
-                  ) : contactDetails ? (
-                    <div className="space-y-3">
-                      {contactDetails.phone_number && (
-                        <div>
-                          <a
-                            href={`tel:${contactDetails.country_code}${contactDetails.phone_number}`}
-                            className="text-xl font-bold text-emerald-700 hover:text-emerald-800 transition-colors"
-                          >
-                            {contactDetails.country_code} {contactDetails.phone_number}
-                          </a>
-                          {(contactDetails.has_whatsapp || contactDetails.has_viber || contactDetails.has_telegram) && (
-                            <div className="flex flex-wrap gap-1.5 mt-1.5">
-                              {contactDetails.has_whatsapp && <span className="text-xs px-2.5 py-1 bg-green-100 text-green-700 font-semibold rounded-full">WhatsApp</span>}
-                              {contactDetails.has_viber && <span className="text-xs px-2.5 py-1 bg-purple-100 text-purple-700 font-semibold rounded-full">Viber</span>}
-                              {contactDetails.has_telegram && <span className="text-xs px-2.5 py-1 bg-blue-100 text-blue-700 font-semibold rounded-full">Telegram</span>}
+                  ) : contactDetails && !contactDetails.hide_contact_info ? (
+                    (() => {
+                      const phone = (contactDetails.phone_number || '').trim()
+                      const phoneE164 = phone
+                        ? `${(contactDetails.country_code || '').replace(/[^+\d]/g, '')}${phone.replace(/\D/g, '')}`
+                        : ''
+                      const email = (contactDetails.email || '').trim()
+
+                      // Source of truth: contact_methods array. Fallback to legacy
+                      // flags so older rows (pre-migration) still work.
+                      const methodsRaw: string[] = Array.isArray(contactDetails.contact_methods)
+                        && contactDetails.contact_methods.length > 0
+                        ? contactDetails.contact_methods
+                        : (() => {
+                            const m: string[] = []
+                            const inst = contactDetails.contact_instruction || ''
+                            if (phone && (inst === 'sms_and_call' || inst === 'call_only')) m.push('call')
+                            if (phone && (inst === 'sms_and_call' || inst === 'sms_only')) m.push('sms')
+                            if (phone && contactDetails.has_whatsapp) m.push('whatsapp')
+                            if (phone && contactDetails.has_viber)    m.push('viber')
+                            if (phone && contactDetails.has_telegram) m.push('telegram')
+                            if (email) m.push('email')
+                            return m
+                          })()
+                      const methods = new Set(methodsRaw)
+
+                      const buttons: Array<{
+                        id: string; label: string; href: string; cls: string; icon: React.ReactNode
+                      }> = []
+
+                      if (methods.has('call') && phone) {
+                        buttons.push({
+                          id: 'call',
+                          label: `${contactDetails.country_code || ''} ${phone}`.trim(),
+                          href: `tel:${phoneE164}`,
+                          cls: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+                          icon: <Phone className="w-4 h-4" />,
+                        })
+                      }
+                      if (methods.has('sms') && phone) {
+                        buttons.push({
+                          id: 'sms',
+                          label: 'SMS',
+                          href: `sms:${phoneE164}`,
+                          cls: 'bg-sky-500 hover:bg-sky-600 text-white',
+                          icon: <MessageSquare className="w-4 h-4" />,
+                        })
+                      }
+                      if (methods.has('whatsapp') && phone) {
+                        const wa = phoneE164.replace(/^\+/, '')
+                        buttons.push({
+                          id: 'whatsapp',
+                          label: 'WhatsApp',
+                          href: `https://wa.me/${wa}`,
+                          cls: 'bg-green-500 hover:bg-green-600 text-white',
+                          icon: <MessageCircle className="w-4 h-4" />,
+                        })
+                      }
+                      if (methods.has('viber') && phone) {
+                        buttons.push({
+                          id: 'viber',
+                          label: 'Viber',
+                          href: `viber://chat?number=${encodeURIComponent(phoneE164)}`,
+                          cls: 'bg-purple-600 hover:bg-purple-700 text-white',
+                          icon: <MessageCircle className="w-4 h-4" />,
+                        })
+                      }
+                      if (methods.has('telegram') && phone) {
+                        const tg = phoneE164.replace(/^\+/, '')
+                        buttons.push({
+                          id: 'telegram',
+                          label: 'Telegram',
+                          href: `https://t.me/+${tg}`,
+                          cls: 'bg-blue-500 hover:bg-blue-600 text-white',
+                          icon: <Send className="w-4 h-4" />,
+                        })
+                      }
+                      if (methods.has('email') && email) {
+                        buttons.push({
+                          id: 'email',
+                          label: 'Email',
+                          href: `mailto:${email}`,
+                          cls: 'bg-rose-500 hover:bg-rose-600 text-white',
+                          icon: <Mail className="w-4 h-4" />,
+                        })
+                      }
+
+                      const noChannels = buttons.length === 0
+                      return (
+                        <div className="space-y-3">
+                          {phone && (
+                            <a
+                              href={methods.has('call') ? `tel:${phoneE164}` : undefined}
+                              className={`block text-xl font-bold ${methods.has('call') ? 'text-emerald-700 hover:text-emerald-800' : 'text-gray-800'}`}
+                            >
+                              {contactDetails.country_code} {phone}
+                            </a>
+                          )}
+
+                          {!noChannels && (
+                            <div className="grid grid-cols-2 gap-2">
+                              {buttons.map(b => (
+                                <a
+                                  key={b.id}
+                                  href={b.href}
+                                  target={b.id === 'whatsapp' || b.id === 'telegram' ? '_blank' : undefined}
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors ${b.cls}`}
+                                >
+                                  {b.icon}
+                                  <span className="truncate">{b.label}</span>
+                                </a>
+                              ))}
                             </div>
                           )}
-                        </div>
-                      )}
-                      {contactDetails.email && (
-                        <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 text-sm text-gray-700 hover:text-brand">
-                          <Mail className="w-4 h-4 text-brand" /> {contactDetails.email}
-                        </a>
-                      )}
-                      {contactDetails.website && (
-                        <a
-                          href={contactDetails.website.startsWith('http') ? contactDetails.website : `https://${contactDetails.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-gray-700 hover:text-brand"
-                        >
-                          <Globe className="w-4 h-4 text-brand" /> {contactDetails.website}
-                        </a>
-                      )}
-                      {(contactDetails.contact_instruction || contactDetails.other_instructions) && (
-                        <div className="pt-2 border-t border-gray-100">
-                          <p className="text-xs text-gray-400 font-medium mb-1">Instructions</p>
-                          {contactDetails.contact_instruction && (
-                            <p className="text-sm text-gray-600 capitalize">{contactDetails.contact_instruction.replace(/_/g, ' ')}</p>
+
+                          {contactDetails.website && (
+                            <a
+                              href={contactDetails.website.startsWith('http') ? contactDetails.website : `https://${contactDetails.website}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm text-gray-700 hover:text-brand"
+                            >
+                              <Globe className="w-4 h-4 text-brand" /> {contactDetails.website}
+                            </a>
                           )}
+
+                          {contactDetails.no_withheld_numbers && (
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md px-2.5 py-1.5">
+                              No withheld / private numbers accepted
+                            </p>
+                          )}
+
                           {contactDetails.other_instructions && (
-                            <p className="text-sm text-gray-500 italic">{contactDetails.other_instructions}</p>
+                            <div className="pt-2 border-t border-gray-100">
+                              <p className="text-xs text-gray-400 font-medium mb-1">Instructions</p>
+                              <p className="text-sm text-gray-500 italic">{contactDetails.other_instructions}</p>
+                            </div>
+                          )}
+
+                          {noChannels && !email && !phone && (
+                            <p className="text-sm text-gray-500 text-center py-2">
+                              The club has not set any contact details yet.
+                            </p>
                           )}
                         </div>
-                      )}
-                    </div>
+                      )
+                    })()
+                  ) : contactDetails?.hide_contact_info ? (
+                    <p className="text-sm text-gray-500 text-center py-2">
+                      Contact info hidden — please use the in-app messaging.
+                    </p>
                   ) : (
                     <p className="text-sm text-gray-500 text-center py-2">Contact information not available</p>
                   )}

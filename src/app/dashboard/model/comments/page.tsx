@@ -40,7 +40,7 @@ export default function ModelCommentsPage() {
         .from('model_comments')
         .select('id, user_id, comment_text, rating, status, created_at, reply_text, replied_at, user:profiles!model_comments_user_id_fkey(id, username)')
         .eq('model_id', user.id)
-        .eq('status', 'approved')
+        .in('status', ['approved', 'reviewed'])
         .order('created_at', { ascending: false })
 
       const normalized = (data || []).map(c => ({

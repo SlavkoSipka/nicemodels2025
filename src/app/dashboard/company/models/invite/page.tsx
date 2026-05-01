@@ -305,7 +305,7 @@ export default function InviteModelPage() {
                   className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover transition-colors"
                 >
                   <Zap className="w-4 h-4" />
-                  Activate Ad
+                  Activate Sedcard
                 </Link>
               </div>
             </div>

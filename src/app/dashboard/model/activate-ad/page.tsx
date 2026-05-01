@@ -241,9 +241,10 @@ export default function ActivateAdPage() {
               <Zap className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Activate Ad</h1>
+              <h1 className="text-xl font-bold text-gray-900">Activate Sedcard</h1>
               <p className="text-xs text-gray-500">
-                Beta phase — all activations are <span className="font-semibold text-emerald-600">100% free</span>
+                Listed prices: 5 days CHF 19, 14 days CHF 29, 30 days CHF 39 — currently{' '}
+                <span className="font-semibold text-emerald-600">100% free in Beta</span>
               </p>
             </div>
           </div>
@@ -393,8 +394,20 @@ export default function ActivateAdPage() {
                       <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
                       <p className="text-xs text-gray-400">{pkg.description}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
-                        <p className="text-sm font-bold text-emerald-600">Free</p>
-                        <p className="text-xs text-gray-400 mt-0.5">No payment needed</p>
+                        {Number(pkg.price_chf) > 0 ? (
+                          <>
+                            <p className="text-xs text-gray-400 line-through">
+                              CHF {Number(pkg.price_chf).toFixed(0)}.-
+                            </p>
+                            <p className="text-base font-bold text-emerald-600 leading-tight">Free</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">Beta — no payment yet</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-bold text-emerald-600">Free</p>
+                            <p className="text-xs text-gray-400 mt-0.5">No payment needed</p>
+                          </>
+                        )}
                       </div>
                     </div>
                     {isInCart ? (
@@ -482,7 +495,14 @@ export default function ActivateAdPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-emerald-600">Free</span>
+                    <div className="text-right">
+                      {Number(item.product.price_chf) > 0 && (
+                        <p className="text-[11px] text-gray-400 line-through leading-tight">
+                          CHF {Number(item.product.price_chf).toFixed(0)}.-
+                        </p>
+                      )}
+                      <span className="text-sm font-bold text-emerald-600">Free</span>
+                    </div>
                     <button
                       onClick={() => removeFromCart(index)}
                       className="text-xs font-semibold text-red-600 hover:text-red-800"
@@ -496,7 +516,17 @@ export default function ActivateAdPage() {
 
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
               <p className="text-sm font-bold text-gray-900">Total (beta):</p>
-              <p className="text-base font-bold text-emerald-600">Free</p>
+              <div className="text-right">
+                {(() => {
+                  const sum = cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0)
+                  return sum > 0 ? (
+                    <p className="text-[11px] text-gray-400 line-through leading-tight">
+                      CHF {sum.toFixed(0)}.-
+                    </p>
+                  ) : null
+                })()}
+                <p className="text-base font-bold text-emerald-600">Free</p>
+              </div>
             </div>
 
             <div className="mt-3">

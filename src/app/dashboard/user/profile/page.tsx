@@ -6,6 +6,7 @@ import { User, Save, CheckCircle, Camera, Trash2, Loader2 } from 'lucide-react'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import Image from 'next/image'
+import { formatDobDisplay } from '@/lib/utils/dob'
 
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -283,11 +284,11 @@ export default function UserProfile() {
                 <label className={labelCls}>Date of Birth</label>
                 <input
                   type="text"
-                  value={profile?.date_of_birth ? new Date(profile.date_of_birth + 'T00:00:00').toLocaleDateString() : 'Not set'}
+                  value={formatDobDisplay(profile?.date_of_birth) || 'Not set'}
                   disabled
                   className={readonlyCls}
                 />
-                <p className="text-xs text-gray-400 mt-0.5">Set at registration</p>
+                <p className="text-xs text-gray-400 mt-0.5">Set at registration — contact support to change</p>
               </div>
             </div>
 

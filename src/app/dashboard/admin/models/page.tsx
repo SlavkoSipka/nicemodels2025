@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
-import { downloadCsv, fmtDateTime } from '@/lib/exportCsv'
+import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
 
 interface Model {
   id: string
@@ -26,6 +27,9 @@ interface Model {
 type SortKey = 'showname' | 'email' | 'city' | 'created_at' | 'is_verified' | 'is_blocked'
 
 export default function AdminModelsPage() {
+  const t = useTranslations('admin.models')
+  const tc = useTranslations('admin.common')
+  const tSb = useTranslations('admin.sidebar')
   const [loading, setLoading] = useState(true)
   const [models, setModels] = useState<Model[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -49,18 +53,18 @@ export default function AdminModelsPage() {
     if (error) { setLoading(false); return }
 
     const modelIds = (data || []).map((m: any) => m.id)
-    const [{ data: photos }, { data: contacts }] = await Promise.all([
+    const [{ data: photos }, contactsRes] = await Promise.all([
       supabase
         .from('model_photos')
         .select('model_id, file_path')
         .in('model_id', modelIds)
         .eq('is_approved', true)
         .order('uploaded_at', { ascending: false }),
-      supabase
-        .from('model_contact_details')
-        .select('model_id, country_code, phone_number, email')
-        .in('model_id', modelIds),
+      fetch('/api/admin/contacts?role=model', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : { contacts: [] })
+        .catch(() => ({ contacts: [] })),
     ])
+    const contacts = contactsRes.contacts as Array<{ model_id: string; country_code: string | null; phone_number: string | null }>
 
     const photoMap: Record<string, string> = {}
     const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -70,10 +74,10 @@ export default function AdminModelsPage() {
       }
     }
 
-    const contactMap: Record<string, { phone: string | null; email: string | null }> = {}
+    const contactMap: Record<string, { phone: string | null }> = {}
     for (const c of contacts || []) {
       const phone = c.phone_number ? `${c.country_code || ''} ${c.phone_number}`.trim() : null
-      contactMap[c.model_id] = { phone, email: c.email || null }
+      contactMap[c.model_id] = { phone }
     }
 
     setModels((data || []).map((m: any) => ({
@@ -81,13 +85,13 @@ export default function AdminModelsPage() {
       model_details: Array.isArray(m.model_details) ? m.model_details[0] : m.model_details,
       photoUrl: photoMap[m.id] || null,
       contact_phone: contactMap[m.id]?.phone || null,
-      contact_email: contactMap[m.id]?.email || null,
+      contact_email: null,
     })))
     setLoading(false)
   }
 
   const handleBlock = async (userId: string, blocked: boolean) => {
-    if (!confirm(`${blocked ? 'Unblock' : 'Block'} this model?`)) return
+    if (!confirm(blocked ? t('confirmUnblock') : t('confirmBlock'))) return
     const res = await fetch('/api/admin/block-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -95,7 +99,7 @@ export default function AdminModelsPage() {
     })
     if (!res.ok) {
       const data = await res.json()
-      alert(data.error || 'Failed to update block status')
+      alert(data.error || tc('failedToUpdate'))
       return
     }
     loadModels()
@@ -103,7 +107,7 @@ export default function AdminModelsPage() {
 
   const handleDelete = async (model: Model) => {
     const name = model.model_details?.showname || model.username || model.email
-    const confirmation = prompt(`Type DELETE to permanently remove model "${name}".\nThis will delete their account, photos, and all data. This cannot be undone.`)
+    const confirmation = prompt(`${t('deleteConfirmPrefix')} "${name}".\n${t('deleteWarning')}`)
     if (confirmation !== 'DELETE') return
     try {
       const res = await fetch('/api/account/delete', {
@@ -113,11 +117,11 @@ export default function AdminModelsPage() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to delete')
+        throw new Error(data.error || tc('failedToDelete'))
       }
       setModels(prev => prev.filter(m => m.id !== model.id))
     } catch (e: any) {
-      alert(e.message || 'Failed to delete model')
+      alert(e.message || t('deleteFailed'))
     }
   }
 
@@ -161,20 +165,20 @@ export default function AdminModelsPage() {
       : <ArrowDown className="w-3 h-3 text-gray-700" />
   }
 
-  const handleDownloadCsv = () => {
-    downloadCsv('nicemodels-models', sorted, [
-      { header: 'Public ID', value: m => m.public_id ?? '' },
-      { header: 'Showname', value: m => m.model_details?.showname || '' },
-      { header: 'Username', value: m => m.username || '' },
-      { header: 'Account Email', value: m => m.email || '' },
-      { header: 'Contact Email', value: m => m.contact_email || '' },
-      { header: 'Phone', value: m => m.contact_phone || '' },
-      { header: 'City', value: m => m.model_details?.city || '' },
-      { header: 'Joined', value: m => fmtDateTime(m.created_at) },
-      { header: 'Verified', value: m => m.is_verified ? 'Yes' : 'No' },
-      { header: 'Onboarded', value: m => m.onboarding_completed ? 'Yes' : 'No' },
-      { header: 'Blocked', value: m => m.is_blocked ? 'Yes' : 'No' },
-      { header: 'User ID', value: m => m.id },
+  const handleDownloadXlsx = () => {
+    downloadXlsx('nicemodels-models', sorted, [
+      { header: 'Public ID', value: m => m.public_id ?? '', width: 10 },
+      { header: 'Showname', value: m => m.model_details?.showname || '', width: 22 },
+      { header: 'Username', value: m => m.username || '', width: 20 },
+      { header: 'Account Email', value: m => m.email || '', width: 30 },
+      { header: 'Contact Email', value: m => m.contact_email || '', width: 30 },
+      { header: 'Phone', value: m => m.contact_phone || '', text: true, width: 22 },
+      { header: 'City', value: m => m.model_details?.city || '', width: 18 },
+      { header: 'Joined', value: m => fmtDateTime(m.created_at), text: true, width: 20 },
+      { header: 'Verified', value: m => m.is_verified ? 'Yes' : 'No', width: 10 },
+      { header: 'Onboarded', value: m => m.onboarding_completed ? 'Yes' : 'No', width: 12 },
+      { header: 'Blocked', value: m => m.is_blocked ? 'Yes' : 'No', width: 10 },
+      { header: 'User ID', value: m => m.id, text: true, width: 38 },
     ])
   }
 
@@ -182,29 +186,30 @@ export default function AdminModelsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-4">
 
           {/* Header */}
           <div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
                   <Users className="w-5 h-5 text-brand" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Models Management</h1>
-                  <p className="text-xs text-gray-500">{models.length} total · {sorted.length} shown</p>
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{tSb('models')}</h1>
+                  <p className="text-xs text-gray-500">{tc('totalShown', { total: models.length, shown: sorted.length })}</p>
                 </div>
               </div>
               <button
-                onClick={handleDownloadCsv}
+                onClick={handleDownloadXlsx}
                 disabled={sorted.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Download visible rows as CSV (Excel)"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                title={tc('downloadExcelTitle')}
               >
                 <Download className="w-4 h-4" />
-                Download CSV ({sorted.length})
+                <span className="hidden sm:inline">{tc('downloadExcel', { count: sorted.length })}</span>
+                <span className="sm:hidden">Excel ({sorted.length})</span>
               </button>
             </div>
           </div>
@@ -212,7 +217,7 @@ export default function AdminModelsPage() {
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search by ID, email, username, or showname..."
+            <input type="text" placeholder={t('searchPlaceholder')}
               value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
@@ -224,12 +229,12 @@ export default function AdminModelsPage() {
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
                     {([
-                      { label: 'Model', key: 'showname' as SortKey },
-                      { label: 'Email', key: 'email' as SortKey },
-                      { label: 'City', key: 'city' as SortKey },
-                      { label: 'Joined', key: 'created_at' as SortKey },
-                      { label: 'Verified', key: 'is_verified' as SortKey },
-                      { label: 'Status', key: 'is_blocked' as SortKey },
+                      { label: t('colModel'), key: 'showname' as SortKey },
+                      { label: t('colEmail'), key: 'email' as SortKey },
+                      { label: t('colCity'), key: 'city' as SortKey },
+                      { label: t('colJoined'), key: 'created_at' as SortKey },
+                      { label: t('colVerified'), key: 'is_verified' as SortKey },
+                      { label: t('colStatus'), key: 'is_blocked' as SortKey },
                     ]).map(col => (
                       <th key={col.key} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                         <button onClick={() => toggleSort(col.key)} className="inline-flex items-center gap-1 hover:text-gray-900">
@@ -238,7 +243,7 @@ export default function AdminModelsPage() {
                         </button>
                       </th>
                     ))}
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{tc('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -265,7 +270,7 @@ export default function AdminModelsPage() {
                               {model.model_details?.showname || model.username || 'N/A'}
                               {model.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{model.public_id}</span>}
                             </p>
-                            <p className="text-xs text-gray-400 truncate">@{model.username || 'no-username'}</p>
+                            <p className="text-xs text-gray-400 truncate">@{model.username || t('noUsername')}</p>
                           </div>
                         </Link>
                       </td>
@@ -275,25 +280,25 @@ export default function AdminModelsPage() {
                       <td className="px-4 py-3">
                         {model.is_verified ? (
                           <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-                            <CheckCircle className="w-3 h-3" /> Yes
+                            <CheckCircle className="w-3 h-3" /> {tc('verified')}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400">No</span>
+                          <span className="text-xs text-gray-400">{tc('no')}</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col gap-1">
                           {model.is_blocked ? (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                              <Ban className="w-3 h-3" /> Blocked
+                              <Ban className="w-3 h-3" /> {tc('blocked')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                              <CheckCircle className="w-3 h-3" /> Active
+                              <CheckCircle className="w-3 h-3" /> {tc('active')}
                             </span>
                           )}
                           {!model.onboarding_completed && (
-                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Incomplete</span>
+                            <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">{tc('incomplete')}</span>
                           )}
                         </div>
                       </td>
@@ -301,11 +306,11 @@ export default function AdminModelsPage() {
                         <div className="flex items-center gap-1.5">
                           <Link href={`/dashboard/admin/models/${model.id}`}
                             className="px-2.5 py-1 text-xs font-semibold rounded-md bg-brand/10 text-brand hover:bg-brand/20 transition-colors flex items-center gap-1">
-                            <Pencil className="w-3 h-3" /> Edit
+                            <Pencil className="w-3 h-3" /> {tc('edit')}
                           </Link>
                           <button onClick={() => { setSelectedModel(model); setShowPhotoModal(true) }}
                             className="px-2.5 py-1 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors flex items-center gap-1">
-                            <Camera className="w-3 h-3" /> Photos
+                            <Camera className="w-3 h-3" /> {t('photos')}
                           </button>
                           <button onClick={() => handleBlock(model.id, model.is_blocked)}
                             className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
@@ -313,12 +318,12 @@ export default function AdminModelsPage() {
                                 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                                 : 'bg-red-50 text-red-700 hover:bg-red-100'
                             }`}>
-                            {model.is_blocked ? 'Unblock' : 'Block'}
+                            {model.is_blocked ? tc('unblock') : tc('block')}
                           </button>
                           <button
                             onClick={() => handleDelete(model)}
                             className="p-1.5 text-xs font-semibold rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
-                            title="Delete account permanently"
+                            title={tc('delete')}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -331,7 +336,7 @@ export default function AdminModelsPage() {
             </div>
             {sorted.length === 0 && (
               <div className="text-center py-10">
-                <p className="text-sm text-gray-400">No models found</p>
+                <p className="text-sm text-gray-400">{t('noModelsFound')}</p>
               </div>
             )}
           </div>

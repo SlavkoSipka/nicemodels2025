@@ -71,13 +71,14 @@ export async function POST(request: NextRequest) {
       case 'listing_view': {
         const listing_id = String(payload.listing_id || '')
         if (!listing_id) return NextResponse.json({ error: 'listing_id required' }, { status: 400 })
-        await admin.from('listing_views').insert({
+        const { error } = await admin.from('listing_views').insert({
           listing_id,
           viewer_id,
           viewer_role,
           user_agent: ua,
           ip_address: ip,
         })
+        if (error) console.error('[track/event] listing_view insert error:', error)
         break
       }
       case 'listing_click': {
@@ -86,13 +87,14 @@ export async function POST(request: NextRequest) {
         if (!listing_id || !click_type) {
           return NextResponse.json({ error: 'listing_id and click_type required' }, { status: 400 })
         }
-        await admin.from('listing_clicks').insert({
+        const { error } = await admin.from('listing_clicks').insert({
           listing_id,
           viewer_id,
           click_type,
           user_agent: ua,
           ip_address: ip,
         })
+        if (error) console.error('[track/event] listing_click insert error:', error)
         break
       }
       case 'banner_impression': {

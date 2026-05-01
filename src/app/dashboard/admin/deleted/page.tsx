@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Trash2, User, Building2, UserCircle } from 'lucide-react'
 
@@ -22,6 +23,7 @@ const roleIcon = (role: string | null) => {
 }
 
 export default function AdminDeletedPage() {
+  const t = useTranslations('admin.deleted')
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState<DeletedAccount[]>([])
 
@@ -42,17 +44,17 @@ export default function AdminDeletedPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-4">
 
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                 <Trash2 className="w-5 h-5 text-gray-600" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Deleted Accounts</h1>
-                <p className="text-xs text-gray-500">{rows.length} archived</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+                <p className="text-xs text-gray-500">{t('totalArchived', { count: rows.length })}</p>
               </div>
             </div>
           </div>
@@ -62,7 +64,7 @@ export default function AdminDeletedPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    {['User', 'Email', 'Role', 'Deleted At', 'Deleted By', 'Reason'].map(h => (
+                    {[t('colUser'), t('colEmail'), t('colRole'), t('colDeletedAt'), t('colDeletedBy'), t('colReason')].map(h => (
                       <th key={h} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -89,7 +91,7 @@ export default function AdminDeletedPage() {
                       </td>
                       <td className="px-4 py-3 text-xs text-gray-500">{new Date(row.deleted_at).toLocaleString()}</td>
                       <td className="px-4 py-3 text-xs text-gray-500">
-                        {row.deleted_by === 'self' ? <span className="font-semibold text-gray-700">self</span> : <span className="font-mono">{row.deleted_by.slice(0, 8)}…</span>}
+                        {row.deleted_by === 'self' ? <span className="font-semibold text-gray-700">{t('self')}</span> : <span className="font-mono">{row.deleted_by.slice(0, 8)}…</span>}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700 max-w-[260px] truncate">{row.reason || '—'}</td>
                     </tr>
@@ -100,7 +102,7 @@ export default function AdminDeletedPage() {
             {rows.length === 0 && (
               <div className="text-center py-12">
                 <Trash2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">No deleted accounts yet</p>
+                <p className="text-sm text-gray-400">{t('noAccounts')}</p>
               </div>
             )}
           </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { ArrowLeft, Trash2, User, Building2, X, Image, CheckCircle, XCircle } from 'lucide-react'
@@ -23,6 +24,8 @@ type TypeFilter = 'all' | 'photos' | 'videos'
 type OwnerFilter = 'all' | 'models' | 'clubs'
 
 export default function ReviewMediaPage() {
+  const t = useTranslations('admin.reviewMedia')
+  const tc = useTranslations('admin.common')
   const [loading, setLoading] = useState(true)
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [filter, setFilter] = useState<StatusFilter>('all')
@@ -120,7 +123,7 @@ export default function ReviewMediaPage() {
   }, [mediaItems])
 
   const handleDelete = async (item: MediaItem) => {
-    if (!confirm('Are you sure you want to permanently delete this media?')) return
+    if (!confirm(t('confirmDelete'))) return
     const table = item.owner_type === 'model' ? (item.type === 'photo' ? 'model_photos' : 'model_videos') : (item.type === 'photo' ? 'club_photos' : 'club_videos')
     const bucket = item.owner_type === 'model' ? (item.type === 'photo' ? 'model-photos' : 'model-videos') : (item.type === 'photo' ? 'club-photos' : 'club-videos')
     try {
@@ -155,67 +158,67 @@ export default function ReviewMediaPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-4">
 
           {/* Header */}
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
                 <Image className="w-5 h-5 text-amber-600" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Review Media</h1>
-                <p className="text-xs text-gray-500">Manage all photos and videos on the platform</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+                <p className="text-xs text-gray-500 truncate">{t('subtitle')}</p>
               </div>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div>
-                <p className="text-xs font-bold text-gray-500 uppercase mb-1.5">Status</p>
-                <div className="flex gap-1.5">
-                  <FilterBtn active={filter === 'all'} onClick={() => setFilter('all')}>All</FilterBtn>
-                  <FilterBtn active={filter === 'approved'} onClick={() => setFilter('approved')}>Approved</FilterBtn>
-                  <FilterBtn active={filter === 'not_approved'} onClick={() => setFilter('not_approved')}>Unapproved</FilterBtn>
+          <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4">
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-1.5">{t('filterStatus')}</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  <FilterBtn active={filter === 'all'} onClick={() => setFilter('all')}>{t('all')}</FilterBtn>
+                  <FilterBtn active={filter === 'approved'} onClick={() => setFilter('approved')}>{t('approved')}</FilterBtn>
+                  <FilterBtn active={filter === 'not_approved'} onClick={() => setFilter('not_approved')}>{t('unapproved')}</FilterBtn>
                 </div>
               </div>
-              <div className="w-px h-8 bg-gray-200" />
-              <div>
-                <p className="text-xs font-bold text-gray-500 uppercase mb-1.5">Type</p>
-                <div className="flex gap-1.5">
-                  <FilterBtn active={typeFilter === 'all'} onClick={() => setTypeFilter('all')} color="blue">All</FilterBtn>
-                  <FilterBtn active={typeFilter === 'photos'} onClick={() => setTypeFilter('photos')} color="blue">Photos</FilterBtn>
-                  <FilterBtn active={typeFilter === 'videos'} onClick={() => setTypeFilter('videos')} color="blue">Videos</FilterBtn>
+              <div className="hidden sm:block w-px h-8 bg-gray-200" />
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-1.5">{t('filterType')}</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  <FilterBtn active={typeFilter === 'all'} onClick={() => setTypeFilter('all')} color="blue">{t('all')}</FilterBtn>
+                  <FilterBtn active={typeFilter === 'photos'} onClick={() => setTypeFilter('photos')} color="blue">{t('photos')}</FilterBtn>
+                  <FilterBtn active={typeFilter === 'videos'} onClick={() => setTypeFilter('videos')} color="blue">{t('videos')}</FilterBtn>
                 </div>
               </div>
-              <div className="w-px h-8 bg-gray-200" />
-              <div>
-                <p className="text-xs font-bold text-gray-500 uppercase mb-1.5">Owner</p>
-                <div className="flex gap-1.5">
-                  <FilterBtn active={ownerFilter === 'all'} onClick={() => setOwnerFilter('all')} color="purple">All</FilterBtn>
-                  <FilterBtn active={ownerFilter === 'models'} onClick={() => setOwnerFilter('models')} color="purple">Models</FilterBtn>
-                  <FilterBtn active={ownerFilter === 'clubs'} onClick={() => setOwnerFilter('clubs')} color="purple">Clubs</FilterBtn>
+              <div className="hidden sm:block w-px h-8 bg-gray-200" />
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-1.5">{t('filterOwner')}</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  <FilterBtn active={ownerFilter === 'all'} onClick={() => setOwnerFilter('all')} color="purple">{t('all')}</FilterBtn>
+                  <FilterBtn active={ownerFilter === 'models'} onClick={() => setOwnerFilter('models')} color="purple">{t('models')}</FilterBtn>
+                  <FilterBtn active={ownerFilter === 'clubs'} onClick={() => setOwnerFilter('clubs')} color="purple">{t('clubs')}</FilterBtn>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white border border-gray-200 rounded-lg px-4 py-3">
-              <p className="text-xs text-gray-500">Total</p>
-              <p className="text-xl font-bold text-gray-900">{mediaItems.length}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3">
+              <p className="text-xs text-gray-500">{t('total')}</p>
+              <p className="text-lg sm:text-xl font-bold text-gray-900">{mediaItems.length}</p>
             </div>
-            <div className="bg-white border border-emerald-200 rounded-lg px-4 py-3">
-              <p className="text-xs text-emerald-600">Approved</p>
-              <p className="text-xl font-bold text-emerald-700">{approvedCount}</p>
+            <div className="bg-white border border-emerald-200 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3">
+              <p className="text-xs text-emerald-600">{t('approved')}</p>
+              <p className="text-lg sm:text-xl font-bold text-emerald-700">{approvedCount}</p>
             </div>
-            <div className="bg-white border border-red-200 rounded-lg px-4 py-3">
-              <p className="text-xs text-red-600">Unapproved</p>
-              <p className="text-xl font-bold text-red-700">{unapprovedCount}</p>
+            <div className="bg-white border border-red-200 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3">
+              <p className="text-xs text-red-600">{t('unapproved')}</p>
+              <p className="text-lg sm:text-xl font-bold text-red-700">{unapprovedCount}</p>
             </div>
           </div>
 
@@ -223,7 +226,7 @@ export default function ReviewMediaPage() {
           {mediaItems.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg py-12 text-center">
               <Image className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">No media matches the selected filters</p>
+              <p className="text-sm text-gray-400">{t('noMediaMatches')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
@@ -289,38 +292,38 @@ export default function ReviewMediaPage() {
                 : <video src={mediaUrls.get(selectedMedia.id)} className="w-full max-h-[70vh] object-contain" controls autoPlay />}
             </div>
 
-            <div className="bg-white rounded-lg p-4 mb-3">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="bg-white rounded-lg p-3 sm:p-4 mb-3">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
                 {selectedMedia.owner_type === 'model'
-                  ? <User className="w-4 h-4 text-brand" />
-                  : <Building2 className="w-4 h-4 text-blue-600" />}
-                <p className="text-sm font-bold text-gray-900">
+                  ? <User className="w-4 h-4 text-brand shrink-0" />
+                  : <Building2 className="w-4 h-4 text-blue-600 shrink-0" />}
+                <p className="text-sm font-bold text-gray-900 truncate">
                   {selectedMedia.owner_name}
                   {selectedMedia.owner_public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{selectedMedia.owner_public_id}</span>}
                 </p>
-                <a href={`mailto:${selectedMedia.owner_email}`} className="text-xs text-gray-400 hover:text-brand hover:underline">{selectedMedia.owner_email}</a>
+                <a href={`mailto:${selectedMedia.owner_email}`} className="text-xs text-gray-400 hover:text-brand hover:underline truncate min-w-0">{selectedMedia.owner_email}</a>
               </div>
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                <span>Uploaded: {new Date(selectedMedia.uploaded_at).toLocaleString()}</span>
-                <span>Status: {selectedMedia.is_approved
-                  ? <span className="font-semibold text-emerald-600">Published</span>
-                  : <span className="font-semibold text-red-600">Not published</span>}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                <span>{t('uploaded')}: {new Date(selectedMedia.uploaded_at).toLocaleString()}</span>
+                <span>{tc('status')}: {selectedMedia.is_approved
+                  ? <span className="font-semibold text-emerald-600">{t('published')}</span>
+                  : <span className="font-semibold text-red-600">{t('notPublished')}</span>}
                 </span>
               </div>
             </div>
 
-            <div className="flex gap-3 justify-center">
+            <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
               <button onClick={() => handleToggle(selectedMedia)}
-                className={`px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors ${
+                className={`px-4 sm:px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors ${
                   selectedMedia.is_approved
                     ? 'bg-amber-600 hover:bg-amber-700 text-white'
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white'
                 }`}>
-                {selectedMedia.is_approved ? 'Unpublish' : 'Approve & Publish'}
+                {selectedMedia.is_approved ? t('unpublish') : t('approveAndPublish')}
               </button>
               <button onClick={() => handleDelete(selectedMedia)}
-                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors">
-                <Trash2 className="w-4 h-4" /> Delete Permanently
+                className="px-4 sm:px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors">
+                <Trash2 className="w-4 h-4" /> {tc('delete')}
               </button>
             </div>
           </div>

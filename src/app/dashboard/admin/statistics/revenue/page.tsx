@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { DollarSign, ShoppingBag, TrendingUp, Clock, XCircle } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
 import DateRangePicker, { RangeKey } from '@/components/admin/charts/DateRangePicker'
@@ -38,6 +39,8 @@ const METHOD_COLORS: Record<string, string> = {
 }
 
 export default function RevenueStatsPage() {
+  const t = useTranslations('admin.stats')
+  const tc = useTranslations('admin.common')
   const [range, setRange] = useState<RangeKey>('30d')
   const [data, setData] = useState<Resp | null>(null)
   const [loading, setLoading] = useState(true)
@@ -51,13 +54,13 @@ export default function RevenueStatsPage() {
   }, [range])
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <DollarSign className="w-6 h-6 text-emerald-500" /> Revenue
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 shrink-0" /> {t('revenueTitle')}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Orders, products &amp; payments</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t('revenueSubtitle')}</p>
         </div>
         <DateRangePicker value={range} onChange={setRange} />
       </div>
@@ -66,25 +69,25 @@ export default function RevenueStatsPage() {
         <div className="h-80 bg-gray-200 rounded-xl animate-pulse" />
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <KpiCard label="Total Revenue" value={money(data.kpis.totalRevenue)} icon={<DollarSign className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" />
-            <KpiCard label="Paid Orders" value={data.kpis.paidOrders.toLocaleString()} icon={<ShoppingBag className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" />
-            <KpiCard label="Avg Order Value" value={money(data.kpis.avgOrderValue)} icon={<TrendingUp className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" />
-            <KpiCard label="Pending" value={data.kpis.pendingOrders.toLocaleString()} icon={<Clock className="w-4 h-4" />} accent="text-amber-600 bg-amber-50" />
-            <KpiCard label="Cancelled" value={data.kpis.cancelledOrders.toLocaleString()} icon={<XCircle className="w-4 h-4" />} accent="text-rose-600 bg-rose-50" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+            <KpiCard label={t('totalRevenue')} value={money(data.kpis.totalRevenue)} icon={<DollarSign className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" />
+            <KpiCard label={t('paidOrders')} value={data.kpis.paidOrders.toLocaleString()} icon={<ShoppingBag className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" />
+            <KpiCard label={t('avgOrderValue')} value={money(data.kpis.avgOrderValue)} icon={<TrendingUp className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" />
+            <KpiCard label={t('pending')} value={data.kpis.pendingOrders.toLocaleString()} icon={<Clock className="w-4 h-4" />} accent="text-amber-600 bg-amber-50" />
+            <KpiCard label={t('cancelled')} value={data.kpis.cancelledOrders.toLocaleString()} icon={<XCircle className="w-4 h-4" />} accent="text-rose-600 bg-rose-50" />
           </div>
 
-          <ChartCard title="Revenue Over Time" subtitle="Daily paid orders">
+          <ChartCard title={t('revenueOverTime')} subtitle={t('dailyPaidOrders')}>
             <StatsAreaChart
               data={data.series.map(d => ({ ...d, date: shortDate(d.date) }))}
               xKey="date"
-              series={[{ key: 'revenue', name: 'Revenue (CHF)', color: '#10b981' }]}
+              series={[{ key: 'revenue', name: t('revenueLine'), color: '#10b981' }]}
               height={320}
             />
           </ChartCard>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <ChartCard title="Revenue by Product Type" subtitle="Distribution across products">
+            <ChartCard title={t('revenueByProduct')} subtitle={t('revenueByProductSub')}>
               <StatsDonutChart
                 data={Object.entries(data.byProductType).map(([k, v]) => ({
                   name: k.replace(/_/g, ' '),
@@ -95,7 +98,7 @@ export default function RevenueStatsPage() {
               />
             </ChartCard>
 
-            <ChartCard title="Payment Methods" subtitle="Orders by method">
+            <ChartCard title={t('paymentMethods')} subtitle={t('ordersByMethod')}>
               <StatsDonutChart
                 data={Object.entries(data.paymentMethods).map(([k, v]) => ({
                   name: k.toUpperCase(),
@@ -107,19 +110,19 @@ export default function RevenueStatsPage() {
             </ChartCard>
           </div>
 
-          <ChartCard title="Top Products" subtitle="Highest revenue generators">
+          <ChartCard title={t('topProducts')} subtitle={t('topProductsSub')}>
             {data.topProducts.length === 0 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No sales yet</p>
+              <p className="text-sm text-gray-400 py-8 text-center">{t('noSales')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                      <th className="text-left py-2 px-2">#</th>
-                      <th className="text-left py-2 px-2">Product</th>
-                      <th className="text-center py-2 px-2">Type</th>
-                      <th className="text-right py-2 px-2">Units</th>
-                      <th className="text-right py-2 px-2">Revenue</th>
+                      <th className="text-left py-2 px-2">{t('colHash')}</th>
+                      <th className="text-left py-2 px-2">{t('colProduct')}</th>
+                      <th className="text-center py-2 px-2">{t('colType')}</th>
+                      <th className="text-right py-2 px-2">{t('colUnits')}</th>
+                      <th className="text-right py-2 px-2">{t('colRevenue')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -142,19 +145,19 @@ export default function RevenueStatsPage() {
             )}
           </ChartCard>
 
-          <ChartCard title="Recent Orders" subtitle="Last 10 orders in range">
+          <ChartCard title={t('recentOrders')} subtitle={t('recentOrdersSub')}>
             {data.recentOrders.length === 0 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No orders</p>
+              <p className="text-sm text-gray-400 py-8 text-center">{t('noOrders')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                      <th className="text-left py-2 px-2">Date</th>
-                      <th className="text-left py-2 px-2">Order ID</th>
-                      <th className="text-center py-2 px-2">Status</th>
-                      <th className="text-center py-2 px-2">Method</th>
-                      <th className="text-right py-2 px-2">Total</th>
+                      <th className="text-left py-2 px-2">{t('colDate')}</th>
+                      <th className="text-left py-2 px-2">{t('colOrderId')}</th>
+                      <th className="text-center py-2 px-2">{t('colStatus')}</th>
+                      <th className="text-center py-2 px-2">{t('colMethod')}</th>
+                      <th className="text-right py-2 px-2">{t('colTotal')}</th>
                     </tr>
                   </thead>
                   <tbody>

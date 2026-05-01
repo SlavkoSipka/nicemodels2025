@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Megaphone, Upload, X, CheckCircle, AlertCircle, Trash2,
-  ShoppingCart,
+  ShoppingCart, Lock, Zap, ChevronRight,
 } from 'lucide-react'
 import BannerPlacementPreview from '@/components/buy-banner/BannerPlacementPreview'
 import PlacementPicker from '@/components/buy-banner/PlacementPicker'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
 import { normalizePlacement } from '@/lib/bannerPlacement'
+import { checkActiveAd } from '@/lib/activeAd'
 
 interface Product {
   id: string
@@ -63,6 +64,7 @@ export default function BuyBannerPage() {
   const [selectedPackage, setSelectedPackage] = useState<Product | null>(null)
   const [banners, setBanners] = useState<BannerRow[]>([])
   const [activeSlots, setActiveSlots] = useState<Set<BannerPlacement>>(new Set())
+  const [hasActiveAd, setHasActiveAd] = useState(false)
 
   const [selectedPlacement, setSelectedPlacement] = useState<BannerPlacement | null>(null)
   const [ctaUrl, setCtaUrl] = useState('')
@@ -119,10 +121,11 @@ export default function BuyBannerPage() {
       if (!user) { router.push('/login'); return }
       setUser(user)
 
-      const [{ data: details }, { data: bannersData }, { data: pkgData }] = await Promise.all([
+      const [{ data: details }, { data: bannersData }, { data: pkgData }, adStatus] = await Promise.all([
         supabase.from('club_details').select('*').eq('club_id', user.id).single(),
         supabase.from('banners').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }),
         supabase.from('products').select('*').eq('product_type', 'banner_package').eq('is_active', true).order('display_order'),
+        checkActiveAd(supabase, user.id),
       ])
 
       if (details) setClubDetails(details)
@@ -131,6 +134,7 @@ export default function BuyBannerPage() {
         setActiveSlots(activePlacementsFromRows(bannersData as BannerRow[]))
       }
       if (pkgData) setPackages(pkgData)
+      setHasActiveAd(adStatus.hasActiveAd)
     } catch { /* ignore */ } finally {
       setLoading(false)
     }
@@ -152,6 +156,7 @@ export default function BuyBannerPage() {
 
   const handleActivate = async () => {
     setError(''); setSuccess('')
+    if (!hasActiveAd) { setError('You need an active club ad before purchasing a banner'); return }
     if (!selectedPlacement) { setError('Please select a placement'); return }
     if (activeSlots.has(selectedPlacement)) { setError('You already have an active banner in this slot'); return }
     if (!selectedPackage) { setError('Please select a package'); return }
@@ -284,6 +289,28 @@ export default function BuyBannerPage() {
 
         <BannerPlacementPreview ownerType="club" />
 
+        {!hasActiveAd && (
+          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3.5 md:p-5 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+              <Lock className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-amber-900 mb-1">Activate your club ad first</p>
+              <p className="text-sm text-amber-800 mb-3">
+                You can only purchase banners while your club has an active ad. Activate one and come back to boost your visibility.
+              </p>
+              <button
+                onClick={() => router.push('/dashboard/company/activate-ad')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Activate Club Ad
+                <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
@@ -310,6 +337,7 @@ export default function BuyBannerPage() {
           </div>
         )}
 
+        {hasActiveAd && (
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
           <p className="text-sm font-bold text-gray-800">1. Choose placement</p>
           <PlacementPicker
@@ -323,8 +351,9 @@ export default function BuyBannerPage() {
             previewUrl={imagePreview}
           />
         </div>
+        )}
 
-        {selectedPlacement && (
+        {hasActiveAd && selectedPlacement && (
           <div ref={afterPlacementRef} className="space-y-4">
         {slotFreeForSelection && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">

@@ -451,7 +451,7 @@ export default function ModelDashboardPage() {
                     onClick={() => router.push('/dashboard/model/activate-ad')}
                     className="text-xs font-bold text-violet-600 hover:text-violet-800 flex items-center gap-1 mx-auto transition-colors"
                   >
-                    Activate Ad <ChevronRight className="w-3.5 h-3.5" />
+                    Activate Sedcard <ChevronRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
@@ -584,8 +584,8 @@ export default function ModelDashboardPage() {
                     {
                       step: '3',
                       title: 'Activate your ad',
-                      desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your profile will appear in search results.',
-                      action: 'Activate Ad',
+                      desc: 'Go to Activate Sedcard and choose a duration. During beta, this is 100% free — your profile will appear in search results.',
+                      action: 'Activate Sedcard',
                       href: '/dashboard/model/activate-ad',
                     },
                   ].map(({ step, title, desc, action, href }) => (

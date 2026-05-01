@@ -102,7 +102,7 @@ export default function CompanyDashboardPage() {
                   <p>· Advertising features are disabled</p>
                 </div>
                 <a
-                  href="mailto:support@nicemodels.ch?subject=Account Blocked - Appeal Request"
+                  href="mailto:info@nicemodels.ch?subject=Account Blocked - Appeal Request"
                   className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-red-700 hover:text-red-900 underline underline-offset-2"
                 >
                   <Mail className="w-3.5 h-3.5" /> Contact support to appeal
@@ -240,7 +240,7 @@ export default function CompanyDashboardPage() {
                   {
                     step: '1',
                     title: 'Complete your club profile',
-                    desc: 'Go to Club Profile and fill in your basic info, contact details and working hours. This is exactly what clients will see.',
+                    desc: 'Go to Basic Info and fill in your identity, contact, location and amenities. This is exactly what clients will see.',
                     action: 'Open Club Profile',
                     href: '/dashboard/company/profile/basic-info',
                   },
@@ -261,8 +261,8 @@ export default function CompanyDashboardPage() {
                   {
                     step: '4',
                     title: 'Activate your ad',
-                    desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your club will appear in search results.',
-                    action: 'Activate Ad',
+                    desc: 'Go to Activate Sedcard and choose a duration. During beta, this is 100% free — your club will appear in search results.',
+                    action: 'Activate Sedcard',
                     href: '/dashboard/company/activate-ad',
                   },
                 ].map(({ step, title, desc, action, href }) => (
@@ -374,8 +374,8 @@ export default function CompanyDashboardPage() {
                 <p className="text-sm font-bold text-gray-800">Support</p>
               </div>
               <div className="space-y-2">
-                <a href="mailto:support@nicemodels.ch" className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand transition-colors">
-                  <Mail className="w-4 h-4 text-gray-400" /> support@nicemodels.ch
+                <a href="mailto:info@nicemodels.ch" className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand transition-colors">
+                  <Mail className="w-4 h-4 text-gray-400" /> info@nicemodels.ch
                 </a>
                 <p className="flex items-center gap-2 text-sm text-gray-600">
                   <Mail className="w-4 h-4 text-gray-400" /> Live chat available 24/7

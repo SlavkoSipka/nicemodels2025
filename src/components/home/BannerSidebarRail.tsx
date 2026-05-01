@@ -21,7 +21,7 @@ export default function BannerSidebarRail({ banners }: BannerSidebarRailProps) {
       {list.map(banner => {
         const href = banner.cta_url || `/${banner.owner_type === 'club' ? 'clubs' : 'models'}/${banner.owner_id}`
         return (
-          <Link key={banner.id} href={href} className="block group w-full shrink-0">
+          <Link key={banner.id} href={href} target="_blank" rel="noopener noreferrer" className="block group w-full shrink-0">
             <div
               className="relative overflow-hidden w-full rounded-xl transition-all duration-300"
               style={{

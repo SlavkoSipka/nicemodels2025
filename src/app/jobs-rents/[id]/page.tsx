@@ -121,6 +121,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
           email: listing.email,
           website: listing.website,
           created_at: listing.created_at,
+          expires_at: listing.expires_at ?? null,
           club_id: listing.club_id,
           club_name: clubDetails?.display_name || clubDetails?.club_name || 'Club',
           club_area: clubDetails?.area || null,

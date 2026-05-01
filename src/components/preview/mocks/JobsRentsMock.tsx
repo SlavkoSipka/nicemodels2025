@@ -50,14 +50,14 @@ function ListingRow({
 
   return (
     <div
-      className={`relative rounded-lg overflow-hidden bg-white flex ${compact ? 'flex-col' : 'flex-row'} ${
+      className={`relative rounded-lg overflow-hidden bg-white flex ${compact ? 'flex-col' : 'flex-row'} transition-all ${
         highlighted
-          ? 'ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.25)]'
-          : 'border border-slate-200 shadow-sm'
+          ? 'ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.3),0_8px_24px_-6px_rgba(139,92,246,0.45)] z-10'
+          : 'border border-slate-200 shadow-sm grayscale opacity-60'
       }`}
     >
       {highlighted && (
-        <div className="absolute -top-1.5 left-2 z-10 bg-violet-600 text-white px-1.5 py-0.5 rounded-md text-[8px] font-extrabold shadow-lg">
+        <div className="absolute -top-1.5 left-2 z-20 bg-violet-600 text-white px-1.5 py-0.5 rounded-md text-[8px] font-extrabold shadow-lg">
           YOUR LISTING
         </div>
       )}

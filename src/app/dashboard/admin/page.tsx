@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import {
   Users, Building2, UserCircle, Briefcase, Megaphone, ShieldCheck, Flag,
   DollarSign, TrendingUp, AlertCircle, Eye, MessageSquare,
@@ -24,7 +25,7 @@ interface Overview {
     pendingVerifications: number
     pendingReports: number
     pendingMedia: number
-    totalComments: number
+    pendingComments: number
     revenueAllTime: number
     revenue30d: number
     pageViews30d: number
@@ -42,6 +43,7 @@ function money(n: number) {
 }
 
 export default function AdminOverviewPage() {
+  const t = useTranslations('admin.overview')
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<Overview | null>(null)
 
@@ -57,7 +59,7 @@ export default function AdminOverviewPage() {
 
   if (loading || !data) {
     return (
-      <div className="p-6 lg:p-8">
+      <div className="p-3 sm:p-6 lg:p-8">
         <div className="h-8 w-52 bg-gray-200 rounded animate-pulse mb-6" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -70,33 +72,40 @@ export default function AdminOverviewPage() {
   }
 
   const { kpis, trafficSeries, signupSeries, roleCounts, topModels, siteActions } = data
-  const totalPending = kpis.pendingVerifications + kpis.pendingReports + kpis.pendingMedia
+  const totalPending = kpis.pendingVerifications + kpis.pendingReports + kpis.pendingMedia + kpis.pendingComments
+  const pendingHref =
+    kpis.pendingVerifications > 0 ? '/dashboard/admin/verification'
+    : kpis.pendingReports > 0 ? '/dashboard/admin/reports'
+    : kpis.pendingMedia > 0 ? '/dashboard/admin/review-media'
+    : kpis.pendingComments > 0 ? '/dashboard/admin/comments'
+    : '/dashboard/admin/verification'
 
   const trafficFmt = trafficSeries.map(d => ({ ...d, date: shortDate(d.date) }))
   const signupFmt = signupSeries.map(d => ({ ...d, date: shortDate(d.date) }))
 
   const roleData = [
-    { name: 'Visitors', value: roleCounts.user || 0, color: '#8b5cf6' },
-    { name: 'Models', value: roleCounts.model || 0, color: '#ec4899' },
-    { name: 'Clubs', value: roleCounts.company || 0, color: '#3b82f6' },
-    { name: 'Admins', value: roleCounts.admin || 0, color: '#64748b' },
+    { name: t('rolesVisitors'), value: roleCounts.user || 0, color: '#8b5cf6' },
+    { name: t('rolesModels'), value: roleCounts.model || 0, color: '#ec4899' },
+    { name: t('rolesClubs'), value: roleCounts.company || 0, color: '#3b82f6' },
+    { name: t('rolesAdmins'), value: roleCounts.admin || 0, color: '#64748b' },
   ]
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
 
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Platform overview &amp; key metrics</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">{t('title')}</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t('subtitle')}</p>
         </div>
         <Link
           href="/dashboard/admin/statistics/traffic"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-brand bg-brand/10 rounded-lg hover:bg-brand/20"
         >
           <TrendingUp className="w-3.5 h-3.5" />
-          View detailed analytics
+          <span className="hidden sm:inline">{t('viewAnalytics')}</span>
+          <span className="sm:hidden">{t('viewAnalytics')}</span>
         </Link>
       </div>
 
@@ -105,41 +114,41 @@ export default function AdminOverviewPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
           <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
           <p className="text-sm text-amber-800">
-            <span className="font-bold">{totalPending} items</span> require attention —
-            {kpis.pendingMedia > 0 && ` ${kpis.pendingMedia} media,`}
-            {kpis.pendingVerifications > 0 && ` ${kpis.pendingVerifications} verifications,`}
-            {kpis.pendingReports > 0 && ` ${kpis.pendingReports} reports`}
+            <span className="font-bold">{t('itemsRequireAttention', { count: totalPending })}</span> —
+            {kpis.pendingMedia > 0 && ` ${t('media', { count: kpis.pendingMedia })},`}
+            {kpis.pendingVerifications > 0 && ` ${t('verifications', { count: kpis.pendingVerifications })},`}
+            {kpis.pendingReports > 0 && ` ${t('reportsCount', { count: kpis.pendingReports })}`}
           </p>
         </div>
       )}
 
       {/* KPI row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-        <KpiCard label="Visitors" value={kpis.totalVisitors.toLocaleString()} icon={<UserCircle className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" href="/dashboard/admin/users" />
-        <KpiCard label="Models" value={kpis.totalModels.toLocaleString()} icon={<Users className="w-4 h-4" />} accent="text-brand bg-brand/10" href="/dashboard/admin/models" />
-        <KpiCard label="Clubs" value={kpis.totalClubs.toLocaleString()} icon={<Building2 className="w-4 h-4" />} accent="text-blue-600 bg-blue-50" href="/dashboard/admin/clubs" />
-        <KpiCard label="Active Listings" value={kpis.activeListings.toLocaleString()} icon={<Briefcase className="w-4 h-4" />} accent="text-purple-600 bg-purple-50" href="/dashboard/admin/jobs-rents" />
-        <KpiCard label="Active Banners" value={kpis.activeBanners.toLocaleString()} icon={<Megaphone className="w-4 h-4" />} accent="text-rose-600 bg-rose-50" href="/dashboard/admin/banners" />
-        <KpiCard label="Page Views (30d)" value={kpis.pageViews30d.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" href="/dashboard/admin/statistics/traffic" />
-        <KpiCard label="Revenue (30d)" value={money(kpis.revenue30d)} icon={<DollarSign className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" sub={`${money(kpis.revenueAllTime)} all time`} href="/dashboard/admin/statistics/revenue" />
-        <KpiCard label="Pending Moderation" value={totalPending} icon={<ShieldCheck className="w-4 h-4" />} accent="text-amber-600 bg-amber-50" urgent={totalPending > 0} href="/dashboard/admin/verification" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-8 gap-2 sm:gap-3">
+        <KpiCard label={t('kpiVisitors')} value={kpis.totalVisitors.toLocaleString()} icon={<UserCircle className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" href="/dashboard/admin/users" />
+        <KpiCard label={t('kpiModels')} value={kpis.totalModels.toLocaleString()} icon={<Users className="w-4 h-4" />} accent="text-brand bg-brand/10" href="/dashboard/admin/models" />
+        <KpiCard label={t('kpiClubs')} value={kpis.totalClubs.toLocaleString()} icon={<Building2 className="w-4 h-4" />} accent="text-blue-600 bg-blue-50" href="/dashboard/admin/clubs" />
+        <KpiCard label={t('kpiActiveListings')} value={kpis.activeListings.toLocaleString()} icon={<Briefcase className="w-4 h-4" />} accent="text-purple-600 bg-purple-50" href="/dashboard/admin/jobs-rents" />
+        <KpiCard label={t('kpiActiveBanners')} value={kpis.activeBanners.toLocaleString()} icon={<Megaphone className="w-4 h-4" />} accent="text-rose-600 bg-rose-50" href="/dashboard/admin/banners" />
+        <KpiCard label={t('kpiPageViews30d')} value={kpis.pageViews30d.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" href="/dashboard/admin/statistics/traffic" />
+        <KpiCard label={t('kpiRevenue30d')} value={money(kpis.revenue30d)} icon={<DollarSign className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" sub={t('allTime', { value: money(kpis.revenueAllTime) })} href="/dashboard/admin/statistics/revenue" />
+        <KpiCard label={t('kpiPendingModeration')} value={totalPending} icon={<ShieldCheck className="w-4 h-4" />} accent="text-amber-600 bg-amber-50" urgent={totalPending > 0} href={pendingHref} />
       </div>
 
       {/* Traffic + signups */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <ChartCard
-          title="Site Traffic"
-          subtitle={`${kpis.pageViews30d.toLocaleString()} page views in last 30 days`}
+          title={t('siteTraffic')}
+          subtitle={t('siteTrafficSub', { count: kpis.pageViews30d.toLocaleString() })}
           className="lg:col-span-2"
         >
           <StatsAreaChart
             data={trafficFmt}
             xKey="date"
-            series={[{ key: 'views', name: 'Page views', color: '#ec4899' }]}
+            series={[{ key: 'views', name: t('pageViews'), color: '#ec4899' }]}
           />
         </ChartCard>
 
-        <ChartCard title="Role Distribution" subtitle={`${kpis.totalUsers.toLocaleString()} registered users`}>
+        <ChartCard title={t('roleDistribution')} subtitle={t('registeredUsers', { count: kpis.totalUsers.toLocaleString() })}>
           <StatsDonutChart data={roleData} height={240} />
         </ChartCard>
       </div>
@@ -147,8 +156,8 @@ export default function AdminOverviewPage() {
       {/* Signups + top models */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <ChartCard
-          title="New Signups"
-          subtitle={`${kpis.signups30d} new accounts in last 30 days`}
+          title={t('newSignups')}
+          subtitle={t('newSignupsSub', { count: kpis.signups30d })}
           className="lg:col-span-2"
         >
           <StatsBarChart
@@ -157,16 +166,16 @@ export default function AdminOverviewPage() {
             stacked
             showLegend
             series={[
-              { key: 'users', name: 'Visitors', color: '#8b5cf6' },
-              { key: 'models', name: 'Models', color: '#ec4899' },
-              { key: 'clubs', name: 'Clubs', color: '#3b82f6' },
+              { key: 'users', name: t('rolesVisitors'), color: '#8b5cf6' },
+              { key: 'models', name: t('rolesModels'), color: '#ec4899' },
+              { key: 'clubs', name: t('rolesClubs'), color: '#3b82f6' },
             ]}
           />
         </ChartCard>
 
-        <ChartCard title="Top Models" subtitle="By profile views (all-time)">
+        <ChartCard title={t('topModels')} subtitle={t('topModelsSub')}>
           {topModels.length === 0 ? (
-            <p className="text-sm text-gray-400 py-6 text-center">No view data yet</p>
+            <p className="text-sm text-gray-400 py-6 text-center">{t('noViewData')}</p>
           ) : (
             <div className="space-y-2">
               {topModels.slice(0, 8).map((m, i) => (
@@ -192,17 +201,17 @@ export default function AdminOverviewPage() {
       {/* Activity feed + moderation queue */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <ChartCard
-          title="Recent Activity"
-          subtitle="Platform-wide events"
+          title={t('recentActivity')}
+          subtitle={t('recentActivitySub')}
           className="lg:col-span-2"
           right={
             <Link href="/latest-actions" className="text-xs font-semibold text-brand hover:underline">
-              View all
+              {t('viewAll')}
             </Link>
           }
         >
           {siteActions.length === 0 ? (
-            <p className="text-sm text-gray-400 py-6 text-center">No recent activity</p>
+            <p className="text-sm text-gray-400 py-6 text-center">{t('noRecentActivity')}</p>
           ) : (
             <div className="space-y-1.5 -m-1 max-h-96 overflow-y-auto">
               {siteActions.map((a: any) => (
@@ -225,12 +234,12 @@ export default function AdminOverviewPage() {
           )}
         </ChartCard>
 
-        <ChartCard title="Moderation Queue" subtitle="Items awaiting review">
+        <ChartCard title={t('moderationQueue')} subtitle={t('moderationQueueSub')}>
           <div className="space-y-2">
-            <QueueItem href="/dashboard/admin/verification" label="Verifications" value={kpis.pendingVerifications} icon={<ShieldCheck className="w-4 h-4" />} color="emerald" />
-            <QueueItem href="/dashboard/admin/review-media" label="Photos &amp; Videos" value={kpis.pendingMedia} icon={<Eye className="w-4 h-4" />} color="amber" />
-            <QueueItem href="/dashboard/admin/reports" label="User Reports" value={kpis.pendingReports} icon={<Flag className="w-4 h-4" />} color="rose" />
-            <QueueItem href="/dashboard/admin/comments" label="Comments" value={kpis.totalComments} icon={<MessageSquare className="w-4 h-4" />} color="orange" />
+            <QueueItem href="/dashboard/admin/verification" label={t('queueVerifications')} value={kpis.pendingVerifications} icon={<ShieldCheck className="w-4 h-4" />} color="emerald" />
+            <QueueItem href="/dashboard/admin/review-media" label={t('queuePhotosVideos')} value={kpis.pendingMedia} icon={<Eye className="w-4 h-4" />} color="amber" />
+            <QueueItem href="/dashboard/admin/reports" label={t('queueUserReports')} value={kpis.pendingReports} icon={<Flag className="w-4 h-4" />} color="rose" />
+            <QueueItem href="/dashboard/admin/comments" label={t('queueComments')} value={kpis.pendingComments} icon={<MessageSquare className="w-4 h-4" />} color="orange" />
           </div>
         </ChartCard>
       </div>

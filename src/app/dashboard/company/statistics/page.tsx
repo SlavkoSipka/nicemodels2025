@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   BarChart2, Eye, MousePointerClick, Lightbulb,
-  Building2, Megaphone, Briefcase, Home as HomeIcon,
+  Building2, Megaphone, Briefcase, Home as HomeIcon, Users,
 } from 'lucide-react'
 
 interface PeriodCounts {
@@ -36,6 +36,15 @@ interface ListingStat {
   clicks: PeriodCounts
 }
 
+interface ModelStat {
+  id: string
+  showname: string
+  city: string | null
+  photo_url: string | null
+  is_verified: boolean
+  views: PeriodCounts
+}
+
 interface AnalyticsData {
   profile: {
     views: PeriodCounts
@@ -49,8 +58,12 @@ interface AnalyticsData {
     views: PeriodCounts
     clicks: PeriodCounts
   }
+  modelTotals: {
+    views: PeriodCounts
+  }
   banners: BannerStat[]
   listings: ListingStat[]
+  models: ModelStat[]
 }
 
 function emptyPeriod(): PeriodCounts {
@@ -103,8 +116,10 @@ export default function StatisticsPage() {
     profile: { views: emptyPeriod(), contactClicks: emptyPeriod() },
     bannerTotals: { impressions: emptyPeriod(), clicks: emptyPeriod() },
     listingTotals: { views: emptyPeriod(), clicks: emptyPeriod() },
+    modelTotals: { views: emptyPeriod() },
     banners: [],
     listings: [],
+    models: [],
   })
 
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -153,6 +168,7 @@ export default function StatisticsPage() {
       profileContactTodayRes,
       bannersRes,
       listingsRes,
+      acceptedInvitesRes,
     ] = await Promise.all([
       supabase.from('club_analytics').select('*', { count: 'exact', head: true }).eq('club_id', clubId).eq('event_type', 'profile_view'),
       supabase.from('club_analytics').select('*', { count: 'exact', head: true }).eq('club_id', clubId).eq('event_type', 'contact_click'),
@@ -164,6 +180,7 @@ export default function StatisticsPage() {
       supabase.from('club_analytics').select('*', { count: 'exact', head: true }).eq('club_id', clubId).eq('event_type', 'contact_click').gte('created_at', today.toISOString()),
       supabase.from('banners').select('id, title, image_path, placement, status, expires_at, created_at').eq('owner_id', clubId).order('created_at', { ascending: false }),
       supabase.from('job_listings').select('id, title, listing_type, status, created_at').eq('club_id', clubId).neq('status', 'deleted').order('created_at', { ascending: false }),
+      supabase.from('club_invites').select('invited_model_id').eq('club_id', clubId).eq('status', 'accepted'),
     ])
 
     const banners = (bannersRes.data || []) as Array<{
@@ -173,10 +190,12 @@ export default function StatisticsPage() {
     const listings = (listingsRes.data || []) as Array<{
       id: string; title: string | null; listing_type: string; status: string; created_at: string;
     }>
+    const acceptedInvites = (acceptedInvitesRes.data || []) as Array<{ invited_model_id: string }>
     const bannerIds = banners.map(b => b.id)
     const listingIds = listings.map(l => l.id)
+    const modelIds = acceptedInvites.map(i => i.invited_model_id)
 
-    const [impRes, clkRes, viewsRes, lClicksRes] = await Promise.all([
+    const [impRes, clkRes, viewsRes, lClicksRes, modelViewsRes, modelProfilesRes, modelDetailsRes, modelPhotosRes] = await Promise.all([
       bannerIds.length
         ? supabase.from('banner_impressions').select('banner_id, created_at').in('banner_id', bannerIds)
         : Promise.resolve({ data: [] as any[] }),
@@ -189,12 +208,28 @@ export default function StatisticsPage() {
       listingIds.length
         ? supabase.from('listing_clicks').select('listing_id, created_at').in('listing_id', listingIds)
         : Promise.resolve({ data: [] as any[] }),
+      modelIds.length
+        ? supabase.from('model_statistics').select('model_id, created_at').in('model_id', modelIds).eq('action_type', 'profile_view')
+        : Promise.resolve({ data: [] as any[] }),
+      modelIds.length
+        ? supabase.from('profiles').select('id, username, is_verified').in('id', modelIds)
+        : Promise.resolve({ data: [] as any[] }),
+      modelIds.length
+        ? supabase.from('model_details').select('model_id, showname, city').in('model_id', modelIds)
+        : Promise.resolve({ data: [] as any[] }),
+      modelIds.length
+        ? supabase.from('model_photos').select('model_id, file_path, uploaded_at').in('model_id', modelIds).eq('is_approved', true).order('uploaded_at', { ascending: false })
+        : Promise.resolve({ data: [] as any[] }),
     ])
 
     const impRows = (impRes.data || []) as { banner_id: string; created_at: string }[]
     const clkRows = (clkRes.data || []) as { banner_id: string; created_at: string }[]
     const viewRows = (viewsRes.data || []) as { listing_id: string; created_at: string }[]
     const lClickRows = (lClicksRes.data || []) as { listing_id: string; created_at: string }[]
+    const modelViewRows = (modelViewsRes.data || []) as { model_id: string; created_at: string }[]
+    const modelProfiles = (modelProfilesRes.data || []) as { id: string; username: string; is_verified: boolean }[]
+    const modelDetails = (modelDetailsRes.data || []) as { model_id: string; showname: string | null; city: string | null }[]
+    const modelPhotos = (modelPhotosRes.data || []) as { model_id: string; file_path: string; uploaded_at: string }[]
 
     const impByBanner = new Map<string, { created_at: string }[]>()
     for (const r of impRows) {
@@ -243,10 +278,41 @@ export default function StatisticsPage() {
       clicks: bucketizeByCreatedAt(clicksByListing.get(l.id) || [], now),
     }))
 
+    // Per-model bucketing
+    const viewsByModel = new Map<string, { created_at: string }[]>()
+    for (const r of modelViewRows) {
+      const arr = viewsByModel.get(r.model_id) || []
+      arr.push({ created_at: r.created_at })
+      viewsByModel.set(r.model_id, arr)
+    }
+    const detailsByModel = new Map(modelDetails.map(d => [d.model_id, d]))
+    const photoByModel = new Map<string, string>()
+    for (const p of modelPhotos) {
+      if (!photoByModel.has(p.model_id)) photoByModel.set(p.model_id, p.file_path)
+    }
+
+    const modelStats: ModelStat[] = modelProfiles
+      .map(m => {
+        const d = detailsByModel.get(m.id)
+        const filePath = photoByModel.get(m.id)
+        return {
+          id: m.id,
+          showname: d?.showname || m.username || 'Model',
+          city: d?.city ?? null,
+          photo_url: filePath
+            ? `${SUPA_URL}/storage/v1/object/public/model-photos/${filePath}`
+            : null,
+          is_verified: !!m.is_verified,
+          views: bucketizeByCreatedAt(viewsByModel.get(m.id) || [], now),
+        }
+      })
+      .sort((a, b) => b.views.all - a.views.all)
+
     const bannerTotalsImp = bucketizeByCreatedAt(impRows, now)
     const bannerTotalsClk = bucketizeByCreatedAt(clkRows, now)
     const listingTotalsView = bucketizeByCreatedAt(viewRows, now)
     const listingTotalsClk = bucketizeByCreatedAt(lClickRows, now)
+    const modelTotalsView = bucketizeByCreatedAt(modelViewRows, now)
 
     setAnalytics({
       profile: {
@@ -265,8 +331,10 @@ export default function StatisticsPage() {
       },
       bannerTotals: { impressions: bannerTotalsImp, clicks: bannerTotalsClk },
       listingTotals: { views: listingTotalsView, clicks: listingTotalsClk },
+      modelTotals: { views: modelTotalsView },
       banners: bannerStats,
       listings: listingStats,
+      models: modelStats,
     })
   }
 
@@ -336,7 +404,83 @@ export default function StatisticsPage() {
         <Divider />
 
         {/* ================================================================
-            SECTION 2 — BANNERS
+            SECTION 2 — MODEL SEDCARDS
+        ================================================================ */}
+        <SectionHeader
+          icon={<Users className="w-5 h-5 text-pink-600" />}
+          iconBg="bg-pink-100"
+          accent="text-pink-700"
+          title="Model Sedcards"
+          subtitle="Performance of sedcards (profile pages) of all models linked to your club"
+        />
+
+        {analytics.models.length === 0 ? (
+          <EmptyState
+            title="No models linked yet"
+            body="Once you invite models and they accept, their sedcard view stats will show here."
+          />
+        ) : (
+          <>
+            <PeriodGrid
+              label="Total Sedcard Views"
+              sublabel={`How many times your ${analytics.models.length} model${analytics.models.length === 1 ? '' : 's'} sedcard${analytics.models.length === 1 ? '' : 's'} were opened (all combined)`}
+              icon={<Eye className="w-4 h-4 text-pink-600" />}
+              iconBg="bg-pink-100"
+              counts={analytics.modelTotals.views}
+            />
+
+            <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <p className="text-sm font-bold text-gray-800 mb-1">Per model</p>
+              <p className="text-xs text-gray-500 mb-4">
+                Sorted by total sedcard views (most viewed first).
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {analytics.models.map(m => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => router.push(`/models/${m.id}`)}
+                    className="text-left border border-gray-100 rounded-lg bg-gray-50 hover:bg-pink-50/40 hover:border-pink-200 transition-colors p-3 flex items-center gap-3"
+                  >
+                    {m.photo_url ? (
+                      <img
+                        src={m.photo_url}
+                        alt={m.showname}
+                        className="w-12 h-12 rounded-md object-cover bg-gray-100 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-md bg-gradient-to-br from-pink-200 to-rose-200 flex items-center justify-center text-pink-700 font-bold text-sm shrink-0">
+                        {m.showname.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-bold text-gray-900 truncate">{m.showname}</p>
+                        {m.is_verified && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 shrink-0">
+                            ✓
+                          </span>
+                        )}
+                      </div>
+                      {m.city && <p className="text-[11px] text-gray-500 truncate">{m.city}</p>}
+                      <div className="grid grid-cols-4 gap-1.5 mt-1.5">
+                        <MiniStat label="All" value={m.views.all} />
+                        <MiniStat label="30d" value={m.views.month} />
+                        <MiniStat label="7d" value={m.views.week} />
+                        <MiniStat label="Today" value={m.views.today} accent />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        <Divider />
+
+        {/* ================================================================
+            SECTION 3 — BANNERS
         ================================================================ */}
         <SectionHeader
           icon={<Megaphone className="w-5 h-5 text-purple-600" />}
@@ -428,7 +572,7 @@ export default function StatisticsPage() {
         <Divider />
 
         {/* ================================================================
-            SECTION 3 — JOB / RENT LISTINGS
+            SECTION 4 — JOB / RENT LISTINGS
         ================================================================ */}
         <SectionHeader
           icon={<Briefcase className="w-5 h-5 text-amber-600" />}
@@ -620,6 +764,15 @@ function StatBox({ label, value }: { label: string; value: number | string }) {
     <div className="bg-white border border-gray-100 rounded-md px-2 py-1.5 text-center">
       <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
       <p className="text-sm font-bold text-gray-900">{value}</p>
+    </div>
+  )
+}
+
+function MiniStat({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+  return (
+    <div className="bg-white border border-gray-100 rounded px-1 py-0.5 text-center">
+      <p className="text-[8px] font-semibold text-gray-400 uppercase tracking-wider leading-tight">{label}</p>
+      <p className={`text-xs font-bold leading-tight ${accent ? 'text-emerald-600' : 'text-gray-900'}`}>{value}</p>
     </div>
   )
 }

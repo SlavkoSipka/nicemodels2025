@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import {
+  sendAccountBlockedEmail,
+  sendAccountUnblockedEmail,
+} from '@/lib/email/templates'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,13 +25,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { userId, block } = await request.json()
+    const { userId, block, reason } = await request.json()
 
     if (!userId || typeof block !== 'boolean') {
       return NextResponse.json({ error: 'Missing userId or block parameter' }, { status: 400 })
     }
 
     const admin = createAdminClient()
+
+    // Read recipient info BEFORE update so we can email even on unblock.
+    const { data: target } = await admin
+      .from('profiles')
+      .select('email, username')
+      .eq('id', userId)
+      .single()
+
     const { error } = await admin.from('profiles').update({
       is_blocked: block,
       blocked_at: block ? new Date().toISOString() : null,
@@ -35,6 +47,15 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Fire-and-forget email; never fail the API response on email errors.
+    if (target?.email) {
+      const args = { email: target.email, userId, displayName: target.username }
+      ;(block
+        ? sendAccountBlockedEmail({ ...args, reason: reason ?? null })
+        : sendAccountUnblockedEmail(args)
+      ).catch(() => {})
     }
 
     return NextResponse.json({ success: true })

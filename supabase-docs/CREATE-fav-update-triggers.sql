@@ -36,14 +36,14 @@ BEGIN
       WHERE n.user_id = r.user_id
         AND n.type = p_type
         AND n.related_entity_type = 'model'
-        AND n.related_entity_id::text = p_model_id::text
+        AND n.related_entity_id = p_model_id
         AND n.created_at > (now() - INTERVAL '6 hours')
     ) THEN
       CONTINUE;
     END IF;
 
     INSERT INTO notifications (user_id, type, title, message, related_entity_type, related_entity_id, action_url)
-    VALUES (r.user_id, p_type, p_title, p_message, 'model', p_model_id::text, p_action_url);
+    VALUES (r.user_id, p_type, p_title, p_message, 'model', p_model_id, p_action_url);
     inserted := inserted + 1;
   END LOOP;
   RETURN inserted;

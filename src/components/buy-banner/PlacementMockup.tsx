@@ -15,7 +15,7 @@ const TONES = [
 
 function MiniModelCell({ tone }: { tone: string }) {
   return (
-    <div className={`relative rounded overflow-hidden bg-gradient-to-br ${tone} aspect-[3/4] shadow-sm`}>
+    <div className={`relative rounded overflow-hidden bg-gradient-to-br ${tone} aspect-[3/4] shadow-sm grayscale opacity-60`}>
       {/* Silhouette */}
       <div className="absolute inset-0 flex items-end justify-center">
         <div className="w-[70%] h-[80%] bg-white/35 rounded-t-[50%]" aria-hidden />
@@ -45,10 +45,12 @@ function MiniModelCell({ tone }: { tone: string }) {
   )
 }
 
+const HIGHLIGHT_RING = 'ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.35),0_6px_16px_-4px_rgba(139,92,246,0.45)] z-10'
+
 function WideBanner({ previewUrl }: { previewUrl?: string | null }) {
   if (previewUrl) {
     return (
-      <div className="relative rounded overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_2px_rgba(139,92,246,0.3)]">
+      <div className={`relative rounded overflow-hidden ${HIGHLIGHT_RING}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={previewUrl} alt="" className="w-full aspect-[4/1] object-cover" />
         <div className="absolute top-0.5 left-0.5 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center gap-0.5 shadow" style={{ fontSize: 5 }}>
@@ -59,7 +61,7 @@ function WideBanner({ previewUrl }: { previewUrl?: string | null }) {
     )
   }
   return (
-    <div className="relative aspect-[4/1] rounded ring-2 ring-violet-500 shadow-[0_0_0_2px_rgba(139,92,246,0.3)] bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center gap-0.5 text-white overflow-hidden">
+    <div className={`relative aspect-[4/1] rounded ${HIGHLIGHT_RING} bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center gap-0.5 text-white overflow-hidden`}>
       <div
         className="absolute inset-0 opacity-25"
         style={{ backgroundImage: 'radial-gradient(circle, white 0.6px, transparent 0.6px)', backgroundSize: '6px 6px' }}
@@ -76,7 +78,7 @@ function WideBanner({ previewUrl }: { previewUrl?: string | null }) {
 function CardBannerCell({ previewUrl }: { previewUrl?: string | null }) {
   if (previewUrl) {
     return (
-      <div className="relative aspect-[3/4] rounded overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_2px_rgba(139,92,246,0.3)]">
+      <div className={`relative aspect-[3/4] rounded overflow-hidden ${HIGHLIGHT_RING}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={previewUrl} alt="" className="w-full h-full object-cover" />
         <div className="absolute top-0.5 left-0.5 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center gap-0.5 shadow" style={{ fontSize: 5 }}>
@@ -87,7 +89,7 @@ function CardBannerCell({ previewUrl }: { previewUrl?: string | null }) {
     )
   }
   return (
-    <div className="relative aspect-[3/4] rounded ring-2 ring-violet-500 shadow-[0_0_0_2px_rgba(139,92,246,0.3)] bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex flex-col items-center justify-center gap-0.5 text-white overflow-hidden p-1">
+    <div className={`relative aspect-[3/4] rounded ${HIGHLIGHT_RING} bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex flex-col items-center justify-center gap-0.5 text-white overflow-hidden p-1`}>
       <div
         className="absolute inset-0 opacity-25"
         style={{ backgroundImage: 'radial-gradient(circle, white 0.6px, transparent 0.6px)', backgroundSize: '5px 5px' }}
@@ -103,7 +105,7 @@ function CardBannerCell({ previewUrl }: { previewUrl?: string | null }) {
 function SidebarBannerCell({ previewUrl }: { previewUrl?: string | null }) {
   if (previewUrl) {
     return (
-      <div className="relative w-full h-full rounded overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_2px_rgba(139,92,246,0.3)] min-h-[120px]">
+      <div className={`relative w-full h-full rounded overflow-hidden ${HIGHLIGHT_RING} min-h-[120px]`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={previewUrl} alt="" className="w-full h-full object-cover" />
         <div className="absolute top-0.5 left-0.5 right-0.5 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center justify-center gap-0.5 shadow" style={{ fontSize: 5 }}>
@@ -114,7 +116,7 @@ function SidebarBannerCell({ previewUrl }: { previewUrl?: string | null }) {
     )
   }
   return (
-    <div className="relative w-full h-full rounded ring-2 ring-violet-500 shadow-[0_0_0_2px_rgba(139,92,246,0.3)] bg-gradient-to-b from-violet-500 via-fuchsia-500 to-pink-500 flex flex-col items-center justify-center gap-0.5 text-white overflow-hidden p-1 min-h-[120px]">
+    <div className={`relative w-full h-full rounded ${HIGHLIGHT_RING} bg-gradient-to-b from-violet-500 via-fuchsia-500 to-pink-500 flex flex-col items-center justify-center gap-0.5 text-white overflow-hidden p-1 min-h-[120px]`}>
       <div
         className="absolute inset-0 opacity-25"
         style={{ backgroundImage: 'radial-gradient(circle, white 0.6px, transparent 0.6px)', backgroundSize: '5px 5px' }}

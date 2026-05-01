@@ -11,7 +11,7 @@ async function loadPendingCounts(): Promise<AdminSidebarCounts> {
       supabase.from('model_photos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
       supabase.from('model_videos').select('id', { count: 'exact', head: true }).or('is_approved.is.null,is_approved.eq.false'),
       supabase.from('banners').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      supabase.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
       supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_blocked', true),
     ])
     return {

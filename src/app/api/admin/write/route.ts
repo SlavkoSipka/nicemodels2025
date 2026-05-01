@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { notifyAdminAction } from '@/lib/admin/notify'
 
 const ALLOWED_TABLES = new Set([
   'profiles',
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { operations } = await request.json()
+    const { operations, notify } = await request.json()
 
     if (!Array.isArray(operations) || operations.length === 0) {
       return NextResponse.json({ error: 'operations must be a non-empty array' }, { status: 400 })
@@ -74,6 +75,19 @@ export async function POST(request: NextRequest) {
       if (error) {
         return NextResponse.json({ error: `${action} ${table}: ${error.message}` }, { status: 500 })
       }
+    }
+
+    if (notify && typeof notify === 'object' && typeof notify.userId === 'string' && notify.userId) {
+      await notifyAdminAction({
+        userId: notify.userId,
+        title: typeof notify.title === 'string' && notify.title ? notify.title : 'Your account was updated',
+        message: typeof notify.message === 'string' && notify.message
+          ? notify.message
+          : 'An administrator made changes to your account.',
+        actionUrl: typeof notify.actionUrl === 'string' ? notify.actionUrl : null,
+        relatedEntityType: typeof notify.relatedEntityType === 'string' ? notify.relatedEntityType : null,
+        relatedEntityId: typeof notify.relatedEntityId === 'string' ? notify.relatedEntityId : null,
+      })
     }
 
     return NextResponse.json({ success: true })

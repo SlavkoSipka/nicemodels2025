@@ -3,7 +3,9 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import LanguageSwitcher from '@/components/admin/LanguageSwitcher'
 import {
   LayoutDashboard, BarChart3, Globe, Users, Building2, Briefcase,
   Megaphone, DollarSign, UserCircle, Image as ImageIcon, ShieldCheck,
@@ -21,7 +23,7 @@ export interface AdminSidebarCounts {
 }
 
 interface NavItem {
-  label: string
+  labelKey: string
   href: string
   icon: React.ReactNode
   badgeKey?: keyof AdminSidebarCounts
@@ -30,58 +32,58 @@ interface NavItem {
 
 interface NavGroup {
   id: string
-  label: string
+  labelKey: string
   items: NavItem[]
 }
 
 const GROUPS: NavGroup[] = [
   {
     id: 'overview',
-    label: 'Overview',
+    labelKey: 'overview',
     items: [
-      { label: 'Dashboard', href: '/dashboard/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { labelKey: 'dashboard', href: '/dashboard/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
     ],
   },
   {
     id: 'statistics',
-    label: 'Statistics',
+    labelKey: 'statistics',
     items: [
-      { label: 'Site Traffic', href: '/dashboard/admin/statistics/traffic', icon: <Globe className="w-4 h-4" /> },
-      { label: 'Models', href: '/dashboard/admin/statistics/models', icon: <Users className="w-4 h-4" /> },
-      { label: 'Clubs', href: '/dashboard/admin/statistics/clubs', icon: <Building2 className="w-4 h-4" /> },
-      { label: 'Listings', href: '/dashboard/admin/statistics/listings', icon: <Briefcase className="w-4 h-4" /> },
-      { label: 'Banners', href: '/dashboard/admin/statistics/banners', icon: <Megaphone className="w-4 h-4" /> },
-      { label: 'Revenue', href: '/dashboard/admin/statistics/revenue', icon: <DollarSign className="w-4 h-4" /> },
+      { labelKey: 'siteTraffic', href: '/dashboard/admin/statistics/traffic', icon: <Globe className="w-4 h-4" /> },
+      { labelKey: 'models', href: '/dashboard/admin/statistics/models', icon: <Users className="w-4 h-4" /> },
+      { labelKey: 'clubs', href: '/dashboard/admin/statistics/clubs', icon: <Building2 className="w-4 h-4" /> },
+      { labelKey: 'listings', href: '/dashboard/admin/statistics/listings', icon: <Briefcase className="w-4 h-4" /> },
+      { labelKey: 'banners', href: '/dashboard/admin/statistics/banners', icon: <Megaphone className="w-4 h-4" /> },
+      { labelKey: 'revenue', href: '/dashboard/admin/statistics/revenue', icon: <DollarSign className="w-4 h-4" /> },
     ],
   },
   {
     id: 'content',
-    label: 'Content',
+    labelKey: 'content',
     items: [
-      { label: 'Models', href: '/dashboard/admin/models', icon: <Users className="w-4 h-4" /> },
-      { label: 'Clubs', href: '/dashboard/admin/clubs', icon: <Building2 className="w-4 h-4" /> },
-      { label: 'Visitors', href: '/dashboard/admin/users', icon: <UserCircle className="w-4 h-4" /> },
-      { label: 'Jobs & Rents', href: '/dashboard/admin/jobs-rents', icon: <Briefcase className="w-4 h-4" /> },
-      { label: 'Comments', href: '/dashboard/admin/comments', icon: <MessageSquare className="w-4 h-4" />, badgeKey: 'comments' },
-      { label: 'Banners', href: '/dashboard/admin/banners', icon: <Megaphone className="w-4 h-4" />, badgeKey: 'banners', urgent: true },
+      { labelKey: 'models', href: '/dashboard/admin/models', icon: <Users className="w-4 h-4" /> },
+      { labelKey: 'clubs', href: '/dashboard/admin/clubs', icon: <Building2 className="w-4 h-4" /> },
+      { labelKey: 'visitors', href: '/dashboard/admin/users', icon: <UserCircle className="w-4 h-4" /> },
+      { labelKey: 'jobsRents', href: '/dashboard/admin/jobs-rents', icon: <Briefcase className="w-4 h-4" /> },
+      { labelKey: 'comments', href: '/dashboard/admin/comments', icon: <MessageSquare className="w-4 h-4" />, badgeKey: 'comments' },
+      { labelKey: 'banners', href: '/dashboard/admin/banners', icon: <Megaphone className="w-4 h-4" />, badgeKey: 'banners', urgent: true },
     ],
   },
   {
     id: 'moderation',
-    label: 'Moderation',
+    labelKey: 'moderation',
     items: [
-      { label: 'Verification', href: '/dashboard/admin/verification', icon: <ShieldCheck className="w-4 h-4" />, badgeKey: 'verifications', urgent: true },
-      { label: 'Media Review', href: '/dashboard/admin/review-media', icon: <ImageIcon className="w-4 h-4" />, badgeKey: 'media', urgent: true },
-      { label: 'Reports', href: '/dashboard/admin/reports', icon: <Flag className="w-4 h-4" />, badgeKey: 'reports', urgent: true },
-      { label: 'Blocked', href: '/dashboard/admin/blocked', icon: <UserX className="w-4 h-4" />, badgeKey: 'blocked' },
-      { label: 'Deleted', href: '/dashboard/admin/deleted', icon: <Trash2 className="w-4 h-4" /> },
+      { labelKey: 'verification', href: '/dashboard/admin/verification', icon: <ShieldCheck className="w-4 h-4" />, badgeKey: 'verifications', urgent: true },
+      { labelKey: 'mediaReview', href: '/dashboard/admin/review-media', icon: <ImageIcon className="w-4 h-4" />, badgeKey: 'media', urgent: true },
+      { labelKey: 'reports', href: '/dashboard/admin/reports', icon: <Flag className="w-4 h-4" />, badgeKey: 'reports', urgent: true },
+      { labelKey: 'blocked', href: '/dashboard/admin/blocked', icon: <UserX className="w-4 h-4" />, badgeKey: 'blocked' },
+      { labelKey: 'deleted', href: '/dashboard/admin/deleted', icon: <Trash2 className="w-4 h-4" /> },
     ],
   },
   {
     id: 'activity',
-    label: 'Activity',
+    labelKey: 'activity',
     items: [
-      { label: 'Latest Actions', href: '/latest-actions', icon: <Activity className="w-4 h-4" /> },
+      { labelKey: 'latestActions', href: '/latest-actions', icon: <Activity className="w-4 h-4" /> },
     ],
   },
 ]
@@ -95,6 +97,7 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
   const pathname = usePathname() || ''
   const router = useRouter()
   const supabase = createClient()
+  const t = useTranslations('admin.sidebar')
   const [collapsed, setCollapsed] = useState(false)
   const [openMobile, setOpenMobile] = useState(false)
 
@@ -115,7 +118,7 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
               <LayoutDashboard className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-900 leading-none">Admin</p>
+              <p className="text-sm font-bold text-gray-900 leading-none">{t('title')}</p>
               <p className="text-[10px] text-gray-400 mt-0.5">NiceModels</p>
             </div>
           </div>
@@ -123,8 +126,8 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
         <button
           onClick={() => setCollapsed(v => !v)}
           className="hidden md:inline-flex w-7 h-7 items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
-          title={collapsed ? 'Expand' : 'Collapse'}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? t('expand') : t('collapse')}
+          aria-label={collapsed ? t('expand') : t('collapse')}
         >
           <ChevronLeft className={`w-4 h-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
         </button>
@@ -135,13 +138,14 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
           <div key={group.id}>
             {!collapsed && (
               <p className="px-2 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400">
-                {group.label}
+                {t(group.labelKey)}
               </p>
             )}
             <div className="space-y-0.5">
               {group.items.map(item => {
                 const active = isActive(pathname, item.href)
                 const count = item.badgeKey ? counts?.[item.badgeKey] ?? 0 : 0
+                const label = t(item.labelKey)
                 return (
                   <Link
                     key={item.href}
@@ -151,11 +155,11 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
                         ? 'bg-brand/10 text-brand'
                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                     }`}
-                    title={collapsed ? item.label : undefined}
+                    title={collapsed ? label : undefined}
                   >
                     <span className="flex items-center gap-2.5">
                       <span className={active ? 'text-brand' : 'text-gray-400'}>{item.icon}</span>
-                      {!collapsed && <span>{item.label}</span>}
+                      {!collapsed && <span>{label}</span>}
                     </span>
                     {!collapsed && count > 0 && (
                       <span
@@ -178,21 +182,24 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
       </nav>
 
       <div className="border-t border-gray-100 p-2 space-y-1">
+        <div className={collapsed ? 'px-1 py-1' : 'px-1.5 py-1'}>
+          <LanguageSwitcher collapsed={collapsed} />
+        </div>
         <Link
           href="/"
           className={`flex items-center ${collapsed ? 'justify-center' : ''} gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900`}
-          title={collapsed ? 'Home' : undefined}
+          title={collapsed ? t('home') : undefined}
         >
           <Home className="w-4 h-4 text-gray-400" />
-          {!collapsed && <span>Home</span>}
+          {!collapsed && <span>{t('home')}</span>}
         </Link>
         <button
           onClick={handleLogout}
           className={`w-full flex items-center ${collapsed ? 'justify-center' : ''} gap-2.5 px-2.5 py-2 rounded-lg text-sm font-medium text-rose-600 hover:bg-rose-50`}
-          title={collapsed ? 'Logout' : undefined}
+          title={collapsed ? t('logout') : undefined}
         >
           <LogOut className="w-4 h-4" />
-          {!collapsed && <span>Logout</span>}
+          {!collapsed && <span>{t('logout')}</span>}
         </button>
       </div>
     </>
@@ -206,13 +213,13 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
           <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
             <LayoutDashboard className="w-3.5 h-3.5 text-brand" />
           </div>
-          <span className="text-sm font-bold text-gray-900">Admin</span>
+          <span className="text-sm font-bold text-gray-900">{t('title')}</span>
         </div>
         <button
           onClick={() => setOpenMobile(v => !v)}
           className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-md"
         >
-          Menu {openMobile ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          {t('menu')} {openMobile ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </button>
       </div>
 

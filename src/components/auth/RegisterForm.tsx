@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
+import DobInput from '@/components/forms/DobInput'
 
 function getAge(dateString: string): number {
   const today = new Date()
@@ -307,13 +308,12 @@ export default function RegisterForm() {
           Date of birth<span className="text-pink-600">*</span>
           <span className="font-normal text-gray-400 ml-1">(must be 18+)</span>
         </label>
-        <input
+        <DobInput
           id="dateOfBirth"
-          type="date"
           value={formData.dateOfBirth}
-          onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+          onChange={(iso) => setFormData({ ...formData, dateOfBirth: iso })}
           required
-          max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+          minYearsAgo={18}
           className={inputCls}
         />
       </div>

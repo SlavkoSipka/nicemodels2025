@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { ArrowLeft, ShieldCheck, User, Building2, X, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { formatDobDisplay } from '@/lib/utils/dob'
 
 interface Verification {
   id: string
@@ -28,6 +29,8 @@ interface Verification {
 }
 
 export default function AdminVerificationPage() {
+  const t = useTranslations('admin.verification')
+  const tc = useTranslations('admin.common')
   const [loading, setLoading] = useState(true)
   const [verifications, setVerifications] = useState<Verification[]>([])
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
@@ -38,61 +41,60 @@ export default function AdminVerificationPage() {
   const [idCardUrl, setIdCardUrl] = useState('')
   const [selfieUrl, setSelfieUrl] = useState('')
   const [videoUrl, setVideoUrl] = useState('')
-  const supabase = createClient()
 
   useEffect(() => { loadData() }, [])
 
   useEffect(() => {
     if (!selected) { setIdCardUrl(''); setSelfieUrl(''); setVideoUrl(''); return }
     const loadUrls = async () => {
-      const { data: id } = await supabase.storage.from('verification-documents').createSignedUrl(selected.id_card_photo_path, 3600)
-      if (id) setIdCardUrl(id.signedUrl)
-      const { data: selfie } = await supabase.storage.from('verification-documents').createSignedUrl(selected.selfie_photo_path, 3600)
-      if (selfie) setSelfieUrl(selfie.signedUrl)
-      if (selected.video_path) {
-        const { data: video } = await supabase.storage.from('verification-documents').createSignedUrl(selected.video_path, 3600)
-        if (video) setVideoUrl(video.signedUrl)
-      }
+      try {
+        const res = await fetch('/api/admin/verifications/urls', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idCardPath: selected.id_card_photo_path,
+            selfiePath: selected.selfie_photo_path,
+            videoPath: selected.video_path,
+          }),
+        })
+        if (!res.ok) return
+        const j = await res.json()
+        setIdCardUrl(j.idCardUrl || '')
+        setSelfieUrl(j.selfieUrl || '')
+        setVideoUrl(j.videoUrl || '')
+      } catch { /* */ }
     }
     loadUrls()
-  }, [selected, supabase])
+  }, [selected])
 
   const loadData = async () => {
-    const { data: vData } = await supabase.from('verifications').select('*').order('submitted_at', { ascending: false })
-    if (vData && vData.length > 0) {
-      const withProfiles = await Promise.all(vData.map(async v => {
-        const { data: p } = await supabase.from('profiles').select('email, username, public_id, role, model_details!model_details_model_id_fkey (showname), club_details!club_details_club_id_fkey (club_name)').eq('id', v.user_id).single()
-        const tp = p ? { ...p, model_details: Array.isArray(p.model_details) ? p.model_details[0] : p.model_details, club_details: Array.isArray(p.club_details) ? p.club_details[0] : p.club_details } : null
-        return { ...v, profile: tp }
-      }))
-      setVerifications(withProfiles)
-    } else {
+    try {
+      const res = await fetch('/api/admin/verifications', { cache: 'no-store' })
+      if (!res.ok) {
+        setVerifications([])
+      } else {
+        const j = await res.json()
+        setVerifications(j.verifications || [])
+      }
+    } catch {
       setVerifications([])
     }
     setLoading(false)
   }
 
+  const submitDecision = async (vId: string, userId: string, decision: 'approved' | 'rejected', reason?: string) => {
+    const res = await fetch('/api/admin/verifications', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: vId, userId, decision, reason }),
+    })
+    return res.ok
+  }
+
   const handleApprove = async (vId: string, userId: string) => {
     setProcessing(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
     try {
-      await supabase.from('verifications').update({ status: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: user.id, rejection_reason: null }).eq('id', vId)
-      await supabase.from('profiles').update({ is_verified: true }).eq('id', userId)
-
-      const targetProfile = selected?.profile
-      const rolePath = targetProfile?.role === 'model' ? 'model' : targetProfile?.role === 'company' ? 'company' : 'user'
-      await supabase.from('notifications').insert({
-        user_id: userId,
-        type: 'verification_approved',
-        title: 'Verification Approved',
-        message: 'Your identity verification has been approved! You now have a verified badge.',
-        is_read: false,
-        action_url: `/dashboard/${rolePath}/verification`,
-        related_entity_type: 'verification',
-        related_entity_id: vId,
-      })
-
+      await submitDecision(vId, userId, 'approved')
       setSelected(null); loadData()
     } catch { /* */ }
     setProcessing(false)
@@ -101,25 +103,8 @@ export default function AdminVerificationPage() {
   const handleReject = async (vId: string, userId: string) => {
     if (!rejectionReason.trim()) return
     setProcessing(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
     try {
-      await supabase.from('verifications').update({ status: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: user.id, rejection_reason: rejectionReason }).eq('id', vId)
-      await supabase.from('profiles').update({ is_verified: false }).eq('id', userId)
-
-      const targetProfile = selected?.profile
-      const rolePath = targetProfile?.role === 'model' ? 'model' : targetProfile?.role === 'company' ? 'company' : 'user'
-      await supabase.from('notifications').insert({
-        user_id: userId,
-        type: 'verification_rejected',
-        title: 'Verification Rejected',
-        message: `Your verification was rejected: ${rejectionReason}`,
-        is_read: false,
-        action_url: `/dashboard/${rolePath}/verification`,
-        related_entity_type: 'verification',
-        related_entity_id: vId,
-      })
-
+      await submitDecision(vId, userId, 'rejected', rejectionReason)
       setSelected(null); setRejectionReason(''); loadData()
     } catch { /* */ }
     setProcessing(false)
@@ -134,32 +119,32 @@ export default function AdminVerificationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-4">
 
-          <div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Verification Requests</h1>
-                  <p className="text-xs text-gray-500">Review and approve identity verifications</p>
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+                  <p className="text-xs text-gray-500 hidden sm:block">{t('subtitle')}</p>
                 </div>
               </div>
-              <div className="flex gap-1">
-                <button onClick={() => setFilter('all')} className={tabCls(filter === 'all')}>All ({counts.all})</button>
-                <button onClick={() => setFilter('pending')} className={tabCls(filter === 'pending')}>Pending ({counts.pending})</button>
-                <button onClick={() => setFilter('approved')} className={tabCls(filter === 'approved')}>Approved ({counts.approved})</button>
-                <button onClick={() => setFilter('rejected')} className={tabCls(filter === 'rejected')}>Rejected ({counts.rejected})</button>
-              </div>
             </div>
-            <div className="flex gap-1">
-              <button onClick={() => setRoleFilter('all')} className={tabCls(roleFilter === 'all')}>All Roles</button>
-              <button onClick={() => setRoleFilter('model')} className={tabCls(roleFilter === 'model')}>Models</button>
-              <button onClick={() => setRoleFilter('user')} className={tabCls(roleFilter === 'user')}>Visitors</button>
-              <button onClick={() => setRoleFilter('company')} className={tabCls(roleFilter === 'company')}>Clubs</button>
+            <div className="flex gap-1 flex-wrap">
+              <button onClick={() => setFilter('all')} className={tabCls(filter === 'all')}>{t('tabAll')} ({counts.all})</button>
+              <button onClick={() => setFilter('pending')} className={tabCls(filter === 'pending')}>{t('tabPending')} ({counts.pending})</button>
+              <button onClick={() => setFilter('approved')} className={tabCls(filter === 'approved')}>{t('tabApproved')} ({counts.approved})</button>
+              <button onClick={() => setFilter('rejected')} className={tabCls(filter === 'rejected')}>{t('tabRejected')} ({counts.rejected})</button>
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              <button onClick={() => setRoleFilter('all')} className={tabCls(roleFilter === 'all')}>{t('rolesAll')}</button>
+              <button onClick={() => setRoleFilter('model')} className={tabCls(roleFilter === 'model')}>{t('rolesModels')}</button>
+              <button onClick={() => setRoleFilter('user')} className={tabCls(roleFilter === 'user')}>{t('rolesVisitors')}</button>
+              <button onClick={() => setRoleFilter('company')} className={tabCls(roleFilter === 'company')}>{t('rolesClubs')}</button>
             </div>
           </div>
 
@@ -168,14 +153,14 @@ export default function AdminVerificationPage() {
             {filtered.length === 0 ? (
               <div className="py-12 text-center">
                 <ShieldCheck className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">No verification requests found</p>
+                <p className="text-sm text-gray-400">{t('noRequests')}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      {['User', 'Type', 'Real Name', 'Submitted', 'Status', ''].map(h => (
+                      {[t('colUser'), t('colType'), t('colRealName'), t('colSubmitted'), t('colStatus'), ''].map(h => (
                         <th key={h} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
@@ -199,7 +184,7 @@ export default function AdminVerificationPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${v.profile?.role === 'model' ? 'bg-brand/10 text-brand' : v.profile?.role === 'company' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
-                            {v.profile?.role === 'model' ? 'Model' : v.profile?.role === 'company' ? 'Club' : v.profile?.role === 'user' ? 'Visitor' : v.profile?.role || '—'}
+                            {v.profile?.role === 'model' ? t('typeModel') : v.profile?.role === 'company' ? t('typeClub') : v.profile?.role === 'user' ? t('typeVisitor') : v.profile?.role || '—'}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-700">{v.first_name} {v.surname}</td>
@@ -209,11 +194,11 @@ export default function AdminVerificationPage() {
                             v.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : v.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'
                           }`}>
                             {v.status === 'approved' ? <CheckCircle className="w-3 h-3" /> : v.status === 'rejected' ? <XCircle className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                            {v.status.charAt(0).toUpperCase() + v.status.slice(1)}
+                            {v.status === 'approved' ? tc('approved') : v.status === 'rejected' ? tc('rejected') : tc('pending')}
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <button onClick={() => setSelected(v)} className="text-xs font-semibold text-brand hover:text-brand-hover">Review</button>
+                          <button onClick={() => setSelected(v)} className="text-xs font-semibold text-brand hover:text-brand-hover">{t('review')}</button>
                         </td>
                       </tr>
                     ))}
@@ -228,46 +213,46 @@ export default function AdminVerificationPage() {
 
       {/* Review Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => { setSelected(null); setRejectionReason('') }}>
-          <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4" onClick={() => { setSelected(null); setRejectionReason('') }}>
+          <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-brand" />
-                <h2 className="text-base font-bold text-gray-900">Review Verification</h2>
+                <h2 className="text-base font-bold text-gray-900">{t('modalTitle')}</h2>
               </div>
               <button onClick={() => { setSelected(null); setRejectionReason('') }}
                 className="p-1 rounded-md hover:bg-gray-100"><X className="w-4 h-4 text-gray-500" /></button>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="p-4 sm:p-5 space-y-4">
               {/* User info */}
-              <div className="bg-gray-50 border border-gray-100 rounded-lg p-4">
-                <p className="text-xs font-bold text-gray-500 uppercase mb-2">User Information</p>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-gray-500">Email:</span> <a href={`mailto:${selected.profile?.email}`} className="font-semibold ml-1 hover:text-brand hover:underline">{selected.profile?.email}</a></div>
-                  <div><span className="text-gray-500">Username:</span> <span className="font-semibold ml-1">@{selected.profile?.username}</span></div>
-                  <div><span className="text-gray-500">Type:</span> <span className="font-semibold ml-1 capitalize">{selected.profile?.role === 'company' ? 'Club' : selected.profile?.role === 'user' ? 'Visitor' : selected.profile?.role}</span></div>
-                  <div><span className="text-gray-500">Submitted:</span> <span className="font-semibold ml-1">{new Date(selected.submitted_at).toLocaleDateString()}</span></div>
+              <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 sm:p-4">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-2">{t('userInformation')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm">
+                  <div className="break-words"><span className="text-gray-500">{t('fieldEmail')}:</span> <a href={`mailto:${selected.profile?.email}`} className="font-semibold ml-1 hover:text-brand hover:underline break-all">{selected.profile?.email}</a></div>
+                  <div className="break-words"><span className="text-gray-500">{t('fieldUsername')}:</span> <span className="font-semibold ml-1">@{selected.profile?.username}</span></div>
+                  <div><span className="text-gray-500">{t('fieldType')}:</span> <span className="font-semibold ml-1 capitalize">{selected.profile?.role === 'company' ? t('typeClub') : selected.profile?.role === 'user' ? t('typeVisitor') : selected.profile?.role === 'model' ? t('typeModel') : selected.profile?.role}</span></div>
+                  <div><span className="text-gray-500">{t('fieldSubmitted')}:</span> <span className="font-semibold ml-1">{new Date(selected.submitted_at).toLocaleDateString()}</span></div>
                 </div>
               </div>
 
               {/* Submitted info */}
-              <div className="bg-gray-50 border border-gray-100 rounded-lg p-4">
-                <p className="text-xs font-bold text-gray-500 uppercase mb-2">Submitted Details</p>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-gray-500">First Name:</span> <span className="font-semibold ml-1">{selected.first_name}</span></div>
-                  <div><span className="text-gray-500">Surname:</span> <span className="font-semibold ml-1">{selected.surname}</span></div>
-                  <div><span className="text-gray-500">Date of Birth:</span> <span className="font-semibold ml-1">{selected.date_of_birth}</span></div>
-                  <div><span className="text-gray-500">ID Number:</span> <span className="font-semibold ml-1">{selected.id_number}</span></div>
+              <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 sm:p-4">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-2">{t('submittedDetails')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm">
+                  <div><span className="text-gray-500">{t('fieldFirstName')}:</span> <span className="font-semibold ml-1">{selected.first_name}</span></div>
+                  <div><span className="text-gray-500">{t('fieldSurname')}:</span> <span className="font-semibold ml-1">{selected.surname}</span></div>
+                  <div><span className="text-gray-500">{t('fieldDateOfBirth')}:</span> <span className="font-semibold ml-1">{formatDobDisplay(selected.date_of_birth) || '—'}</span></div>
+                  <div className="break-words"><span className="text-gray-500">{t('fieldIdNumber')}:</span> <span className="font-semibold ml-1">{selected.id_number}</span></div>
                 </div>
               </div>
 
               {/* Documents */}
               <div>
-                <p className="text-xs font-bold text-gray-500 uppercase mb-2">Uploaded Documents</p>
-                <div className="grid grid-cols-2 gap-3">
+                <p className="text-xs font-bold text-gray-500 uppercase mb-2">{t('uploadedDocuments')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs font-semibold text-gray-700 mb-1">ID Card Photo</p>
+                    <p className="text-xs font-semibold text-gray-700 mb-1">{t('idCardPhoto')}</p>
                     <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                       {idCardUrl
                         ? <img src={idCardUrl} alt="ID Card" className="w-full h-44 object-contain" />
@@ -275,7 +260,7 @@ export default function AdminVerificationPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-gray-700 mb-1">Selfie with ID</p>
+                    <p className="text-xs font-semibold text-gray-700 mb-1">{t('selfieWithId')}</p>
                     <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                       {selfieUrl
                         ? <img src={selfieUrl} alt="Selfie" className="w-full h-44 object-contain" />
@@ -285,7 +270,7 @@ export default function AdminVerificationPage() {
                 </div>
                 {selected.video_path && (
                   <div className="mt-3">
-                    <p className="text-xs font-semibold text-gray-700 mb-1">Video with ID</p>
+                    <p className="text-xs font-semibold text-gray-700 mb-1">{t('videoWithId')}</p>
                     <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50">
                       {videoUrl
                         ? <video src={videoUrl} controls className="w-full h-44" />
@@ -299,11 +284,11 @@ export default function AdminVerificationPage() {
               {selected.status !== 'pending' && (
                 <div className={`rounded-lg p-3 ${selected.status === 'approved' ? 'bg-emerald-50 border border-emerald-200' : 'bg-red-50 border border-red-200'}`}>
                   <p className={`text-xs font-bold mb-1 ${selected.status === 'approved' ? 'text-emerald-800' : 'text-red-800'}`}>
-                    Currently {selected.status === 'approved' ? 'Approved' : 'Rejected'}
+                    {selected.status === 'approved' ? t('currentlyApproved') : t('currentlyRejected')}
                   </p>
                   {selected.reviewed_at && (
                     <p className={`text-xs ${selected.status === 'approved' ? 'text-emerald-600' : 'text-red-600'}`}>
-                      Reviewed on {new Date(selected.reviewed_at).toLocaleDateString()}
+                      {t('reviewedOn', { date: new Date(selected.reviewed_at).toLocaleDateString() })}
                     </p>
                   )}
                   {selected.status === 'rejected' && selected.rejection_reason && (
@@ -315,29 +300,29 @@ export default function AdminVerificationPage() {
               {/* Rejection input — shown when reject button is visible */}
               {selected.status !== 'rejected' && (
                 <div>
-                  <label className="text-xs font-bold text-gray-800 mb-1 block">Rejection Reason (required to reject)</label>
+                  <label className="text-xs font-bold text-gray-800 mb-1 block">{t('rejectionReasonLabel')}</label>
                   <textarea value={rejectionReason} onChange={e => setRejectionReason(e.target.value)}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
-                    rows={2} placeholder="Enter reason for rejection..." />
+                    rows={2} placeholder={t('rejectionPlaceholder')} />
                 </div>
               )}
 
               {/* Actions — always show relevant buttons */}
-              <div className="flex gap-3 pt-1">
+              <div className="flex gap-2 sm:gap-3 pt-1 flex-wrap sm:flex-nowrap">
                 <button onClick={() => { setSelected(null); setRejectionReason('') }} disabled={processing}
-                  className="flex-1 px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50">
-                  Close
+                  className="flex-1 min-w-[88px] px-3 sm:px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50">
+                  {tc('close')}
                 </button>
                 {selected.status !== 'rejected' && (
                   <button onClick={() => handleReject(selected.id, selected.user_id)} disabled={processing || !rejectionReason.trim()}
-                    className="flex-1 px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50">
-                    {processing ? 'Processing...' : selected.status === 'approved' ? 'Change to Rejected' : 'Reject'}
+                    className="flex-1 min-w-[88px] px-3 sm:px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50">
+                    {processing ? '...' : selected.status === 'approved' ? t('changeToRejected') : tc('reject')}
                   </button>
                 )}
                 {selected.status !== 'approved' && (
                   <button onClick={() => handleApprove(selected.id, selected.user_id)} disabled={processing}
-                    className="flex-1 px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">
-                    {processing ? 'Processing...' : selected.status === 'rejected' ? 'Change to Approved' : 'Approve'}
+                    className="flex-1 min-w-[88px] px-3 sm:px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50">
+                    {processing ? '...' : selected.status === 'rejected' ? t('changeToApproved') : tc('approve')}
                   </button>
                 )}
               </div>

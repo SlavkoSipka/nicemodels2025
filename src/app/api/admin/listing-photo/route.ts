@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { notifyAdminAction } from '@/lib/admin/notify'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -52,6 +53,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: dbError.message }, { status: 500 })
     }
 
+    const { data: listing } = await admin
+      .from('job_listings')
+      .select('club_id, title, listing_type')
+      .eq('id', listingId)
+      .single()
+    if (listing?.club_id) {
+      const typeLabel = listing.listing_type === 'rent' ? 'rent listing' : 'job listing'
+      await notifyAdminAction({
+        userId: listing.club_id,
+        title: `Photo added to your ${typeLabel}`,
+        message: `An administrator added a photo to "${listing.title || typeLabel}".`,
+        actionUrl: '/dashboard/company/jobs-rent',
+        relatedEntityType: 'job_listing',
+        relatedEntityId: listingId,
+      })
+    }
+
     return NextResponse.json({ success: true, photo: inserted })
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Server error' }, { status: 500 })
@@ -71,7 +89,7 @@ export async function DELETE(request: NextRequest) {
 
     const { data: photo } = await admin
       .from('job_listing_photos')
-      .select('file_path')
+      .select('file_path, listing_id')
       .eq('id', photoId)
       .single()
 
@@ -80,6 +98,25 @@ export async function DELETE(request: NextRequest) {
     }
 
     await admin.from('job_listing_photos').delete().eq('id', photoId)
+
+    if (photo?.listing_id) {
+      const { data: listing } = await admin
+        .from('job_listings')
+        .select('club_id, title, listing_type')
+        .eq('id', photo.listing_id)
+        .single()
+      if (listing?.club_id) {
+        const typeLabel = listing.listing_type === 'rent' ? 'rent listing' : 'job listing'
+        await notifyAdminAction({
+          userId: listing.club_id,
+          title: `Photo removed from your ${typeLabel}`,
+          message: `An administrator removed a photo from "${listing.title || typeLabel}".`,
+          actionUrl: '/dashboard/company/jobs-rent',
+          relatedEntityType: 'job_listing',
+          relatedEntityId: photo.listing_id,
+        })
+      }
+    }
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

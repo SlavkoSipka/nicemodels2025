@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Globe, Eye, Users, Lock } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
 import DateRangePicker, { RangeKey } from '@/components/admin/charts/DateRangePicker'
@@ -20,6 +21,8 @@ interface TrafficResp {
 }
 
 export default function TrafficStatsPage() {
+  const t = useTranslations('admin.stats')
+  const tc = useTranslations('admin.common')
   const [range, setRange] = useState<RangeKey>('30d')
   const [data, setData] = useState<TrafficResp | null>(null)
   const [loading, setLoading] = useState(true)
@@ -33,13 +36,13 @@ export default function TrafficStatsPage() {
   }, [range])
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Globe className="w-6 h-6 text-sky-500" /> Site Traffic
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Globe className="w-5 h-5 sm:w-6 sm:h-6 text-sky-500 shrink-0" /> {t('trafficTitle')}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Page views across the entire site</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t('trafficSubtitle')}</p>
         </div>
         <DateRangePicker value={range} onChange={setRange} />
       </div>
@@ -56,13 +59,13 @@ export default function TrafficStatsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <KpiCard label="Total Page Views" value={data.kpis.totalViews.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" />
-            <KpiCard label="Unique Visitors" value={data.kpis.uniqueVisitors.toLocaleString()} icon={<Users className="w-4 h-4" />} accent="text-brand bg-brand/10" />
-            <KpiCard label="Logged-in Views" value={data.kpis.loggedIn.toLocaleString()} icon={<Lock className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" sub={data.kpis.totalViews ? `${Math.round((data.kpis.loggedIn / data.kpis.totalViews) * 100)}% of total` : undefined} />
-            <KpiCard label="Anonymous Views" value={data.kpis.anonymous.toLocaleString()} icon={<Globe className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" sub={data.kpis.totalViews ? `${Math.round((data.kpis.anonymous / data.kpis.totalViews) * 100)}% of total` : undefined} />
+            <KpiCard label={t('totalPageViews')} value={data.kpis.totalViews.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" />
+            <KpiCard label={t('uniqueVisitors')} value={data.kpis.uniqueVisitors.toLocaleString()} icon={<Users className="w-4 h-4" />} accent="text-brand bg-brand/10" />
+            <KpiCard label={t('loggedInViews')} value={data.kpis.loggedIn.toLocaleString()} icon={<Lock className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" sub={data.kpis.totalViews ? t('ofTotal', { percent: Math.round((data.kpis.loggedIn / data.kpis.totalViews) * 100) }) : undefined} />
+            <KpiCard label={t('anonymousViews')} value={data.kpis.anonymous.toLocaleString()} icon={<Globe className="w-4 h-4" />} accent="text-violet-600 bg-violet-50" sub={data.kpis.totalViews ? t('ofTotal', { percent: Math.round((data.kpis.anonymous / data.kpis.totalViews) * 100) }) : undefined} />
           </div>
 
-          <ChartCard title="Page Views Over Time" subtitle="Daily traffic">
+          <ChartCard title={t('pageViewsOverTime')} subtitle={t('dailyTraffic')}>
             <StatsAreaChart
               data={data.series.map(d => ({ ...d, date: shortDate(d.date) }))}
               xKey="date"
@@ -72,24 +75,24 @@ export default function TrafficStatsPage() {
           </ChartCard>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <ChartCard title="Top Pages" subtitle="Most visited paths">
+            <ChartCard title={t('topPages')} subtitle={t('topPagesSub')}>
               {data.topPaths.length === 0 ? (
-                <p className="text-sm text-gray-400 py-8 text-center">No data</p>
+                <p className="text-sm text-gray-400 py-8 text-center">{tc('noData')}</p>
               ) : (
                 <StatsBarChart
                   data={data.topPaths.map(p => ({ path: p.path.length > 28 ? p.path.slice(0, 28) + '…' : p.path, views: p.views }))}
                   xKey="path"
                   layout="horizontal"
-                  series={[{ key: 'views', name: 'Views', color: '#ec4899' }]}
+                  series={[{ key: 'views', name: t('colViews'), color: '#ec4899' }]}
                   height={360}
                 />
               )}
             </ChartCard>
 
-            <ChartCard title="Visitor Type" subtitle="Logged-in vs anonymous by role">
+            <ChartCard title={t('visitorType')} subtitle={t('visitorTypeSub')}>
               <StatsDonutChart
                 data={[
-                  { name: 'Anonymous', value: data.roleCounts.anonymous || 0, color: '#cbd5e1' },
+                  { name: t('anonymous'), value: data.roleCounts.anonymous || 0, color: '#cbd5e1' },
                   { name: 'Visitors', value: data.roleCounts.user || 0, color: '#8b5cf6' },
                   { name: 'Models', value: data.roleCounts.model || 0, color: '#ec4899' },
                   { name: 'Clubs', value: data.roleCounts.company || 0, color: '#3b82f6' },
@@ -100,9 +103,9 @@ export default function TrafficStatsPage() {
             </ChartCard>
           </div>
 
-          <ChartCard title="Top Referrers" subtitle="Where your visitors come from">
+          <ChartCard title={t('topReferrers')} subtitle={t('topReferrersSub')}>
             {data.topReferrers.length === 0 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No referrer data</p>
+              <p className="text-sm text-gray-400 py-8 text-center">{t('noReferrer')}</p>
             ) : (
               <div className="space-y-1">
                 {data.topReferrers.map((r, i) => {

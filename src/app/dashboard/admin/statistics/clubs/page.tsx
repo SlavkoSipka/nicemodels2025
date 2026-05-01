@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Building2, Eye, Phone } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
@@ -17,6 +18,8 @@ interface Resp {
 }
 
 export default function ClubsStatsPage() {
+  const t = useTranslations('admin.stats')
+  const tc = useTranslations('admin.common')
   const [range, setRange] = useState<RangeKey>('30d')
   const [data, setData] = useState<Resp | null>(null)
   const [loading, setLoading] = useState(true)
@@ -30,13 +33,13 @@ export default function ClubsStatsPage() {
   }, [range])
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-3 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Building2 className="w-6 h-6 text-blue-500" /> Club Analytics
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 shrink-0" /> {t('clubsTitle')}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">Profile views and contact clicks</p>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">{t('clubsSubtitle')}</p>
         </div>
         <DateRangePicker value={range} onChange={setRange} />
       </div>
@@ -46,42 +49,42 @@ export default function ClubsStatsPage() {
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <KpiCard label="Profile Views" value={data.kpis.totalViews.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-blue-600 bg-blue-50" />
-            <KpiCard label="Contact Clicks" value={data.kpis.totalContactClicks.toLocaleString()} icon={<Phone className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" />
+            <KpiCard label={t('profileViews')} value={data.kpis.totalViews.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-blue-600 bg-blue-50" />
+            <KpiCard label={t('contactClicks')} value={data.kpis.totalContactClicks.toLocaleString()} icon={<Phone className="w-4 h-4" />} accent="text-emerald-600 bg-emerald-50" />
             <KpiCard
-              label="Conversion Rate"
+              label={t('conversionRate')}
               value={data.kpis.totalViews ? `${Math.round((data.kpis.totalContactClicks / data.kpis.totalViews) * 100)}%` : '0%'}
               icon={<Phone className="w-4 h-4" />}
               accent="text-violet-600 bg-violet-50"
-              sub="Contacts per view"
+              sub={t('contactsPerView')}
             />
           </div>
 
-          <ChartCard title="Engagement Over Time" subtitle="Daily activity">
+          <ChartCard title={t('engagementOverTime')} subtitle={t('engagementSubDaily')}>
             <StatsLineChart
               data={data.series.map(d => ({ ...d, date: shortDate(d.date) }))}
               xKey="date"
               series={[
-                { key: 'profile_view', name: 'Profile views', color: '#3b82f6' },
-                { key: 'contact_click', name: 'Contact clicks', color: '#10b981' },
+                { key: 'profile_view', name: t('profileViews'), color: '#3b82f6' },
+                { key: 'contact_click', name: t('contactClicks'), color: '#10b981' },
               ]}
               height={320}
             />
           </ChartCard>
 
-          <ChartCard title="Top Clubs" subtitle="Ranked by profile views in selected range">
+          <ChartCard title={t('topClubs')} subtitle={t('topClubsSub')}>
             {data.topClubs.length === 0 ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No data</p>
+              <p className="text-sm text-gray-400 py-8 text-center">{tc('noData')}</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                      <th className="text-left py-2 px-2">#</th>
-                      <th className="text-left py-2 px-2">Club</th>
-                      <th className="text-right py-2 px-2">Views</th>
-                      <th className="text-right py-2 px-2">Contacts</th>
-                      <th className="text-right py-2 px-2">Conv.</th>
+                      <th className="text-left py-2 px-2">{t('colHash')}</th>
+                      <th className="text-left py-2 px-2">{t('colClub')}</th>
+                      <th className="text-right py-2 px-2">{t('colViews')}</th>
+                      <th className="text-right py-2 px-2">{t('colContacts')}</th>
+                      <th className="text-right py-2 px-2">{t('colConv')}</th>
                       <th className="py-2 px-2" />
                     </tr>
                   </thead>
@@ -97,7 +100,7 @@ export default function ClubsStatsPage() {
                           <td className="py-2 px-2 text-right font-bold tabular-nums">{conv}%</td>
                           <td className="py-2 px-2 text-right">
                             <Link href={`/dashboard/admin/clubs/${c.id}`} className="text-xs font-semibold text-brand hover:underline">
-                              Manage
+                              {t('manage')}
                             </Link>
                           </td>
                         </tr>

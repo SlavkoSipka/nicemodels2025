@@ -8,11 +8,11 @@ interface Props {
   className?: string
 }
 
-const OPTIONS: { id: RangeKey; label: string }[] = [
-  { id: '7d', label: 'Last 7 days' },
-  { id: '30d', label: 'Last 30 days' },
-  { id: '90d', label: 'Last 90 days' },
-  { id: 'all', label: 'All time' },
+const OPTIONS: { id: RangeKey; label: string; short: string }[] = [
+  { id: '7d', label: 'Last 7 days', short: '7d' },
+  { id: '30d', label: 'Last 30 days', short: '30d' },
+  { id: '90d', label: 'Last 90 days', short: '90d' },
+  { id: 'all', label: 'All time', short: 'All' },
 ]
 
 export default function DateRangePicker({ value, onChange, className = '' }: Props) {
@@ -22,13 +22,14 @@ export default function DateRangePicker({ value, onChange, className = '' }: Pro
         <button
           key={opt.id}
           onClick={() => onChange(opt.id)}
-          className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+          className={`px-2 sm:px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
             value === opt.id
               ? 'bg-brand text-white'
               : 'text-gray-600 hover:text-gray-900'
           }`}
         >
-          {opt.label}
+          <span className="hidden sm:inline">{opt.label}</span>
+          <span className="sm:hidden">{opt.short}</span>
         </button>
       ))}
     </div>

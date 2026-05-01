@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { htmlToPlainText } from '@/lib/plainText'
 import {
   listingTelHref,
+  listingSmsHref,
   listingWhatsAppHref,
   listingViberHref,
   listingTelegramHref,
@@ -372,8 +373,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
     if (data && !error) {
       setMyComment(data)
-      // Only block form if comment exists and is pending or approved (not rejected)
-      setHasExistingComment(data.status === 'pending' || data.status === 'approved')
+      // Only block form if comment is online or awaiting review (not rejected)
+      setHasExistingComment(
+        data.status === 'pending' ||
+        data.status === 'approved' ||
+        data.status === 'reviewed'
+      )
     } else {
       setMyComment(null)
       setHasExistingComment(false)
@@ -777,11 +782,35 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       {modelDetails?.showname || profile.username}
                     </h1>
                   </div>
-                  {profile.is_verified && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white px-2.5 py-1 rounded-full shrink-0 mt-1" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(16,185,129,0.4)' }}>
-                      <CheckCircle className="w-3 h-3" /> Verified
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 shrink-0 mt-1">
+                    {contactDetails?.show_phone_on_card && contactDetails?.phone_number && (
+                      <span className="inline-flex items-center gap-0.5">
+                        <a
+                          href={listingTelHref(contactDetails.country_code || '', contactDetails.phone_number)}
+                          className="inline-flex items-center gap-1 text-[12px] font-semibold whitespace-nowrap px-2 py-1 rounded-md rounded-r-none border border-r-0 hover:opacity-90"
+                          style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
+                          aria-label={`Call ${contactDetails.country_code || ''} ${contactDetails.phone_number}`}
+                        >
+                          <Phone className="w-3.5 h-3.5 shrink-0" />
+                          {`${contactDetails.country_code || ''} ${contactDetails.phone_number}`.trim()}
+                        </a>
+                        <a
+                          href={listingSmsHref(contactDetails.country_code || '', contactDetails.phone_number)}
+                          className="text-[11px] font-bold px-2 py-1 rounded-md rounded-l-none border hover:opacity-90 leading-none self-stretch flex items-center"
+                          style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
+                          title="Send SMS"
+                          aria-label={`Send SMS to ${contactDetails.country_code || ''} ${contactDetails.phone_number}`}
+                        >
+                          SMS
+                        </a>
+                      </span>
+                    )}
+                    {profile.is_verified && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white px-2.5 py-1 rounded-full" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(16,185,129,0.4)' }}>
+                        <CheckCircle className="w-3 h-3" /> Verified
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* City / age line */}

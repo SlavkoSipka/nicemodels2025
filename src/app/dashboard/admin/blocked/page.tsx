@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { ArrowLeft, User, Building2, UserX, UserCheck, UserCircle, Shield } from 'lucide-react'
 
@@ -17,6 +18,8 @@ interface BlockedUser {
 }
 
 export default function AdminBlockedPage() {
+  const t = useTranslations('admin.blocked')
+  const tc = useTranslations('admin.common')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([])
@@ -29,7 +32,7 @@ export default function AdminBlockedPage() {
     const res = await fetch('/api/admin/blocked-users')
     const json = await res.json()
     if (!res.ok) {
-      setLoadError(typeof json.error === 'string' ? json.error : 'Could not load blocked users')
+      setLoadError(typeof json.error === 'string' ? json.error : t('loadError'))
       setBlockedUsers([])
       setLoading(false)
       return
@@ -74,7 +77,7 @@ export default function AdminBlockedPage() {
   }
 
   const handleUnblock = async (userId: string) => {
-    if (!confirm('Unblock this user?')) return
+    if (!confirm(t('confirmUnblock'))) return
     const res = await fetch('/api/admin/block-user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -82,7 +85,7 @@ export default function AdminBlockedPage() {
     })
     if (!res.ok) {
       const data = await res.json()
-      alert(data.error || 'Failed to unblock user')
+      alert(data.error || t('unblockFailed'))
       return
     }
     load()
@@ -92,18 +95,18 @@ export default function AdminBlockedPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-6xl mx-auto space-y-4">
 
           {/* Header */}
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                 <UserX className="w-5 h-5 text-red-600" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Blocked Users</h1>
-                <p className="text-xs text-gray-500">{blockedUsers.length} blocked</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+                <p className="text-xs text-gray-500">{t('totalBlocked', { count: blockedUsers.length })}</p>
               </div>
             </div>
           </div>
@@ -120,7 +123,7 @@ export default function AdminBlockedPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    {['User', 'Email', 'Type', 'Blocked Date', 'Reason', 'Actions'].map(h => (
+                    {[t('colUser'), t('colEmail'), t('colType'), t('colBlockedDate'), t('colReason'), t('colActions')].map(h => (
                       <th key={h} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -140,7 +143,7 @@ export default function AdminBlockedPage() {
                               {displayName(user)}
                               {user.public_id != null && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{user.public_id}</span>}
                             </p>
-                            <p className="text-xs text-gray-400">@{user.username || 'no-username'}</p>
+                            <p className="text-xs text-gray-400">@{user.username || t('noUsername')}</p>
                           </div>
                         </div>
                       </td>
@@ -157,7 +160,7 @@ export default function AdminBlockedPage() {
                       <td className="px-4 py-3">
                         <button onClick={() => handleUnblock(user.id)}
                           className="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors flex items-center gap-1">
-                          <UserCheck className="w-3 h-3" /> Unblock
+                          <UserCheck className="w-3 h-3" /> {tc('unblock')}
                         </button>
                       </td>
                     </tr>
@@ -168,7 +171,7 @@ export default function AdminBlockedPage() {
             {blockedUsers.length === 0 && (
               <div className="text-center py-12">
                 <UserCheck className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">No blocked users</p>
+                <p className="text-sm text-gray-400">{t('noBlockedUsers')}</p>
               </div>
             )}
           </div>

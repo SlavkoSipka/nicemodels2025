@@ -25,6 +25,11 @@ interface Invite {
   invited_at: string
   model: {
     username: string
+    showname?: string | null
+    public_id?: string | null
+    city?: string | null
+    photo_url?: string | null
+    is_verified?: boolean
   }
 }
 
@@ -87,23 +92,57 @@ export default function ManageModelsPage() {
 
       const { data: invitesData, error: invitesError } = await supabase
         .from('club_invites')
-        .select(`
-          id,
-          invited_model_id,
-          status,
-          message,
-          invited_at,
-          model:profiles!club_invites_invited_model_id_fkey(username)
-        `)
+        .select('id, invited_model_id, status, message, invited_at')
         .eq('club_id', user.id)
         .eq('status', 'pending')
         .order('invited_at', { ascending: false })
 
-      if (!invitesError && invitesData) {
-        setInvites(invitesData.map(invite => ({
-          ...invite,
-          model: Array.isArray(invite.model) ? invite.model[0] : invite.model
-        })))
+      if (!invitesError && invitesData && invitesData.length > 0) {
+        const invitedIds = invitesData.map(i => i.invited_model_id)
+
+        const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+        const [{ data: invProfiles }, { data: invDetails }, { data: invPhotos }] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('id, username, public_id, is_verified')
+            .in('id', invitedIds),
+          supabase
+            .from('model_details')
+            .select('model_id, showname, city')
+            .in('model_id', invitedIds),
+          supabase
+            .from('model_photos')
+            .select('model_id, file_path, uploaded_at')
+            .in('model_id', invitedIds)
+            .eq('is_approved', true)
+            .order('uploaded_at', { ascending: false }),
+        ])
+
+        const profileMap = new Map((invProfiles || []).map(p => [p.id, p]))
+        const detailsMap = new Map((invDetails || []).map(d => [d.model_id, d]))
+        const photoMap = new Map<string, string>()
+        for (const p of (invPhotos || [])) {
+          if (!photoMap.has(p.model_id)) photoMap.set(p.model_id, p.file_path)
+        }
+
+        setInvites(invitesData.map(invite => {
+          const p = profileMap.get(invite.invited_model_id)
+          const d = detailsMap.get(invite.invited_model_id)
+          const fp = photoMap.get(invite.invited_model_id)
+          return {
+            ...invite,
+            model: {
+              username: p?.username || 'Model',
+              showname: d?.showname ?? null,
+              public_id: p?.public_id ?? null,
+              city: d?.city ?? null,
+              is_verified: !!p?.is_verified,
+              photo_url: fp ? `${SUPA_URL}/storage/v1/object/public/model-photos/${fp}` : null,
+            },
+          }
+        }))
+      } else {
+        setInvites([])
       }
 
       setLoading(false)
@@ -320,44 +359,84 @@ export default function ManageModelsPage() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {invites.map((invite) => (
-                      <div
-                        key={invite.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-sm shrink-0">
-                              {invite.model.username?.charAt(0).toUpperCase() || 'M'}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 truncate">{invite.model.username}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200">
-                                  <Clock className="w-3 h-3" /> Pending
-                                </span>
-                                <span className="text-xs text-gray-400">
-                                  Sent {new Date(invite.invited_at).toLocaleDateString()}
-                                </span>
+                    {invites.map((invite) => {
+                      const m = invite.model
+                      const displayName = m.showname || m.username || 'Model'
+                      return (
+                        <div
+                          key={invite.id}
+                          className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {m.photo_url ? (
+                                <img
+                                  src={m.photo_url}
+                                  alt={displayName}
+                                  className="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-100 to-pink-100 flex items-center justify-center text-amber-700 font-bold text-base shrink-0">
+                                  {displayName.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
+                                  {m.is_verified && (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
+                                      <CheckCircle className="w-2.5 h-2.5" /> Verified
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-gray-500 truncate">
+                                  @{m.username}
+                                  {m.public_id && <span className="ml-1.5 font-mono text-gray-400">#{m.public_id}</span>}
+                                </p>
+                                {m.city && (
+                                  <p className="text-[11px] text-gray-600 mt-0.5 flex items-center gap-1 truncate">
+                                    <MapPin className="w-3 h-3 shrink-0 text-gray-400" />
+                                    <span className="truncate">{m.city}</span>
+                                  </p>
+                                )}
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-[11px] font-semibold rounded-full border border-amber-200">
+                                    <Clock className="w-3 h-3" /> Pending
+                                  </span>
+                                  <span className="text-[11px] text-gray-400">
+                                    Sent {new Date(invite.invited_at).toLocaleDateString()}
+                                  </span>
+                                </div>
                               </div>
                             </div>
+                            <div className="flex flex-col sm:flex-row gap-1.5 shrink-0">
+                              <button
+                                onClick={() => router.push(`/models/${invite.invited_model_id}`)}
+                                className="flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
+                                title="View public sedcard"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">View</span>
+                              </button>
+                              <button
+                                onClick={() => handleCancelInvite(invite.id)}
+                                className="flex items-center justify-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Cancel</span>
+                              </button>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => handleCancelInvite(invite.id)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors shrink-0"
-                          >
-                            <X className="w-3.5 h-3.5" /> Cancel
-                          </button>
+                          {invite.message && (
+                            <div className="mt-2 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+                              <p className="text-xs text-gray-600">
+                                <span className="font-semibold">Message:</span> {invite.message}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                        {invite.message && (
-                          <div className="mt-2 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
-                            <p className="text-xs text-gray-600">
-                              <span className="font-semibold">Message:</span> {invite.message}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </>

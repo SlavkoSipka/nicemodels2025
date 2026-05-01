@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, UserCircle, Pencil, Trash2, X, Save, AlertCircle, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
-import { downloadCsv, fmtDate, fmtDateTime } from '@/lib/exportCsv'
+import { Ban, CheckCircle, Search, UserCircle, Pencil, Trash2, X, Save, AlertCircle, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
+import { formatDobDisplay } from '@/lib/utils/dob'
+import DobInput from '@/components/forms/DobInput'
+import AdminMessageButton from '@/components/admin/AdminMessageButton'
 
 interface Visitor {
   id: string
@@ -36,6 +39,9 @@ interface EditForm {
 type SortKey = 'username' | 'email' | 'phone' | 'city' | 'created_at' | 'is_blocked'
 
 export default function AdminUsersPage() {
+  const t = useTranslations('admin.users')
+  const tc = useTranslations('admin.common')
+  const tSb = useTranslations('admin.sidebar')
   const [loading, setLoading] = useState(true)
   const [visitors, setVisitors] = useState<Visitor[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -86,7 +92,7 @@ export default function AdminUsersPage() {
 
   const handleSave = async () => {
     if (!editingVisitor || !editForm) return
-    if (!editForm.username.trim()) { setEditError('Username is required'); return }
+    if (!editForm.username.trim()) { setEditError(t('usernameRequired')); return }
 
     setSaving(true)
     setEditError('')
@@ -111,10 +117,10 @@ export default function AdminUsersPage() {
 
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to save')
+        throw new Error(data.error || tc('failedToSave'))
       }
 
-      setEditSuccess('Saved successfully!')
+      setEditSuccess(tc('savedSuccessShort'))
       setVisitors(prev => prev.map(v =>
         v.id === editingVisitor.id
           ? {
@@ -132,14 +138,14 @@ export default function AdminUsersPage() {
       ))
       setTimeout(() => setEditSuccess(''), 2000)
     } catch (e: any) {
-      setEditError(e.message || 'Failed to save')
+      setEditError(e.message || tc('failedToSave'))
     } finally {
       setSaving(false)
     }
   }
 
   const handleBlock = async (userId: string, currentlyBlocked: boolean) => {
-    if (!confirm(`${currentlyBlocked ? 'Unblock' : 'Block'} this visitor?`)) return
+    if (!confirm(t('confirmBlock'))) return
     const res = await fetch('/api/admin/update-visitor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -147,14 +153,14 @@ export default function AdminUsersPage() {
     })
     if (!res.ok) {
       const data = await res.json()
-      alert(data.error || 'Failed to update')
+      alert(data.error || tc('failedToUpdate'))
       return
     }
     setVisitors(prev => prev.map(v => v.id === userId ? { ...v, is_blocked: !currentlyBlocked } : v))
   }
 
   const handleDelete = async (visitor: Visitor) => {
-    const confirmation = prompt(`Type DELETE to permanently remove user "${visitor.username || visitor.email}".\nThis cannot be undone.`)
+    const confirmation = prompt(`${t('confirmDeletePrefix')} "${visitor.username || visitor.email}".\n${tc('thisCannotBeUndone')}`)
     if (confirmation !== 'DELETE') return
 
     try {
@@ -165,12 +171,12 @@ export default function AdminUsersPage() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to delete')
+        throw new Error(data.error || tc('failedToDelete'))
       }
       setVisitors(prev => prev.filter(v => v.id !== visitor.id))
       if (editingVisitor?.id === visitor.id) closeEdit()
     } catch (e: any) {
-      alert(e.message || 'Failed to delete user')
+      alert(e.message || t('deleteFailed'))
     }
   }
 
@@ -217,19 +223,19 @@ export default function AdminUsersPage() {
       : <ArrowDown className="w-3 h-3 text-gray-700" />
   }
 
-  const handleDownloadCsv = () => {
-    downloadCsv('nicemodels-visitors', sorted, [
-      { header: 'Public ID', value: v => v.public_id ?? '' },
-      { header: 'Username', value: v => v.username || '' },
-      { header: 'First Name', value: v => v.first_name || '' },
-      { header: 'Last Name', value: v => v.last_name || '' },
-      { header: 'Email', value: v => v.email || '' },
-      { header: 'Phone', value: v => v.phone || '' },
-      { header: 'City', value: v => v.city || '' },
-      { header: 'Date of Birth', value: v => fmtDate(v.date_of_birth) },
-      { header: 'Joined', value: v => fmtDateTime(v.created_at) },
-      { header: 'Blocked', value: v => v.is_blocked ? 'Yes' : 'No' },
-      { header: 'User ID', value: v => v.id },
+  const handleDownloadXlsx = () => {
+    downloadXlsx('nicemodels-visitors', sorted, [
+      { header: 'Public ID', value: v => v.public_id ?? '', width: 10 },
+      { header: 'Username', value: v => v.username || '', width: 20 },
+      { header: 'First Name', value: v => v.first_name || '', width: 18 },
+      { header: 'Last Name', value: v => v.last_name || '', width: 18 },
+      { header: 'Email', value: v => v.email || '', width: 30 },
+      { header: 'Phone', value: v => v.phone || '', text: true, width: 22 },
+      { header: 'City', value: v => v.city || '', width: 18 },
+      { header: 'Date of Birth', value: v => formatDobDisplay(v.date_of_birth), text: true, width: 14 },
+      { header: 'Joined', value: v => fmtDateTime(v.created_at), text: true, width: 20 },
+      { header: 'Blocked', value: v => v.is_blocked ? 'Yes' : 'No', width: 10 },
+      { header: 'User ID', value: v => v.id, text: true, width: 38 },
     ])
   }
 
@@ -240,42 +246,43 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-4">
 
           <div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center shrink-0">
                   <UserCircle className="w-5 h-5 text-violet-600" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Visitors Management</h1>
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{tSb('visitors')}</h1>
                   <p className="text-xs text-gray-500">
-                    {visitors.length} total · {sorted.length} shown
+                    {tc('totalShown', { total: visitors.length, shown: sorted.length })}
                   </p>
                 </div>
               </div>
               <button
-                onClick={handleDownloadCsv}
+                onClick={handleDownloadXlsx}
                 disabled={sorted.length === 0}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Download visible rows as CSV (Excel)"
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                title={tc('downloadExcelTitle')}
               >
                 <Download className="w-4 h-4" />
-                Download CSV ({sorted.length})
+                <span className="hidden sm:inline">{tc('downloadExcel', { count: sorted.length })}</span>
+                <span className="sm:hidden">Excel ({sorted.length})</span>
               </button>
             </div>
           </div>
 
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search by ID, email, name, phone, city..."
+            <input type="text" placeholder={t('searchPlaceholder')}
               value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
 
-          <div className="flex gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             {/* Table */}
             <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden ${editingVisitor ? 'flex-1 min-w-0' : 'w-full'}`}>
               <div className="overflow-x-auto">
@@ -283,12 +290,12 @@ export default function AdminUsersPage() {
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
                       {([
-                        { label: 'Visitor', key: 'username' as SortKey },
-                        { label: 'Email', key: 'email' as SortKey },
-                        { label: 'Phone', key: 'phone' as SortKey },
-                        { label: 'City', key: 'city' as SortKey },
-                        { label: 'Joined', key: 'created_at' as SortKey },
-                        { label: 'Status', key: 'is_blocked' as SortKey },
+                        { label: t('colVisitor'), key: 'username' as SortKey },
+                        { label: t('colEmail'), key: 'email' as SortKey },
+                        { label: t('colPhone'), key: 'phone' as SortKey },
+                        { label: t('colCity'), key: 'city' as SortKey },
+                        { label: t('colJoined'), key: 'created_at' as SortKey },
+                        { label: t('colStatus'), key: 'is_blocked' as SortKey },
                       ]).map(col => (
                         <th key={col.key} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                           <button
@@ -300,7 +307,7 @@ export default function AdminUsersPage() {
                           </button>
                         </th>
                       ))}
-                      <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{tc('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -339,11 +346,11 @@ export default function AdminUsersPage() {
                         <td className="px-4 py-3">
                           {visitor.is_blocked ? (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                              <Ban className="w-3 h-3" /> Blocked
+                              <Ban className="w-3 h-3" /> {tc('blocked')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
-                              <CheckCircle className="w-3 h-3" /> Active
+                              <CheckCircle className="w-3 h-3" /> {tc('active')}
                             </span>
                           )}
                         </td>
@@ -353,7 +360,7 @@ export default function AdminUsersPage() {
                               onClick={() => openEdit(visitor)}
                               className="px-2.5 py-1 text-xs font-semibold rounded-md bg-violet-50 text-violet-700 hover:bg-violet-100 inline-flex items-center gap-1"
                             >
-                              <Pencil className="w-3 h-3" /> Edit
+                              <Pencil className="w-3 h-3" /> {tc('edit')}
                             </button>
                             <button onClick={() => handleBlock(visitor.id, visitor.is_blocked)}
                               className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
@@ -361,11 +368,11 @@ export default function AdminUsersPage() {
                                   ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                                   : 'bg-red-50 text-red-700 hover:bg-red-100'
                               }`}>
-                              {visitor.is_blocked ? 'Unblock' : 'Block'}
+                              {visitor.is_blocked ? tc('unblock') : tc('block')}
                             </button>
                             <button onClick={() => handleDelete(visitor)}
                               className="px-2.5 py-1 text-xs font-semibold rounded-md bg-red-50 text-red-700 hover:bg-red-100 inline-flex items-center gap-1"
-                              title="Delete user permanently"
+                              title={tc('delete')}
                             >
                               <Trash2 className="w-3 h-3" />
                             </button>
@@ -378,15 +385,20 @@ export default function AdminUsersPage() {
               </div>
               {sorted.length === 0 && (
                 <div className="text-center py-10">
-                  <p className="text-sm text-gray-400">No visitors found</p>
+                  <p className="text-sm text-gray-400">{t('noVisitorsFound')}</p>
                 </div>
               )}
             </div>
 
-            {/* Edit Panel (slide-in sidebar) */}
+            {/* Edit Panel — slide-in sidebar on desktop, full-screen modal on mobile */}
             {editingVisitor && editForm && (
-              <div className="w-[380px] shrink-0 bg-white border border-gray-200 rounded-lg overflow-y-auto max-h-[calc(100vh-160px)] sticky top-6">
-                <div className="p-5 space-y-4">
+              <>
+                <div
+                  className="lg:hidden fixed inset-0 bg-black/40 z-40"
+                  onClick={closeEdit}
+                />
+                <div className="fixed lg:static inset-x-0 bottom-0 lg:inset-auto z-50 lg:z-auto w-full lg:w-[380px] shrink-0 bg-white border border-gray-200 rounded-t-2xl lg:rounded-lg overflow-y-auto max-h-[85vh] lg:max-h-[calc(100vh-160px)] lg:sticky lg:top-6 shadow-2xl lg:shadow-none">
+                <div className="p-4 sm:p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <div className="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center overflow-hidden shrink-0">
@@ -397,7 +409,7 @@ export default function AdminUsersPage() {
                         )}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-gray-900">Edit Visitor</p>
+                        <p className="text-sm font-bold text-gray-900">{t('editVisitor')}</p>
                         <a href={`mailto:${editingVisitor.email}`} className="text-xs text-gray-500 hover:text-brand hover:underline">{editingVisitor.email}</a>
                       </div>
                     </div>
@@ -420,7 +432,7 @@ export default function AdminUsersPage() {
                   )}
 
                   <div>
-                    <label className={labelCls}>Username <span className="text-red-500">*</span></label>
+                    <label className={labelCls}>{t('username')} <span className="text-red-500">*</span></label>
                     <input type="text" value={editForm.username}
                       onChange={e => setEditForm({ ...editForm, username: e.target.value })}
                       className={inputCls} />
@@ -428,13 +440,13 @@ export default function AdminUsersPage() {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className={labelCls}>First Name</label>
+                      <label className={labelCls}>{t('firstName')}</label>
                       <input type="text" value={editForm.first_name}
                         onChange={e => setEditForm({ ...editForm, first_name: e.target.value })}
                         className={inputCls} />
                     </div>
                     <div>
-                      <label className={labelCls}>Last Name</label>
+                      <label className={labelCls}>{t('lastName')}</label>
                       <input type="text" value={editForm.last_name}
                         onChange={e => setEditForm({ ...editForm, last_name: e.target.value })}
                         className={inputCls} />
@@ -442,34 +454,34 @@ export default function AdminUsersPage() {
                   </div>
 
                   <div>
-                    <label className={labelCls}>Phone</label>
+                    <label className={labelCls}>{t('colPhone')}</label>
                     <input type="tel" value={editForm.phone}
                       onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
-                      placeholder="+41 79 123 45 67"
+                      placeholder={t('phonePlaceholder')}
                       className={inputCls} />
                   </div>
 
                   <div>
-                    <label className={labelCls}>Date of Birth</label>
-                    <input type="date" value={editForm.date_of_birth}
-                      onChange={e => setEditForm({ ...editForm, date_of_birth: e.target.value })}
+                    <label className={labelCls}>{t('dateOfBirth')}</label>
+                    <DobInput value={editForm.date_of_birth}
+                      onChange={iso => setEditForm({ ...editForm, date_of_birth: iso })}
                       className={inputCls} />
                   </div>
 
                   <div>
-                    <label className={labelCls}>City</label>
+                    <label className={labelCls}>{t('city')}</label>
                     <input type="text" value={editForm.city}
                       onChange={e => setEditForm({ ...editForm, city: e.target.value })}
-                      placeholder="Zürich"
+                      placeholder={t('cityPlaceholder')}
                       className={inputCls} />
                   </div>
 
                   <div>
-                    <label className={labelCls}>Description / Bio</label>
+                    <label className={labelCls}>{t('description')}</label>
                     <textarea value={editForm.description}
                       onChange={e => setEditForm({ ...editForm, description: e.target.value })}
                       rows={3}
-                      placeholder="About this user..."
+                      placeholder={t('descriptionPlaceholder')}
                       className={inputCls + ' resize-none'} />
                   </div>
 
@@ -477,28 +489,39 @@ export default function AdminUsersPage() {
                     <input type="checkbox" checked={editForm.is_blocked}
                       onChange={e => setEditForm({ ...editForm, is_blocked: e.target.checked })}
                       className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500" />
-                    <span className="text-sm font-semibold text-red-700">Blocked</span>
+                    <span className="text-sm font-semibold text-red-700">{t('blockedToggle')}</span>
                   </label>
 
                   <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                     <button onClick={handleSave} disabled={saving}
                       className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
                       <Save className="w-4 h-4" />
-                      {saving ? 'Saving...' : 'Save Changes'}
+                      {saving ? tc('saving') : tc('save')}
                     </button>
                     <button onClick={() => handleDelete(editingVisitor)}
                       className="flex items-center justify-center gap-1.5 px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700">
                       <Trash2 className="w-4 h-4" />
-                      Delete
+                      {tc('delete')}
                     </button>
                   </div>
 
+                  <div className="pt-2 border-t border-gray-100">
+                    <AdminMessageButton
+                      userId={editingVisitor.id}
+                      recipientEmail={editingVisitor.email}
+                      recipientName={editingVisitor.username || (editingVisitor.first_name || editingVisitor.last_name ? [editingVisitor.first_name, editingVisitor.last_name].filter(Boolean).join(' ') : null)}
+                      defaultSubject={t('messageDefaultSubject')}
+                      className="w-full justify-center"
+                    />
+                  </div>
+
                   <div className="text-[10px] text-gray-400 space-y-0.5 pt-1">
-                    <p>ID: {editingVisitor.id}</p>
-                    <p>Joined: {new Date(editingVisitor.created_at).toLocaleString()}</p>
+                    <p className="break-all">{t('id')}: {editingVisitor.id}</p>
+                    <p>{t('joinedFull')}: {new Date(editingVisitor.created_at).toLocaleString()}</p>
                   </div>
                 </div>
               </div>
+              </>
             )}
           </div>
 

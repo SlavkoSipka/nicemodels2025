@@ -22,7 +22,6 @@ export default async function ModelsPage() {
       { data: allDetails },
       { data: allServices },
       { data: allPhotos },
-      { data: allContacts },
     ] = await Promise.all([
       supabase
         .from('model_details')
@@ -38,11 +37,6 @@ export default async function ModelsPage() {
         .in('model_id', modelIds)
         .eq('is_approved', true)
         .order('uploaded_at', { ascending: false }),
-      supabase
-        .from('model_contact_details')
-        .select('model_id, show_phone_on_card, country_code, phone_number')
-        .in('model_id', modelIds)
-        .eq('show_phone_on_card', true),
     ])
 
     const TWO_HOURS = 2 * 60 * 60 * 1000
@@ -70,19 +64,12 @@ export default async function ModelsPage() {
         photosMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
       }
     }
-    const contactPhoneMap = new Map<string, string>()
-    for (const c of allContacts ?? []) {
-      if (c.show_phone_on_card && c.phone_number) {
-        contactPhoneMap.set(c.model_id, `${c.country_code || ''}${c.phone_number}`)
-      }
-    }
 
     models = modelsData.map((model: any) => ({
       ...model,
       model_details: detailsMap.get(model.id) ?? null,
       model_services_list: servicesMap.get(model.id) ?? [],
       photoUrl: photosMap.get(model.id) ?? null,
-      cardPhone: contactPhoneMap.get(model.id) ?? null,
     }))
 
     const modelCityNames = [...new Set(

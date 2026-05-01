@@ -39,7 +39,7 @@ export default function RegisterPage() {
                   <div className="space-y-3 sm:space-y-4">
                     {[
                       'Absolutely free registration',
-                      'Discreet, secure & anonymous',
+                      'Discreet & secure',
                       'Access to Advertisement Manager',
                       'Reach 1.5 million monthly searches',
                       'Swiss company quality standards',

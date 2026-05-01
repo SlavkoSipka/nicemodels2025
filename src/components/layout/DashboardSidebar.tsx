@@ -122,6 +122,10 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <MessageSquare className="w-5 h-5 shrink-0" />
                 <span>Comments</span>
               </Link>
+              <Link href="/dashboard/user/jobs-rent" className={navLinkCls('/dashboard/user/jobs-rent')}>
+                <Briefcase className="w-5 h-5 shrink-0" />
+                <span>My Listings</span>
+              </Link>
               <Link href="/dashboard/user/settings" className={navLinkCls('/dashboard/user/settings')}>
                 <Settings className="w-5 h-5 shrink-0" />
                 <span>Settings</span>
@@ -173,13 +177,13 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                   <div className="ml-3 md:ml-4 mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 border-l-2 border-pink-200 pl-3 md:pl-4">
                     <Link href="/dashboard/model/profile/biography" className={subLinkCls('/dashboard/model/profile/biography')}>Biography</Link>
                     <Link href="/dashboard/model/profile/about-me" className={subLinkCls('/dashboard/model/profile/about-me')}>About Me</Link>
-                    <Link href="/dashboard/model/profile/languages" className={subLinkCls('/dashboard/model/profile/languages')}>Languages</Link>
+                    <Link href="/dashboard/model/profile/contact-details" className={subLinkCls('/dashboard/model/profile/contact-details')}>Contact Details</Link>
                     <Link href="/dashboard/model/profile/area" className={subLinkCls('/dashboard/model/profile/area')}>Area / Address</Link>
+                    <Link href="/dashboard/model/profile/pictures-video" className={subLinkCls('/dashboard/model/profile/pictures-video')}>Pictures / Video</Link>
+                    <Link href="/dashboard/model/profile/languages" className={subLinkCls('/dashboard/model/profile/languages')}>Languages</Link>
                     <Link href="/dashboard/model/profile/services" className={subLinkCls('/dashboard/model/profile/services')}>Services</Link>
                     <Link href="/dashboard/model/profile/working-hours" className={subLinkCls('/dashboard/model/profile/working-hours')}>Working Hours</Link>
                     <Link href="/dashboard/model/profile/rates" className={subLinkCls('/dashboard/model/profile/rates')}>Rates</Link>
-                    <Link href="/dashboard/model/profile/contact-details" className={subLinkCls('/dashboard/model/profile/contact-details')}>Contact Details</Link>
-                    <Link href="/dashboard/model/profile/pictures-video" className={subLinkCls('/dashboard/model/profile/pictures-video')}>Pictures / Video</Link>
                   </div>
                 )}
               </div>
@@ -195,7 +199,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Activate Ad</span>
+                <span>Activate Sedcard</span>
                 <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
@@ -304,7 +308,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 {myProfileOpen && (
                   <div className="ml-3 md:ml-4 mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 border-l-2 border-pink-200 pl-3 md:pl-4">
                     <Link href="/dashboard/company/profile/basic-info" className={subLinkCls('/dashboard/company/profile/basic-info')}>Basic Info</Link>
-                    <Link href="/dashboard/company/profile/contact-details" className={subLinkCls('/dashboard/company/profile/contact-details')}>Contact Details</Link>
                     <Link href="/dashboard/company/profile/working-hours" className={subLinkCls('/dashboard/company/profile/working-hours')}>Working Hours</Link>
                     <Link href="/dashboard/company/profile/club-photos" className={subLinkCls('/dashboard/company/profile/club-photos')}>Club Photos</Link>
                   </div>
@@ -322,7 +325,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Activate Ads</span>
+                <span>Activate Sedcard</span>
                 <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
@@ -344,9 +347,17 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <span>Manage Models</span>
               </Link>
 
-              <Link href="/dashboard/company/jobs-rent" className={navLinkCls('/dashboard/company/jobs-rent')}>
+              <Link
+                href="/dashboard/company/jobs-rent"
+                className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-semibold transition-all shadow-sm text-sm ${
+                  isActive('/dashboard/company/jobs-rent')
+                    ? 'text-white bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-200'
+                    : 'text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 hover:shadow-md hover:shadow-emerald-100'
+                }`}
+              >
                 <Briefcase className="w-5 h-5 shrink-0" />
                 <span>Jobs / Rent</span>
+                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
               <Link href="/dashboard/company/statistics" className={navLinkCls('/dashboard/company/statistics')}>

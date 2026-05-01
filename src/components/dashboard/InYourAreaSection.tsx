@@ -50,18 +50,18 @@ export default function InYourAreaSection({ originCity }: InYourAreaProps) {
 
   if (!originCity) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-5">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-9 h-9 rounded-md bg-violet-100 flex items-center justify-center">
-            <MapPin className="w-5 h-5 text-violet-600" />
+      <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+        <div className="flex items-center gap-2.5 md:gap-3">
+          <div className="w-8 h-8 md:w-9 md:h-9 rounded-md bg-violet-100 flex items-center justify-center shrink-0">
+            <MapPin className="w-4 h-4 md:w-5 md:h-5 text-violet-600" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-gray-900">In your area</p>
-            <p className="text-xs text-gray-500">Set your city in profile to see nearby models, clubs and listings.</p>
+            <p className="text-[11px] md:text-xs text-gray-500">Set your city in profile to see nearby models, clubs and listings.</p>
           </div>
           <Link
             href="/dashboard/user/profile"
-            className="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-violet-700 hover:text-violet-900"
+            className="shrink-0 inline-flex items-center gap-1 text-[11px] md:text-xs font-semibold text-violet-700 hover:text-violet-900"
           >
             Set city <ArrowRight className="w-3 h-3" />
           </Link>
@@ -77,44 +77,46 @@ export default function InYourAreaSection({ originCity }: InYourAreaProps) {
   ]
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-5">
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="w-9 h-9 rounded-md bg-violet-100 flex items-center justify-center">
-          <MapPin className="w-5 h-5 text-violet-600" />
+    <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+      {/* Title row — stays on one line on mobile */}
+      <div className="flex items-center gap-2.5 md:gap-3 mb-3">
+        <div className="w-8 h-8 md:w-9 md:h-9 rounded-md bg-violet-100 flex items-center justify-center shrink-0">
+          <MapPin className="w-4 h-4 md:w-5 md:h-5 text-violet-600" />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-bold text-gray-900">In your area</p>
-          <p className="text-xs text-gray-500">
+          <p className="text-[11px] md:text-xs text-gray-500 truncate">
             Around <span className="font-semibold text-gray-700">{originCity}</span>
             {loading && <span className="ml-2 text-gray-400">updating…</span>}
           </p>
         </div>
-        <div className="ml-auto flex items-center gap-1">
-          {RADII.map(r => (
-            <button
-              key={r}
-              onClick={() => setRadius(r)}
-              className={`px-2.5 py-1 text-[11px] font-semibold rounded-md border transition-colors ${
-                radius === r
-                  ? 'bg-violet-600 border-violet-600 text-white'
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-700'
-              }`}
-            >
-              {r} km
-            </button>
-          ))}
-        </div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      {/* Radius pills — full row on mobile, no awkward wrap */}
+      <div className="flex items-center gap-1.5 mb-3 md:mb-4">
+        {RADII.map(r => (
+          <button
+            key={r}
+            onClick={() => setRadius(r)}
+            className={`flex-1 md:flex-initial px-2.5 py-1.5 md:py-1 text-[11px] font-semibold rounded-md border transition-colors ${
+              radius === r
+                ? 'bg-violet-600 border-violet-600 text-white'
+                : 'bg-white border-gray-200 text-gray-600 hover:border-violet-300 hover:text-violet-700 active:bg-violet-50'
+            }`}
+          >
+            {r} km
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-2 md:gap-3">
         {items.map(({ label, count, Icon, iconCls, hoverCls, href }) => (
           <Link
             key={label}
             href={href}
-            className={`flex flex-col items-center gap-1 p-3 border border-gray-200 rounded-lg transition-colors group ${hoverCls}`}
+            className={`flex flex-col items-center gap-0.5 md:gap-1 p-2.5 md:p-3 border border-gray-200 rounded-lg transition-colors group ${hoverCls} active:bg-gray-50`}
           >
-            <Icon className={`w-5 h-5 ${iconCls}`} />
-            <span className="text-xl font-bold text-gray-900">{count}</span>
-            <span className="text-[11px] text-gray-500 font-medium">{label}</span>
+            <Icon className={`w-4 h-4 md:w-5 md:h-5 ${iconCls}`} />
+            <span className="text-lg md:text-xl font-bold text-gray-900">{count}</span>
+            <span className="text-[10px] md:text-[11px] text-gray-500 font-medium">{label}</span>
           </Link>
         ))}
       </div>

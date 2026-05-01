@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendAccountDeletedEmail } from '@/lib/email/templates'
 
 /**
  * Permanently delete an account.
@@ -99,6 +100,15 @@ export async function POST(request: NextRequest) {
     const { error: deleteError } = await admin.auth.admin.deleteUser(userIdToDelete)
     if (deleteError) {
       return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    }
+
+    if (profile.email) {
+      sendAccountDeletedEmail({
+        email: profile.email,
+        userId: null,
+        displayName: profile.username,
+        byAdmin: deletedBy !== 'self',
+      }).catch(() => {})
     }
 
     return NextResponse.json({ success: true })

@@ -201,6 +201,23 @@ export default function MixedHomeClient({
     return () => document.removeEventListener('click', handleClick)
   }, [])
 
+  // Reset filters & pagination when logo is clicked while already on home
+  useEffect(() => {
+    function handleReset() {
+      setSelectedRegion('all')
+      setSelectedCity('all')
+      setSelectedLiveLocation('all')
+      setSearchQuery('')
+      setCityQuery('')
+      setCityResults([])
+      setCityOpen(false)
+      setRegionOpen(false)
+      setPage(0)
+    }
+    window.addEventListener('nicemodels:reset-home', handleReset)
+    return () => window.removeEventListener('nicemodels:reset-home', handleReset)
+  }, [])
+
   // Region counts: each model counts once per canton where they appear (profile city and/or live)
   const regionCounts = useMemo(() => {
     const counts: Record<string, number> = {}

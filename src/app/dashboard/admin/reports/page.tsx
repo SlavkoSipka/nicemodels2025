@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Flag, CheckCircle, XCircle, Clock, Eye, X } from 'lucide-react'
@@ -17,13 +18,14 @@ interface Report {
   screenshotUrl?: string | null
 }
 
-const STATUS_LABELS = {
-  pending:   { label: 'Pending',   color: 'bg-amber-50 text-amber-700',   icon: <Clock className="w-3 h-3" /> },
-  reviewed:  { label: 'Reviewed',  color: 'bg-emerald-50 text-emerald-700', icon: <CheckCircle className="w-3 h-3" /> },
-  dismissed: { label: 'Dismissed', color: 'bg-gray-100 text-gray-500',    icon: <XCircle className="w-3 h-3" /> },
+const STATUS_STYLES = {
+  pending:   { color: 'bg-amber-50 text-amber-700',   icon: <Clock className="w-3 h-3" /> },
+  reviewed:  { color: 'bg-emerald-50 text-emerald-700', icon: <CheckCircle className="w-3 h-3" /> },
+  dismissed: { color: 'bg-gray-100 text-gray-500',    icon: <XCircle className="w-3 h-3" /> },
 }
 
 export default function AdminReportsPage() {
+  const t = useTranslations('admin.reports')
   const [loading, setLoading] = useState(true)
   const [reports, setReports] = useState<Report[]>([])
   const [filter, setFilter] = useState<'all' | 'pending' | 'reviewed' | 'dismissed'>('pending')
@@ -91,30 +93,30 @@ export default function AdminReportsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-7xl mx-auto space-y-4">
 
           {/* Header */}
           <div>
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                 <Flag className="w-5 h-5 text-red-500" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Reports</h1>
-                <p className="text-xs text-gray-500">{counts.pending} pending review</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+                <p className="text-xs text-gray-500">{t('pendingReview', { count: counts.pending })}</p>
               </div>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 flex-wrap">
             {(['pending', 'all', 'reviewed', 'dismissed'] as const).map(f => (
               <button key={f} onClick={() => setFilter(f)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                   filter === f ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}>
-                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'pending' ? t('filterPending') : f === 'all' ? t('filterAll') : f === 'reviewed' ? t('filterReviewed') : t('filterDismissed')}
                 <span className="ml-1 opacity-60">{counts[f]}</span>
               </button>
             ))}
@@ -126,7 +128,7 @@ export default function AdminReportsPage() {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
-                    {['Reported By', 'Reported User', 'Reason', 'Screenshot', 'Date', 'Status', 'Actions'].map(h => (
+                    {[t('colReportedBy'), t('colReportedUser'), t('colReason'), t('colScreenshot'), t('colDate'), t('colStatus'), t('colActions')].map(h => (
                       <th key={h} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -171,10 +173,10 @@ export default function AdminReportsPage() {
                         {report.screenshotUrl ? (
                           <button onClick={() => setPreviewUrl(report.screenshotUrl!)}
                             className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
-                            <Eye className="w-3 h-3" /> View
+                            <Eye className="w-3 h-3" /> {t('view')}
                           </button>
                         ) : (
-                          <span className="text-xs text-gray-400">No screenshot</span>
+                          <span className="text-xs text-gray-400">{t('noScreenshot')}</span>
                         )}
                       </td>
 
@@ -187,10 +189,11 @@ export default function AdminReportsPage() {
                       {/* Status */}
                       <td className="px-4 py-3">
                         {(() => {
-                          const s = STATUS_LABELS[report.status]
+                          const s = STATUS_STYLES[report.status]
+                          const label = report.status === 'pending' ? t('statusPending') : report.status === 'reviewed' ? t('statusReviewed') : t('statusDismissed')
                           return (
                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${s.color}`}>
-                              {s.icon} {s.label}
+                              {s.icon} {label}
                             </span>
                           )
                         })()}
@@ -205,21 +208,21 @@ export default function AdminReportsPage() {
                               disabled={updating === report.id}
                               className="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors disabled:opacity-50"
                             >
-                              Reviewed
+                              {t('reviewed')}
                             </button>
                             <button
                               onClick={() => updateStatus(report.id, 'dismissed')}
                               disabled={updating === report.id}
                               className="px-2.5 py-1 text-xs font-semibold rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
                             >
-                              Dismiss
+                              {t('dismiss')}
                             </button>
                             {report.reported && (
                               <Link
                                 href={`/dashboard/admin/${report.reported.role === 'model' ? 'models' : report.reported.role === 'company' ? 'clubs' : 'users'}${report.reported.role !== 'user' ? `/${report.reported.id}` : ''}`}
                                 className="px-2.5 py-1 text-xs font-semibold rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
                               >
-                                View Profile
+                                {t('viewProfile')}
                               </Link>
                             )}
                           </div>
@@ -234,7 +237,7 @@ export default function AdminReportsPage() {
             {filtered.length === 0 && (
               <div className="text-center py-12">
                 <Flag className="w-8 h-8 text-gray-200 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">No reports found</p>
+                <p className="text-sm text-gray-400">{t('noReportsFound')}</p>
               </div>
             )}
           </div>
@@ -250,7 +253,7 @@ export default function AdminReportsPage() {
               className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center z-10">
               <X className="w-4 h-4 text-gray-700" />
             </button>
-            <Image src={previewUrl} alt="Report screenshot" width={900} height={600} className="w-full rounded-xl object-contain max-h-[80vh]" />
+            <Image src={previewUrl} alt={t('screenshotAlt')} width={900} height={600} className="w-full rounded-xl object-contain max-h-[80vh]" />
           </div>
         </div>
       )}

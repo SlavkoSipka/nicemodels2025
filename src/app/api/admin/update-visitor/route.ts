@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { dashboardPathForRole, notifyAdminAction } from '@/lib/admin/notify'
 
 const ALLOWED_FIELDS = [
   'username', 'first_name', 'last_name', 'phone',
@@ -74,6 +75,28 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Skip the generic "profile updated" notification when the only
+    // change is a block toggle — `/api/admin/block-user` already
+    // emails + notifies for that flow.
+    const onlyBlockToggle =
+      Object.keys(updatePayload).every(k => k === 'is_blocked' || k === 'blocked_at' || k === 'updated_at')
+    if (!onlyBlockToggle) {
+      const changedFields = Object.keys(updatePayload).filter(k => k !== 'updated_at' && k !== 'blocked_at')
+      const { data: targetRole } = await admin
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single()
+      await notifyAdminAction({
+        userId,
+        title: 'Your profile was updated',
+        message: `An administrator updated your profile (${changedFields.join(', ')}).`,
+        actionUrl: dashboardPathForRole(targetRole?.role, 'profile'),
+        relatedEntityType: 'profile',
+        relatedEntityId: userId,
+      })
     }
 
     return NextResponse.json({ success: true })

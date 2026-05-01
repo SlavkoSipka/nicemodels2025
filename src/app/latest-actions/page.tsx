@@ -30,7 +30,7 @@ export default async function LatestActionsPage() {
     admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company').eq('onboarding_completed', true).eq('is_blocked', false),
     admin.from('model_photos').select('id', { count: 'exact', head: true }).eq('is_approved', true),
     admin.from('model_videos').select('id', { count: 'exact', head: true }).eq('is_approved', true),
-    admin.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+    admin.from('model_comments').select('id', { count: 'exact', head: true }).in('status', ['approved', 'reviewed']),
     admin.from('banners').select('id', { count: 'exact', head: true }).eq('status', 'active'),
     admin.from('site_actions')
       .select('*')

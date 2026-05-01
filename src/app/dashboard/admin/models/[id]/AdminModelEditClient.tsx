@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -10,6 +11,7 @@ import {
   Sparkles, Clock, Languages, ChevronDown, ChevronUp, Trash2, Plus,
   ShieldCheck, Ban, ImageIcon, Film, DollarSign,
 } from 'lucide-react'
+import AdminMessageButton from '@/components/admin/AdminMessageButton'
 
 interface Props {
   modelId: string
@@ -66,9 +68,6 @@ function starToLevel(s: number) {
 function levelToStars(l: string) {
   if (l === 'basic') return 2; if (l === 'fair') return 3; if (l === 'good') return 4; return 5
 }
-function starLabel(s: number) {
-  if (s <= 2) return 'Basic'; if (s === 3) return 'Fair'; if (s === 4) return 'Good'; return 'Excellent'
-}
 
 export default function AdminModelEditClient({
   modelId, profile, modelDetails, photos, videos,
@@ -77,6 +76,8 @@ export default function AdminModelEditClient({
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
+  const t = useTranslations('admin.modelEdit')
+  const tc = useTranslations('admin.common')
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -184,18 +185,22 @@ export default function AdminModelEditClient({
   const toggle = (arr: string[], setArr: (v: string[]) => void, opt: string) =>
     setArr(arr.includes(opt) ? arr.filter(o => o !== opt) : [...arr, opt])
 
+  const starLabel = (s: number) => {
+    if (s <= 2) return t('starBasic'); if (s === 3) return t('starFair'); if (s === 4) return t('starGood'); return t('starExcellent')
+  }
+
   const getServicesByCategory = (cat: string) => allServices.filter((s: any) => s.category === cat)
   const getSelectedCount = (cat: string) => getServicesByCategory(cat).filter((s: any) => selectedServices.includes(s.id)).length
   const getCategoryLabel = (cat: string) => ({
-    main: 'Main Services', extra: 'Extra Services',
-    fetish_bizarre: 'Fetish / Bizarre', virtual: 'Virtual Services',
-    massage: 'Massage (without sex)',
+    main: t('categoryMain'), extra: t('categoryExtra'),
+    fetish_bizarre: t('categoryFetish'), virtual: t('categoryVirtual'),
+    massage: t('categoryMassage'),
   }[cat] || cat)
 
   // ── Save All ──
   const handleSave = async () => {
     setError(''); setSuccess('')
-    if (!bio.showname) { setError('Showname is required'); return }
+    if (!bio.showname) { setError(t('shownameRequired')); return }
     setSaving(true)
 
     try {
@@ -297,66 +302,84 @@ export default function AdminModelEditClient({
       const res = await fetch('/api/admin/write', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ operations }),
+        body: JSON.stringify({
+          operations,
+          notify: {
+            userId: modelId,
+            title: t('notifyTitle'),
+            message: t('notifyMessage'),
+            actionUrl: '/dashboard/model/profile',
+            relatedEntityType: 'profile',
+            relatedEntityId: modelId,
+          },
+        }),
       })
       if (!res.ok) {
         const body = await res.json()
-        throw new Error(body.error || 'Failed to save')
+        throw new Error(body.error || tc('failedToSave'))
       }
 
-      setSuccess('All changes saved successfully!')
+      setSuccess(tc('savedSuccess'))
       setTimeout(() => setSuccess(''), 4000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save. Please try again.')
+      setError(e?.message || tc('failedToSaveTry'))
     } finally {
       setSaving(false)
     }
   }
 
   const formatDuration = (d: string) => ({
-    '30_minutes': '30 min', '1_hour': '1 hour', '2_hours': '2 hours',
-    'additional_hour': 'Add. hour', 'overnight': 'Overnight',
-    'dinner_date': 'Dinner date', 'weekend': 'Weekend', 'specific_time': 'Specific',
+    '30_minutes': t('rateDuration30'), '1_hour': t('rateDuration1'), '2_hours': t('rateDuration2'),
+    'additional_hour': t('rateDurationAdd'), 'overnight': t('rateDurationOvernight'),
+    'dinner_date': t('rateDurationDinner'), 'weekend': t('rateDurationWeekend'), 'specific_time': t('rateDurationSpecific'),
   }[d] || d)
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="py-6 px-6">
+      <div className="py-4 px-3 sm:py-6 sm:px-6">
         <div className="max-w-5xl mx-auto space-y-4">
 
           {/* Header */}
           <div>
             <Link href="/dashboard/admin/models" className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-brand mb-3">
-              <ArrowLeft className="w-3 h-3" /> Back to Models
+              <ArrowLeft className="w-3 h-3" /> {t('back')}
             </Link>
             <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center">
+              <div className="flex items-center gap-3 flex-wrap min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
                   <User className="w-5 h-5 text-brand" />
                 </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">
+                <div className="min-w-0">
+                  <h1 className="text-base sm:text-xl font-bold text-gray-900 truncate">
                     {modelDetails?.showname || profile.username}
                     {profile.public_id && <span className="ml-2 text-xs font-mono text-gray-400">#{profile.public_id}</span>}
                   </h1>
-                  <a href={`mailto:${profile.email}`} className="text-xs text-gray-500 hover:text-brand hover:underline">{profile.email}</a>
+                  <a href={`mailto:${profile.email}`} className="text-xs text-gray-500 hover:text-brand hover:underline break-all">{profile.email}</a>
                 </div>
                 {profileData.is_verified && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                    <ShieldCheck className="w-3 h-3" /> Verified
+                    <ShieldCheck className="w-3 h-3" /> {tc('verified')}
                   </span>
                 )}
                 {profileData.is_blocked && (
                   <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700">
-                    <Ban className="w-3 h-3" /> Blocked
+                    <Ban className="w-3 h-3" /> {tc('blocked')}
                   </span>
                 )}
               </div>
-              <button onClick={handleSave} disabled={saving}
-                className="flex items-center gap-1.5 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving…' : 'Save All Changes'}
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <AdminMessageButton
+                  userId={modelId}
+                  recipientEmail={profile.email}
+                  recipientName={modelDetails?.showname || profile.username}
+                  defaultSubject={t('messageSubject')}
+                />
+                <button onClick={handleSave} disabled={saving}
+                  className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
+                  <Save className="w-4 h-4" />
+                  {saving ? tc('savingDots') : <><span className="hidden sm:inline">{tc('saveAll')}</span><span className="sm:hidden">{tc('save')}</span></>}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -373,22 +396,22 @@ export default function AdminModelEditClient({
             </div>
           )}
 
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-1.5">
+          {/* Tabs — horizontally scrollable on mobile */}
+          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap pb-1 sm:pb-0">
             {[
-              { id: 'bio', label: 'Biography', icon: User },
-              { id: 'area', label: 'Area', icon: MapPin },
-              { id: 'contact', label: 'Contact', icon: Phone },
-              { id: 'languages', label: 'Languages', icon: Languages },
-              { id: 'services', label: 'Services', icon: Sparkles },
-              { id: 'hours', label: 'Working Hours', icon: Clock },
-              { id: 'media', label: 'Media', icon: ImageIcon },
-              { id: 'rates', label: 'Rates (read-only)', icon: DollarSign },
-              { id: 'account', label: 'Account', icon: ShieldCheck },
-            ].map(t => (
-              <button key={t.id} onClick={() => setActiveTab(t.id)}
-                className={`${tabBtn(t.id)} flex items-center gap-1.5`}>
-                <t.icon className="w-3.5 h-3.5" /> {t.label}
+              { id: 'bio', label: t('tabBio'), icon: User },
+              { id: 'area', label: t('tabArea'), icon: MapPin },
+              { id: 'contact', label: t('tabContact'), icon: Phone },
+              { id: 'languages', label: t('tabLanguages'), icon: Languages },
+              { id: 'services', label: t('tabServices'), icon: Sparkles },
+              { id: 'hours', label: t('tabHours'), icon: Clock },
+              { id: 'media', label: t('tabMedia'), icon: ImageIcon },
+              { id: 'rates', label: t('tabRates'), icon: DollarSign },
+              { id: 'account', label: t('tabAccount'), icon: ShieldCheck },
+            ].map(tab => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className={`${tabBtn(tab.id)} flex items-center gap-1.5 shrink-0`}>
+                <tab.icon className="w-3.5 h-3.5" /> {tab.label}
               </button>
             ))}
           </div>
@@ -396,91 +419,94 @@ export default function AdminModelEditClient({
           {/* ════════ BIOGRAPHY ════════ */}
           {activeTab === 'bio' && (
             <div className="space-y-4">
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <p className="text-sm font-bold text-gray-800 mb-3">Basic Info</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
+                <p className="text-sm font-bold text-gray-800 mb-3">{t('basicInfo')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <div>
-                    <label className={labelCls}>Showname <span className="text-red-500">*</span></label>
+                    <label className={labelCls}>{t('showname')} <span className="text-red-500">*</span></label>
                     <input value={bio.showname} onChange={e => setBio(p => ({ ...p, showname: e.target.value }))} className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>Slogan</label>
+                    <label className={labelCls}>{t('slogan')}</label>
                     <input value={bio.slogan} onChange={e => setBio(p => ({ ...p, slogan: e.target.value }))} className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>Gender</label>
+                    <label className={labelCls}>{t('gender')}</label>
                     <select value={bio.gender} onChange={e => setBio(p => ({ ...p, gender: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
-                      <option value="female">Female</option>
-                      <option value="male">Male</option>
-                      <option value="trans">Trans</option>
+                      <option value="">{tc('select')}</option>
+                      <option value="female">{t('genderFemale')}</option>
+                      <option value="male">{t('genderMale')}</option>
+                      <option value="trans">{t('genderTrans')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Ethnicity</label>
+                    <label className={labelCls}>{t('ethnicity')}</label>
                     <select value={bio.ethnicity} onChange={e => setBio(p => ({ ...p, ethnicity: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
+                      <option value="">{tc('select')}</option>
                       {['asian','black','caucasian_white','latin','mixed','indian','arab','caucasian'].map(v => (
                         <option key={v} value={v}>{v.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Nationality</label>
+                    <label className={labelCls}>{t('nationality')}</label>
                     <select value={bio.nationality} onChange={e => setBio(p => ({ ...p, nationality: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
+                      <option value="">{tc('select')}</option>
                       {['Switzerland','Afghanistan','Albania','Algeria','Argentina','Armenia','Australia','Austria','Azerbaijan','Belarus','Belgium','Bosnia and Herzegovina','Brazil','Bulgaria','Canada','Chile','China','Colombia','Croatia','Cuba','Cyprus','Czech Republic','Denmark','Egypt','Estonia','Finland','France','Georgia','Germany','Greece','Hungary','India','Indonesia','Iran','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan','Korea','Latvia','Lebanon','Lithuania','Luxembourg','Malaysia','Mexico','Moldova','Morocco','Netherlands','New Zealand','Nigeria','Norway','Pakistan','Philippines','Poland','Portugal','Romania','Russia','Saudi Arabia','Serbia','Slovakia','Slovenia','South Africa','Spain','Sweden','Turkey','Ukraine','United Arab Emirates','United Kingdom','United States','Venezuela','Vietnam','Other'].map(v => (
                         <option key={v} value={v}>{v}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Age</label>
+                    <label className={labelCls}>{t('age')}</label>
                     <input type="number" min="18" max="99" value={bio.age} onChange={e => setBio(p => ({ ...p, age: e.target.value }))} className={inputCls} />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <p className="text-sm font-bold text-gray-800 mb-3">Physical Features</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
+                <p className="text-sm font-bold text-gray-800 mb-3">{t('physicalFeatures')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   <div>
-                    <label className={labelCls}>Hair Color</label>
+                    <label className={labelCls}>{t('hairColor')}</label>
                     <select value={bio.hair_color} onChange={e => setBio(p => ({ ...p, hair_color: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
+                      <option value="">{tc('select')}</option>
                       {['blond','light_brown','brunette','black','red','other'].map(v => (
                         <option key={v} value={v}>{v.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Eye Color</label>
+                    <label className={labelCls}>{t('eyeColor')}</label>
                     <select value={bio.eye_color} onChange={e => setBio(p => ({ ...p, eye_color: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
+                      <option value="">{tc('select')}</option>
                       {['black','brown','green','blue','gray'].map(v => (
                         <option key={v} value={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Dress Size</label>
+                    <label className={labelCls}>{t('dressSize')}</label>
                     <select value={bio.dress_size} onChange={e => setBio(p => ({ ...p, dress_size: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
+                      <option value="">{tc('select')}</option>
                       {['xs','s','m','l','xl','xxl'].map(v => (
                         <option key={v} value={v}>{v.toUpperCase()}</option>
                       ))}
                     </select>
                   </div>
-                  {(['height_cm', 'weight_kg', 'bust_cm', 'waist_cm', 'hip_cm'] as const).map(f => (
-                    <div key={f}>
-                      <label className={labelCls}>{f.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</label>
-                      <input type="number" value={(bio as any)[f]} onChange={e => setBio(p => ({ ...p, [f]: e.target.value }))} className={inputCls} />
-                    </div>
-                  ))}
+                  {(['height_cm', 'weight_kg', 'bust_cm', 'waist_cm', 'hip_cm'] as const).map(f => {
+                    const labelKey = ({ height_cm: 'heightCm', weight_kg: 'weightKg', bust_cm: 'bustCm', waist_cm: 'waistCm', hip_cm: 'hipCm' } as const)[f]
+                    return (
+                      <div key={f}>
+                        <label className={labelCls}>{t(labelKey)}</label>
+                        <input type="number" value={(bio as any)[f]} onChange={e => setBio(p => ({ ...p, [f]: e.target.value }))} className={inputCls} />
+                      </div>
+                    )
+                  })}
                   <div>
-                    <label className={labelCls}>Pubic Hair</label>
+                    <label className={labelCls}>{t('pubicHair')}</label>
                     <select value={bio.pubic_hair} onChange={e => setBio(p => ({ ...p, pubic_hair: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
+                      <option value="">{tc('select')}</option>
                       {['shaved_completely','shaved_mostly','trimmed','all_natural'].map(v => (
                         <option key={v} value={v}>{v.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
                       ))}
@@ -489,33 +515,33 @@ export default function AdminModelEditClient({
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <p className="text-sm font-bold text-gray-800 mb-3">Additional</p>
-                <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
+                <p className="text-sm font-bold text-gray-800 mb-3">{t('additional')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <div>
-                    <label className={labelCls}>Smoking</label>
+                    <label className={labelCls}>{t('smoking')}</label>
                     <select value={bio.smoking} onChange={e => setBio(p => ({ ...p, smoking: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
-                      <option value="yes">Yes</option><option value="no">No</option><option value="occasionally">Occasionally</option>
+                      <option value="">{tc('select')}</option>
+                      <option value="yes">{tc('yes')}</option><option value="no">{tc('no')}</option><option value="occasionally">{t('occasionally')}</option>
                     </select>
                   </div>
                   <div>
-                    <label className={labelCls}>Drinking</label>
+                    <label className={labelCls}>{t('drinking')}</label>
                     <select value={bio.drinking} onChange={e => setBio(p => ({ ...p, drinking: e.target.value }))} className={inputCls}>
-                      <option value="">Select…</option>
-                      <option value="yes">Yes</option><option value="no">No</option><option value="occasionally">Occasionally</option>
+                      <option value="">{tc('select')}</option>
+                      <option value="yes">{tc('yes')}</option><option value="no">{tc('no')}</option><option value="occasionally">{t('occasionally')}</option>
                     </select>
                   </div>
                 </div>
                 <div>
-                  <label className={labelCls}>Special Characteristics</label>
+                  <label className={labelCls}>{t('specialCharacteristics')}</label>
                   <textarea value={bio.special_characteristics} onChange={e => setBio(p => ({ ...p, special_characteristics: e.target.value }))}
                     rows={3} className={inputCls + ' resize-none'} />
                 </div>
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <label className={labelCls}>About Me (HTML)</label>
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
+                <label className={labelCls}>{t('aboutMe')}</label>
                 <textarea value={bio.about_me} onChange={e => setBio(p => ({ ...p, about_me: e.target.value }))}
                   rows={6} className={inputCls + ' resize-y font-mono text-xs'} />
               </div>
@@ -524,40 +550,50 @@ export default function AdminModelEditClient({
 
           {/* ════════ AREA ════════ */}
           {activeTab === 'area' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
               <div>
-                <label className={labelCls}>City</label>
-                <input value={city} onChange={e => setCity(e.target.value)} placeholder="City name" className={inputCls} />
+                <label className={labelCls}>{t('city')}</label>
+                <input value={city} onChange={e => setCity(e.target.value)} placeholder={t('cityPlaceholder')} className={inputCls} />
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className={labelCls}>PLZ</label>
+                  <label className={labelCls}>{t('plz')}</label>
                   <input value={zipCode} onChange={e => setZipCode(e.target.value)} placeholder="8001" className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Street</label>
+                  <label className={labelCls}>{t('street')}</label>
                   <input value={addrStreet} onChange={e => setAddrStreet(e.target.value)} placeholder="Bahnhofstrasse" className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Nr.</label>
+                  <label className={labelCls}>{t('streetNumber')}</label>
                   <input value={streetNumber} onChange={e => setStreetNumber(e.target.value)} placeholder="12a" className={inputCls} />
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-800 mb-2">Incall</p>
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('incall')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {['Private apartment', 'Hotel room', 'Club/Studio', 'Other'].map(opt => (
-                    <button key={opt} type="button" onClick={() => toggle(incallOptions, setIncallOptions, opt)}
-                      className={toggleBtn(incallOptions.includes(opt))}>{opt}</button>
+                  {[
+                    { value: 'Private apartment', label: t('incallPrivate') },
+                    { value: 'Hotel room', label: t('incallHotel') },
+                    { value: 'Club/Studio', label: t('incallClub') },
+                    { value: 'Other', label: t('incallOther') },
+                  ].map(opt => (
+                    <button key={opt.value} type="button" onClick={() => toggle(incallOptions, setIncallOptions, opt.value)}
+                      className={toggleBtn(incallOptions.includes(opt.value))}>{opt.label}</button>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-800 mb-2">Outcall</p>
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('outcall')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {['Hotel visits only', 'Home visits only', 'Hotel and Home visits', 'Other'].map(opt => (
-                    <button key={opt} type="button" onClick={() => toggle(outcallOptions, setOutcallOptions, opt)}
-                      className={toggleBtn(outcallOptions.includes(opt))}>{opt}</button>
+                  {[
+                    { value: 'Hotel visits only', label: t('outcallHotelOnly') },
+                    { value: 'Home visits only', label: t('outcallHomeOnly') },
+                    { value: 'Hotel and Home visits', label: t('outcallBoth') },
+                    { value: 'Other', label: t('outcallOther') },
+                  ].map(opt => (
+                    <button key={opt.value} type="button" onClick={() => toggle(outcallOptions, setOutcallOptions, opt.value)}
+                      className={toggleBtn(outcallOptions.includes(opt.value))}>{opt.label}</button>
                   ))}
                 </div>
               </div>
@@ -566,28 +602,28 @@ export default function AdminModelEditClient({
 
           {/* ════════ CONTACT ════════ */}
           {activeTab === 'contact' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={contact.show_phone_number}
                   onChange={e => setContact(p => ({ ...p, show_phone_number: e.target.checked }))}
                   className="w-4 h-4 text-brand rounded" />
-                <span className="text-sm font-semibold text-gray-900">Show phone number on profile</span>
+                <span className="text-sm font-semibold text-gray-900">{t('showPhoneNumber')}</span>
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Country Code</label>
+                  <label className={labelCls}>{t('countryCode')}</label>
                   <select value={contact.country_code} onChange={e => setContact(p => ({ ...p, country_code: e.target.value }))} className={inputCls}>
                     {COUNTRY_CODES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className={labelCls}>Phone Number</label>
+                  <label className={labelCls}>{t('phoneNumber')}</label>
                   <input type="tel" value={contact.phone_number}
                     onChange={e => setContact(p => ({ ...p, phone_number: e.target.value }))} className={inputCls} />
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-800 mb-2">Available on</p>
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('availableOn')}</p>
                 <div className="flex flex-wrap gap-2">
                   {[
                     { key: 'has_viber', label: 'Viber' },
@@ -603,12 +639,12 @@ export default function AdminModelEditClient({
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-800 mb-2">Contact Preference</p>
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('contactPreference')}</p>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { value: 'sms_and_call', label: 'SMS & Call' },
-                    { value: 'sms_only', label: 'SMS Only' },
-                    { value: 'no_sms', label: 'No SMS' },
+                    { value: 'sms_and_call', label: t('smsAndCall') },
+                    { value: 'sms_only', label: t('smsOnly') },
+                    { value: 'no_sms', label: t('noSms') },
                   ].map(opt => (
                     <button key={opt.value} type="button"
                       onClick={() => setContact(p => ({ ...p, contact_instruction: opt.value }))}
@@ -622,10 +658,10 @@ export default function AdminModelEditClient({
                 <input type="checkbox" checked={contact.no_withheld_numbers}
                   onChange={e => setContact(p => ({ ...p, no_withheld_numbers: e.target.checked }))}
                   className="w-4 h-4 text-brand rounded" />
-                <span className="text-sm font-semibold text-gray-900">No withheld numbers</span>
+                <span className="text-sm font-semibold text-gray-900">{t('noWithheldNumbers')}</span>
               </label>
               <div>
-                <label className={labelCls}>Other Instructions</label>
+                <label className={labelCls}>{t('otherInstructions')}</label>
                 <textarea value={contact.other_instructions}
                   onChange={e => setContact(p => ({ ...p, other_instructions: e.target.value }))}
                   rows={3} className={inputCls + ' resize-none'} />
@@ -635,14 +671,14 @@ export default function AdminModelEditClient({
 
           {/* ════════ LANGUAGES ════════ */}
           {activeTab === 'languages' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
               <div className="space-y-2.5 mb-4">
                 {langs.map((lang: any, i: number) => (
-                  <div key={i} className="flex gap-2 items-center">
+                  <div key={i} className="flex gap-2 items-center flex-wrap sm:flex-nowrap">
                     <select value={lang.language}
                       onChange={e => { const u = [...langs]; u[i] = { ...u[i], language: e.target.value }; setLangs(u) }}
-                      className={inputCls + ' flex-1'}>
-                      <option value="">Select…</option>
+                      className={inputCls + ' flex-1 min-w-[140px]'}>
+                      <option value="">{tc('select')}</option>
                       {AVAILABLE_LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                     <div className="flex items-center gap-0.5">
@@ -658,38 +694,44 @@ export default function AdminModelEditClient({
                     </div>
                     {langs.length > 1 && (
                       <button onClick={() => setLangs(langs.filter((_: any, idx: number) => idx !== i))}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg shrink-0"><Trash2 className="w-4 h-4" /></button>
                     )}
                   </div>
                 ))}
               </div>
               <button onClick={() => setLangs([...langs, { language: '', stars: 5 }])}
                 className="flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand/80">
-                <Plus className="w-4 h-4" /> Add Language
+                <Plus className="w-4 h-4" /> {t('addLanguage')}
               </button>
             </div>
           )}
 
           {/* ════════ SERVICES ════════ */}
           {activeTab === 'services' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
               <div>
-                <label className={labelCls}>Sexual Orientation</label>
+                <label className={labelCls}>{t('sexualOrientation')}</label>
                 <select value={sexualOrientation} onChange={e => setSexualOrientation(e.target.value)} className={inputCls}>
-                  <option value="">Select…</option>
-                  <option value="heterosexual">Heterosexual</option>
-                  <option value="bisexual">Bisexual</option>
-                  <option value="homosexual">Homosexual</option>
+                  <option value="">{tc('select')}</option>
+                  <option value="heterosexual">{t('heterosexual')}</option>
+                  <option value="bisexual">{t('bisexual')}</option>
+                  <option value="homosexual">{t('homosexual')}</option>
                 </select>
               </div>
               <div>
-                <p className="text-xs font-bold text-gray-800 mb-2">Services For</p>
+                <p className="text-xs font-bold text-gray-800 mb-2">{t('servicesFor')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {['men','women','couples','trans','gays'].map(opt => (
-                    <button key={opt} type="button"
-                      onClick={() => toggle(servicesFor, setServicesFor, opt)}
-                      className={toggleBtn(servicesFor.includes(opt))}>
-                      {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  {[
+                    { value: 'men', label: t('men') },
+                    { value: 'women', label: t('women') },
+                    { value: 'couples', label: t('couples') },
+                    { value: 'trans', label: t('trans') },
+                    { value: 'gays', label: t('gays') },
+                  ].map(opt => (
+                    <button key={opt.value} type="button"
+                      onClick={() => toggle(servicesFor, setServicesFor, opt.value)}
+                      className={toggleBtn(servicesFor.includes(opt.value))}>
+                      {opt.label}
                     </button>
                   ))}
                 </div>
@@ -709,7 +751,7 @@ export default function AdminModelEditClient({
                         {expanded ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
                       </button>
                       {expanded && (
-                        <div className="p-3 grid grid-cols-2 gap-2">
+                        <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {catSvc.map((svc: any) => (
                             <label key={svc.id} className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-brand/5 text-sm">
                               <input type="checkbox" checked={selectedServices.includes(svc.id)}
@@ -725,15 +767,15 @@ export default function AdminModelEditClient({
                 })}
               </div>
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <label className={labelCls}>Other services</label>
-                <p className="text-[11px] text-gray-500 mb-2">Custom services not in the list (optional, max 2000 characters).</p>
+                <label className={labelCls}>{t('otherServices')}</label>
+                <p className="text-[11px] text-gray-500 mb-2">{t('otherServicesHint')}</p>
                 <textarea
                   value={otherServices}
                   onChange={e => setOtherServices(e.target.value)}
                   maxLength={2000}
                   rows={4}
                   className={inputCls + ' resize-y min-h-[96px]'}
-                  placeholder="Free text…"
+                  placeholder={t('freeText')}
                 />
                 <p className="text-[11px] text-gray-400 mt-1 text-right">{(otherServices || '').length}/2000</p>
               </div>
@@ -742,33 +784,33 @@ export default function AdminModelEditClient({
 
           {/* ════════ WORKING HOURS ════════ */}
           {activeTab === 'hours' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
               <div className="flex gap-2 mb-5 flex-wrap">
                 {[
-                  { id: '24_7' as const, label: 'Available 24/7' },
-                  { id: 'same_every_day' as const, label: 'Same every day' },
-                  { id: 'custom' as const, label: 'Custom schedule' },
-                ].map(t => (
-                  <button key={t.id} type="button" onClick={() => setScheduleType(t.id)}
-                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${scheduleType === t.id ? 'bg-brand text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                    {t.label}
+                  { id: '24_7' as const, label: t('available247') },
+                  { id: 'same_every_day' as const, label: t('sameEveryDay') },
+                  { id: 'custom' as const, label: t('customSchedule') },
+                ].map(opt => (
+                  <button key={opt.id} type="button" onClick={() => setScheduleType(opt.id)}
+                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${scheduleType === opt.id ? 'bg-brand text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                    {opt.label}
                   </button>
                 ))}
               </div>
               {scheduleType === '24_7' && (
                 <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                  <p className="text-sm text-emerald-800 font-semibold">Available 24/7</p>
+                  <p className="text-sm text-emerald-800 font-semibold">{t('available247')}</p>
                 </div>
               )}
               {scheduleType === 'same_every_day' && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={labelCls}>From</label>
+                    <label className={labelCls}>{tc('from')}</label>
                     <input type="time" value={sameHours.from}
                       onChange={e => setSameHours(p => ({ ...p, from: e.target.value }))} className={inputCls} />
                   </div>
                   <div>
-                    <label className={labelCls}>To</label>
+                    <label className={labelCls}>{tc('to')}</label>
                     <input type="time" value={sameHours.to}
                       onChange={e => setSameHours(p => ({ ...p, to: e.target.value }))} className={inputCls} />
                   </div>
@@ -796,12 +838,12 @@ export default function AdminModelEditClient({
           {/* ════════ MEDIA (read-only gallery) ════════ */}
           {activeTab === 'media' && (
             <div className="space-y-4">
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
                 <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-brand" /> Photos ({photos.length})
+                  <ImageIcon className="w-4 h-4 text-brand" /> {t('photos', { count: photos.length })}
                 </p>
                 {photos.length === 0 ? (
-                  <p className="text-sm text-gray-400">No photos uploaded.</p>
+                  <p className="text-sm text-gray-400">{t('noPhotos')}</p>
                 ) : (
                   <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                     {photos.map((p: any) => (
@@ -811,9 +853,9 @@ export default function AdminModelEditClient({
                         )}
                         <div className="absolute bottom-1 right-1">
                           {p.is_approved ? (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">OK</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">{t('ok')}</span>
                           ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">Pending</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">{tc('pending')}</span>
                           )}
                         </div>
                       </div>
@@ -821,12 +863,12 @@ export default function AdminModelEditClient({
                   </div>
                 )}
               </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
+              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
                 <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <Film className="w-4 h-4 text-brand" /> Videos ({videos.length})
+                  <Film className="w-4 h-4 text-brand" /> {t('videos', { count: videos.length })}
                 </p>
                 {videos.length === 0 ? (
-                  <p className="text-sm text-gray-400">No videos uploaded.</p>
+                  <p className="text-sm text-gray-400">{t('noVideos')}</p>
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {videos.map((v: any) => (
@@ -834,9 +876,9 @@ export default function AdminModelEditClient({
                         {v.url && <video src={v.url} className="w-full h-full object-cover" />}
                         <div className="absolute bottom-1 right-1">
                           {v.is_approved ? (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">OK</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">{t('ok')}</span>
                           ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">Pending</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">{tc('pending')}</span>
                           )}
                         </div>
                       </div>
@@ -849,17 +891,18 @@ export default function AdminModelEditClient({
 
           {/* ════════ RATES (read-only) ════════ */}
           {activeTab === 'rates' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <p className="text-xs font-bold text-gray-500 mb-3">Rates are set by the model and cannot be edited by admin.</p>
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
+              <p className="text-xs font-bold text-gray-500 mb-3">{t('ratesNote')}</p>
               {rates.length === 0 ? (
-                <p className="text-sm text-gray-400">No rates set.</p>
+                <p className="text-sm text-gray-400">{t('noRates')}</p>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {['incall', 'outcall'].map(type => {
                     const filtered = rates.filter((r: any) => r.rate_type === type)
+                    const typeLabel = type === 'incall' ? t('incallType') : t('outcallType')
                     return (
                       <div key={type}>
-                        <p className="text-xs font-bold uppercase tracking-wider text-brand mb-2">{type}</p>
+                        <p className="text-xs font-bold uppercase tracking-wider text-brand mb-2">{typeLabel}</p>
                         {filtered.length === 0 ? (
                           <p className="text-xs text-gray-400">—</p>
                         ) : (
@@ -882,46 +925,46 @@ export default function AdminModelEditClient({
 
           {/* ════════ ACCOUNT ════════ */}
           {activeTab === 'account' && (
-            <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={labelCls}>Username</label>
+                  <label className={labelCls}>{t('username')}</label>
                   <input value={profileData.username} onChange={e => setProfileData(p => ({ ...p, username: e.target.value }))} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Email (read-only)</label>
+                  <label className={labelCls}>{t('emailReadOnly')}</label>
                   <input value={profileData.email} disabled className={inputCls + ' bg-gray-50 text-gray-500'} />
                 </div>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-6 flex-wrap">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={profileData.is_verified}
                     onChange={e => setProfileData(p => ({ ...p, is_verified: e.target.checked }))}
                     className="w-4 h-4 text-blue-600 rounded" />
-                  <span className="text-sm font-semibold text-gray-900">Verified</span>
+                  <span className="text-sm font-semibold text-gray-900">{tc('verified')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={profileData.is_blocked}
                     onChange={e => setProfileData(p => ({ ...p, is_blocked: e.target.checked }))}
                     className="w-4 h-4 text-red-600 rounded" />
-                  <span className="text-sm font-semibold text-gray-900">Blocked</span>
+                  <span className="text-sm font-semibold text-gray-900">{tc('blocked')}</span>
                 </label>
               </div>
               <div className="text-xs text-gray-400 space-y-0.5">
-                <p>Created: {new Date(profile.created_at).toLocaleString()}</p>
-                <p>Onboarding: {profile.onboarding_completed ? 'Completed' : 'Incomplete'}</p>
-                {profile.blocked_at && <p>Blocked at: {new Date(profile.blocked_at).toLocaleString()}</p>}
+                <p>{t('createdLabel', { date: new Date(profile.created_at).toLocaleString() })}</p>
+                <p>{t('onboardingLabel', { state: profile.onboarding_completed ? t('onboardingCompleted') : t('onboardingIncomplete') })}</p>
+                {profile.blocked_at && <p>{t('blockedAt', { date: new Date(profile.blocked_at).toLocaleString() })}</p>}
               </div>
             </div>
           )}
 
           {/* Bottom save */}
           <div className="flex items-center justify-end gap-3 pb-6">
-            <Link href="/dashboard/admin/models" className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</Link>
+            <Link href="/dashboard/admin/models" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{tc('cancel')}</Link>
             <button onClick={handleSave} disabled={saving}
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
+              className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
               <Save className="w-4 h-4" />
-              {saving ? 'Saving…' : 'Save All Changes'}
+              {saving ? tc('savingDots') : <><span className="hidden sm:inline">{tc('saveAll')}</span><span className="sm:hidden">{tc('save')}</span></>}
             </button>
           </div>
 

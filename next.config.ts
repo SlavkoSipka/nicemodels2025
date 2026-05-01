@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 import fs from 'fs'
 import path from 'path'
+import createNextIntlPlugin from 'next-intl/plugin'
+
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
 // Copy TinyMCE to public folder for self-hosting (no API key needed)
 const tinymceSrc = path.join(process.cwd(), 'node_modules/tinymce')
@@ -17,6 +20,7 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    qualities: [60, 75, 80, 85],
     minimumCacheTTL: 86400,
     remotePatterns: [
       {
@@ -47,4 +51,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

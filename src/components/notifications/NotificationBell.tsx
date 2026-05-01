@@ -171,7 +171,7 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
           />
 
           {/* Notification Panel */}
-          <div className="absolute left-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-40 max-h-[600px] flex flex-col">
+          <div className="absolute right-0 md:left-0 md:right-auto mt-2 w-[calc(100vw-1rem)] max-w-sm md:w-96 md:max-w-none bg-white rounded-xl shadow-2xl border border-gray-200 z-40 max-h-[80vh] md:max-h-[600px] flex flex-col">
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">

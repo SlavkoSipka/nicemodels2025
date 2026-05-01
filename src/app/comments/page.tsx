@@ -40,7 +40,7 @@ export default async function CommentsPage() {
         )
       )
     `)
-    .eq('status', 'approved')
+    .in('status', ['approved', 'reviewed'])
     .order('created_at', { ascending: false })
 
   // Hide comments where commenter or target model is blocked

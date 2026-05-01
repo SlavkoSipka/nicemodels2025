@@ -16,6 +16,7 @@ export default async function JobsRentsPage() {
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
   let rawListings: any[] | null = null
+  const nowIso = new Date().toISOString()
 
   try {
     const supabase = await createClient()
@@ -24,6 +25,7 @@ export default async function JobsRentsPage() {
       .select('*')
       .eq('status', 'active')
       .eq('is_blocked', false)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
       .order('created_at', { ascending: false })
     rawListings = data
   } catch {
@@ -33,12 +35,13 @@ export default async function JobsRentsPage() {
       .select('*')
       .eq('status', 'active')
       .eq('is_blocked', false)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
       .order('created_at', { ascending: false })
     rawListings = data
   }
 
   const now = new Date()
-  // Match home page: visibility = status active + not blocked; no expires_at filter.
+  // Hide listings whose start time hasn't arrived yet (expires_at already filtered server-side).
   const allListings = (rawListings ?? []).filter(l => {
     if (l.starts_at && new Date(l.starts_at) > now) return false
     return true

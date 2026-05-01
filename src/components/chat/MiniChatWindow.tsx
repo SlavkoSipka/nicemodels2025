@@ -361,7 +361,7 @@ export default function MiniChatWindow({
   }
 
   return (
-    <div className="fixed bottom-0 right-6 w-80 bg-white rounded-t-2xl shadow-2xl border border-gray-200 flex flex-col z-50 max-h-[60vh]">
+    <div className="fixed bottom-0 left-2 right-2 sm:left-auto sm:right-6 sm:w-80 bg-white rounded-t-2xl shadow-2xl border border-gray-200 flex flex-col z-50 max-h-[70vh]">
       {/* Header */}
       <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-white p-3 rounded-t-2xl flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">

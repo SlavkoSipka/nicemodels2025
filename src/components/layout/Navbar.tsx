@@ -5,11 +5,12 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import ChatWidget from '@/components/chat/ChatWidget'
 
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [languageOpen, setLanguageOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -62,7 +63,19 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-12 sm:h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center group">
+            <Link
+              href="/"
+              className="flex items-center group"
+              onClick={(e) => {
+                if (pathname === '/') {
+                  e.preventDefault()
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('nicemodels:reset-home'))
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                  }
+                }
+              }}
+            >
               <Image
                 src="/logo.webp"
                 alt="nicemodels.ch"

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { X, Trash2, CheckCircle, XCircle } from 'lucide-react'
 
@@ -28,6 +29,8 @@ export default function PhotoGalleryModal({
   profileName,
   profileType
 }: PhotoGalleryModalProps) {
+  const t = useTranslations('admin.photoGallery')
+  const tc = useTranslations('admin.common')
   const [loading, setLoading] = useState(true)
   const [photos, setPhotos] = useState<Media[]>([])
   const [videos, setVideos] = useState<Media[]>([])
@@ -101,7 +104,7 @@ export default function PhotoGalleryModal({
   }, [photos, videos])
 
   const handleDeleteMedia = async (item: Media) => {
-    if (!confirm('Da li ste sigurni da želite da obrišete ovu sliku/video? Ova akcija se ne može poništiti.')) {
+    if (!confirm(t('confirmDelete'))) {
       return
     }
 
@@ -138,10 +141,10 @@ export default function PhotoGalleryModal({
       // Reload media
       await loadMedia()
       setSelectedMedia(null)
-      alert('Slika/video je uspešno obrisan!')
+      alert(t('deleteSuccess'))
     } catch (error) {
       console.error('Error deleting media:', error)
-      alert('Greška pri brisanju medija. Pokušajte ponovo.')
+      alert(t('deleteError'))
     }
   }
 
@@ -161,13 +164,13 @@ export default function PhotoGalleryModal({
 
     if (error) {
       console.error('Toggle approval error:', error)
-      alert('Greška pri promeni statusa: ' + error.message)
+      alert(t('statusError', { message: error.message }))
       return
     }
 
     await loadMedia()
     setSelectedMedia(null)
-    alert(newStatus ? 'Slika je objavljena na sajtu!' : 'Slika je uklonjena sa sajta!')
+    alert(newStatus ? t('publishedSuccess') : t('removedSuccess'))
   }
 
   if (!isOpen) return null
@@ -180,9 +183,9 @@ export default function PhotoGalleryModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{profileName} - Media</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{profileName} - {t('media')}</h2>
             <p className="text-gray-600 mt-1">
-              {photos.length} slika, {videos.length} videa
+              {t('photoVideoCount', { photos: photos.length, videos: videos.length })}
             </p>
           </div>
           <button
@@ -201,7 +204,7 @@ export default function PhotoGalleryModal({
             </div>
           ) : allMedia.length === 0 ? (
             <div className="flex items-center justify-center h-64">
-              <p className="text-gray-500">Nema uploadovanih slika/videa</p>
+              <p className="text-gray-500">{t('noMediaUploaded')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -226,7 +229,7 @@ export default function PhotoGalleryModal({
                       )
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <p className="text-gray-500 text-sm">Loading...</p>
+                        <p className="text-gray-500 text-sm">{t('loading')}</p>
                       </div>
                     )}
 
@@ -253,7 +256,7 @@ export default function PhotoGalleryModal({
                         className="opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 flex items-center gap-2"
                       >
                         <Trash2 className="w-4 h-4" />
-                        Delete
+                        {t('delete')}
                       </button>
                     </div>
                   </div>
@@ -306,12 +309,12 @@ export default function PhotoGalleryModal({
                 {selectedMedia.is_approved ? (
                   <>
                     <XCircle className="w-5 h-5" />
-                    Ukloni sa sajta
+                    {t('removeFromSite')}
                   </>
                 ) : (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    Objavi na sajt
+                    {t('publishToSite')}
                   </>
                 )}
               </button>
@@ -320,7 +323,7 @@ export default function PhotoGalleryModal({
                 className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold flex items-center gap-2"
               >
                 <Trash2 className="w-5 h-5" />
-                Obriši zauvek
+                {t('deleteForever')}
               </button>
             </div>
           </div>

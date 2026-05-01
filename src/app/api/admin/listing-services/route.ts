@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { notifyAdminAction } from '@/lib/admin/notify'
 
 // POST: sync (replace all) services for a listing
 export async function POST(request: NextRequest) {
@@ -17,6 +18,12 @@ export async function POST(request: NextRequest) {
 
     const admin = createAdminClient()
 
+    const { data: listing } = await admin
+      .from('job_listings')
+      .select('club_id, title, listing_type')
+      .eq('id', listingId)
+      .single()
+
     await admin.from('job_listing_services').delete().eq('listing_id', listingId)
 
     if (Array.isArray(serviceIds) && serviceIds.length > 0) {
@@ -24,6 +31,18 @@ export async function POST(request: NextRequest) {
         serviceIds.map((sid: string) => ({ listing_id: listingId, service_id: sid }))
       )
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    if (listing?.club_id) {
+      const typeLabel = listing.listing_type === 'rent' ? 'rent listing' : 'job listing'
+      await notifyAdminAction({
+        userId: listing.club_id,
+        title: `Services updated on your ${typeLabel}`,
+        message: `An administrator updated the services on "${listing.title || typeLabel}".`,
+        actionUrl: '/dashboard/company/jobs-rent',
+        relatedEntityType: 'job_listing',
+        relatedEntityId: listingId,
+      })
     }
 
     return NextResponse.json({ success: true })

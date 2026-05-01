@@ -11,6 +11,7 @@ import Footer from '@/components/layout/Footer'
 import ViewCount from '@/components/ui/ViewCount'
 import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
 import { useNearbyIds } from '@/lib/useNearbyIds'
+import { formatRegions, isAllRegions } from '@/lib/regions'
 
 interface ListingData {
   id: string
@@ -29,6 +30,7 @@ interface ListingData {
   club_id: string
   club_name: string
   club_area: string | null
+  regions?: string[] | null
   photos: string[]
   services: { id: string; name: string }[]
   view_count?: number
@@ -138,34 +140,29 @@ function ListingCard({ listing }: { listing: ListingData }) {
   return (
     <li>
       <article
-        className="overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-200 cursor-pointer"
+        className="relative overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-200 group hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(59,130,246,0.20),0_0_0_1px_rgba(59,130,246,0.4)] focus-within:-translate-y-0.5"
         style={{
           background: '#ffffff',
           borderRadius: 10,
           border: '1px solid rgba(59,130,246,0.25)',
           boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
         }}
-        onMouseEnter={e => {
-          const el = e.currentTarget as HTMLElement
-          el.style.transform = 'translateY(-3px)'
-          el.style.boxShadow = '0 8px 32px rgba(59,130,246,0.20), 0 0 0 1px rgba(59,130,246,0.4)'
-          el.style.borderColor = 'rgba(59,130,246,0.5)'
-        }}
-        onMouseLeave={e => {
-          const el = e.currentTarget as HTMLElement
-          el.style.transform = 'translateY(0)'
-          el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'
-          el.style.borderColor = 'rgba(59,130,246,0.25)'
-        }}
       >
-        {/* Photo */}
+        {/* Stretched link — single tap takes you to the listing.
+            Inner interactive elements use `relative z-10` to stay clickable above it. */}
         <Link
           href={`/jobs-rents/${listing.id}`}
+          aria-label={`Open ${title}`}
+          className="absolute inset-0 z-[1]"
+        />
+
+        {/* Photo */}
+        <div
           className="relative flex-shrink-0 overflow-hidden block w-full max-w-none min-h-[180px] sm:min-w-[140px] sm:w-auto sm:max-w-[200px]"
           style={{ aspectRatio: '3/4', background: '#e8f4f8' }}
         >
           {/* Blue left accent line */}
-          <div style={{
+          <div className="pointer-events-none" style={{
             position: 'absolute', left: 0, top: 0, bottom: 0, width: 3,
             background: 'linear-gradient(to bottom, #1D4ED8, #3B82F6, #93C5FD)',
             zIndex: 2,
@@ -187,7 +184,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
           {/* Type badge */}
           <span
-            className="absolute top-2.5 right-2.5 px-2.5 py-1 text-[10px] font-bold rounded-full z-10 tracking-wide uppercase"
+            className="pointer-events-none absolute top-2.5 right-2.5 px-2.5 py-1 text-[10px] font-bold rounded-full z-10 tracking-wide uppercase"
             style={{
               background: isJob ? 'rgba(124,58,237,0.85)' : 'rgba(245,158,11,0.85)',
               color: '#fff',
@@ -199,20 +196,20 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
           {/* Date badge bottom */}
           <span
-            className="absolute bottom-2.5 left-3 text-[10px] font-semibold px-2 py-0.5 rounded-full z-10"
+            className="pointer-events-none absolute bottom-2.5 left-3 text-[10px] font-semibold px-2 py-0.5 rounded-full z-10"
             style={{ background: 'rgba(0,0,0,0.5)', color: 'rgba(255,255,255,0.75)' }}
           >
             {dateStr}
           </span>
 
           {/* View-count badge */}
-          <span className="absolute top-2.5 left-3 z-10">
+          <span className="pointer-events-none absolute top-2.5 left-3 z-10">
             <ViewCount count={listing.view_count ?? 0} />
           </span>
-        </Link>
+        </div>
 
         {/* Content */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div className="relative flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Blue top strip */}
           <div style={{ height: 3, background: 'linear-gradient(90deg, #1D4ED8, #3B82F6, #93C5FD)', flexShrink: 0 }} />
 
@@ -223,19 +220,17 @@ function ListingCard({ listing }: { listing: ListingData }) {
               {isJob ? 'Job Opportunity' : 'Rental Offer'}
             </span>
 
-            {/* Title */}
-            <Link href={`/jobs-rents/${listing.id}`}>
-              <h3 className="font-bold text-sm sm:text-lg leading-snug hover:text-blue-600 transition-colors"
-                style={{ color: '#0f172a' }}>
-                {title}
-              </h3>
-            </Link>
+            {/* Title (visual only — the whole card is the link) */}
+            <h3 className="font-bold text-sm sm:text-lg leading-snug group-hover:text-blue-600 transition-colors"
+              style={{ color: '#0f172a' }}>
+              {title}
+            </h3>
 
             {/* Club + Location */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <Link
                 href={`/clubs/${listing.club_id}`}
-                className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600 min-w-0"
+                className="relative z-10 flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition-colors hover:text-blue-600 min-w-0"
                 style={{ color: '#475569' }}
                 onClick={e => e.stopPropagation()}
               >
@@ -247,6 +242,19 @@ function ListingCard({ listing }: { listing: ListingData }) {
                 <MapPin className="w-3.5 h-3.5 shrink-0" style={{ color: '#EC4899' }} />
                 {listing.location}
               </span>
+              {listing.regions && listing.regions.length > 0 && !isAllRegions(listing.regions) && (
+                <>
+                  <span style={{ color: '#cbd5e1' }}>·</span>
+                  <span
+                    className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-md min-w-0"
+                    style={{ background: 'rgba(99,102,241,0.10)', color: '#4338CA', border: '1px solid rgba(99,102,241,0.25)' }}
+                    title={formatRegions(listing.regions)}
+                  >
+                    <Globe className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{formatRegions(listing.regions)}</span>
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Description */}
@@ -286,7 +294,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
                 <a
                   href={`tel:${listing.country_code}${listing.phone_number}`}
                   onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold transition-opacity hover:opacity-70 break-all"
+                  className="relative z-10 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-semibold transition-opacity hover:opacity-70 break-all"
                   style={{ color: '#334155' }}
                 >
                   <Phone className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
@@ -302,7 +310,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
                 <a
                   href={`mailto:${listing.email}`}
                   onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-opacity hover:opacity-70 break-all min-w-0"
+                  className="relative z-10 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-opacity hover:opacity-70 break-all min-w-0"
                   style={{ color: '#64748b' }}
                 >
                   <Mail className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
@@ -315,7 +323,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={e => e.stopPropagation()}
-                  className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-opacity hover:opacity-70"
+                  className="relative z-10 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm transition-opacity hover:opacity-70"
                   style={{ color: '#64748b' }}
                 >
                   <Globe className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />

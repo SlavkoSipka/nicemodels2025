@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   let models: any[] = []
   if (modelIds.length > 0) {
-    const [{ data: allDetails }, { data: allServices }, { data: allPhotos }, { data: allContacts }] = await Promise.all([
+    const [{ data: allDetails }, { data: allServices }, { data: allPhotos }] = await Promise.all([
       supabase.from('model_details')
         .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for, share_live_location, live_location_city, live_location_postal_code, live_location_updated_at')
         .in('model_id', modelIds),
@@ -31,10 +31,6 @@ export default async function HomePage() {
         .in('model_id', modelIds)
         .eq('is_approved', true)
         .order('uploaded_at', { ascending: false }),
-      supabase.from('model_contact_details')
-        .select('model_id, show_phone_on_card, country_code, phone_number')
-        .in('model_id', modelIds)
-        .eq('show_phone_on_card', true),
     ])
 
     const TWO_HOURS = 2 * 60 * 60 * 1000
@@ -59,19 +55,12 @@ export default async function HomePage() {
       if (!photosMap.has(p.model_id) && p.file_path)
         photosMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
     }
-    const contactPhoneMap = new Map<string, string>()
-    for (const c of allContacts ?? []) {
-      if (c.show_phone_on_card && c.phone_number) {
-        contactPhoneMap.set(c.model_id, `${c.country_code || ''}${c.phone_number}`)
-      }
-    }
 
     models = modelsData.map((m: any) => ({
       ...m,
       model_details: detailsMap.get(m.id) ?? null,
       model_services_list: servicesMap.get(m.id) ?? [],
       photoUrl: photosMap.get(m.id) ?? null,
-      cardPhone: contactPhoneMap.get(m.id) ?? null,
     }))
 
     const modelCityNames = [...new Set(
@@ -212,11 +201,12 @@ export default async function HomePage() {
       cta_url: b.cta_url,
     }))
 
-  // ── 4. Job/Rent listings (active, not blocked) ──
+  // ── 4. Job/Rent listings (active, not blocked, not expired) ──
   const { data: listingsRaw } = await supabase.from('job_listings')
     .select('id, listing_type, title, location, club_id, created_at, description, country_code, phone_number, has_whatsapp, has_viber, has_telegram, email, website')
     .eq('status', 'active')
     .eq('is_blocked', false)
+    .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('created_at', { ascending: false })
 
   let listings: any[] = []

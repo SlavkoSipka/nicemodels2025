@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { dashboardPathForRole, notifyAdminAction } from '@/lib/admin/notify'
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,6 +39,19 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    const targetUserId = (data as Record<string, unknown>)[conflictCol]
+    if (typeof targetUserId === 'string' && targetUserId) {
+      const role = table === 'club_contact_details' ? 'company' : 'model'
+      await notifyAdminAction({
+        userId: targetUserId,
+        title: 'Your contact details were updated',
+        message: 'An administrator updated your contact details.',
+        actionUrl: dashboardPathForRole(role, 'profile'),
+        relatedEntityType: table,
+        relatedEntityId: targetUserId,
+      })
     }
 
     return NextResponse.json({ success: true })

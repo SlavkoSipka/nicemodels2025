@@ -48,7 +48,7 @@ async function getModelData(id: string) {
       .from('model_comments')
       .select('id, comment_text, rating, created_at, reply_text, replied_at, user:profiles!model_comments_user_id_fkey(id, username, is_blocked)')
       .eq('model_id', id)
-      .eq('status', 'approved')
+      .in('status', ['approved', 'reviewed'])
       .order('created_at', { ascending: false }),
   ])
 
