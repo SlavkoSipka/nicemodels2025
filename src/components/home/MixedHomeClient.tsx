@@ -9,7 +9,8 @@ import BannerCard, { type BannerData } from './BannerCard'
 import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
 import ListingBannerCard, { type ListingBannerData } from './ListingBannerCard'
-import { partitionBannersByPlacement } from '@/lib/bannerPlacement'
+import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
+import { useVisitorCanton } from '@/lib/useVisitorCanton'
 import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
 import AvailableForChat, { type ChatModel } from './AvailableForChat'
@@ -17,16 +18,7 @@ import { type StatusMessage } from './HomePageClient'
 import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { randomShuffle } from '@/lib/randomShuffle'
-
-const CANTON_NAMES: Record<string, string> = {
-  AG: 'Aargau', AI: 'Appenzell I.', AR: 'Appenzell A.', BE: 'Bern',
-  BL: 'Basel-Land', BS: 'Basel-Stadt', FR: 'Fribourg', GE: 'Geneva',
-  FL: 'Liechtenstein',
-  GL: 'Glarus', GR: 'Grisons', JU: 'Jura', LU: 'Lucerne',
-  NE: 'Neuchâtel', NW: 'Nidwalden', OW: 'Obwalden', SG: 'St. Gallen',
-  SH: 'Schaffhausen', SO: 'Solothurn', SZ: 'Schwyz', TG: 'Thurgau',
-  TI: 'Ticino', UR: 'Uri', VD: 'Vaud', VS: 'Valais', ZG: 'Zug', ZH: 'Zürich',
-}
+import { CANTON_NAMES } from '@/lib/cantons'
 
 interface Model {
   id: string
@@ -101,9 +93,22 @@ function buildInitialCards(
 export default function MixedHomeClient({
   models, clubs, banners, listings, statusMessages, chatModels,
 }: MixedHomeClientProps) {
+  // Filter state
+  const [selectedRegion, setSelectedRegion] = useState('all')
+
+  const visitorCanton = useVisitorCanton()
+  const effectiveCanton = selectedRegion !== 'all' ? selectedRegion : visitorCanton
+
+  // Banners targeting the current effective canton (visitor geo-IP, or active region filter).
+  // "All-CH" banners (target_cantons NULL/empty) always pass through.
+  const visibleBanners = useMemo(
+    () => filterBannersByCanton(banners, effectiveCanton),
+    [banners, effectiveCanton],
+  )
+
   const initial = useMemo(
-    () => buildInitialCards(models, clubs, banners, listings),
-    [models, clubs, banners, listings],
+    () => buildInitialCards(models, clubs, visibleBanners, listings),
+    [models, clubs, visibleBanners, listings],
   )
 
   const [cards, setCards] = useState<CardItem[]>(initial.cards)
@@ -111,9 +116,6 @@ export default function MixedHomeClient({
   const [sidebarRail, setSidebarRail] = useState<BannerData[]>(initial.sidebarRail)
   const [page, setPage] = useState(0)
   const shouldScrollTop = useRef(false)
-
-  // Filter state
-  const [selectedRegion, setSelectedRegion] = useState('all')
   const [selectedCity, setSelectedCity] = useState('all')
   const [selectedLiveLocation, setSelectedLiveLocation] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -336,33 +338,33 @@ export default function MixedHomeClient({
   // Shuffle on the client after hydration for fair rotation; cards are already
   // visible from the deterministic initial build (no skeleton gate needed).
   useEffect(() => {
-    const fresh = buildInitialCards(models, clubs, banners, listings)
+    const fresh = buildInitialCards(models, clubs, visibleBanners, listings)
     setCards(randomShuffle([...fresh.cards]))
     setWideSlots(randomShuffle([...fresh.wideSlots]))
     const side = fresh.sidebarRail.length <= 1
       ? fresh.sidebarRail
       : randomShuffle([...fresh.sidebarRail])
     setSidebarRail(side.slice(0, 1))
-  }, [banners, models, clubs, listings])
+  }, [visibleBanners, models, clubs, listings])
 
   const activeCards = useMemo(() => {
-    const { feedCard } = partitionBannersByPlacement(banners)
+    const { feedCard } = partitionBannersByPlacement(visibleBanners)
     if (!isFiltering) return cards
     return randomShuffle([
       ...filteredModels.map(m => ({ type: 'model' as const, data: m })),
       ...filteredClubs.map(c => ({ type: 'club' as const, data: c })),
       ...feedCard.map(b => ({ type: 'banner_card' as const, data: b })),
     ])
-  }, [isFiltering, filteredModels, filteredClubs, cards, banners])
+  }, [isFiltering, filteredModels, filteredClubs, cards, visibleBanners])
 
   const activeWideSlots = useMemo(() => {
-    const { feedWide } = partitionBannersByPlacement(banners)
+    const { feedWide } = partitionBannersByPlacement(visibleBanners)
     if (!isFiltering) return wideSlots
     return randomShuffle([
       ...feedWide.map(b => ({ type: 'banner' as const, data: b })),
       ...filteredListings.map(l => ({ type: 'listing' as const, data: l })),
     ])
-  }, [isFiltering, banners, filteredListings, wideSlots])
+  }, [isFiltering, visibleBanners, filteredListings, wideSlots])
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 

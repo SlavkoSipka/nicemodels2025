@@ -15,6 +15,11 @@ export interface BannerData {
   cta_url?: string | null
   /** Defaults to feed_wide when omitted (legacy rows). */
   placement?: BannerPlacement
+  /**
+   * ISO codes of Swiss cantons this banner targets.
+   * NULL or empty array = "all of CH" (no targeting; visible everywhere).
+   */
+  target_cantons?: string[] | null
 }
 
 interface BannerCardProps {

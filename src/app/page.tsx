@@ -200,6 +200,7 @@ export default async function HomePage() {
       image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,
       cta_url: b.cta_url,
       placement: b.placement,
+      target_cantons: b.target_cantons ?? null,
     }))
 
   // ── 4. Job/Rent listings (active, not blocked, not expired) ──

@@ -9,10 +9,17 @@ import {
 } from 'lucide-react'
 import BannerPlacementPreview from '@/components/buy-banner/BannerPlacementPreview'
 import PlacementPicker from '@/components/buy-banner/PlacementPicker'
+import CantonMultiSelect from '@/components/buy-banner/CantonMultiSelect'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
 import { normalizePlacement } from '@/lib/bannerPlacement'
 import { checkActiveAd } from '@/lib/activeAd'
+import {
+  type BannerRegionPriceRow,
+  fetchBannerRegionPricing,
+  findBannerPrice,
+} from '@/lib/bannerPricing'
+import { TOTAL_CANTONS } from '@/lib/cantons'
 
 interface Product {
   id: string
@@ -36,6 +43,7 @@ interface BannerRow {
   expires_at: string | null
   created_at: string
   placement?: string | null
+  target_cantons?: string[] | null
 }
 
 function activePlacementsFromRows(rows: BannerRow[]): Set<BannerPlacement> {
@@ -67,6 +75,8 @@ export default function BuyBannerPage() {
   const [hasActiveAd, setHasActiveAd] = useState(false)
 
   const [selectedPlacement, setSelectedPlacement] = useState<BannerPlacement | null>(null)
+  const [selectedCantons, setSelectedCantons] = useState<string[]>([])
+  const [pricing, setPricing] = useState<BannerRegionPriceRow[]>([])
   const [ctaUrl, setCtaUrl] = useState('')
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -121,11 +131,12 @@ export default function BuyBannerPage() {
       if (!user) { router.push('/login'); return }
       setUser(user)
 
-      const [{ data: details }, { data: bannersData }, { data: pkgData }, adStatus] = await Promise.all([
+      const [{ data: details }, { data: bannersData }, { data: pkgData }, adStatus, pricingRows] = await Promise.all([
         supabase.from('club_details').select('*').eq('club_id', user.id).single(),
         supabase.from('banners').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }),
         supabase.from('products').select('*').eq('product_type', 'banner_package').eq('is_active', true).order('display_order'),
         checkActiveAd(supabase, user.id),
+        fetchBannerRegionPricing(supabase),
       ])
 
       if (details) setClubDetails(details)
@@ -135,9 +146,27 @@ export default function BuyBannerPage() {
       }
       if (pkgData) setPackages(pkgData)
       setHasActiveAd(adStatus.hasActiveAd)
+      setPricing(pricingRows)
     } catch { /* ignore */ } finally {
       setLoading(false)
     }
+  }
+
+  const currentPrice = useMemo(
+    () =>
+      findBannerPrice(
+        pricing,
+        selectedPlacement,
+        selectedPackage?.duration_days ?? null,
+        selectedCantons.length,
+      ),
+    [pricing, selectedPlacement, selectedPackage, selectedCantons.length],
+  )
+
+  const formatPrice = (chf: number | null) => {
+    if (chf == null) return '—'
+    if (chf === 0) return 'Free'
+    return `${chf.toFixed(2)} CHF`
   }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,6 +187,7 @@ export default function BuyBannerPage() {
     setError(''); setSuccess('')
     if (!selectedPlacement) { setError('Please select a placement'); return }
     if (activeSlots.has(selectedPlacement)) { setError('You already have an active banner in this slot'); return }
+    if (selectedCantons.length === 0) { setError('Please select at least one target region'); return }
     if (!selectedPackage) { setError('Please select a package'); return }
     if (!imageFile) { setError('Please upload a banner image'); return }
     if (!termsAccepted) { setError('Please accept the terms and conditions'); return }
@@ -193,6 +223,9 @@ export default function BuyBannerPage() {
       const now = new Date()
       const expiresAt = new Date(now.getTime() + selectedPackage.duration_days * 86400000).toISOString()
 
+      const targetCantons =
+        selectedCantons.length === TOTAL_CANTONS ? null : selectedCantons
+
       const { data: newBanner, error: dbErr } = await supabase
         .from('banners')
         .insert({
@@ -205,6 +238,7 @@ export default function BuyBannerPage() {
           starts_at: now.toISOString(),
           expires_at: expiresAt,
           placement: selectedPlacement,
+          target_cantons: targetCantons,
         })
         .select()
         .single()
@@ -215,6 +249,7 @@ export default function BuyBannerPage() {
       setActiveSlots(activePlacementsFromRows(next))
       setSuccess('Banner activated successfully!')
       setSelectedPackage(null)
+      setSelectedCantons([])
       clearImage()
       setCtaUrl('')
       setTimeout(() => setSuccess(''), 5000)
@@ -343,6 +378,7 @@ export default function BuyBannerPage() {
             onChange={p => {
               setSelectedPlacement(p)
               setSelectedPackage(null)
+              setSelectedCantons([])
               clearImage()
             }}
             disabledPlacements={activeSlots}
@@ -353,8 +389,24 @@ export default function BuyBannerPage() {
         {selectedPlacement && (
           <div ref={afterPlacementRef} className="space-y-4">
         {slotFreeForSelection && (
+          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
+            <div>
+              <p className="text-sm font-bold text-gray-800">2. Choose target regions</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Banner will only show to visitors from these Swiss cantons. Pick more regions for wider reach (price scales with region count).
+              </p>
+            </div>
+            <CantonMultiSelect
+              value={selectedCantons}
+              onChange={setSelectedCantons}
+              disabled={saving}
+            />
+          </div>
+        )}
+
+        {slotFreeForSelection && selectedCantons.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-            <p className="text-sm font-bold text-gray-800 mb-4">2. Select duration:</p>
+            <p className="text-sm font-bold text-gray-800 mb-4">3. Select duration:</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
@@ -395,7 +447,7 @@ export default function BuyBannerPage() {
 
         {slotFreeForSelection && selectedPackage && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
-            <p className="text-sm font-bold text-gray-800">3. Upload banner image:</p>
+            <p className="text-sm font-bold text-gray-800">4. Upload banner image:</p>
             <p className="text-xs text-gray-400">{uploadHint}</p>
             {imagePreview ? (
               <div className={`relative rounded-xl overflow-hidden border border-gray-200 ${previewAspectClass}`}>
@@ -437,19 +489,23 @@ export default function BuyBannerPage() {
         {slotFreeForSelection && selectedPackage && imageFile && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-bold text-gray-800">4. Confirm:</p>
+              <p className="text-sm font-bold text-gray-800">5. Confirm:</p>
               <div className="text-right">
                 <p className="text-sm font-bold text-gray-900">Total (beta):</p>
-                <p className="text-base font-bold text-emerald-600">Free</p>
+                <p className="text-base font-bold text-emerald-600">{formatPrice(currentPrice)}</p>
               </div>
             </div>
-            <div className="p-3 bg-gray-50 rounded-lg mb-4">
+            <div className="p-3 bg-gray-50 rounded-lg mb-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{selectedPackage.name} — {placementLabel(selectedPlacement)}</p>
                   <p className="text-xs text-gray-500">Activate immediately</p>
                 </div>
-                <span className="text-sm font-bold text-emerald-600">Free</span>
+                <span className="text-sm font-bold text-emerald-600">{formatPrice(currentPrice)}</span>
+              </div>
+              <div className="text-xs text-gray-500">
+                Targeting <span className="font-semibold text-gray-700">{selectedCantons.length}</span> region{selectedCantons.length === 1 ? '' : 's'}
+                {selectedCantons.length === TOTAL_CANTONS && ' (entire Switzerland)'}
               </div>
             </div>
             <div className="mb-3">

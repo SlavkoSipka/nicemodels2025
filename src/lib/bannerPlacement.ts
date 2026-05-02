@@ -19,3 +19,23 @@ export function partitionBannersByPlacement<T extends { placement?: BannerPlacem
   }
   return { feedWide, feedCard, sidebarLeft }
 }
+
+/**
+ * Keep banners that match the visitor's canton.
+ *
+ * Rules:
+ *  - NULL or empty `target_cantons` = banner targets all of CH; always shown.
+ *  - Non-empty `target_cantons` = banner is shown only when `effectiveCanton`
+ *    is one of those codes.
+ *  - If `effectiveCanton` is null (visitor outside CH or geo-IP unknown),
+ *    only "all-CH" banners pass.
+ */
+export function filterBannersByCanton<
+  T extends { target_cantons?: string[] | null },
+>(list: T[], effectiveCanton: string | null): T[] {
+  return list.filter(b => {
+    if (!b.target_cantons || b.target_cantons.length === 0) return true
+    if (!effectiveCanton) return false
+    return b.target_cantons.includes(effectiveCanton)
+  })
+}

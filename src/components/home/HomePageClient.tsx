@@ -8,7 +8,8 @@ import ModelCard from './ModelCard'
 import BannerCard, { BannerData } from './BannerCard'
 import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
-import { partitionBannersByPlacement } from '@/lib/bannerPlacement'
+import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
+import { useVisitorCanton } from '@/lib/useVisitorCanton'
 import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
 import LatestStatusMessages from './LatestStatusMessages'
@@ -72,19 +73,29 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
   const [nearby,               setNearby]               = useState<NearbyValue>({ originCity: null, radiusKm: null })
   const { ids: nearbyModelIds } = useNearbyIds('model', nearby.originCity, nearby.radiusKm)
 
+  const visitorCanton = useVisitorCanton()
+  const effectiveCanton = selectedRegion !== 'all' ? selectedRegion : visitorCanton
+
+  // Banners targeting the visitor's canton (or active region filter).
+  // "All-CH" banners (target_cantons NULL/empty) always pass through.
+  const visibleBanners = useMemo(
+    () => filterBannersByCanton(initialBanners, effectiveCanton),
+    [initialBanners, effectiveCanton],
+  )
+
   /** Per-placement pools; shuffled for fair rotation when multiple advertisers exist. */
   const [widePool, setWidePool] = useState<BannerData[]>([])
   const [cardPool, setCardPool] = useState<BannerData[]>([])
   const [sidebarPool, setSidebarPool] = useState<BannerData[]>([])
 
   useEffect(() => {
-    const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(initialBanners)
+    const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(visibleBanners)
     setWidePool(feedWide.length <= 1 ? feedWide : randomShuffle([...feedWide]))
     setCardPool(feedCard.length <= 1 ? feedCard : randomShuffle([...feedCard]))
     // Left rail: only one banner visible; which advertiser wins is random each load/refresh.
     const sideShuffled = sidebarLeft.length <= 1 ? sidebarLeft : randomShuffle([...sidebarLeft])
     setSidebarPool(sideShuffled.length ? [sideShuffled[0]] : [])
-  }, [initialBanners])
+  }, [visibleBanners])
 
   const filteredModels = useMemo(() => {
     let result = initialModels
