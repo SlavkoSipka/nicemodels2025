@@ -238,9 +238,6 @@ export default function HomeFeedMock({ mode, highlight, previewUrl }: HomeFeedMo
   const compact = mode === 'mobile'
   const showSidebar = !compact && highlight === 'banner-sidebar'
 
-  // Real site uses grid-cols-2 on both mobile and desktop
-  const gridCols = 'grid-cols-2'
-
   return (
     <div className="bg-slate-50 w-full">
       <SiteHeader compact={compact} />
@@ -248,7 +245,7 @@ export default function HomeFeedMock({ mode, highlight, previewUrl }: HomeFeedMo
 
       <div className="p-2 flex gap-2">
         {showSidebar && (
-          <div className="w-[110px] shrink-0">
+          <div className="w-[90px] shrink-0">
             <BannerSlotSidebar previewUrl={previewUrl} />
           </div>
         )}
@@ -258,12 +255,12 @@ export default function HomeFeedMock({ mode, highlight, previewUrl }: HomeFeedMo
             <BannerSlotWide previewUrl={previewUrl} />
           )}
 
-          <div className={`grid ${gridCols} gap-1.5`}>
+          <div className="grid grid-cols-2 gap-1.5">
             {highlight === 'banner-card' ? (
               <>
                 <ModelCardMock model={FAKE_MODELS[0]} />
                 <BannerSlotCard previewUrl={previewUrl} />
-                {FAKE_MODELS.slice(1, compact ? 5 : 7).map(m => (
+                {FAKE_MODELS.slice(1, compact ? 5 : 3).map(m => (
                   <ModelCardMock key={m.name} model={m} />
                 ))}
               </>
@@ -275,12 +272,12 @@ export default function HomeFeedMock({ mode, highlight, previewUrl }: HomeFeedMo
                   highlighted
                   label="YOUR CARD"
                 />
-                {FAKE_MODELS.slice(1, 3).map(m => (
+                {FAKE_MODELS.slice(1, compact ? 3 : 3).map(m => (
                   <ModelCardMock key={m.name} model={m} />
                 ))}
               </>
             ) : (
-              FAKE_MODELS.slice(0, compact ? 6 : 8).map(m => (
+              FAKE_MODELS.slice(0, compact ? 6 : 4).map(m => (
                 <ModelCardMock key={m.name} model={m} />
               ))
             )}

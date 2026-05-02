@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Megaphone, Upload, X, CheckCircle, AlertCircle, Trash2,
-  ShoppingCart, Lock, Zap, ChevronRight,
+  ShoppingCart, Zap, ChevronRight,
 } from 'lucide-react'
 import BannerPlacementPreview from '@/components/buy-banner/BannerPlacementPreview'
 import PlacementPicker from '@/components/buy-banner/PlacementPicker'
@@ -153,7 +153,6 @@ export default function ModelBuyBannerPage() {
 
   const handleActivate = async () => {
     setError(''); setSuccess('')
-    if (!hasActiveAd) { setError('You need an active ad before purchasing a banner'); return }
     if (!selectedPlacement) { setError('Please select a placement'); return }
     if (activeSlots.has(selectedPlacement)) { setError('You already have an active banner in this slot'); return }
     if (!selectedPackage) { setError('Please select a package'); return }
@@ -293,18 +292,18 @@ export default function ModelBuyBannerPage() {
         <BannerPlacementPreview ownerType="model" />
 
         {!hasActiveAd && (
-          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3.5 md:p-5 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
-              <Lock className="w-5 h-5 text-amber-600" />
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5 md:p-5 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+              <Zap className="w-5 h-5 text-blue-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-amber-900 mb-1">Activate your ad first</p>
-              <p className="text-sm text-amber-800 mb-3">
-                You can only purchase banners while you have an active ad. Activate one and come back to boost your visibility.
+              <p className="text-sm font-bold text-blue-900 mb-1">Tip: pair your banner with an active sedcard</p>
+              <p className="text-sm text-blue-800 mb-3">
+                You can buy a banner right now without an active ad. For maximum reach, also activate your sedcard — banners and an active profile work best together.
               </p>
               <button
                 onClick={() => router.push('/dashboard/model/activate-ad')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Zap className="w-3.5 h-3.5" />
                 Activate Sedcard
@@ -340,7 +339,6 @@ export default function ModelBuyBannerPage() {
           </div>
         )}
 
-        {hasActiveAd && (
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
           <p className="text-sm font-bold text-gray-800">1. Choose placement</p>
           <PlacementPicker
@@ -354,9 +352,8 @@ export default function ModelBuyBannerPage() {
             previewUrl={imagePreview}
           />
         </div>
-        )}
 
-        {hasActiveAd && selectedPlacement && (
+        {selectedPlacement && (
           <div ref={afterPlacementRef} className="space-y-4">
         {slotFreeForSelection && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">

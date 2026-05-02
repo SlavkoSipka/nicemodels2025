@@ -653,35 +653,30 @@ export default function MixedHomeClient({
         <StoriesSection />
 
         <div className="w-full pt-3 sm:pt-4 pb-4 sm:pb-6">
-          {sidebarRail.length > 0 ? (
-            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1280px)_minmax(0,1fr)] lg:items-start lg:gap-x-4">
-              <div className="hidden min-h-0 justify-end lg:flex lg:self-start">
-                <aside className="sticky top-[120px] z-10 w-[220px] shrink-0 xl:w-[240px]">
-                  <div className="max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden overscroll-contain">
-                    <BannerSidebarRail banners={sidebarRail} />
-                  </div>
-                </aside>
-              </div>
-              <div className="flex min-w-0 flex-col gap-4 px-2 sm:px-4">
-                {renderFilterBar()}
-                {renderFeed()}
-              </div>
-              <div className="hidden min-h-0 lg:block" aria-hidden />
-            </div>
-          ) : (
-            <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-2 sm:px-4">
+          <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
+            <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
+              {sidebarRail.length > 0 && (
+                <div className="max-h-[calc(100vh-9rem)] overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
+                  <BannerSidebarRail banners={sidebarRail} />
+                </div>
+              )}
+            </aside>
+
+            <div className="mx-auto flex w-full min-w-0 max-w-[1100px] flex-col gap-4 xl:max-w-none xl:mx-0">
               {renderFilterBar()}
               {renderFeed()}
             </div>
-          )}
-        </div>
 
-        {hasSidebar && (
-          <div className="hidden xl:flex fixed right-0 top-[120px] flex-col gap-3 w-[275px] z-30 pr-3 max-h-[calc(100vh-140px)] overflow-y-auto">
-            {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
-            {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
+            <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
+              {hasSidebar && (
+                <div className="flex max-h-[calc(100vh-9rem)] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
+                  {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
+                  {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
+                </div>
+              )}
+            </aside>
           </div>
-        )}
+        </div>
       </div>
       <Footer />
     </>
