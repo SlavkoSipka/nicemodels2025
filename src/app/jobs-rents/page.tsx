@@ -95,6 +95,7 @@ export default async function JobsRentsPage() {
     club_id: l.club_id,
     club_name: clubDetailsMap.get(l.club_id)?.display_name || clubDetailsMap.get(l.club_id)?.club_name || 'Club',
     club_area: clubDetailsMap.get(l.club_id)?.area || null,
+    regions: Array.isArray(l.regions) ? l.regions : [],
     photos: photosMap.get(l.id) || [],
     services: servicesMap.get(l.id) || [],
     view_count: listingViewCountMap.get(l.id) ?? 0,

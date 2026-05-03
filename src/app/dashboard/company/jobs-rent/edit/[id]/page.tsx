@@ -6,10 +6,12 @@ import { createClient } from '@/lib/supabase/client'
 import { processImage } from '@/lib/imageProcessor'
 import CitySearch, { CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
+import RegionsCheckboxList from '@/components/forms/RegionsCheckboxList'
+import { ALL_REGION_IDS, type RegionId } from '@/lib/regions'
 import {
   Briefcase, ArrowLeft, MapPin, FileText, Upload, Phone,
   AlertCircle, CheckCircle, Trash2, ChevronDown, ChevronUp, Save,
-  Home, DollarSign
+  Home, DollarSign, Globe
 } from 'lucide-react'
 
 interface ServiceItem {
@@ -47,6 +49,7 @@ export default function EditJobRentPage() {
   const [location, setLocation] = useState('')
   const [locationPostalCode, setLocationPostalCode] = useState('')
   const [description, setDescription] = useState('')
+  const [regions, setRegions] = useState<RegionId[]>([...ALL_REGION_IDS])
 
   // Rent-specific fields
   const [rentPriceDaily, setRentPriceDaily] = useState('')
@@ -104,6 +107,10 @@ export default function EditJobRentPage() {
       setTitle(listing.title || '')
       setLocation(listing.location || '')
       setDescription(listing.description || '')
+      const loadedRegions: RegionId[] = Array.isArray(listing.regions) && listing.regions.length > 0
+        ? (listing.regions as RegionId[])
+        : [...ALL_REGION_IDS]
+      setRegions(loadedRegions)
       setCountryCode(listing.country_code || '+41')
       setPhoneNumber(listing.phone_number || '')
       setHasWhatsapp(listing.has_whatsapp || false)
@@ -205,6 +212,8 @@ export default function EditJobRentPage() {
     setError('')
     setSubmitting(true)
 
+    const finalRegions: RegionId[] = regions.length === 0 ? [...ALL_REGION_IDS] : regions
+
     try {
       // 1. Update the listing
       const { error: updateErr } = await supabase
@@ -213,6 +222,7 @@ export default function EditJobRentPage() {
           listing_type: listingType,
           title: title.trim(),
           location: location.trim(),
+          regions: finalRegions,
           description: description.trim(),
           country_code: countryCode,
           phone_number: phoneNumber.trim() || null,
@@ -391,6 +401,18 @@ export default function EditJobRentPage() {
               inputClassName="border-gray-200 focus:ring-brand"
             />
           </div>
+        </div>
+
+        {/* Section: Visibility (regions) */}
+        <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
+              <Globe className="w-4 h-4 text-indigo-600" />
+            </div>
+            <p className="text-sm font-bold text-gray-800">Where to show</p>
+            <span className="text-xs text-gray-400">— pick regions</span>
+          </div>
+          <RegionsCheckboxList selected={regions} onChange={setRegions} />
         </div>
 
         {/* Section: Rent Details (only when type = rent) */}

@@ -5,8 +5,95 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, Users,
-  Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Bell, Megaphone
+  Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Bell, Megaphone,
+  Briefcase
 } from 'lucide-react'
+
+interface ViewBreakdown {
+  total: number
+  club: number
+  sedcards: number
+  listings: number
+  banners: number
+}
+
+/**
+ * Aggregate every kind of view that contributes to a club's reach:
+ *   - their own club profile views
+ *   - sedcard views of every model they have linked (accepted invites)
+ *   - job/rent listing views
+ *   - banner impressions across all banners they bought
+ *
+ * Each query is best-effort: if one fails (RLS / missing table), it just
+ * resolves to 0 instead of breaking the whole stat box.
+ */
+async function loadViewBreakdown(
+  supabase: ReturnType<typeof createClient>,
+  clubId: string,
+): Promise<ViewBreakdown> {
+  const safeCount = async (q: PromiseLike<{ count: number | null; error: unknown }>): Promise<number> => {
+    try {
+      const { count, error } = await q
+      if (error) return 0
+      return count ?? 0
+    } catch {
+      return 0
+    }
+  }
+
+  const [modelLinksRes, listingsRes, bannersRes, clubViewsCount] = await Promise.all([
+    supabase.from('club_invites').select('invited_model_id').eq('club_id', clubId).eq('status', 'accepted'),
+    supabase.from('job_listings').select('id').eq('club_id', clubId),
+    supabase.from('banners').select('id').eq('owner_id', clubId),
+    safeCount(
+      supabase
+        .from('club_analytics')
+        .select('*', { count: 'exact', head: true })
+        .eq('club_id', clubId)
+        .eq('event_type', 'profile_view'),
+    ),
+  ])
+
+  const modelIds = (modelLinksRes.data ?? []).map((r: any) => r.invited_model_id).filter(Boolean) as string[]
+  const listingIds = (listingsRes.data ?? []).map((r: any) => r.id).filter(Boolean) as string[]
+  const bannerIds = (bannersRes.data ?? []).map((r: any) => r.id).filter(Boolean) as string[]
+
+  const [sedcardCount, listingCount, bannerCount] = await Promise.all([
+    modelIds.length === 0
+      ? Promise.resolve(0)
+      : safeCount(
+          supabase
+            .from('model_statistics')
+            .select('*', { count: 'exact', head: true })
+            .in('model_id', modelIds)
+            .eq('action_type', 'profile_view'),
+        ),
+    listingIds.length === 0
+      ? Promise.resolve(0)
+      : safeCount(
+          supabase
+            .from('listing_views')
+            .select('*', { count: 'exact', head: true })
+            .in('listing_id', listingIds),
+        ),
+    bannerIds.length === 0
+      ? Promise.resolve(0)
+      : safeCount(
+          supabase
+            .from('banner_impressions')
+            .select('*', { count: 'exact', head: true })
+            .in('banner_id', bannerIds),
+        ),
+  ])
+
+  return {
+    club: clubViewsCount,
+    sedcards: sedcardCount,
+    listings: listingCount,
+    banners: bannerCount,
+    total: clubViewsCount + sedcardCount + listingCount + bannerCount,
+  }
+}
 
 export default function CompanyDashboardPage() {
   const router = useRouter()
@@ -17,6 +104,7 @@ export default function CompanyDashboardPage() {
   const [modelCount, setModelCount] = useState<number>(0)
   const [photoCount, setPhotoCount] = useState<number>(0)
   const [notifications, setNotifications] = useState<any[]>([])
+  const [views, setViews] = useState<ViewBreakdown>({ total: 0, club: 0, sedcards: 0, listings: 0, banners: 0 })
 
   useEffect(() => {
     const checkUser = async () => {
@@ -59,6 +147,10 @@ export default function CompanyDashboardPage() {
         setPhotoCount(photos ?? 0)
         setNotifications(notifData || [])
         setLoading(false)
+
+        // View aggregation runs after the page is rendered so the dashboard
+        // appears instantly even if the analytics queries are slow.
+        loadViewBreakdown(supabase, user.id).then(setViews).catch(() => {})
       } catch {
         setLoading(false)
       }
@@ -372,15 +464,44 @@ export default function CompanyDashboardPage() {
 
             {/* Stats */}
             <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-              <div className="flex items-center gap-2 mb-3 md:mb-4">
-                <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
-                  <BarChart2 className="w-4 h-4 text-brand" />
+              <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+                    <BarChart2 className="w-4 h-4 text-brand" />
+                  </div>
+                  <p className="text-sm font-bold text-gray-800">Club stats</p>
                 </div>
-                <p className="text-sm font-bold text-gray-800">Club stats</p>
+                <button
+                  type="button"
+                  onClick={() => router.push('/dashboard/company/statistics')}
+                  className="text-[11px] font-bold text-brand hover:text-brand-hover flex items-center gap-0.5"
+                >
+                  Details <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
+
+              {/* Hero: total views across club + sedcards + listings + banners */}
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard/company/statistics')}
+                className="w-full text-left rounded-lg bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-3 mb-3 hover:from-blue-100/70 hover:to-indigo-100/70 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Eye className="w-4 h-4 text-blue-500" />
+                  <span className="text-xs font-semibold text-gray-600">Total views</span>
+                  <span className="ml-auto text-[10px] text-gray-400">all-time</span>
+                </div>
+                <p className="text-2xl font-bold text-gray-900 leading-none">{views.total}</p>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2.5 text-[11px] text-gray-600">
+                  <BreakdownRow icon={Building2} label="Club profile" value={views.club} color="text-blue-500" />
+                  <BreakdownRow icon={Users} label="Sedcards" value={views.sedcards} color="text-pink-500" />
+                  <BreakdownRow icon={Briefcase} label="Jobs / Rent" value={views.listings} color="text-amber-500" />
+                  <BreakdownRow icon={Megaphone} label="Banners" value={views.banners} color="text-purple-500" />
+                </div>
+              </button>
+
               <div className="space-y-3">
                 {[
-                  { icon: Eye, label: 'Profile views', value: 0, color: 'text-blue-500' },
                   { icon: Users, label: 'Active models', value: modelCount, color: 'text-indigo-500' },
                   { icon: Building2, label: 'Club photos', value: photoCount, color: 'text-brand' },
                 ].map(({ icon: Icon, label, value, color }) => (
@@ -444,6 +565,23 @@ export default function CompanyDashboardPage() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function BreakdownRow({
+  icon: Icon, label, value, color,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  value: number
+  color: string
+}) {
+  return (
+    <div className="flex items-center gap-1.5 min-w-0">
+      <Icon className={`w-3 h-3 shrink-0 ${color}`} />
+      <span className="truncate text-gray-500">{label}</span>
+      <span className="ml-auto font-bold text-gray-900 tabular-nums">{value}</span>
     </div>
   )
 }

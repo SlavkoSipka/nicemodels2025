@@ -42,8 +42,11 @@ export const TOTAL_CANTONS = CANTON_CODES.length // 27
 
 export const VALID_CANTONS = new Set(CANTON_CODES)
 
-/** Largest cantons by population — useful as a quick-pick in UI. */
-export const TOP_CANTONS = ['ZH', 'BE', 'VD', 'AG', 'SG'] as const
+/** Maximum number of cantons a banner buyer may target in one purchase. */
+export const MAX_BANNER_REGIONS = 4
+
+/** Largest cantons by population — quick-pick (sized to MAX_BANNER_REGIONS). */
+export const TOP_CANTONS = ['ZH', 'BE', 'VD', 'AG'] as const
 
 export function cantonName(code: string): string {
   return CANTON_NAMES[code] || code

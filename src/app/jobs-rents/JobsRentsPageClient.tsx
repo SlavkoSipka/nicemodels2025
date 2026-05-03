@@ -1,17 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
   Briefcase, MapPin, Calendar, Phone, Mail, Globe,
-  Building2
+  Building2, ChevronDown, X, Check
 } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
 import ViewCount from '@/components/ui/ViewCount'
 import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
 import { useNearbyIds } from '@/lib/useNearbyIds'
-import { formatRegions, isAllRegions } from '@/lib/regions'
+import { REGIONS, formatRegions, isAllRegions, type RegionId } from '@/lib/regions'
 
 interface ListingData {
   id: string
@@ -30,16 +30,18 @@ interface ListingData {
   club_id: string
   club_name: string
   club_area: string | null
-  regions?: string[] | null
+  regions?: RegionId[] | null
   photos: string[]
   services: { id: string; name: string }[]
   view_count?: number
 }
 
 type FilterType = 'all' | 'job' | 'rent'
+type RegionFilter = 'all' | RegionId
 
 export default function JobsRentsPageClient({ listings: initialListings }: { listings: ListingData[] }) {
   const [filter, setFilter] = useState<FilterType>('all')
+  const [regionFilter, setRegionFilter] = useState<RegionFilter>('all')
   const [listings, setListings] = useState<ListingData[]>(initialListings)
   const [nearby, setNearby] = useState<NearbyValue>({ originCity: null, radiusKm: null })
   const { ids: nearbyListingIds } = useNearbyIds('listing', nearby.originCity, nearby.radiusKm)
@@ -53,8 +55,23 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
     setListings(shuffled)
   }, [])
 
+  const matchesRegion = (l: ListingData): boolean => {
+    if (regionFilter === 'all') return true
+    // Listings without explicit regions (or covering all) are visible everywhere.
+    if (!l.regions || l.regions.length === 0 || isAllRegions(l.regions)) return true
+    return l.regions.includes(regionFilter)
+  }
+
   const filteredByType = filter === 'all' ? listings : listings.filter(l => l.listing_type === filter)
-  const filtered = nearbyListingIds ? filteredByType.filter(l => nearbyListingIds.has(l.id)) : filteredByType
+  const filteredByRegion = filteredByType.filter(matchesRegion)
+  const filtered = nearbyListingIds ? filteredByRegion.filter(l => nearbyListingIds.has(l.id)) : filteredByRegion
+
+  const regionMatchCount = useMemo(() => {
+    if (regionFilter === 'all') return null
+    return listings.filter(matchesRegion).length
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listings, regionFilter])
+
   const jobCount = listings.filter(l => l.listing_type === 'job').length
   const rentCount = listings.filter(l => l.listing_type === 'rent').length
 
@@ -85,6 +102,11 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
               onChange={setNearby}
               matchCount={nearbyListingIds ? nearbyListingIds.size : null}
               compact
+            />
+            <RegionFilterDropdown
+              value={regionFilter}
+              onChange={setRegionFilter}
+              matchCount={regionMatchCount}
             />
             <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-auto">
               {[
@@ -335,5 +357,133 @@ function ListingCard({ listing }: { listing: ListingData }) {
         </div>
       </article>
     </li>
+  )
+}
+
+function RegionFilterDropdown({
+  value,
+  onChange,
+  matchCount,
+}: {
+  value: 'all' | RegionId
+  onChange: (next: 'all' | RegionId) => void
+  matchCount: number | null
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
+
+  const selectedLabel =
+    value === 'all' ? 'All regions' : REGIONS.find(r => r.id === value)?.label ?? 'All regions'
+  const isFiltering = value !== 'all'
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold border transition-colors ${
+          isFiltering
+            ? 'bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100'
+            : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300'
+        }`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <Globe className={`w-3.5 h-3.5 ${isFiltering ? 'text-indigo-500' : 'text-gray-400'}`} />
+        <span className="truncate max-w-[140px]">{selectedLabel}</span>
+        {isFiltering && matchCount !== null && (
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-200 text-indigo-800">
+            {matchCount}
+          </span>
+        )}
+        {isFiltering ? (
+          <span
+            role="button"
+            tabIndex={0}
+            aria-label="Clear region filter"
+            onClick={e => {
+              e.stopPropagation()
+              onChange('all')
+              setOpen(false)
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                e.stopPropagation()
+                onChange('all')
+                setOpen(false)
+              }
+            }}
+            className="-mr-1 cursor-pointer rounded-full p-0.5 hover:bg-indigo-200"
+          >
+            <X className="w-3 h-3" />
+          </span>
+        ) : (
+          <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+        )}
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          className="absolute z-30 mt-1.5 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 max-h-[60vh] overflow-y-auto"
+        >
+          <button
+            type="button"
+            role="option"
+            aria-selected={value === 'all'}
+            onClick={() => {
+              onChange('all')
+              setOpen(false)
+            }}
+            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+              value === 'all' ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'hover:bg-gray-50 text-gray-700'
+            }`}
+          >
+            <span className="inline-flex w-4 h-4 items-center justify-center">
+              {value === 'all' && <Check className="w-3.5 h-3.5 text-indigo-600" strokeWidth={3} />}
+            </span>
+            <Globe className="w-3.5 h-3.5 text-gray-400" />
+            <span>All regions</span>
+            <span className="ml-auto text-[10px] font-bold uppercase text-gray-400">
+              {REGIONS.length}
+            </span>
+          </button>
+          <div className="my-1 border-t border-gray-100" />
+          {REGIONS.map(r => (
+            <button
+              key={r.id}
+              type="button"
+              role="option"
+              aria-selected={value === r.id}
+              onClick={() => {
+                onChange(r.id)
+                setOpen(false)
+              }}
+              className={`w-full flex items-start gap-2 px-3 py-2 text-left text-sm transition-colors ${
+                value === r.id ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'hover:bg-gray-50 text-gray-700'
+              }`}
+            >
+              <span className="inline-flex w-4 h-4 items-center justify-center mt-0.5">
+                {value === r.id && <Check className="w-3.5 h-3.5 text-indigo-600" strokeWidth={3} />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate">{r.label}</p>
+                {r.subLabel && <p className="text-[11px] text-gray-400 truncate">{r.subLabel}</p>}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }

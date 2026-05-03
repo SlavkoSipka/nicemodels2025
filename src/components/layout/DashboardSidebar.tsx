@@ -122,9 +122,17 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <MessageSquare className="w-5 h-5 shrink-0" />
                 <span>Comments</span>
               </Link>
-              <Link href="/dashboard/user/jobs-rent" className={navLinkCls('/dashboard/user/jobs-rent')}>
+              <Link
+                href="/dashboard/user/jobs-rent"
+                className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-semibold transition-all shadow-sm text-sm ${
+                  isActive('/dashboard/user/jobs-rent')
+                    ? 'text-white bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-200'
+                    : 'text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 hover:shadow-md hover:shadow-emerald-100'
+                }`}
+              >
                 <Briefcase className="w-5 h-5 shrink-0" />
-                <span>My Listings</span>
+                <span>Jobs / Rent</span>
+                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
               <Link href="/dashboard/user/settings" className={navLinkCls('/dashboard/user/settings')}>
                 <Settings className="w-5 h-5 shrink-0" />

@@ -19,7 +19,7 @@ import {
   fetchBannerRegionPricing,
   findBannerPrice,
 } from '@/lib/bannerPricing'
-import { TOTAL_CANTONS } from '@/lib/cantons'
+import { MAX_BANNER_REGIONS } from '@/lib/cantons'
 
 interface Product {
   id: string
@@ -226,9 +226,6 @@ export default function ModelBuyBannerPage() {
         .single()
       const title = profile?.showname || 'Banner'
 
-      const targetCantons =
-        selectedCantons.length === TOTAL_CANTONS ? null : selectedCantons
-
       const { data: newBanner, error: dbErr } = await supabase
         .from('banners')
         .insert({
@@ -241,7 +238,7 @@ export default function ModelBuyBannerPage() {
           starts_at: now.toISOString(),
           expires_at: expiresAt,
           placement: selectedPlacement,
-          target_cantons: targetCantons,
+          target_cantons: selectedCantons,
         })
         .select()
         .single()
@@ -396,7 +393,7 @@ export default function ModelBuyBannerPage() {
             <div>
               <p className="text-sm font-bold text-gray-800">2. Choose target regions</p>
               <p className="text-xs text-gray-500 mt-1">
-                Banner will only show to visitors from these Swiss cantons. Pick more regions for wider reach (price scales with region count).
+                Banner will only show to visitors from these Swiss cantons. Pick up to {MAX_BANNER_REGIONS} regions — price scales with region count.
               </p>
             </div>
             <CantonMultiSelect
@@ -508,7 +505,6 @@ export default function ModelBuyBannerPage() {
               </div>
               <div className="text-xs text-gray-500">
                 Targeting <span className="font-semibold text-gray-700">{selectedCantons.length}</span> region{selectedCantons.length === 1 ? '' : 's'}
-                {selectedCantons.length === TOTAL_CANTONS && ' (entire Switzerland)'}
               </div>
             </div>
             <div className="mb-3">
