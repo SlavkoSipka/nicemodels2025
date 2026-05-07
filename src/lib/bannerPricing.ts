@@ -9,8 +9,7 @@ export interface BannerRegionPriceRow {
 }
 
 /**
- * Fetch all active banner pricing rows. Beta phase keeps everything at 0;
- * admin updates these values later. Caller can do client-side `.find()`
+ * Fetch all active banner pricing rows. Caller can do client-side `.find()`
  * lookups for instant UI feedback as the buyer changes selection.
  */
 export async function fetchBannerRegionPricing(
@@ -36,5 +35,8 @@ export function findBannerPrice(
       r.duration_days === durationDays &&
       r.region_count === regionCount,
   )
-  return row?.price_chf ?? null
+  // Treat a 0 price as "not configured yet" rather than free, so
+  // the UI shows "—" instead of rendering a misleading "CHF 0.-".
+  if (!row || !row.price_chf || Number(row.price_chf) <= 0) return null
+  return Number(row.price_chf)
 }

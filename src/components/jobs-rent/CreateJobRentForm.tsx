@@ -163,8 +163,12 @@ export default function CreateJobRentForm({
 
       if (pkgData) {
         const seen = new Set<string>()
-        // Keep only the new 5/14/30 day packages by name; fall back to whatever exists
+        // Keep canonical 5/14/30 durations only and hide rows where price
+        // hasn't been seeded yet (price_chf = 0) so we never render
+        // "CHF 0.-" on the duration cards.
         const filtered = pkgData.filter(p => {
+          if (Number(p.price_chf) <= 0) return false
+          if (![5, 14, 30].includes(p.duration_days)) return false
           if (seen.has(p.name)) return false
           seen.add(p.name)
           return true
@@ -217,36 +221,26 @@ export default function CreateJobRentForm({
     }
     if (!selectedPackage) { setError('Please select a duration package'); return }
     if (!termsAccepted) { setError('Please accept the terms and conditions'); return }
+    if (!Number(selectedPackage.price_chf)) {
+      setError('This package is not available for purchase. Refresh and try again.')
+      return
+    }
 
     const finalRegions: RegionId[] = regions.length === 0 ? [...ALL_REGION_IDS] : regions
 
     setError('')
     setSubmitting(true)
 
-    try {
-      const { data: order, error: orderErr } = await supabase
-        .from('orders')
-        .insert({ user_id: user.id, status: 'paid', total_amount: 0, payment_method: 'card' })
-        .select()
-        .single()
-      if (orderErr || !order) throw orderErr || new Error('Failed to create order')
+    let createdListingId: string | null = null
+    let uploadedPhotoPaths: string[] = []
 
+    try {
       const actDate = activationType === 'at_date' && activationDate
         ? new Date(activationDate).toISOString()
         : null
 
-      await supabase.from('order_items').insert({
-        order_id: order.id,
-        product_id: selectedPackage.id,
-        price_chf: 0,
-        activation_type: activationType,
-        activation_date: actDate,
-      })
-
-      const startsAt = actDate ? new Date(actDate) : new Date()
-      const durationMs = (selectedPackage.duration_days * 86400000) + (selectedPackage.duration_hours * 3600000)
-      const expiresAt = new Date(startsAt.getTime() + durationMs)
-
+      // 1. Create the listing in pending_payment so photos/services have a
+      //    target row. Webhook flips it to 'active' on payment success.
       const { data: listing, error: listingErr } = await supabase
         .from('job_listings')
         .insert({
@@ -266,9 +260,7 @@ export default function CreateJobRentForm({
           has_sms: hasSms,
           email: email.trim() || null,
           website: website.trim() || null,
-          status: 'active',
-          starts_at: startsAt.toISOString(),
-          expires_at: expiresAt.toISOString(),
+          status: 'pending_payment',
           ...(listingType === 'rent' ? {
             rent_price_daily: rentPriceDaily ? parseFloat(rentPriceDaily) : null,
             rent_price_weekly: rentPriceWeekly ? parseFloat(rentPriceWeekly) : null,
@@ -285,7 +277,9 @@ export default function CreateJobRentForm({
         .select()
         .single()
       if (listingErr || !listing) throw listingErr || new Error('Failed to create listing')
+      createdListingId = listing.id
 
+      // 2. Upload photos and tag services to the draft listing.
       for (let i = 0; i < photos.length; i++) {
         const raw = photos[i].file
         let processed: File
@@ -296,6 +290,7 @@ export default function CreateJobRentForm({
           .from('job-listing-photos')
           .upload(filePath, processed, { contentType: 'image/webp', cacheControl: '3600', upsert: false })
         if (upErr) continue
+        uploadedPhotoPaths.push(filePath)
         await supabase.from('job_listing_photos').insert({
           listing_id: listing.id,
           file_path: filePath,
@@ -310,11 +305,39 @@ export default function CreateJobRentForm({
         )
       }
 
-      setSuccess('Listing created successfully!')
-      setTimeout(() => router.push(successHref ?? backHref), 1500)
+      // 3. Hand off to Stripe Checkout. Webhook flips listing to 'active'
+      //    on success; cancel/expiry leaves it as cancelled draft.
+      const res = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          returnPath: backHref,
+          items: [{
+            kind: 'job_listing',
+            productId: selectedPackage.id,
+            listingId: listing.id,
+            activationType,
+            activationDate: actDate,
+          }],
+        }),
+      })
+
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j?.error || 'Failed to start checkout')
+      }
+      const { url } = await res.json() as { url: string }
+      window.location.href = url
     } catch (err: any) {
+      // Roll back the draft listing + uploaded files so the user can retry
+      // without orphan rows piling up.
+      if (createdListingId) {
+        await supabase.from('job_listings').delete().eq('id', createdListingId)
+      }
+      if (uploadedPhotoPaths.length) {
+        await supabase.storage.from('job-listing-photos').remove(uploadedPhotoPaths)
+      }
       setError(err.message || 'Failed to create listing')
-    } finally {
       setSubmitting(false)
     }
   }
@@ -704,25 +727,14 @@ export default function CreateJobRentForm({
             <p className="text-sm font-bold text-gray-800">Duration</p>
           </div>
 
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <p className="text-sm text-emerald-900">
-              <span className="font-bold">Beta:</span> All listing packages are currently <span className="font-semibold">free</span>. Pricing shown applies once payment goes live.
-            </p>
-          </div>
-
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {packages.map(pkg => {
               const sel = selectedPackage?.id === pkg.id
               return (
                 <div key={pkg.id} onClick={() => setSelectedPackage(pkg)}
                   className={`relative rounded-lg border-2 p-4 text-center cursor-pointer transition-all ${sel ? 'border-brand bg-brand/5 shadow-sm' : 'border-gray-200 hover:border-brand/50'}`}>
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold text-white bg-emerald-500 whitespace-nowrap">
-                    Beta — Free
-                  </div>
                   <p className="text-base font-bold text-gray-900 mb-0.5">{pkg.name}</p>
-                  {pkg.price_chf > 0 && (
-                    <p className="text-sm font-bold text-brand">CHF {pkg.price_chf}</p>
-                  )}
+                  <p className="text-base font-bold text-gray-900">CHF {Number(pkg.price_chf).toFixed(0)}.-</p>
                   {pkg.description && (
                     <p className="text-xs text-gray-400 mt-1">{pkg.description}</p>
                   )}
@@ -768,7 +780,11 @@ export default function CreateJobRentForm({
             className="flex items-center gap-1.5 px-6 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Briefcase className="w-4 h-4" />
-            {submitting ? 'Publishing...' : 'Publish Listing'}
+            {submitting
+              ? 'Redirecting to checkout...'
+              : selectedPackage
+                ? `Pay CHF ${Number(selectedPackage.price_chf).toFixed(0)}.- with Card or TWINT`
+                : 'Continue to checkout'}
           </button>
         </div>
 

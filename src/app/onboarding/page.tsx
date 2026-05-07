@@ -87,8 +87,8 @@ export default function OnboardingPage() {
                 Complete your profile so we can prepare your{' '}
                 <span className="font-semibold">model</span> or{' '}
                 <span className="font-semibold">club/agency</span> page.
-                During the <span className="font-semibold text-pink-600">beta phase</span> everything stays{' '}
-                <span className="font-semibold">100% free</span>.
+                Profile setup is <span className="font-semibold text-pink-600">free</span>;
+                ad activation, banners and listings are paid services.
               </p>
             </div>
 

@@ -132,7 +132,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               >
                 <Briefcase className="w-5 h-5 shrink-0" />
                 <span>Jobs / Rent</span>
-                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
               <Link href="/dashboard/user/settings" className={navLinkCls('/dashboard/user/settings')}>
                 <Settings className="w-5 h-5 shrink-0" />
@@ -208,7 +207,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span>Activate Sedcard</span>
-                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
               <Link
@@ -221,7 +219,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               >
                 <Megaphone className="w-5 h-5 shrink-0" />
                 <span>Buy Banner</span>
-                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">PROMO</span>
               </Link>
 
               <Link href="/dashboard/model/upload-story" className={navLinkCls('/dashboard/model/upload-story')}>
@@ -334,7 +331,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <span>Activate Sedcard</span>
-                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
               <Link
@@ -347,7 +343,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               >
                 <Megaphone className="w-5 h-5 shrink-0" />
                 <span>Buy Banner</span>
-                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">PROMO</span>
               </Link>
 
               <Link href="/dashboard/company/models" className={navLinkCls('/dashboard/company/models')}>
@@ -365,7 +360,6 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               >
                 <Briefcase className="w-5 h-5 shrink-0" />
                 <span>Jobs / Rent</span>
-                <span className="ml-auto text-[10px] bg-white/25 text-white px-1.5 py-0.5 rounded-full font-bold tracking-wide">FREE</span>
               </Link>
 
               <Link href="/dashboard/company/statistics" className={navLinkCls('/dashboard/company/statistics')}>

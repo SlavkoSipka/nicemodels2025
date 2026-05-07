@@ -112,7 +112,8 @@ export default function ActivateAdPage() {
     if (error) {
       console.error('Error loading packages:', error)
     }
-    const pkgList = data || []
+    // Hide unseeded rows (price_chf = 0) so we never render "CHF 0.-".
+    const pkgList = (data || []).filter(p => Number(p.price_chf) > 0)
     setPackages(pkgList)
     setLoading(false)
     return pkgList
@@ -183,46 +184,30 @@ export default function ActivateAdPage() {
         return
       }
 
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          status: 'paid',
-          total_amount: 0,
-          payment_method: 'card'
-        })
-        .select()
-        .single()
+      const res = await fetch('/api/checkout/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          returnPath: '/dashboard/model/activate-ad',
+          items: cart.map(item => ({
+            kind: 'ad_package',
+            productId: item.product.id,
+            activationType: item.activationType,
+            activationDate: item.activationDate
+              ? new Date(item.activationDate).toISOString()
+              : null,
+          })),
+        }),
+      })
 
-      if (orderError || !order) {
-        setCheckoutError(orderError?.message || 'Failed to create order')
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        setCheckoutError(j?.error || 'Failed to start checkout')
         return
       }
-
-      for (const item of cart) {
-        const { error: itemError } = await supabase
-          .from('order_items')
-          .insert({
-            order_id: order.id,
-            product_id: item.product.id,
-            price_chf: 0,
-            activation_type: item.activationType,
-            activation_date: item.activationDate ? new Date(item.activationDate).toISOString() : null
-          })
-
-        if (itemError) {
-          if (itemError.code === '23503') {
-            saveCart([])
-            setCheckoutError('Your cart contained outdated items. Please select packages again and try checkout.')
-          } else {
-            setCheckoutError(itemError.message || 'Failed to create order item')
-          }
-          return
-        }
-      }
-
+      const { url } = await res.json() as { url: string }
       saveCart([])
-      router.push('/dashboard/model')
+      window.location.href = url
     } catch (error) {
       setCheckoutError(error instanceof Error ? error.message : 'An error occurred')
     }
@@ -243,8 +228,7 @@ export default function ActivateAdPage() {
             <div>
               <h1 className="text-xl font-bold text-gray-900">Activate Sedcard</h1>
               <p className="text-xs text-gray-500">
-                Listed prices: 5 days CHF 19, 14 days CHF 29, 30 days CHF 39 — currently{' '}
-                <span className="font-semibold text-emerald-600">100% free in Beta</span>
+                5 days CHF 19 · 14 days CHF 29 · 30 days CHF 39
               </p>
             </div>
           </div>
@@ -256,20 +240,14 @@ export default function ActivateAdPage() {
             >
               <ShoppingCart className="w-4 h-4" />
               Cart: {cart.length} item{cart.length > 1 ? 's' : ''}
-              <span className="ml-1 px-1.5 py-0.5 bg-white text-brand rounded text-xs font-bold">Free</span>
+              <span className="ml-1 px-1.5 py-0.5 bg-white text-brand rounded text-xs font-bold">
+                CHF {cart.reduce((s, it) => s + Number(it.product.price_chf || 0), 0)}
+              </span>
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
                 {cart.length}
               </span>
             </button>
           )}
-        </div>
-
-        {/* Beta info */}
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-          <p className="text-sm text-emerald-900">
-            <span className="font-bold">Beta Info:</span> All packages are currently <span className="font-semibold">free for early users</span>.
-            No payment required. We will clearly inform you before any pricing starts.
-          </p>
         </div>
 
         {/* Profile readiness notice */}
@@ -387,27 +365,19 @@ export default function ActivateAdPage() {
                           : 'border-gray-200 bg-white hover:border-brand/50 cursor-pointer'
                     }`}
                   >
-                    <div className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white ${isInCart ? 'bg-emerald-500' : 'bg-emerald-500'}`}>
-                      {isInCart ? 'Added to cart' : 'Beta — Free'}
-                    </div>
+                    {isInCart && (
+                      <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white bg-emerald-500">
+                        Added to cart
+                      </div>
+                    )}
                     <div className="p-3.5 md:p-5 text-center">
                       <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
                       <p className="text-xs text-gray-400">{pkg.description}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
-                        {Number(pkg.price_chf) > 0 ? (
-                          <>
-                            <p className="text-xs text-gray-400 line-through">
-                              CHF {Number(pkg.price_chf).toFixed(0)}.-
-                            </p>
-                            <p className="text-base font-bold text-emerald-600 leading-tight">Free</p>
-                            <p className="text-[11px] text-gray-400 mt-0.5">Beta — no payment yet</p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-sm font-bold text-emerald-600">Free</p>
-                            <p className="text-xs text-gray-400 mt-0.5">No payment needed</p>
-                          </>
-                        )}
+                        <p className="text-base font-bold text-gray-900 leading-tight">
+                          CHF {Number(pkg.price_chf).toFixed(0)}.-
+                        </p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">One-time payment</p>
                       </div>
                     </div>
                     {isInCart ? (
@@ -495,14 +465,9 @@ export default function ActivateAdPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      {Number(item.product.price_chf) > 0 && (
-                        <p className="text-[11px] text-gray-400 line-through leading-tight">
-                          CHF {Number(item.product.price_chf).toFixed(0)}.-
-                        </p>
-                      )}
-                      <span className="text-sm font-bold text-emerald-600">Free</span>
-                    </div>
+                    <span className="text-sm font-bold text-gray-900">
+                      CHF {Number(item.product.price_chf).toFixed(0)}.-
+                    </span>
                     <button
                       onClick={() => removeFromCart(index)}
                       className="text-xs font-semibold text-red-600 hover:text-red-800"
@@ -515,18 +480,10 @@ export default function ActivateAdPage() {
             </div>
 
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-              <p className="text-sm font-bold text-gray-900">Total (beta):</p>
-              <div className="text-right">
-                {(() => {
-                  const sum = cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0)
-                  return sum > 0 ? (
-                    <p className="text-[11px] text-gray-400 line-through leading-tight">
-                      CHF {sum.toFixed(0)}.-
-                    </p>
-                  ) : null
-                })()}
-                <p className="text-base font-bold text-emerald-600">Free</p>
-              </div>
+              <p className="text-sm font-bold text-gray-900">Total:</p>
+              <p className="text-base font-bold text-gray-900">
+                CHF {cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0).toFixed(2)}
+              </p>
             </div>
 
             <div className="mt-3">
@@ -538,9 +495,9 @@ export default function ActivateAdPage() {
             <button
               onClick={goToCheckout}
               disabled={!termsAccepted}
-              className="w-full mt-3 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-3 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Confirm free activation (beta)
+              Pay with Card or TWINT
             </button>
           </div>
         )}

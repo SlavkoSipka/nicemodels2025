@@ -238,8 +238,8 @@ export default function CompanyDashboardPage() {
               {
                 step: '4',
                 title: 'Activate your ad',
-                desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your club will appear in search results.',
-                action: 'Activate Ad',
+                desc: 'Go to Activate Club Ad and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your club appears in search results.',
+                action: 'Activate Club Ad',
                 href: '/dashboard/company/activate-ad',
               },
             ].map(({ step, title, desc, action, href }) => (
@@ -345,20 +345,19 @@ export default function CompanyDashboardPage() {
               </div>
             )}
 
-            {/* Beta notice */}
+            {/* Welcome notice */}
             <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-brand bg-brand/10 border border-brand/20 px-2 py-0.5 rounded-full">Beta</span>
-                <p className="text-sm font-bold text-gray-900">Welcome to the early access</p>
+                <p className="text-sm font-bold text-gray-900">Welcome to nicemodels.ch</p>
               </div>
               <p className="text-sm text-gray-600 mb-3 md:mb-4">
-                You're one of the first clubs/agencies on <span className="font-semibold text-gray-900">nicemodels.ch</span>. Everything is free while we test and improve the platform.
+                Get the most out of <span className="font-semibold text-gray-900">nicemodels.ch</span>. Complete your club profile, add models, then activate your club ad so visitors can find you.
               </p>
               <div className="space-y-1.5 mb-3 md:mb-4">
                 {[
-                  'No prices, no payments during beta',
-                  'Help us test, give feedback and shape the portal',
-                  'We will inform you clearly before any pricing starts',
+                  'Club ad activation from CHF 19',
+                  'Banners and listings paid via Card or TWINT',
+                  'A complete profile gets the most visibility',
                 ].map(tip => (
                   <div key={tip} className="flex items-center gap-2 text-sm text-gray-700">
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -367,7 +366,7 @@ export default function CompanyDashboardPage() {
                 ))}
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-400 hidden md:block">Complete your club profile and add models to maximize visibility when we go live.</p>
+                <p className="text-xs text-gray-400 hidden md:block">Complete your club profile and add models to maximize visibility.</p>
                 <button
                   onClick={() => router.push('/dashboard/company/profile/basic-info')}
                   className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 ml-4"
@@ -411,8 +410,8 @@ export default function CompanyDashboardPage() {
                   {
                     step: '4',
                     title: 'Activate your ad',
-                    desc: 'Go to Activate Sedcard and choose a duration. During beta, this is 100% free — your club will appear in search results.',
-                    action: 'Activate Sedcard',
+                    desc: 'Go to Activate Club Ad and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your club appears in search results.',
+                    action: 'Activate Club Ad',
                     href: '/dashboard/company/activate-ad',
                   },
                 ].map(({ step, title, desc, action, href }) => (

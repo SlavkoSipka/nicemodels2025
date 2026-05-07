@@ -327,7 +327,7 @@ export default function ModelDashboardPage() {
                 {
                   step: '3',
                   title: 'Activate your ad',
-                  desc: 'Go to Activate Ad and choose a duration. During beta, this is 100% free — your profile will appear in search results.',
+                  desc: 'Go to Activate Sedcard and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your profile appears in search results.',
                   action: 'Activate Ad',
                   href: '/dashboard/model/activate-ad',
                 },
@@ -576,20 +576,19 @@ export default function ModelDashboardPage() {
                 </div>
               )}
 
-              {/* Beta notice */}
+              {/* Welcome notice */}
               <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
                 <div className="flex items-center gap-2 mb-2 md:mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-brand bg-brand/10 border border-brand/20 px-2 py-0.5 rounded-full">Beta</span>
-                  <p className="text-sm font-bold text-gray-900">Welcome to the early access</p>
+                  <p className="text-sm font-bold text-gray-900">Welcome to nicemodels.ch</p>
                 </div>
                 <p className="text-[13px] md:text-sm text-gray-600 mb-3 md:mb-4">
-                  You're one of the first models on <span className="font-semibold text-gray-900">nicemodels.ch</span>. Everything is free while we test and improve the platform.
+                  Get the most out of <span className="font-semibold text-gray-900">nicemodels.ch</span>. Complete your profile, then activate your sedcard so clients can find you.
                 </p>
                 <div className="space-y-1 md:space-y-1.5 mb-3 md:mb-4">
                   {[
-                    'No prices, no payments during beta',
-                    'Help us test, give feedback and shape the portal',
-                    'We will inform you clearly before any pricing starts',
+                    'Sedcard activation from CHF 19',
+                    'Banners and listings paid via Card or TWINT',
+                    'A complete profile gets the most visibility',
                   ].map(tip => (
                     <div key={tip} className="flex items-center gap-2 text-[13px] md:text-sm text-gray-700">
                       <CheckCircle className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-500 shrink-0" />
@@ -598,7 +597,7 @@ export default function ModelDashboardPage() {
                   ))}
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-100 gap-2">
-                  <p className="text-xs text-gray-400 hidden md:block">Complete your profile to get the best visibility when we go live.</p>
+                  <p className="text-xs text-gray-400 hidden md:block">Complete your profile to get the best visibility.</p>
                   <button
                     onClick={() => router.push('/dashboard/model/profile/pictures-video')}
                     className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1"
@@ -635,7 +634,7 @@ export default function ModelDashboardPage() {
                     {
                       step: '3',
                       title: 'Activate your ad',
-                      desc: 'Go to Activate Sedcard and choose a duration. During beta, this is 100% free — your profile will appear in search results.',
+                      desc: 'Go to Activate Sedcard and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your profile appears in search results.',
                       action: 'Activate Sedcard',
                       href: '/dashboard/model/activate-ad',
                     },
