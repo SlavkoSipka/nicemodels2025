@@ -587,7 +587,7 @@ export default function ModelDashboardPage() {
                 <div className="space-y-1 md:space-y-1.5 mb-3 md:mb-4">
                   {[
                     'Sedcard activation from CHF 19',
-                    'Banners and listings paid via Card or TWINT',
+                    'Banners and listings paid via secure Stripe checkout',
                     'A complete profile gets the most visibility',
                   ].map(tip => (
                     <div key={tip} className="flex items-center gap-2 text-[13px] md:text-sm text-gray-700">

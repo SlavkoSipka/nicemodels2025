@@ -783,7 +783,7 @@ export default function CreateJobRentForm({
             {submitting
               ? 'Redirecting to checkout...'
               : selectedPackage
-                ? `Pay CHF ${Number(selectedPackage.price_chf).toFixed(0)}.- with Card or TWINT`
+                ? `Pay CHF ${Number(selectedPackage.price_chf).toFixed(0)}.- securely`
                 : 'Continue to checkout'}
           </button>
         </div>

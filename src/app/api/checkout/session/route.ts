@@ -222,7 +222,10 @@ export async function POST(req: NextRequest) {
   try {
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      payment_method_types: ['card', 'twint'],
+      // Don't hard-code payment_method_types — Stripe automatically uses
+      // whichever methods are enabled in the Dashboard for the account
+      // (card today, TWINT/Apple Pay/etc. once activated). This avoids
+      // crashing the checkout when a method isn't yet enabled.
       line_items: lineItems,
       currency: 'chf',
       customer_email: user.email ?? undefined,

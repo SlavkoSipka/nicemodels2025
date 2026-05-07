@@ -302,7 +302,7 @@ export default function BuyBannerPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900">Buy Banner</h1>
             <p className="text-xs text-gray-500">
-              One active banner per placement. Pay with Card or TWINT.
+              One active banner per placement. Secure checkout via Stripe.
             </p>
           </div>
         </div>
@@ -518,7 +518,7 @@ export default function BuyBannerPage() {
               className="w-full py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
-              {saving ? 'Redirecting to checkout...' : 'Pay with Card or TWINT'}
+              {saving ? 'Redirecting to checkout...' : 'Pay securely'}
             </button>
           </div>
         )}
