@@ -149,7 +149,9 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       status: 'pending',
       total_amount: totalChf,
-      payment_method: 'stripe',
+      // Placeholder — the Stripe webhook will overwrite this with the actual
+      // method ('card' or 'twint') once the payment_intent succeeds.
+      payment_method: 'card',
       metadata: {
         return_path: body.returnPath || null,
         items_summary: resolved.map(r => ({
