@@ -53,7 +53,6 @@ interface FormData {
   // Basic identity / amenities (club_details)
   club_name: string
   display_name: string
-  area: string
   about_description: string
   is_club: boolean
   entrance_fee: string
@@ -89,7 +88,6 @@ export default function BasicInfoPage() {
   const [formData, setFormData] = useState<FormData>({
     club_name: '',
     display_name: '',
-    area: '',
     about_description: '',
     is_club: false,
     entrance_fee: 'na',
@@ -146,7 +144,6 @@ export default function BasicInfoPage() {
       setFormData({
         club_name: clubData?.club_name || '',
         display_name: clubData?.display_name || '',
-        area: clubData?.area || '',
         about_description: clubData?.about_description || '',
         is_club: clubData?.is_club || false,
         entrance_fee: clubData?.entrance_fee || 'na',
@@ -201,7 +198,6 @@ export default function BasicInfoPage() {
         .update({
           club_name: formData.club_name,
           display_name: formData.display_name,
-          area: formData.area,
           about_description: formData.about_description,
           is_club: formData.is_club,
           entrance_fee: formData.entrance_fee,
@@ -321,17 +317,6 @@ export default function BasicInfoPage() {
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-800 mb-1">Area / Region</label>
-            <input
-              type="text"
-              value={formData.area}
-              onChange={(e) => handleChange('area', e.target.value)}
-              placeholder="e.g., Zurich Center, Basel West"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
-            />
           </div>
 
           <RichTextEditor

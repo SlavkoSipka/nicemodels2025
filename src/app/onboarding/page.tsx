@@ -61,7 +61,7 @@ export default function OnboardingPage() {
       <>
         <Navbar />
         <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50">
-          <div className="flex-1 flex items-center justify-center px-4 py-6 pb-20">
+          <div className="flex-1 flex items-center justify-center px-4 py-6 pb-32 md:pb-20">
             <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl px-8 py-10 max-w-md w-full">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-600 mx-auto"></div>
               <p className="mt-4 text-sm text-gray-600">Preparing your onboarding…</p>
@@ -77,7 +77,9 @@ export default function OnboardingPage() {
     <>
       <Navbar />
       <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 flex flex-col">
-        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-16 flex justify-center">
+        {/* pb-32 on mobile so the fixed footer (which wraps to two lines on
+            small screens) doesn't overlap the form's submit button. */}
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-32 md:pb-20 flex justify-center">
           <div className="max-w-5xl w-full">
             <div className="text-center mb-3">
               <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 tracking-tight">
