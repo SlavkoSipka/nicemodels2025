@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getStripe } from '@/lib/stripe/server'
+import { validateStripeEnv } from '@/lib/stripe/validate-env'
 import { findBannerPrice, fetchBannerRegionPricing } from '@/lib/bannerPricing'
 import { isValidCanton, MAX_BANNER_REGIONS } from '@/lib/cantons'
 import { normalizePlacement } from '@/lib/bannerPlacement'
@@ -39,6 +40,13 @@ function siteUrl(): string {
 }
 
 export async function POST(req: NextRequest) {
+  try {
+    validateStripeEnv()
+  } catch (e: any) {
+    console.error('[checkout/session]', e?.message)
+    return NextResponse.json({ error: e?.message || 'Stripe env invalid' }, { status: 500 })
+  }
+
   let body: CheckoutSessionRequestBody
   try {
     body = await req.json()
@@ -222,10 +230,9 @@ export async function POST(req: NextRequest) {
   try {
     session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      // Don't hard-code payment_method_types — Stripe automatically uses
-      // whichever methods are enabled in the Dashboard for the account
-      // (card today, TWINT/Apple Pay/etc. once activated). This avoids
-      // crashing the checkout when a method isn't yet enabled.
+      // Card-only for now. Add 'twint', 'apple_pay', etc. here once they
+      // are activated in the Stripe Dashboard and we want to expose them.
+      payment_method_types: ['card'],
       line_items: lineItems,
       currency: 'chf',
       customer_email: user.email ?? undefined,

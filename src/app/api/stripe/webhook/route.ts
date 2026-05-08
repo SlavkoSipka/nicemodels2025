@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getStripe } from '@/lib/stripe/server'
+import { validateStripeEnv } from '@/lib/stripe/validate-env'
 import type Stripe from 'stripe'
 
 export const runtime = 'nodejs'
@@ -10,11 +11,14 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET
-  if (!secret) {
-    console.error('[stripe/webhook] STRIPE_WEBHOOK_SECRET not configured')
-    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
+  try {
+    validateStripeEnv()
+  } catch (e: any) {
+    console.error('[stripe/webhook]', e?.message)
+    return NextResponse.json({ error: e?.message || 'Stripe env invalid' }, { status: 500 })
   }
+
+  const secret = process.env.STRIPE_WEBHOOK_SECRET!
 
   const sigHeader = (await headers()).get('stripe-signature')
   if (!sigHeader) {
