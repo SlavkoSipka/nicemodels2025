@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Settings, Eye, EyeOff, Lock, Trash2, Bell, Save, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function SettingsPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.settings')
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -36,27 +38,27 @@ export default function SettingsPage() {
 
   const handlePasswordChange = async () => {
     setPwError(''); setPwSuccess('')
-    if (!currentPassword || !newPassword || !confirmPassword) { setPwError('Please fill in all password fields'); return }
-    if (newPassword !== confirmPassword) { setPwError('New passwords do not match'); return }
+    if (!currentPassword || !newPassword || !confirmPassword) { setPwError(t('fillAllFields')); return }
+    if (newPassword !== confirmPassword) { setPwError(t('passwordsMatch')); return }
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!_+@\-])[A-Za-z\d!_+@\-]{8,20}$/
-    if (!passwordRegex.test(newPassword)) { setPwError('Password must be 8-20 chars with 1 uppercase, 1 digit, and one of: !_+-@'); return }
+    if (!passwordRegex.test(newPassword)) { setPwError(t('passwordRules')); return }
     setSaving(true)
     try {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: currentPassword })
-      if (signInError) { setPwError('Current password is incorrect'); return }
+      if (signInError) { setPwError(t('wrongCurrentPassword')); return }
       const { error } = await supabase.auth.updateUser({ password: newPassword })
       if (error) throw error
-      setPwSuccess('Password changed successfully!')
+      setPwSuccess(t('passwordChanged'))
       setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
       setTimeout(() => setPwSuccess(''), 4000)
     } catch (e: any) {
-      setPwError(e?.message || 'Failed to change password')
+      setPwError(e?.message || t('passwordChangeFailed'))
     } finally { setSaving(false) }
   }
 
   const handleDeleteAccount = async () => {
-    if (!confirm('Are you sure you want to delete your account? This action cannot be undone.')) return
-    if (!confirm('FINAL WARNING: This will permanently delete your account. Are you absolutely sure?')) return
+    if (!confirm(t('confirmDelete'))) return
+    if (!confirm(t('finalWarning'))) return
     setSaving(true)
     try {
       const res = await fetch('/api/account/delete', {
@@ -70,7 +72,7 @@ export default function SettingsPage() {
       }
       await supabase.auth.signOut()
       router.push('/')
-    } catch { alert('Failed to delete account. Please contact support.') }
+    } catch { alert(t('deleteFailed')) }
     finally { setSaving(false) }
   }
 
@@ -92,20 +94,20 @@ export default function SettingsPage() {
             <Settings className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-lg md:text-xl font-bold text-gray-900">Settings</h1>
-            <p className="text-xs text-gray-500">Manage your account settings and preferences</p>
+            <h1 className="text-lg md:text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
         {/* Account Info */}
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-          <p className="text-sm font-bold text-gray-800 mb-3">Associated Email</p>
+          <p className="text-sm font-bold text-gray-800 mb-3">{t('associatedEmail')}</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <input type="email" value={email} disabled
               className="px-3 py-2 text-sm border border-gray-100 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed" />
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-xs text-blue-800">
-                For your protection, to change this field please contact support at{' '}
+                {t('emailContactSupport')}{' '}
                 <a href="mailto:info@nicemodels.ch" className="font-semibold text-brand hover:underline">info@nicemodels.ch</a>.
               </p>
             </div>
@@ -116,7 +118,7 @@ export default function SettingsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Lock className="w-4 h-4 text-gray-500" />
-            <p className="text-sm font-bold text-gray-800">Change Password</p>
+            <p className="text-sm font-bold text-gray-800">{t('changePassword')}</p>
           </div>
           {pwError && (
             <div className="mb-3 bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
@@ -134,27 +136,27 @@ export default function SettingsPage() {
             <div className="relative">
               <input type={showCurrent ? 'text' : 'password'} value={currentPassword}
                 onChange={e => setCurrentPassword(e.target.value)}
-                placeholder="Current password" className={inputCls + ' pr-10'} />
+                placeholder={t('currentPassword')} className={inputCls + ' pr-10'} />
               {eyeBtn(showCurrent, () => setShowCurrent(!showCurrent))}
             </div>
             <div className="relative">
               <input type={showNew ? 'text' : 'password'} value={newPassword}
                 onChange={e => setNewPassword(e.target.value)}
-                placeholder="New password" className={inputCls + ' pr-10'} />
+                placeholder={t('newPassword')} className={inputCls + ' pr-10'} />
               {eyeBtn(showNew, () => setShowNew(!showNew))}
             </div>
             <div className="relative">
               <input type={showConfirm ? 'text' : 'password'} value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password" className={inputCls + ' pr-10'} />
+                placeholder={t('confirmNewPassword')} className={inputCls + ' pr-10'} />
               {eyeBtn(showConfirm, () => setShowConfirm(!showConfirm))}
             </div>
           </div>
-          <p className="text-xs text-gray-500 mb-3">8-20 characters · at least 1 uppercase, 1 digit, one of: !_+-@</p>
+          <p className="text-xs text-gray-500 mb-3">{t('passwordRequirements')}</p>
           <button onClick={handlePasswordChange} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('saving') : t('saveChanges')}
           </button>
         </div>
 
@@ -162,7 +164,7 @@ export default function SettingsPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Bell className="w-4 h-4 text-gray-500" />
-            <p className="text-sm font-bold text-gray-800">Newsletter</p>
+            <p className="text-sm font-bold text-gray-800">{t('newsletter')}</p>
           </div>
           <label className="flex items-center gap-2.5 cursor-pointer">
             <input type="checkbox" checked={newsletter}
@@ -177,7 +179,7 @@ export default function SettingsPage() {
                 } catch { setNewsletter(!val) }
               }}
               className="w-4 h-4 text-brand rounded border-gray-300 focus:ring-brand" />
-            <span className="text-sm text-gray-700">Receive newsletter from nicemodels.ch</span>
+            <span className="text-sm text-gray-700">{t('newsletterReceive')}</span>
           </label>
         </div>
 
@@ -185,15 +187,15 @@ export default function SettingsPage() {
         <div className="bg-white border border-red-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <Trash2 className="w-4 h-4 text-red-600" />
-            <p className="text-sm font-bold text-red-600">Account Removal</p>
+            <p className="text-sm font-bold text-red-600">{t('accountRemoval')}</p>
           </div>
           <p className="text-xs text-gray-600 mb-3">
-            <span className="font-bold">Warning!</span> This removes all your reviews and advertising history. Contact{' '}
-            <a href="/support" className="text-brand hover:underline font-semibold">support</a> first if you need assistance.
+            <span className="font-bold">{t('warning')}</span> {t('removalWarning')}{' '}
+            <a href="/support" className="text-brand hover:underline font-semibold">{t('support')}</a> {t('removalSupport')}
           </p>
           <button onClick={handleDeleteAccount} disabled={saving}
             className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 disabled:opacity-50">
-            Delete Account
+            {t('deleteAccount')}
           </button>
         </div>
       </div>

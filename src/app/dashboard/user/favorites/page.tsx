@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Heart, Search, Loader2, MapPin, User } from 'lucide-react'
 import Image from 'next/image'
@@ -19,6 +20,7 @@ interface FavoriteModel {
 }
 
 export default function UserFavorites() {
+  const t = useTranslations('dashboard.user.favorites')
   const [favorites, setFavorites] = useState<FavoriteModel[]>([])
   const [loading, setLoading] = useState(true)
   const [removing, setRemoving] = useState<string | null>(null)
@@ -79,11 +81,13 @@ export default function UserFavorites() {
               <Heart className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">My Favorites</h1>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
               <p className="text-xs text-gray-500">
                 {favorites.length > 0
-                  ? `${favorites.length} saved ${favorites.length === 1 ? 'model' : 'models'}`
-                  : 'Models and clubs you\'ve saved'}
+                  ? favorites.length === 1
+                    ? t('subtitleOne', { count: favorites.length })
+                    : t('subtitleMany', { count: favorites.length })
+                  : t('subtitleEmpty')}
               </p>
             </div>
           </div>
@@ -93,15 +97,14 @@ export default function UserFavorites() {
               <div className="w-12 h-12 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-3">
                 <Heart className="w-6 h-6 text-brand" />
               </div>
-              <h2 className="text-base font-bold text-gray-900 mb-1">No Favorites Yet</h2>
+              <h2 className="text-base font-bold text-gray-900 mb-1">{t('noTitle')}</h2>
               <p className="text-sm text-gray-500 mb-4 max-w-sm mx-auto">
-                Start exploring and save your favorite models and clubs to see them here.
-                Click the heart icon on any profile to add it to your favorites.
+                {t('noBody')}
               </p>
               <Link href="/"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover">
                 <Search className="w-4 h-4" />
-                Browse Models
+                {t('browseModels')}
               </Link>
             </div>
           ) : (
@@ -145,9 +148,9 @@ export default function UserFavorites() {
                           <span>{details.city}</span>
                         </div>
                       )}
-                      {details?.age && <p className="text-xs text-gray-400 mt-0.5">Age: {details.age}</p>}
+                      {details?.age && <p className="text-xs text-gray-400 mt-0.5">{t('ageLabel', { age: details.age })}</p>}
                       <p className="text-xs text-gray-400 mt-1 border-t border-gray-100 pt-1">
-                        Saved {new Date(favorite.created_at).toLocaleDateString()}
+                        {t('savedAt', { date: new Date(favorite.created_at).toLocaleDateString() })}
                       </p>
                     </div>
                   </div>

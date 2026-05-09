@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import { Plus, Search as SearchIcon, Pencil, Bell, BellOff, Trash2, Users, Building2, Briefcase } from 'lucide-react'
@@ -17,32 +18,34 @@ interface SavedSearch {
   last_matched_at: string | null
 }
 
-const ENTITY_META: Record<string, { label: string; Icon: typeof Users; cls: string }> = {
-  model: { label: 'Models', Icon: Users, cls: 'bg-pink-100 text-pink-700' },
-  club: { label: 'Clubs', Icon: Building2, cls: 'bg-indigo-100 text-indigo-700' },
-  listing: { label: 'Jobs / Rent', Icon: Briefcase, cls: 'bg-amber-100 text-amber-700' },
-}
-
-function criteriaPreview(c: Record<string, unknown>): string {
-  const parts: string[] = []
-  if (c.city) parts.push(`${c.city}`)
-  if (c.origin_city && c.radius_km) parts.push(`≤${c.radius_km}km ${c.origin_city}`)
-  if (c.ethnicity) parts.push(String(c.ethnicity).replace(/_/g, ' '))
-  if (c.nationality) parts.push(String(c.nationality))
-  if (c.gender) parts.push(String(c.gender))
-  if (c.hair_color) parts.push(String(c.hair_color).replace(/_/g, ' '))
-  if (Array.isArray(c.services) && c.services.length) parts.push(`${c.services.length} service(s)`)
-  if (Array.isArray(c.languages) && c.languages.length) parts.push(`${c.languages.length} language(s)`)
-  if (c.age_min || c.age_max) parts.push(`age ${c.age_min ?? '…'}–${c.age_max ?? '…'}`)
-  if (c.listing_type) parts.push(String(c.listing_type))
-  if (c.club_area) parts.push(String(c.club_area))
-  return parts.length ? parts.join(' · ') : 'Any'
-}
-
 export default function SavedSearchesPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.user.savedSearches')
+  const tc = useTranslations('dashboard.user.common')
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<SavedSearch[]>([])
+
+  const ENTITY_META: Record<string, { label: string; Icon: typeof Users; cls: string }> = {
+    model: { label: t('entityModels'), Icon: Users, cls: 'bg-pink-100 text-pink-700' },
+    club: { label: t('entityClubs'), Icon: Building2, cls: 'bg-indigo-100 text-indigo-700' },
+    listing: { label: t('entityListings'), Icon: Briefcase, cls: 'bg-amber-100 text-amber-700' },
+  }
+
+  function criteriaPreview(c: Record<string, unknown>): string {
+    const parts: string[] = []
+    if (c.city) parts.push(`${c.city}`)
+    if (c.origin_city && c.radius_km) parts.push(t('criteriaRadius', { radius: String(c.radius_km), city: String(c.origin_city) }))
+    if (c.ethnicity) parts.push(String(c.ethnicity).replace(/_/g, ' '))
+    if (c.nationality) parts.push(String(c.nationality))
+    if (c.gender) parts.push(String(c.gender))
+    if (c.hair_color) parts.push(String(c.hair_color).replace(/_/g, ' '))
+    if (Array.isArray(c.services) && c.services.length) parts.push(t('criteriaServicesCount', { count: c.services.length }))
+    if (Array.isArray(c.languages) && c.languages.length) parts.push(t('criteriaLanguagesCount', { count: c.languages.length }))
+    if (c.age_min || c.age_max) parts.push(t('criteriaAge', { min: String(c.age_min ?? '…'), max: String(c.age_max ?? '…') }))
+    if (c.listing_type) parts.push(String(c.listing_type))
+    if (c.club_area) parts.push(String(c.club_area))
+    return parts.length ? parts.join(' · ') : t('any')
+  }
 
   useEffect(() => { load() }, [])
 
@@ -66,7 +69,7 @@ export default function SavedSearchesPage() {
   }
 
   const remove = async (item: SavedSearch) => {
-    if (!confirm(`Delete "${item.name}"?`)) return
+    if (!confirm(t('deleteConfirm', { name: item.name }))) return
     const supabase = createClient()
     const { error } = await supabase.from('saved_searches').delete().eq('id', item.id)
     if (!error) setItems(prev => prev.filter(p => p.id !== item.id))
@@ -85,28 +88,28 @@ export default function SavedSearchesPage() {
                 <SearchIcon className="w-6 h-6 text-violet-600" />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Saved searches</h1>
-                <p className="text-sm text-gray-500 mt-0.5">Get notified when new models, clubs or listings match.</p>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{t('title')}</h1>
+                <p className="text-sm text-gray-500 mt-0.5">{t('subtitle')}</p>
               </div>
             </div>
             <Link
               href="/dashboard/user/saved-searches/new"
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
             >
-              <Plus className="w-4 h-4" /> New search
+              <Plus className="w-4 h-4" /> {t('newSearch')}
             </Link>
           </div>
 
           {items.length === 0 ? (
             <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
               <SearchIcon className="w-10 h-10 mx-auto text-gray-300 mb-3" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">No saved searches yet</h3>
-              <p className="text-sm text-gray-500 mb-4">Create one to receive alerts when a matching profile or listing appears.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">{t('noTitle')}</h3>
+              <p className="text-sm text-gray-500 mb-4">{t('noBody')}</p>
               <Link
                 href="/dashboard/user/saved-searches/new"
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700"
               >
-                <Plus className="w-4 h-4" /> Create your first search
+                <Plus className="w-4 h-4" /> {t('createFirst')}
               </Link>
             </div>
           ) : (
@@ -132,20 +135,20 @@ export default function SavedSearchesPage() {
                         </span>
                         {!item.is_active && (
                           <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                            Paused
+                            {t('paused')}
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-gray-600 mt-1 truncate">{criteriaPreview(item.criteria)}</p>
                       <p className="text-[11px] text-gray-400 mt-1">
-                        Created {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                        {item.last_matched_at && ` · Last match ${new Date(item.last_matched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                        {t('createdAt', { date: new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) })}
+                        {item.last_matched_at && ' ' + t('lastMatch', { date: new Date(item.last_matched_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) })}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => toggleActive(item)}
-                        title={item.is_active ? 'Pause alerts' : 'Enable alerts'}
+                        title={item.is_active ? t('pauseAlerts') : t('enableAlerts')}
                         className="p-2 rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                       >
                         {item.is_active ? <Bell className="w-4 h-4" /> : <BellOff className="w-4 h-4" />}
@@ -153,14 +156,14 @@ export default function SavedSearchesPage() {
                       <Link
                         href={`/dashboard/user/saved-searches/${item.id}/edit`}
                         className="p-2 rounded-md text-violet-600 hover:bg-violet-50"
-                        title="Edit"
+                        title={tc('edit')}
                       >
                         <Pencil className="w-4 h-4" />
                       </Link>
                       <button
                         onClick={() => remove(item)}
                         className="p-2 rounded-md text-red-600 hover:bg-red-50"
-                        title="Delete"
+                        title={tc('delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Clock, Save, CheckCircle, AlertCircle } from 'lucide-react'
 
@@ -9,6 +10,7 @@ type DayHours = { from: string; to: string }
 
 export default function WorkingHoursPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.workingHours')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
@@ -22,7 +24,7 @@ export default function WorkingHoursPage() {
   })
 
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-  const dayLabels: Record<string, string> = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun' }
+  const dayLabels: Record<string, string> = { monday: t('mon'), tuesday: t('tue'), wednesday: t('wed'), thursday: t('thu'), friday: t('fri'), saturday: t('sat'), sunday: t('sun') }
 
   useEffect(() => {
     const loadData = async () => {
@@ -65,7 +67,7 @@ export default function WorkingHoursPage() {
       if (scheduleType === '24_7') {
         days.forEach(d => toInsert.push({ model_id: user.id, day_of_week: d, start_time: '00:00', end_time: '23:59' }))
       } else if (scheduleType === 'same_every_day') {
-        if (!sameEveryDayHours.from || !sameEveryDayHours.to) { setError('Please set working hours'); setSaving(false); return }
+        if (!sameEveryDayHours.from || !sameEveryDayHours.to) { setError(t('setHours')); setSaving(false); return }
         days.forEach(d => toInsert.push({ model_id: user.id, day_of_week: d, start_time: sameEveryDayHours.from, end_time: sameEveryDayHours.to }))
       } else {
         days.forEach(d => { if (customHours[d].from && customHours[d].to) toInsert.push({ model_id: user.id, day_of_week: d, start_time: customHours[d].from, end_time: customHours[d].to }) })
@@ -74,10 +76,10 @@ export default function WorkingHoursPage() {
         const { error: e } = await supabase.from('model_working_hours').insert(toInsert)
         if (e) throw e
       }
-      setSuccess('Working hours saved!')
+      setSuccess(t('savedSuccess'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save. Please try again.')
+      setError(e?.message || t('saveFailed'))
     } finally { setSaving(false) }
   }
 
@@ -97,11 +99,11 @@ export default function WorkingHoursPage() {
               <Clock className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Edit Profile — Working Hours</h1>
-              <p className="text-xs text-gray-500">Set your availability schedule</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
         </div>
 
         {error && (
@@ -120,27 +122,27 @@ export default function WorkingHoursPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           {/* Schedule type tabs */}
           <div className="flex gap-2 mb-5 flex-wrap">
-            <button type="button" onClick={() => setScheduleType('24_7')} className={tabBtn(scheduleType === '24_7')}>Available 24/7</button>
-            <button type="button" onClick={() => setScheduleType('same_every_day')} className={tabBtn(scheduleType === 'same_every_day')}>Same every day</button>
-            <button type="button" onClick={() => setScheduleType('custom')} className={tabBtn(scheduleType === 'custom')}>Custom schedule</button>
+            <button type="button" onClick={() => setScheduleType('24_7')} className={tabBtn(scheduleType === '24_7')}>{t('available247')}</button>
+            <button type="button" onClick={() => setScheduleType('same_every_day')} className={tabBtn(scheduleType === 'same_every_day')}>{t('sameEveryDay')}</button>
+            <button type="button" onClick={() => setScheduleType('custom')} className={tabBtn(scheduleType === 'custom')}>{t('customSchedule')}</button>
           </div>
 
           {scheduleType === '24_7' && (
             <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-              <p className="text-sm text-emerald-800 font-semibold">You will appear as available 24/7</p>
+              <p className="text-sm text-emerald-800 font-semibold">{t('appearAs247')}</p>
             </div>
           )}
 
           {scheduleType === 'same_every_day' && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-gray-800 mb-1">From</label>
+                <label className="block text-xs font-bold text-gray-800 mb-1">{t('from')}</label>
                 <input type="time" value={sameEveryDayHours.from}
                   onChange={e => setSameEveryDayHours(p => ({ ...p, from: e.target.value }))}
                   className={timeCls + ' w-full'} />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-800 mb-1">To</label>
+                <label className="block text-xs font-bold text-gray-800 mb-1">{t('to')}</label>
                 <input type="time" value={sameEveryDayHours.to}
                   onChange={e => setSameEveryDayHours(p => ({ ...p, to: e.target.value }))}
                   className={timeCls + ' w-full'} />
@@ -167,11 +169,11 @@ export default function WorkingHoursPage() {
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import {
   Briefcase, Plus, Trash2, MapPin, Calendar, AlertCircle, CheckCircle, Clock, Eye, Globe,
@@ -24,6 +25,7 @@ interface Listing {
 
 export default function UserJobsRentPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.user.jobsRent')
   const [loading, setLoading] = useState(true)
   const [listings, setListings] = useState<Listing[]>([])
   const [error, setError] = useState('')
@@ -51,7 +53,7 @@ export default function UserJobsRentPage() {
         setLoading(false)
         return
       }
-      setError(`Failed to load listings: ${fetchErr.message}`)
+      setError(t('loadFailed', { error: fetchErr.message }))
       setLoading(false)
       return
     }
@@ -82,26 +84,26 @@ export default function UserJobsRentPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this listing?')) return
+    if (!confirm(t('deleteConfirm'))) return
     const supabase = createClient()
     const { error: delErr } = await supabase
       .from('job_listings')
       .update({ status: 'deleted' })
       .eq('id', id)
     if (delErr) {
-      setError('Failed to delete listing')
+      setError(t('deleteFailed'))
     } else {
       setListings(prev => prev.filter(l => l.id !== id))
-      setSuccess('Listing deleted')
+      setSuccess(t('deleted'))
       setTimeout(() => setSuccess(''), 3000)
     }
   }
 
   const getStatusInfo = (listing: Listing) => {
-    if (listing.status === 'expired') return { label: 'Expired', cls: 'bg-gray-100 text-gray-600 border-gray-200' }
-    if (listing.expires_at && new Date(listing.expires_at) < new Date()) return { label: 'Expired', cls: 'bg-gray-100 text-gray-600 border-gray-200' }
-    if (listing.starts_at && new Date(listing.starts_at) > new Date()) return { label: 'Scheduled', cls: 'bg-blue-50 text-blue-700 border-blue-200' }
-    return { label: 'Active', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+    if (listing.status === 'expired') return { label: t('statusExpired'), cls: 'bg-gray-100 text-gray-600 border-gray-200' }
+    if (listing.expires_at && new Date(listing.expires_at) < new Date()) return { label: t('statusExpired'), cls: 'bg-gray-100 text-gray-600 border-gray-200' }
+    if (listing.starts_at && new Date(listing.starts_at) > new Date()) return { label: t('statusScheduled'), cls: 'bg-blue-50 text-blue-700 border-blue-200' }
+    return { label: t('statusActive'), cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
   }
 
   if (loading) {
@@ -122,15 +124,15 @@ export default function UserJobsRentPage() {
               <Briefcase className="w-4 h-4 text-brand" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-base md:text-xl font-bold text-gray-900">My Listings</h1>
-              <p className="text-[11px] md:text-xs text-gray-500">Job & rent listings you posted</p>
+              <h1 className="text-base md:text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-[11px] md:text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
           <button
             onClick={() => router.push('/dashboard/user/jobs-rent/create')}
             className="flex items-center gap-1.5 px-3.5 md:px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
           >
-            <Plus className="w-4 h-4" /> Create
+            <Plus className="w-4 h-4" /> {t('create')}
           </button>
         </div>
 
@@ -150,13 +152,13 @@ export default function UserJobsRentPage() {
         {listings.length === 0 ? (
           <div className="bg-white border border-gray-200 rounded-lg p-8 md:p-10 text-center">
             <Briefcase className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-gray-600 mb-1">No listings yet</p>
-            <p className="text-xs text-gray-400 mb-4">Post your first job or rent — no profile required</p>
+            <p className="text-sm font-semibold text-gray-600 mb-1">{t('noListings')}</p>
+            <p className="text-xs text-gray-400 mb-4">{t('noListingsHint')}</p>
             <button
               onClick={() => router.push('/dashboard/user/jobs-rent/create')}
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
             >
-              <Plus className="w-4 h-4" /> Create Listing
+              <Plus className="w-4 h-4" /> {t('createListing')}
             </button>
           </div>
         ) : (
@@ -183,7 +185,7 @@ export default function UserJobsRentPage() {
                               ? 'bg-violet-50 text-violet-700 border-violet-200'
                               : 'bg-amber-50 text-amber-700 border-amber-200'
                           }`}>
-                            {listing.listing_type === 'job' ? 'Job' : 'Rent'}
+                            {listing.listing_type === 'job' ? t('typeJob') : t('typeRent')}
                           </span>
                           <span className={`inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full border ${status.cls}`}>
                             {status.label}
@@ -206,12 +208,12 @@ export default function UserJobsRentPage() {
                         <div className="flex items-center gap-3 flex-wrap text-[11px] md:text-xs text-gray-400">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {new Date(listing.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            {new Date(listing.created_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
                           </span>
                           {listing.expires_at && (
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              Exp {new Date(listing.expires_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                              {t('expiresLabel', { date: new Date(listing.expires_at).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) })}
                             </span>
                           )}
                         </div>
@@ -220,7 +222,7 @@ export default function UserJobsRentPage() {
                             onClick={() => router.push(`/jobs-rents/${listing.id}`)}
                             className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View
+                            <Eye className="w-3.5 h-3.5" /> {t('view')}
                           </button>
                           <button
                             onClick={() => handleDelete(listing.id)}

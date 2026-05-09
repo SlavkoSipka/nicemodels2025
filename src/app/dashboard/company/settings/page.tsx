@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Settings as SettingsIcon, Lock, Mail, AlertTriangle, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function SettingsPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.settings')
+  const tc = useTranslations('dashboard.company.common')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -51,17 +54,17 @@ export default function SettingsPage() {
     setSuccess('')
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError('Please fill in all password fields')
+      setError(t('errFillFields'))
       return
     }
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match')
+      setError(t('errMismatch'))
       return
     }
 
     if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters')
+      setError(t('errMinLength'))
       return
     }
 
@@ -75,20 +78,20 @@ export default function SettingsPage() {
 
       if (updateError) throw updateError
 
-      setSuccess('Password changed successfully!')
+      setSuccess(t('successChanged'))
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to change password. Please try again.')
+      setError(err.message || t('errChangeFailed'))
     } finally {
       setSaving(false)
     }
   }
 
   const handleDeleteAccount = async () => {
-    const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:')
+    const confirmation = prompt(t('deleteConfirm'))
 
     if (confirmation !== 'DELETE') {
       return
@@ -102,14 +105,14 @@ export default function SettingsPage() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to delete')
+        throw new Error(data.error || t('deleteFailedShort'))
       }
 
       const supabase = createClient()
       await supabase.auth.signOut()
       router.push('/')
     } catch (err: any) {
-      setError(err.message || 'Failed to delete account. Please contact support.')
+      setError(err.message || t('deleteFailed'))
     }
   }
 
@@ -126,15 +129,15 @@ export default function SettingsPage() {
               <SettingsIcon className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900">Settings</h1>
-              <p className="text-xs text-gray-500">Manage your account settings and preferences</p>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
           <button
             onClick={() => router.push('/dashboard/company')}
             className="text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            Back to Dashboard
+            {tc('backToDashboard')}
           </button>
         </div>
 
@@ -158,29 +161,29 @@ export default function SettingsPage() {
             <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
               <Mail className="w-4 h-4 text-brand" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Account Information</p>
+            <p className="text-sm font-bold text-gray-800">{t('accountInfo')}</p>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between py-2.5 px-3 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-xs font-semibold text-gray-500">Email</p>
+                <p className="text-xs font-semibold text-gray-500">{t('email')}</p>
                 <p className="text-sm text-gray-900">{user?.email}</p>
               </div>
               <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
-                Verified
+                {t('verified')}
               </span>
             </div>
             <div className="flex items-center justify-between py-2.5 px-3 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-xs font-semibold text-gray-500">Account Type</p>
-                <p className="text-sm text-gray-900">Club / Agency</p>
+                <p className="text-xs font-semibold text-gray-500">{t('accountType')}</p>
+                <p className="text-sm text-gray-900">{t('clubAgency')}</p>
               </div>
             </div>
             <div className="flex items-center justify-between py-2.5 px-3 bg-gray-50 rounded-lg">
               <div>
-                <p className="text-xs font-semibold text-gray-500">Member Since</p>
+                <p className="text-xs font-semibold text-gray-500">{t('memberSince')}</p>
                 <p className="text-sm text-gray-900">
-                  {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
+                  {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : t('notAvailable')}
                 </p>
               </div>
             </div>
@@ -193,36 +196,36 @@ export default function SettingsPage() {
             <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
               <Lock className="w-4 h-4 text-brand" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Change Password</p>
+            <p className="text-sm font-bold text-gray-800">{t('changePassword')}</p>
           </div>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">Current Password</label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('currentPassword')}</label>
               <input
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Current password"
+                placeholder={t('currentPasswordPh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">New Password</label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('newPassword')}</label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="New password (min. 8 characters)"
+                placeholder={t('newPasswordPh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">Confirm New Password</label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('confirmPassword')}</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
+                placeholder={t('confirmPasswordPh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
@@ -232,14 +235,14 @@ export default function SettingsPage() {
               className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4" />
-              {saving ? 'Updating...' : 'Update Password'}
+              {saving ? t('updating') : t('updatePassword')}
             </button>
           </div>
         </div>
 
         {/* Notifications */}
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-          <p className="text-sm font-bold text-gray-800 mb-3">Notification Preferences</p>
+          <p className="text-sm font-bold text-gray-800 mb-3">{t('notifPrefs')}</p>
           <div className="space-y-2">
             <div className="flex items-center gap-3 py-2.5 px-3 bg-gray-50 rounded-lg">
               <input
@@ -250,8 +253,8 @@ export default function SettingsPage() {
                 className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
               />
               <label htmlFor="email-notif" className="flex-1">
-                <span className="text-sm font-semibold text-gray-900">Email Notifications</span>
-                <p className="text-xs text-gray-500 mt-0.5">Updates about your club, inquiries, and system messages</p>
+                <span className="text-sm font-semibold text-gray-900">{t('emailNotif')}</span>
+                <p className="text-xs text-gray-500 mt-0.5">{t('emailNotifHint')}</p>
               </label>
             </div>
             <div className="flex items-center gap-3 py-2.5 px-3 bg-gray-50 rounded-lg opacity-50">
@@ -264,9 +267,9 @@ export default function SettingsPage() {
                 className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
               />
               <label htmlFor="sms-notif" className="flex-1">
-                <span className="text-sm font-semibold text-gray-900">SMS Notifications</span>
-                <span className="text-xs text-gray-500 ml-1">(Coming soon)</span>
-                <p className="text-xs text-gray-500 mt-0.5">Instant alerts via SMS</p>
+                <span className="text-sm font-semibold text-gray-900">{t('smsNotif')}</span>
+                <span className="text-xs text-gray-500 ml-1">{t('comingSoon')}</span>
+                <p className="text-xs text-gray-500 mt-0.5">{t('smsNotifHint')}</p>
               </label>
             </div>
           </div>
@@ -276,17 +279,17 @@ export default function SettingsPage() {
         <div className="bg-white border border-red-200 rounded-lg p-3.5 md:p-5">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5 text-red-600" />
-            <p className="text-sm font-bold text-red-700">Danger Zone</p>
+            <p className="text-sm font-bold text-red-700">{t('dangerZone')}</p>
           </div>
           <div className="p-3 bg-red-50 rounded-lg border border-red-100">
             <p className="text-sm text-gray-700 mb-3">
-              Once you delete your account, there is no going back. All your data, club information, and model links will be affected.
+              {t('deleteWarn')}
             </p>
             <button
               onClick={handleDeleteAccount}
               className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-bold hover:bg-red-700 transition-colors"
             >
-              Delete My Account
+              {t('deleteBtn')}
             </button>
           </div>
         </div>

@@ -1,0 +1,382 @@
+{
+  "en": {
+    "components": {
+      "modelRegistration": {
+        "wizard": {
+          "completeNotice": "Registration completed! (Backend integration pending)"
+        },
+        "biography": {
+          "headerTitle": "Biography",
+          "intro1": "To post your ad and enjoy all the options of your NiceModels account, please complete the form below.",
+          "intro2": "After filling in your info, click on the \"Next Step\" button.",
+          "shownamePh": "Name which will appear on your profile",
+          "sloganPh": "Put here a slogan or keyword which describes you and/or your service the best.",
+          "agePh": "Age",
+          "heightPh": "Height",
+          "weightPh": "Weight",
+          "shoeSize": "Shoe Size",
+          "shoeSizePh": "Shoe Size",
+          "cupSize": "Cup Size",
+          "bustPh": "Bust",
+          "waistPh": "Waist",
+          "hipPh": "Hip",
+          "cm": "cm",
+          "kg": "kg",
+          "specialPh": "Please mention any special characteristics e.g. tattoos, piercings, etc.",
+          "blockHeading": "Block Countries",
+          "blockHelp1": "Here you can block or allow visitors from certain countries to access your profile.",
+          "blockHelp2": "If you want to block only a few countries and allow all the others, please use the \"Block\" option.",
+          "blockHelp3": "If you want to allow only a few countries and block all the others, then use the \"Allow\" option.",
+          "blockNoSwitzerland": "Switzerland cannot be blocked.",
+          "block": "Block",
+          "allow": "Allow",
+          "countriesPlaceholder": "Countries",
+          "add": "ADD",
+          "nextStep": "NEXT STEP",
+          "opts": {
+            "gender": { "female": "Female", "male": "Male", "trans": "Trans" },
+            "ethnicity": {
+              "caucasian": "Caucasian",
+              "asian": "Asian",
+              "latina": "Latina",
+              "ebony": "Ebony",
+              "arabic": "Arabic",
+              "mixed": "Mixed"
+            },
+            "nationality": {
+              "swiss": "Swiss",
+              "german": "German",
+              "french": "French",
+              "italian": "Italian",
+              "spanish": "Spanish",
+              "romanian": "Romanian",
+              "hungarian": "Hungarian",
+              "brazilian": "Brazilian",
+              "colombian": "Colombian",
+              "russian": "Russian"
+            },
+            "hair": {
+              "blonde": "Blonde",
+              "brunette": "Brunette",
+              "black": "Black",
+              "red": "Red",
+              "other": "Other"
+            },
+            "eye": {
+              "blue": "Blue",
+              "green": "Green",
+              "brown": "Brown",
+              "hazel": "Hazel",
+              "gray": "Gray"
+            },
+            "pubic": { "shaved": "Shaved", "trimmed": "Trimmed", "natural": "Natural" },
+            "drinking": { "socially": "Socially" },
+            "cup": { "a": "A", "b": "B", "c": "C", "d": "D", "dd": "DD", "e": "E" }
+          },
+          "countries": {
+            "switzerland": "Switzerland",
+            "germany": "Germany",
+            "austria": "Austria",
+            "france": "France",
+            "italy": "Italy",
+            "spain": "Spain",
+            "romania": "Romania",
+            "hungary": "Hungary",
+            "poland": "Poland",
+            "czechRepublic": "Czech Republic",
+            "bulgaria": "Bulgaria",
+            "russia": "Russia",
+            "ukraine": "Ukraine",
+            "brazil": "Brazil",
+            "colombia": "Colombia"
+          }
+        }
+      }
+    }
+  },
+  "de": {
+    "components": {
+      "modelRegistration": {
+        "wizard": {
+          "completeNotice": "Registrierung abgeschlossen! (Backend-Anbindung ausstehend)"
+        },
+        "biography": {
+          "headerTitle": "Biografie",
+          "intro1": "Um Ihre Anzeige zu schalten und alle Funktionen Ihres NiceModels-Kontos zu nutzen, füllen Sie bitte das Formular unten aus.",
+          "intro2": "Klicken Sie nach dem Ausfüllen auf „Nächster Schritt“.",
+          "shownamePh": "Name, der auf Ihrem Profil erscheint",
+          "sloganPh": "Slogan oder Stichwort, das Sie und/oder Ihr Angebot am besten beschreibt.",
+          "agePh": "Alter",
+          "heightPh": "Größe",
+          "weightPh": "Gewicht",
+          "shoeSize": "Schuhgröße",
+          "shoeSizePh": "Schuhgröße",
+          "cupSize": "Körbchengröße",
+          "bustPh": "Brustumfang",
+          "waistPh": "Taille",
+          "hipPh": "Hüfte",
+          "cm": "cm",
+          "kg": "kg",
+          "specialPh": "Besonderheiten z. B. Tattoos, Piercings usw.",
+          "blockHeading": "Länder sperren",
+          "blockHelp1": "Hier können Sie Besucher aus bestimmten Ländern vom Zugriff auf Ihr Profil ausschließen oder zulassen.",
+          "blockHelp2": "Wenn Sie nur wenige Länder sperren und alle anderen zulassen möchten, nutzen Sie die Option „Sperren“.",
+          "blockHelp3": "Wenn Sie nur wenige Länder zulassen und alle anderen sperren möchten, nutzen Sie die Option „Zulassen“.",
+          "blockNoSwitzerland": "Die Schweiz kann nicht gesperrt werden.",
+          "block": "Sperren",
+          "allow": "Zulassen",
+          "countriesPlaceholder": "Länder",
+          "add": "HINZUFÜGEN",
+          "nextStep": "NÄCHSTER SCHRITT",
+          "opts": {
+            "gender": { "female": "Weiblich", "male": "Männlich", "trans": "Trans" },
+            "ethnicity": {
+              "caucasian": "Kaukasisch",
+              "asian": "Asiatisch",
+              "latina": "Latina",
+              "ebony": "Schwarz",
+              "arabic": "Arabisch",
+              "mixed": "Gemischt"
+            },
+            "nationality": {
+              "swiss": "Schweizerisch",
+              "german": "Deutsch",
+              "french": "Französisch",
+              "italian": "Italienisch",
+              "spanish": "Spanisch",
+              "romanian": "Rumänisch",
+              "hungarian": "Ungarisch",
+              "brazilian": "Brasilianisch",
+              "colombian": "Kolumbianisch",
+              "russian": "Russisch"
+            },
+            "hair": {
+              "blonde": "Blond",
+              "brunette": "Brünett",
+              "black": "Schwarz",
+              "red": "Rot",
+              "other": "Andere"
+            },
+            "eye": {
+              "blue": "Blau",
+              "green": "Grün",
+              "brown": "Braun",
+              "hazel": "Haselnuss",
+              "gray": "Grau"
+            },
+            "pubic": { "shaved": "Rasiert", "trimmed": "Getrimmt", "natural": "Natürlich" },
+            "drinking": { "socially": "Gelegentlich gesellig" },
+            "cup": { "a": "A", "b": "B", "c": "C", "d": "D", "dd": "DD", "e": "E" }
+          },
+          "countries": {
+            "switzerland": "Schweiz",
+            "germany": "Deutschland",
+            "austria": "Österreich",
+            "france": "Frankreich",
+            "italy": "Italien",
+            "spain": "Spanien",
+            "romania": "Rumänien",
+            "hungary": "Ungarn",
+            "poland": "Polen",
+            "czechRepublic": "Tschechien",
+            "bulgaria": "Bulgarien",
+            "russia": "Russland",
+            "ukraine": "Ukraine",
+            "brazil": "Brasilien",
+            "colombia": "Kolumbien"
+          }
+        }
+      }
+    }
+  },
+  "fr": {
+    "components": {
+      "modelRegistration": {
+        "wizard": {
+          "completeNotice": "Inscription terminée ! (Intégration backend en attente)"
+        },
+        "biography": {
+          "headerTitle": "Biographie",
+          "intro1": "Pour publier votre annonce et profiter de toutes les options de votre compte NiceModels, veuillez remplir le formulaire ci-dessous.",
+          "intro2": "Après avoir rempli vos informations, cliquez sur « Étape suivante ».",
+          "shownamePh": "Nom affiché sur votre profil",
+          "sloganPh": "Slogan ou mot-clé qui vous décrit le mieux, vous et/ou vos services.",
+          "agePh": "Âge",
+          "heightPh": "Taille",
+          "weightPh": "Poids",
+          "shoeSize": "Pointure",
+          "shoeSizePh": "Pointure",
+          "cupSize": "Bonnet",
+          "bustPh": "Poitrine",
+          "waistPh": "Taille",
+          "hipPh": "Hanches",
+          "cm": "cm",
+          "kg": "kg",
+          "specialPh": "Indiquez des particularités : tatouages, piercings, etc.",
+          "blockHeading": "Bloquer des pays",
+          "blockHelp1": "Vous pouvez empêcher ou autoriser l’accès à votre profil selon le pays des visiteurs.",
+          "blockHelp2": "Pour bloquer quelques pays et autoriser tous les autres, utilisez l’option « Bloquer ».",
+          "blockHelp3": "Pour n’autoriser que quelques pays et bloquer les autres, utilisez l’option « Autoriser ».",
+          "blockNoSwitzerland": "La Suisse ne peut pas être bloquée.",
+          "block": "Bloquer",
+          "allow": "Autoriser",
+          "countriesPlaceholder": "Pays",
+          "add": "AJOUTER",
+          "nextStep": "ÉTAPE SUIVANTE",
+          "opts": {
+            "gender": { "female": "Femme", "male": "Homme", "trans": "Trans" },
+            "ethnicity": {
+              "caucasian": "Caucasien(ne)",
+              "asian": "Asiatique",
+              "latina": "Latina",
+              "ebony": "Noir(e)",
+              "arabic": "Arabe",
+              "mixed": "Métis(se)"
+            },
+            "nationality": {
+              "swiss": "Suisse",
+              "german": "Allemand(e)",
+              "french": "Français(e)",
+              "italian": "Italien(ne)",
+              "spanish": "Espagnol(e)",
+              "romanian": "Roumain(e)",
+              "hungarian": "Hongrois(e)",
+              "brazilian": "Brésilien(ne)",
+              "colombian": "Colombien(ne)",
+              "russian": "Russe"
+            },
+            "hair": {
+              "blonde": "Blond(e)",
+              "brunette": "Brun(e)",
+              "black": "Noir(e)",
+              "red": "Roux/Rousse",
+              "other": "Autre"
+            },
+            "eye": {
+              "blue": "Bleu",
+              "green": "Vert",
+              "brown": "Marron",
+              "hazel": "Noisette",
+              "gray": "Gris"
+            },
+            "pubic": { "shaved": "Rasé(e)", "trimmed": "Taillé(e)", "natural": "Naturel(le)" },
+            "drinking": { "socially": "Socialement" },
+            "cup": { "a": "A", "b": "B", "c": "C", "d": "D", "dd": "DD", "e": "E" }
+          },
+          "countries": {
+            "switzerland": "Suisse",
+            "germany": "Allemagne",
+            "austria": "Autriche",
+            "france": "France",
+            "italy": "Italie",
+            "spain": "Espagne",
+            "romania": "Roumanie",
+            "hungary": "Hongrie",
+            "poland": "Pologne",
+            "czechRepublic": "République tchèque",
+            "bulgaria": "Bulgarie",
+            "russia": "Russie",
+            "ukraine": "Ukraine",
+            "brazil": "Brésil",
+            "colombia": "Colombie"
+          }
+        }
+      }
+    }
+  },
+  "es": {
+    "components": {
+      "modelRegistration": {
+        "wizard": {
+          "completeNotice": "¡Registro completado! (Integración con backend pendiente)"
+        },
+        "biography": {
+          "headerTitle": "Biografía",
+          "intro1": "Para publicar tu anuncio y disfrutar de todas las opciones de tu cuenta NiceModels, completa el formulario siguiente.",
+          "intro2": "Después de rellenar tus datos, haz clic en «Siguiente paso».",
+          "shownamePh": "Nombre que aparecerá en tu perfil",
+          "sloganPh": "Eslogan o palabra clave que te describa a ti y/o a tu servicio.",
+          "agePh": "Edad",
+          "heightPh": "Altura",
+          "weightPh": "Peso",
+          "shoeSize": "Talla de calzado",
+          "shoeSizePh": "Talla de calzado",
+          "cupSize": "Talla de copa",
+          "bustPh": "Busto",
+          "waistPh": "Cintura",
+          "hipPh": "Cadera",
+          "cm": "cm",
+          "kg": "kg",
+          "specialPh": "Indica características especiales, p. ej. tatuajes, piercings, etc.",
+          "blockHeading": "Bloquear países",
+          "blockHelp1": "Aquí puedes bloquear o permitir visitas desde ciertos países a tu perfil.",
+          "blockHelp2": "Si quieres bloquear solo unos pocos países y permitir el resto, usa la opción «Bloquear».",
+          "blockHelp3": "Si quieres permitir solo unos pocos y bloquear el resto, usa la opción «Permitir».",
+          "blockNoSwitzerland": "No se puede bloquear Suiza.",
+          "block": "Bloquear",
+          "allow": "Permitir",
+          "countriesPlaceholder": "Países",
+          "add": "AÑADIR",
+          "nextStep": "SIGUIENTE PASO",
+          "opts": {
+            "gender": { "female": "Mujer", "male": "Hombre", "trans": "Trans" },
+            "ethnicity": {
+              "caucasian": "Caucásico/a",
+              "asian": "Asiático/a",
+              "latina": "Latina",
+              "ebony": "Negro/a",
+              "arabic": "Árabe",
+              "mixed": "Mixto/a"
+            },
+            "nationality": {
+              "swiss": "Suizo/a",
+              "german": "Alemán/a",
+              "french": "Francés/a",
+              "italian": "Italiano/a",
+              "spanish": "Español/a",
+              "romanian": "Rumano/a",
+              "hungarian": "Húngaro/a",
+              "brazilian": "Brasileño/a",
+              "colombian": "Colombiano/a",
+              "russian": "Ruso/a"
+            },
+            "hair": {
+              "blonde": "Rubio/a",
+              "brunette": "Moreno/a",
+              "black": "Negro/a",
+              "red": "Pelirrojo/a",
+              "other": "Otro/a"
+            },
+            "eye": {
+              "blue": "Azul",
+              "green": "Verde",
+              "brown": "Marrón",
+              "hazel": "Avellana",
+              "gray": "Gris"
+            },
+            "pubic": { "shaved": "Depilado/a", "trimmed": "Recortado/a", "natural": "Natural" },
+            "drinking": { "socially": "Socialmente" },
+            "cup": { "a": "A", "b": "B", "c": "C", "d": "D", "dd": "DD", "e": "E" }
+          },
+          "countries": {
+            "switzerland": "Suiza",
+            "germany": "Alemania",
+            "austria": "Austria",
+            "france": "Francia",
+            "italy": "Italia",
+            "spain": "España",
+            "romania": "Rumanía",
+            "hungary": "Hungría",
+            "poland": "Polonia",
+            "czechRepublic": "República Checa",
+            "bulgaria": "Bulgaria",
+            "russia": "Rusia",
+            "ukraine": "Ucrania",
+            "brazil": "Brasil",
+            "colombia": "Colombia"
+          }
+        }
+      }
+    }
+  }
+}

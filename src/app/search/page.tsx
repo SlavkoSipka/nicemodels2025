@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import SearchFilters from '@/components/search/SearchFilters'
 import ProfileGrid from '@/components/search/ProfileGrid'
 import { Suspense } from 'react'
+import { getTranslations } from 'next-intl/server'
 
 export const metadata: Metadata = {
   title: 'Escort-Models suchen – Schweiz',
@@ -10,12 +11,13 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.nicemodels.ch/search' },
 }
 
-export default function SearchPage() {
+export default async function SearchPage() {
+  const t = await getTranslations('search.page')
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50/30 to-white py-8">
       <div className="mx-auto px-4 max-w-full">
         <h1 className="text-5xl font-bold mb-8 animate-fade-in">
-          Find Your Perfect <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Companion</span>
+          {t('titlePart1')}<span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">{t('titleHighlight')}</span>
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

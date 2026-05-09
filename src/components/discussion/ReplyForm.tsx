@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Send } from 'lucide-react'
 
@@ -20,13 +21,15 @@ export default function ReplyForm({
   topicId,
   parentId,
   onSuccess,
-  placeholder = 'Write a reply...',
+  placeholder,
 }: {
   topicId: string
   parentId: string | null
   onSuccess: () => void
   placeholder?: string
 }) {
+  const t = useTranslations('components.discussion.replyForm')
+  const ph = placeholder ?? t('placeholderDefault')
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
   const [err, setErr] = useState('')
@@ -45,15 +48,15 @@ export default function ReplyForm({
     e.preventDefault()
     setErr('')
     if (!userId) {
-      setErr('Please sign in to post.')
+      setErr(t('errSignIn'))
       return
     }
     if (plainLen < 1) {
-      setErr('Message cannot be empty.')
+      setErr(t('errEmpty'))
       return
     }
     if (plainLen > MAX_LEN) {
-      setErr(`Message too long (max ${MAX_LEN} characters).`)
+      setErr(t('errTooLong', { max: MAX_LEN }))
       return
     }
 
@@ -68,7 +71,7 @@ export default function ReplyForm({
     setSending(false)
 
     if (error) {
-      setErr(error.message || 'Could not post')
+      setErr(error.message || t('errPost'))
       return
     }
 
@@ -80,7 +83,7 @@ export default function ReplyForm({
     return (
       <div className="flex items-center gap-2 py-3">
         <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm text-gray-400">Checking session...</span>
+        <span className="text-sm text-gray-400">{t('checkingSession')}</span>
       </div>
     )
   }
@@ -90,9 +93,9 @@ export default function ReplyForm({
       <div className="flex items-center gap-2 py-3 px-4 rounded-lg bg-gray-50 border border-gray-200">
         <p className="text-sm text-gray-600">
           <Link href="/login" className="font-semibold text-pink-600 hover:underline">
-            Sign in
+            {t('signIn')}
           </Link>{' '}
-          to join the discussion.
+          {t('joinDiscussion')}
         </p>
       </div>
     )
@@ -103,7 +106,7 @@ export default function ReplyForm({
       <textarea
         value={body}
         onChange={e => setBody(e.target.value)}
-        placeholder={placeholder}
+        placeholder={ph}
         rows={parentId ? 3 : 4}
         className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:bg-white focus:ring-2 focus:ring-pink-200 focus:border-pink-400 outline-none resize-y min-h-[80px] text-gray-900 transition-colors placeholder:text-gray-400"
       />
@@ -121,7 +124,7 @@ export default function ReplyForm({
           className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg bg-pink-600 text-white hover:bg-pink-700 disabled:opacity-40 transition-colors"
         >
           <Send className="w-3.5 h-3.5" />
-          {sending ? 'Posting...' : 'Post'}
+          {sending ? t('posting') : t('post')}
         </button>
       </div>
       {err && <p className="text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md">{err}</p>}

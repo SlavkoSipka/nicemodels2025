@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 
 export default function UserOnboardingForm() {
   const router = useRouter()
+  const t = useTranslations('onboarding.user')
   const [loading, setLoading] = useState(false)
 
   const handleComplete = async () => {
@@ -38,8 +40,8 @@ export default function UserOnboardingForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome!</h2>
-        <p className="text-xl text-gray-600">Your role: <span className="font-bold text-green-600">USER</span></p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">{t('welcome')}</h2>
+        <p className="text-xl text-gray-600">{t('yourRole')} <span className="font-bold text-green-600">{t('roleUser')}</span></p>
       </div>
 
       <button
@@ -47,7 +49,7 @@ export default function UserOnboardingForm() {
         disabled={loading}
         className="px-8 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-teal-700 transition-all shadow-lg disabled:opacity-50"
       >
-        {loading ? 'Loading...' : 'Continue to Dashboard'}
+        {loading ? t('loading') : t('continueToDashboard')}
       </button>
     </div>
   )

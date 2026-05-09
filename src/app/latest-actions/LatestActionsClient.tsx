@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import {
   Users, Building2, Camera, Video, MessageSquare, Megaphone,
   BadgeCheck, ChevronLeft, Filter, Sparkles
@@ -88,31 +89,34 @@ const ACTION_CONFIG: Record<string, { icon: typeof Users; color: string; bg: str
   },
 }
 
-const FILTER_OPTIONS: { value: FilterType; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'new_model', label: 'New Models' },
-  { value: 'new_club', label: 'New Clubs' },
-  { value: 'new_photo', label: 'Photos' },
-  { value: 'new_video', label: 'Videos' },
-  { value: 'new_comment', label: 'Comments' },
-  { value: 'new_banner', label: 'Banners' },
-  { value: 'model_verified', label: 'Verified' },
+const FILTER_KEYS: { value: FilterType; key: string }[] = [
+  { value: 'all', key: 'all' },
+  { value: 'new_model', key: 'newModels' },
+  { value: 'new_club', key: 'newClubs' },
+  { value: 'new_photo', key: 'photos' },
+  { value: 'new_video', key: 'videos' },
+  { value: 'new_comment', key: 'comments' },
+  { value: 'new_banner', key: 'banners' },
+  { value: 'model_verified', key: 'verified' },
 ]
 
-function formatTimeAgo(dateStr: string): string {
+function formatTimeAgo(
+  dateStr: string,
+  t: (key: string, values?: Record<string, unknown>) => string,
+): string {
   const now = Date.now()
   const then = new Date(dateStr).getTime()
   const diff = now - then
 
   const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 1) return t('justNow')
+  if (minutes < 60) return t('minutesAgo', { n: minutes })
 
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return t('hoursAgo', { n: hours })
 
   const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d ago`
+  if (days < 7) return t('daysAgo', { n: days })
 
   return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
 }
@@ -136,6 +140,11 @@ function getActionLink(action: SiteAction): string | null {
 }
 
 export default function LatestActionsClient({ actions, stats }: { actions: SiteAction[]; stats: Stats }) {
+  const t = useTranslations('latestActions')
+  const tStats = useTranslations('latestActions.stats')
+  const tFilters = useTranslations('latestActions.filters')
+  const tEmpty = useTranslations('latestActions.empty')
+  const tTime = useTranslations('latestActions.time')
   const [filter, setFilter] = useState<FilterType>('all')
   const [visibleCount, setVisibleCount] = useState(30)
 
@@ -143,12 +152,12 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
   const visible = filtered.slice(0, visibleCount)
 
   const statBoxes = [
-    { label: 'Models',  value: stats.models,   icon: Users },
-    { label: 'Clubs',   value: stats.clubs,    icon: Building2 },
-    { label: 'Photos',  value: stats.photos,   icon: Camera },
-    { label: 'Videos',  value: stats.videos,   icon: Video },
-    { label: 'Reviews', value: stats.comments, icon: MessageSquare },
-    { label: 'Banners', value: stats.banners,  icon: Megaphone },
+    { label: tStats('models'),  value: stats.models,   icon: Users },
+    { label: tStats('clubs'),   value: stats.clubs,    icon: Building2 },
+    { label: tStats('photos'),  value: stats.photos,   icon: Camera },
+    { label: tStats('videos'),  value: stats.videos,   icon: Video },
+    { label: tStats('reviews'), value: stats.comments, icon: MessageSquare },
+    { label: tStats('banners'), value: stats.banners,  icon: Megaphone },
   ]
 
   return (
@@ -160,9 +169,9 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
           <Link href="/" className="text-gray-400 hover:text-gray-700 transition-colors">
             <ChevronLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Latest Actions</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">{t('title')}</h1>
         </div>
-        <p className="text-xs sm:text-sm text-slate-500 mb-5 ml-7 sm:mb-8 sm:ml-8">Everything happening on nicemodels.ch</p>
+        <p className="text-xs sm:text-sm text-slate-500 mb-5 ml-7 sm:mb-8 sm:ml-8">{t('subtitle')}</p>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-5 sm:mb-8">
@@ -194,7 +203,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
         {/* Filters */}
         <div className="flex items-center gap-2 mb-4 sm:mb-6 overflow-x-auto pb-2 -mx-1 px-1">
           <Filter className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
-          {FILTER_OPTIONS.map(opt => {
+          {FILTER_KEYS.map(opt => {
             const isActive = filter === opt.value
             return (
               <button
@@ -207,7 +216,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                   border: isActive ? '1px solid rgba(236,72,153,0.6)' : '1px solid rgba(0,0,0,0.12)',
                 }}
               >
-                {opt.label}
+                {tFilters(opt.key)}
                 {opt.value !== 'all' && (
                   <span className="ml-1 opacity-60">
                     {actions.filter(a => a.action_type === opt.value).length}
@@ -222,8 +231,8 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
         {visible.length === 0 ? (
           <div className="text-center py-12 sm:py-20 px-3 rounded-xl" style={{ background: 'rgba(255,255,255,0.40)', border: '1px solid rgba(12,53,71,0.15)' }}>
             <Sparkles className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(12,53,71,0.20)' }} />
-            <p className="text-base sm:text-lg font-semibold" style={{ color: '#475569' }}>No actions yet</p>
-            <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>Activity will appear here as things happen on the site</p>
+            <p className="text-base sm:text-lg font-semibold" style={{ color: '#475569' }}>{tEmpty('title')}</p>
+            <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>{tEmpty('subtitle')}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -289,7 +298,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                     </p>
                     {action.actor && (
                       <p className="text-xs mt-0.5 truncate" style={{ color: '#94a3b8' }}>
-                        by {action.actor.showname || action.actor.username}
+                        {t('by', { name: action.actor.showname || action.actor.username })}
                       </p>
                     )}
                   </div>
@@ -297,7 +306,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
                   {/* Time */}
                   <div className="shrink-0 text-right">
                     <p className="text-xs font-medium" style={{ color: '#94a3b8' }}>
-                      {formatTimeAgo(action.created_at)}
+                      {formatTimeAgo(action.created_at, tTime)}
                     </p>
                   </div>
                 </div>
@@ -330,7 +339,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(236,72,153,0.25)' }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(236,72,153,0.15)' }}
             >
-              Load More ({filtered.length - visibleCount} remaining)
+              {t('loadMore', { remaining: filtered.length - visibleCount })}
             </button>
           </div>
         )}
@@ -338,7 +347,7 @@ export default function LatestActionsClient({ actions, stats }: { actions: SiteA
         {/* Total count */}
         {visible.length > 0 && (
           <p className="text-center text-xs mt-4" style={{ color: '#94a3b8' }}>
-            Showing {visible.length} of {filtered.length} actions
+            {t('showing', { visible: visible.length, total: filtered.length })}
           </p>
         )}
       </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import { Bell, Check, X, Trash2 } from 'lucide-react'
@@ -21,6 +22,7 @@ interface Notification {
 
 export default function ModelNotificationsPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.notifications')
   const [loading, setLoading] = useState(true)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [filter, setFilter] = useState<'all' | 'unread'>('all')
@@ -177,9 +179,9 @@ export default function ModelNotificationsPage() {
                   <Bell className="w-6 h-6 text-pink-600" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
+                  <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
                   {unreadCount > 0 && (
-                    <p className="text-sm text-gray-600 mt-1">{unreadCount} unread</p>
+                    <p className="text-sm text-gray-600 mt-1">{t('unreadCount', { count: unreadCount })}</p>
                   )}
                 </div>
               </div>
@@ -189,7 +191,7 @@ export default function ModelNotificationsPage() {
                   className="flex items-center gap-2 px-4 py-2 bg-pink-100 text-pink-700 rounded-lg font-semibold hover:bg-pink-200 transition-all"
                 >
                   <Check className="w-4 h-4" />
-                  Mark all as read
+                  {t('markAllRead')}
                 </button>
               )}
             </div>
@@ -204,7 +206,7 @@ export default function ModelNotificationsPage() {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                All ({notifications.length})
+                {t('filterAll', { count: notifications.length })}
               </button>
               <button
                 onClick={() => setFilter('unread')}
@@ -214,7 +216,7 @@ export default function ModelNotificationsPage() {
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
-                Unread ({unreadCount})
+                {t('filterUnread', { count: unreadCount })}
               </button>
             </div>
           </div>
@@ -224,12 +226,12 @@ export default function ModelNotificationsPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
               <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {filter === 'unread' ? 'No unread notifications' : 'No notifications'}
+                {filter === 'unread' ? t('noUnread') : t('noNotifications')}
               </h3>
               <p className="text-gray-600">
                 {filter === 'unread' 
-                  ? "You're all caught up!" 
-                  : "You don't have any notifications yet"}
+                  ? t('allCaughtUp') 
+                  : t('noNotificationsYet')}
               </p>
             </div>
           ) : (
@@ -281,7 +283,7 @@ export default function ModelNotificationsPage() {
                             markAsRead(notification.id)
                           }}
                           className="p-2 hover:bg-green-100 rounded-lg text-green-600 transition-all"
-                          title="Mark as read"
+                          title={t('markAsRead')}
                         >
                           <Check className="w-5 h-5" />
                         </button>
@@ -292,7 +294,7 @@ export default function ModelNotificationsPage() {
                           deleteNotification(notification.id)
                         }}
                         className="p-2 hover:bg-red-100 rounded-lg text-red-600 transition-all"
-                        title="Delete"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>

@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Sparkles, ChevronDown, ChevronUp, Save, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function ServicesPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.services')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
@@ -53,9 +55,9 @@ export default function ServicesPage() {
   const getServicesByCategory = (cat: string) => allServices.filter(s => s.category === cat)
   const getSelectedCount = (cat: string) => getServicesByCategory(cat).filter(s => selectedServices.includes(s.id)).length
   const getCategoryLabel = (cat: string) => ({
-    main: 'Main Services', extra: 'Extra Services',
-    fetish_bizarre: 'Fetish / Bizarre', virtual: 'Virtual Services',
-    massage: 'Massage (without sex)'
+    main: t('mainServices'), extra: t('extraServices'),
+    fetish_bizarre: t('fetishBizarre'), virtual: t('virtualServices'),
+    massage: t('massage')
   }[cat] || cat)
 
   const handleSave = async () => {
@@ -78,10 +80,10 @@ export default function ServicesPage() {
         )
         if (e2) throw e2
       }
-      setSuccess('Services saved successfully!')
+      setSuccess(t('savedSuccess'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save. Please try again.')
+      setError(e?.message || t('saveFailed'))
     } finally { setSaving(false) }
   }
 
@@ -103,11 +105,11 @@ export default function ServicesPage() {
               <Sparkles className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Edit Profile — Services</h1>
-              <p className="text-xs text-gray-500">Set your orientation, services, and what you offer</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
         </div>
 
         {error && (
@@ -126,23 +128,23 @@ export default function ServicesPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
           {/* Sexual Orientation */}
           <div>
-            <label className="block text-xs font-bold text-gray-800 mb-1">Sexual Orientation</label>
+            <label className="block text-xs font-bold text-gray-800 mb-1">{t('sexualOrientation')}</label>
             <select value={sexualOrientation} onChange={e => setSexualOrientation(e.target.value)} className={selectCls}>
-              <option value="">Select...</option>
-              <option value="heterosexual">Heterosexual</option>
-              <option value="bisexual">Bisexual</option>
-              <option value="homosexual">Homosexual</option>
+              <option value="">{t('select')}</option>
+              <option value="heterosexual">{t('heterosexual')}</option>
+              <option value="bisexual">{t('bisexual')}</option>
+              <option value="homosexual">{t('homosexual')}</option>
             </select>
           </div>
 
           {/* Services For */}
           <div>
-            <p className="text-xs font-bold text-gray-800 mb-2">Services Offered For</p>
+            <p className="text-xs font-bold text-gray-800 mb-2">{t('servicesFor')}</p>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'men', label: 'Men' }, { value: 'women', label: 'Women' },
-                { value: 'couples', label: 'Couples' }, { value: 'trans', label: 'Trans' },
-                { value: 'gays', label: 'Gays' }
+                { value: 'men', label: t('men') }, { value: 'women', label: t('women') },
+                { value: 'couples', label: t('couples') }, { value: 'trans', label: t('trans') },
+                { value: 'gays', label: t('gays') }
               ].map(opt => (
                 <button key={opt.value} type="button" onClick={() => toggleFor(opt.value)}
                   className={toggleBtn(servicesFor.includes(opt.value))}>
@@ -154,7 +156,7 @@ export default function ServicesPage() {
 
           {/* Services */}
           <div>
-            <p className="text-xs font-bold text-gray-800 mb-2">Services</p>
+            <p className="text-xs font-bold text-gray-800 mb-2">{t('services')}</p>
             <div className="space-y-2">
               {['main', 'extra', 'fetish_bizarre', 'virtual', 'massage'].map(cat => {
                 const catServices = getServicesByCategory(cat)
@@ -187,10 +189,10 @@ export default function ServicesPage() {
             </div>
             <div className="mt-4 pt-4 border-t border-gray-200">
               <label htmlFor="otherServices" className="block text-xs font-bold text-gray-800 mb-1">
-                Other services
+                {t('otherServices')}
               </label>
               <p className="text-[11px] text-gray-500 mb-2">
-                Add any service not listed above (optional, max 2000 characters).
+                {t('otherServicesHint')}
               </p>
               <textarea
                 id="otherServices"
@@ -198,7 +200,7 @@ export default function ServicesPage() {
                 onChange={e => setOtherServices(e.target.value)}
                 maxLength={2000}
                 rows={4}
-                placeholder="e.g. Custom requests, special arrangements…"
+                placeholder={t('otherServicesPlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-y min-h-[96px]"
               />
               <p className="text-[11px] text-gray-400 mt-1 text-right">{otherServices.length}/2000</p>
@@ -207,11 +209,11 @@ export default function ServicesPage() {
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>

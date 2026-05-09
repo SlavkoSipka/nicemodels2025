@@ -2,12 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { ShieldCheck, Upload, X, CheckCircle, AlertCircle, Clock } from 'lucide-react'
 import DobInput from '@/components/forms/DobInput'
 
 export default function VerificationPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.verification')
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -65,7 +67,7 @@ export default function VerificationPage() {
     const file = e.target.files?.[0]
     if (!file) return
     const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff', 'image/webp']
-    if (!allowed.includes(file.type)) { setSubmitError('Invalid file type. Allowed: jpg, png, gif, bmp, tif, webp'); return }
+    if (!allowed.includes(file.type)) { setSubmitError(t('invalidFile')); return }
     setFile(file); setPreview(URL.createObjectURL(file))
   }
 
@@ -73,16 +75,16 @@ export default function VerificationPage() {
     const file = e.target.files?.[0]
     if (!file) return
     const allowed = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']
-    if (!allowed.includes(file.type)) { setSubmitError('Invalid video type. Allowed: mp4, webm, ogg, mov'); return }
+    if (!allowed.includes(file.type)) { setSubmitError(t('invalidVideo')); return }
     setIdVideo(file); setIdVideoPreview(URL.createObjectURL(file))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitError(''); setSubmitSuccess('')
-    if (!formData.first_name || !formData.surname || !formData.date_of_birth || !formData.id_number) { setSubmitError('Please fill in all required fields'); return }
-    if (!idCardPhoto && !verification?.id_card_photo_path) { setSubmitError('Please upload ID Card photo'); return }
-    if (!selfiePhoto && !verification?.selfie_photo_path) { setSubmitError('Please upload your photo with ID Card'); return }
+    if (!formData.first_name || !formData.surname || !formData.date_of_birth || !formData.id_number) { setSubmitError(t('fillRequired')); return }
+    if (!idCardPhoto && !verification?.id_card_photo_path) { setSubmitError(t('uploadIdCard')); return }
+    if (!selfiePhoto && !verification?.selfie_photo_path) { setSubmitError(t('uploadSelfie')); return }
     setSubmitting(true)
     try {
       const supabase = createClient()
@@ -114,11 +116,11 @@ export default function VerificationPage() {
         video_path: videoPath || null, status: 'pending', submitted_at: new Date().toISOString(),
       }, { onConflict: 'user_id' })
       if (dbError) throw dbError
-      setSubmitSuccess('Verification request submitted! Our team will review it within 24-48 hours.')
+      setSubmitSuccess(t('submittedSuccess'))
       const { data: updated } = await supabase.from('verifications').select('*').eq('user_id', user.id).single()
       setVerification(updated)
     } catch (e: any) {
-      setSubmitError(e?.message || 'Failed to submit. Please try again.')
+      setSubmitError(e?.message || t('submitFailed'))
     } finally { setSubmitting(false) }
   }
 
@@ -149,13 +151,13 @@ export default function VerificationPage() {
             <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-2">
               <Upload className="w-5 h-5 text-gray-400" />
             </div>
-            <p className="text-xs text-gray-400">No file uploaded</p>
+            <p className="text-xs text-gray-400">{t('noFile')}</p>
           </div>
         )}
         <input ref={inputRef} type="file" accept={accept} onChange={onFileChange} className="hidden" />
         <button type="button" onClick={() => inputRef.current?.click()}
           className="w-full py-2.5 bg-brand text-white text-sm font-bold hover:bg-brand-hover transition-colors">
-          Upload File
+          {t('uploadFile')}
         </button>
       </div>
     </div>
@@ -172,8 +174,8 @@ export default function VerificationPage() {
             <ShieldCheck className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Account Verification</h1>
-            <p className="text-xs text-gray-500">Verify your identity to get a verified badge on your profile</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -192,16 +194,16 @@ export default function VerificationPage() {
                 verification.status === 'approved' ? 'text-emerald-900' :
                 verification.status === 'rejected' ? 'text-red-900' : 'text-amber-900'
               }`}>
-                {verification.status === 'approved' ? 'Verified' :
-                 verification.status === 'rejected' ? 'Verification Rejected' : 'Verification Pending'}
+                {verification.status === 'approved' ? t('verified') :
+                 verification.status === 'rejected' ? t('rejected') : t('pending')}
               </p>
               <p className={`text-xs mt-0.5 ${
                 verification.status === 'approved' ? 'text-emerald-700' :
                 verification.status === 'rejected' ? 'text-red-700' : 'text-amber-700'
               }`}>
-                {verification.status === 'approved' ? 'Your account has been verified!' :
-                 verification.status === 'rejected' ? `Reason: ${verification.rejection_reason || 'Please resubmit your documents.'}` :
-                 'Under review. Usually takes 24-48 hours.'}
+                {verification.status === 'approved' ? t('verifiedHint') :
+                 verification.status === 'rejected' ? t('rejectedReason', { reason: verification.rejection_reason || t('defaultRejectionReason') }) :
+                 t('underReview')}
               </p>
             </div>
           </div>
@@ -224,32 +226,32 @@ export default function VerificationPage() {
         {(!verification || verification.status === 'rejected') && (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <p className="text-sm font-bold text-gray-800 mb-3">Basic Details <span className="text-xs font-normal text-gray-500">(fields marked with * are mandatory)</span></p>
+              <p className="text-sm font-bold text-gray-800 mb-3">{t('basicDetails')} <span className="text-xs font-normal text-gray-500">{t('mandatoryHint')}</span></p>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div>
-                  <label className={labelCls}>First Name <span className="text-red-500">*</span></label>
+                  <label className={labelCls}>{t('firstName')} <span className="text-red-500">*</span></label>
                   <input type="text" value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })} className={inputCls} required />
                 </div>
                 <div>
-                  <label className={labelCls}>Surname <span className="text-red-500">*</span></label>
+                  <label className={labelCls}>{t('surname')} <span className="text-red-500">*</span></label>
                   <input type="text" value={formData.surname} onChange={e => setFormData({ ...formData, surname: e.target.value })} className={inputCls} required />
                 </div>
                 <div>
-                  <label className={labelCls}>Date of Birth <span className="text-red-500">*</span></label>
+                  <label className={labelCls}>{t('dateOfBirth')} <span className="text-red-500">*</span></label>
                   <DobInput value={formData.date_of_birth} onChange={iso => setFormData({ ...formData, date_of_birth: iso })} className={inputCls} required />
                 </div>
                 <div>
-                  <label className={labelCls}>ID Number <span className="text-red-500">*</span></label>
+                  <label className={labelCls}>{t('idNumber')} <span className="text-red-500">*</span></label>
                   <input type="text" value={formData.id_number} onChange={e => setFormData({ ...formData, id_number: e.target.value })} className={inputCls} required />
                 </div>
               </div>
             </div>
 
             <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
-              <p className="text-sm font-bold text-gray-800">Document Photos</p>
+              <p className="text-sm font-bold text-gray-800">{t('documentPhotos')}</p>
               <UploadBox
-                label="ID Card / Passport *"
-                desc="Clearly readable photo of National ID (EU) or Passport page with all information"
+                label={t('idCardLabel')}
+                desc={t('idCardDesc')}
                 preview={idCardPhotoPreview}
                 setFile={setIdCardPhoto} setPreview={setIdCardPhotoPreview}
                 inputRef={idCardInputRef}
@@ -257,8 +259,8 @@ export default function VerificationPage() {
                 onFileChange={e => handleImgChange(e, setIdCardPhoto, setIdCardPhotoPreview)}
               />
               <UploadBox
-                label="Selfie with ID Card *"
-                desc="Photo of you holding the document close to your face"
+                label={t('selfieLabel')}
+                desc={t('selfieDesc')}
                 preview={selfiePhotoPreview}
                 setFile={setSelfiePhoto} setPreview={setSelfiePhotoPreview}
                 inputRef={selfieInputRef}
@@ -266,8 +268,8 @@ export default function VerificationPage() {
                 onFileChange={e => handleImgChange(e, setSelfiePhoto, setSelfiePhotoPreview)}
               />
               <UploadBox
-                label="Video with ID Card (optional)"
-                desc="Short video of you holding the document close to your face"
+                label={t('videoLabel')}
+                desc={t('videoDesc')}
                 preview={idVideoPreview}
                 setFile={setIdVideo} setPreview={setIdVideoPreview}
                 inputRef={videoInputRef}
@@ -281,7 +283,7 @@ export default function VerificationPage() {
               <button type="submit" disabled={submitting}
                 className="flex items-center gap-1.5 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
                 <ShieldCheck className="w-4 h-4" />
-                {submitting ? 'Submitting...' : verification ? 'Update Verification' : 'Submit for Verification'}
+                {submitting ? t('submitting') : verification ? t('update') : t('submit')}
               </button>
             </div>
           </form>

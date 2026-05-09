@@ -2,12 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { MapPin, Save, CheckCircle, AlertCircle, Navigation, Loader2 } from 'lucide-react'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 export default function AreaPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.area')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
@@ -60,7 +62,7 @@ export default function AreaPage() {
     setLiveError('')
     if (enable) {
       if (!('geolocation' in navigator)) {
-        setLiveError('Geolocation is not supported by your browser')
+        setLiveError(t('geolocationNotSupported'))
         return
       }
       setLiveLoading(true)
@@ -74,7 +76,7 @@ export default function AreaPage() {
             })
             const data = await res.json()
             if (!res.ok) {
-              setLiveError(data.error || 'Failed to update location')
+              setLiveError(data.error || t('updateFailed'))
               setLiveLoading(false)
               return
             }
@@ -82,7 +84,7 @@ export default function AreaPage() {
             setLiveCity(data.city)
             setLivePostalCode(data.postal_code)
           } catch {
-            setLiveError('Failed to send location to server')
+            setLiveError(t('sendFailed'))
           } finally {
             setLiveLoading(false)
           }
@@ -90,9 +92,9 @@ export default function AreaPage() {
         (geoErr) => {
           setLiveLoading(false)
           if (geoErr.code === geoErr.PERMISSION_DENIED) {
-            setLiveError('Location permission denied. Please allow location access in your browser settings.')
+            setLiveError(t('permissionDenied'))
           } else {
-            setLiveError('Could not get your location. Please try again.')
+            setLiveError(t('couldNotGet'))
           }
         },
         { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 },
@@ -105,19 +107,19 @@ export default function AreaPage() {
         setLiveCity(null)
         setLivePostalCode(null)
       } catch {
-        setLiveError('Failed to disable live location')
+        setLiveError(t('disableFailed'))
       } finally {
         setLiveLoading(false)
       }
     }
-  }, [])
+  }, [t])
 
   const toggle = (arr: string[], setArr: (v: string[]) => void, opt: string) =>
     setArr(arr.includes(opt) ? arr.filter(o => o !== opt) : [...arr, opt])
 
   const handleSave = async () => {
     setError(''); setSuccess('')
-    if (!city) { setError('Please select a city'); return }
+    if (!city) { setError(t('selectCity')); return }
     setSaving(true)
     try {
       const supabase = createClient()
@@ -131,10 +133,10 @@ export default function AreaPage() {
         outcall_options: outcallOptions.length > 0 ? outcallOptions : null,
       }, { onConflict: 'model_id' })
       if (e) throw e
-      setSuccess('Area saved successfully!')
+      setSuccess(t('savedSuccess'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save. Please try again.')
+      setError(e?.message || t('saveFailed'))
     } finally { setSaving(false) }
   }
 
@@ -155,11 +157,11 @@ export default function AreaPage() {
               <MapPin className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Edit Profile — Area / Address</h1>
-              <p className="text-xs text-gray-500">Set your city and availability options</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
         </div>
 
         {error && (
@@ -179,11 +181,10 @@ export default function AreaPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <Navigation className="w-4 h-4 text-emerald-600" />
-            <p className="text-sm font-bold text-gray-800">Share Active Location</p>
+            <p className="text-sm font-bold text-gray-800">{t('shareLocation')}</p>
           </div>
           <p className="text-xs text-gray-500">
-            When enabled, your current location will be shared as a live location on your profile card.
-            This does not change your permanent city setting below.
+            {t('shareLocationHint')}
           </p>
 
           {liveError && (
@@ -212,9 +213,9 @@ export default function AreaPage() {
               {liveLoading ? (
                 <span className="flex items-center gap-1.5">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Detecting location...
+                  {t('detecting')}
                 </span>
-              ) : shareLiveLocation ? 'Active' : 'Disabled'}
+              ) : shareLiveLocation ? t('active') : t('disabled')}
             </span>
           </div>
 
@@ -225,7 +226,7 @@ export default function AreaPage() {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
               </span>
               <span className="text-sm font-semibold text-emerald-800">
-                Live: {liveCity}{livePostalCode ? ` (${livePostalCode})` : ''}
+                {t('live', { location: `${liveCity}${livePostalCode ? ` (${livePostalCode})` : ''}` })}
               </span>
             </div>
           )}
@@ -241,16 +242,16 @@ export default function AreaPage() {
                 setCity(c?.name || '')
                 if (c?.postal_code) setZipCode(c.postal_code)
               }}
-              label="City"
+              label={t('city')}
               required
-              placeholder="Search city or PLZ..."
+              placeholder={t('cityPlaceholder')}
             />
           </div>
 
           {/* Address */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">Postal Code (PLZ)</label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('postalCode')}</label>
               <input
                 type="text"
                 value={zipCode}
@@ -258,10 +259,10 @@ export default function AreaPage() {
                 placeholder="e.g. 8001"
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
-              <p className="text-xs text-gray-400 mt-0.5">Auto-filled when selecting a city</p>
+              <p className="text-xs text-gray-400 mt-0.5">{t('postalCodeHint')}</p>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">Street</label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('street')}</label>
               <input
                 type="text"
                 value={street}
@@ -271,7 +272,7 @@ export default function AreaPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">Street Number</label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('streetNumber')}</label>
               <input
                 type="text"
                 value={streetNumber}
@@ -284,12 +285,17 @@ export default function AreaPage() {
 
           {/* Incall */}
           <div>
-            <p className="text-xs font-bold text-gray-800 mb-2">Incall</p>
+            <p className="text-xs font-bold text-gray-800 mb-2">{t('incall')}</p>
             <div className="grid grid-cols-2 gap-2">
-              {['Private apartment', 'Hotel room', 'Club/Studio', 'Other'].map(opt => (
-                <button key={opt} type="button" onClick={() => toggle(incallOptions, setIncallOptions, opt)}
-                  className={toggleBtn(incallOptions.includes(opt))}>
-                  {opt}
+              {[
+                { value: 'Private apartment', label: t('incallPrivate') },
+                { value: 'Hotel room', label: t('incallHotel') },
+                { value: 'Club/Studio', label: t('incallClub') },
+                { value: 'Other', label: t('incallOther') },
+              ].map(opt => (
+                <button key={opt.value} type="button" onClick={() => toggle(incallOptions, setIncallOptions, opt.value)}
+                  className={toggleBtn(incallOptions.includes(opt.value))}>
+                  {opt.label}
                 </button>
               ))}
             </div>
@@ -297,12 +303,17 @@ export default function AreaPage() {
 
           {/* Outcall */}
           <div>
-            <p className="text-xs font-bold text-gray-800 mb-2">Outcall</p>
+            <p className="text-xs font-bold text-gray-800 mb-2">{t('outcall')}</p>
             <div className="grid grid-cols-2 gap-2">
-              {['Hotel visits only', 'Home visits only', 'Hotel and Home visits', 'Other'].map(opt => (
-                <button key={opt} type="button" onClick={() => toggle(outcallOptions, setOutcallOptions, opt)}
-                  className={toggleBtn(outcallOptions.includes(opt))}>
-                  {opt}
+              {[
+                { value: 'Hotel visits only', label: t('outcallHotel') },
+                { value: 'Home visits only', label: t('outcallHome') },
+                { value: 'Hotel and Home visits', label: t('outcallBoth') },
+                { value: 'Other', label: t('outcallOther') },
+              ].map(opt => (
+                <button key={opt.value} type="button" onClick={() => toggle(outcallOptions, setOutcallOptions, opt.value)}
+                  className={toggleBtn(outcallOptions.includes(opt.value))}>
+                  {opt.label}
                 </button>
               ))}
             </div>
@@ -310,11 +321,11 @@ export default function AreaPage() {
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>

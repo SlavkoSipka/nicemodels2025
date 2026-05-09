@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { ShoppingCart, Zap, Clock, Calendar, CheckCircle, Building2, Info } from 'lucide-react'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
@@ -26,6 +27,7 @@ interface CartItem {
 
 export default function CompanyActivateAdPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.activateAd')
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
@@ -163,7 +165,7 @@ export default function CompanyActivateAdPage() {
     if (cart.length === 0) return
     setCheckoutError('')
     if (!termsAccepted) {
-      setCheckoutError('Please accept the terms and conditions')
+      setCheckoutError(t('errAcceptTerms'))
       return
     }
 
@@ -175,7 +177,7 @@ export default function CompanyActivateAdPage() {
       const validCart = cart.filter(item => validIds.has(item.product.id))
       if (validCart.length !== cart.length) {
         saveCart(validCart)
-        setCheckoutError('Your cart had outdated items. Please try again.')
+        setCheckoutError(t('errOutdatedCart'))
         return
       }
 
@@ -197,14 +199,14 @@ export default function CompanyActivateAdPage() {
 
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
-        setCheckoutError(j?.error || 'Failed to start checkout')
+        setCheckoutError(j?.error || t('errCheckoutFailed'))
         return
       }
       const { url } = await res.json() as { url: string }
       saveCart([])
       window.location.href = url
     } catch (error) {
-      setCheckoutError(error instanceof Error ? error.message : 'An error occurred')
+      setCheckoutError(error instanceof Error ? error.message : t('errOccurred'))
     }
   }
 
@@ -221,10 +223,8 @@ export default function CompanyActivateAdPage() {
               <Building2 className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Activate Club Ad</h1>
-              <p className="text-xs text-gray-500">
-                5 days CHF 19 · 14 days CHF 29 · 30 days CHF 39
-              </p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
 
@@ -234,7 +234,7 @@ export default function CompanyActivateAdPage() {
               className="relative flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
             >
               <ShoppingCart className="w-4 h-4" />
-              Cart: {cart.length} item{cart.length > 1 ? 's' : ''}
+              {t('cartItems', { count: cart.length })}
               <span className="ml-1 px-1.5 py-0.5 bg-white text-brand rounded text-xs font-bold">
                 CHF {cart.reduce((s, it) => s + Number(it.product.price_chf || 0), 0)}
               </span>
@@ -248,7 +248,7 @@ export default function CompanyActivateAdPage() {
         <SitePreview
           page="home"
           highlight="ad-card"
-          title="Where your club card will appear"
+          title={t('previewTitle')}
         />
 
         {checkoutError && (
@@ -264,12 +264,12 @@ export default function CompanyActivateAdPage() {
               <CheckCircle className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <p className="text-sm font-bold text-emerald-800 mb-1">Your club ad is currently active</p>
+              <p className="text-sm font-bold text-emerald-800 mb-1">{t('currentlyActive')}</p>
               <p className="text-sm text-gray-600">
-                Your club profile is visible in search results.
+                {t('currentlyActiveDesc')}
               </p>
               {activeAdExpiry && (
-                <p className="text-xs text-gray-400 mt-1">Active until: {activeAdExpiry}</p>
+                <p className="text-xs text-gray-400 mt-1">{t('activeUntil', { date: activeAdExpiry })}</p>
               )}
             </div>
           </div>
@@ -282,11 +282,11 @@ export default function CompanyActivateAdPage() {
               <Info className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="text-sm font-bold text-amber-800 mb-1">Your previous ad has expired</p>
+              <p className="text-sm font-bold text-amber-800 mb-1">{t('previousExpired')}</p>
               <p className="text-sm text-gray-600">
-                It expired on <span className="font-semibold">{lastExpiredAd}</span>. Your club is no longer visible in search results.
+                {t.rich('expiredOn', { date: lastExpiredAd, bold: (chunks) => <span className="font-semibold">{chunks}</span> })}
               </p>
-              <p className="text-xs text-gray-400 mt-1">Activate a new ad below to go live again.</p>
+              <p className="text-xs text-gray-400 mt-1">{t('activateBelow')}</p>
             </div>
           </div>
         )}
@@ -294,7 +294,7 @@ export default function CompanyActivateAdPage() {
         {/* Package cards */}
         {!hasActiveAd && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-            <p className="text-sm font-bold text-gray-800 mb-4">Select duration:</p>
+            <p className="text-sm font-bold text-gray-800 mb-4">{t('selectDuration')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
@@ -314,7 +314,7 @@ export default function CompanyActivateAdPage() {
                   >
                     {isInCart && (
                       <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-xs font-bold whitespace-nowrap text-white bg-emerald-500">
-                        Added to cart
+                        {t('addedToCart')}
                       </div>
                     )}
                     <div className="p-3.5 md:p-5 text-center">
@@ -324,7 +324,7 @@ export default function CompanyActivateAdPage() {
                         <p className="text-base font-bold text-gray-900 leading-tight">
                           CHF {Number(pkg.price_chf).toFixed(0)}.-
                         </p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">One-time payment</p>
+                        <p className="text-[11px] text-gray-400 mt-0.5">{t('oneTimePayment')}</p>
                       </div>
                     </div>
                     {isInCart ? (
@@ -350,12 +350,12 @@ export default function CompanyActivateAdPage() {
         {/* Activation type */}
         {!hasActiveAd && selectedPackage && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-            <p className="text-sm font-bold text-gray-800 mb-3">Activation date:</p>
+            <p className="text-sm font-bold text-gray-800 mb-3">{t('activationDate')}</p>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'immediately', label: 'Immediately', icon: Zap },
-                { value: 'after_current', label: 'After current', icon: Clock },
-                { value: 'at_date', label: 'At certain date', icon: Calendar },
+                { value: 'immediately', label: t('actImmediately'), icon: Zap },
+                { value: 'after_current', label: t('actAfterCurrent'), icon: Clock },
+                { value: 'at_date', label: t('actAtDate'), icon: Calendar },
               ].map(({ value, label, icon: Icon }) => (
                 <button
                   key={value}
@@ -392,23 +392,23 @@ export default function CompanyActivateAdPage() {
             disabled={activationType === 'at_date' && !activationDate}
             className="px-6 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add to cart
+            {t('addToCart')}
           </button>
         )}
 
         {/* Cart */}
         {!hasActiveAd && cart.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-            <p className="text-sm font-bold text-gray-800 mb-3">Your cart:</p>
+            <p className="text-sm font-bold text-gray-800 mb-3">{t('yourCart')}</p>
             <div className="space-y-2">
               {cart.map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{item.product.name}</p>
                     <p className="text-xs text-gray-500">
-                      {item.activationType === 'immediately' ? 'Activate immediately'
-                        : item.activationType === 'after_current' ? 'After current ad'
-                        : `On ${item.activationDate ? new Date(item.activationDate).toLocaleDateString() : ''}`}
+                      {item.activationType === 'immediately' ? t('actImmediatelyDesc')
+                        : item.activationType === 'after_current' ? t('actAfterCurrentDesc')
+                        : t('actAtDateDesc', { date: item.activationDate ? new Date(item.activationDate).toLocaleDateString() : '' })}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
@@ -419,7 +419,7 @@ export default function CompanyActivateAdPage() {
                       onClick={() => removeFromCart(index)}
                       className="text-xs font-semibold text-red-600 hover:text-red-800"
                     >
-                      Remove
+                      {t('remove')}
                     </button>
                   </div>
                 </div>
@@ -427,7 +427,7 @@ export default function CompanyActivateAdPage() {
             </div>
 
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-              <p className="text-sm font-bold text-gray-900">Total:</p>
+              <p className="text-sm font-bold text-gray-900">{t('total')}</p>
               <p className="text-base font-bold text-gray-900">
                 CHF {cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0).toFixed(2)}
               </p>
@@ -444,7 +444,7 @@ export default function CompanyActivateAdPage() {
               disabled={!termsAccepted}
               className="w-full mt-3 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Pay securely
+              {t('paySecurely')}
             </button>
           </div>
         )}

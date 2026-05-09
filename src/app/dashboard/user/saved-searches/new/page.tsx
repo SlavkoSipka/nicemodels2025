@@ -1,11 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import SavedSearchForm from '@/components/saved-searches/SavedSearchForm'
 import { ChevronLeft } from 'lucide-react'
 
 export default function NewSavedSearchPage() {
+  const t = useTranslations('dashboard.user.savedSearchesNew')
   return (
     <>
       <DashboardSidebar userRole="user" />
@@ -15,11 +17,11 @@ export default function NewSavedSearchPage() {
             href="/dashboard/user/saved-searches"
             className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-violet-700 mb-4"
           >
-            <ChevronLeft className="w-4 h-4" /> Saved searches
+            <ChevronLeft className="w-4 h-4" /> {t('backLink')}
           </Link>
           <div className="mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">New saved search</h1>
-            <p className="text-sm text-gray-500 mt-0.5">We will notify you in your inbox when a matching entry appears.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-sm text-gray-500 mt-0.5">{t('subtitle')}</p>
           </div>
           <SavedSearchForm />
         </div>

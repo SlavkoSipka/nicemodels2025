@@ -5,12 +5,14 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 
 function LoginFormInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations('auth.login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -51,7 +53,7 @@ function LoginFormInner() {
         .single()
 
       if (!profile) {
-        setError('Profile not found for this account.')
+        setError(t('errorProfileNotFound'))
         return
       }
 
@@ -95,7 +97,7 @@ function LoginFormInner() {
       router.refresh()
     } catch (err: any) {
       if (!err.message?.includes('Refresh Token Not Found')) {
-        setError(err.message || 'Failed to login. Please check your credentials.')
+        setError(err.message || t('errorFailed'))
       }
     } finally {
       setLoading(false)
@@ -106,7 +108,7 @@ function LoginFormInner() {
     <form onSubmit={handleSubmit} className="space-y-3">
       {verifiedMessage && (
         <div className="bg-green-50 border-l-4 border-green-500 p-2 rounded-r-lg">
-          <p className="text-xs text-green-700 font-medium">✓ Email verified successfully! You can now login.</p>
+          <p className="text-xs text-green-700 font-medium">{t('verifiedSuccess')}</p>
         </div>
       )}
 
@@ -117,12 +119,12 @@ function LoginFormInner() {
       )}
 
       <div className="text-center mb-3">
-        <h2 className="text-lg font-bold text-gray-900">Sign in to your account</h2>
+        <h2 className="text-lg font-bold text-gray-900">{t('title')}</h2>
       </div>
 
       <div>
         <label htmlFor="login-email" className="block text-xs font-bold text-gray-700 mb-1">
-          Email<span className="text-pink-600">*</span>
+          {t('emailLabel')}<span className="text-pink-600">*</span>
         </label>
         <input
           id="login-email"
@@ -130,14 +132,14 @@ function LoginFormInner() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="name@domain.com"
+          placeholder={t('emailPlaceholder')}
           className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
         />
       </div>
 
       <div>
         <label htmlFor="login-password" className="block text-xs font-bold text-gray-700 mb-1">
-          Password<span className="text-pink-600">*</span>
+          {t('passwordLabel')}<span className="text-pink-600">*</span>
         </label>
         <div className="relative">
           <input
@@ -146,7 +148,7 @@ function LoginFormInner() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            placeholder="••••••••••"
+            placeholder={t('passwordPlaceholder')}
             className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
           />
           <button
@@ -161,7 +163,7 @@ function LoginFormInner() {
 
       <div className="text-right">
         <Link href="/forgot-password" className="text-xs text-pink-600 hover:text-pink-700 font-semibold">
-          Forgot password?
+          {t('forgotPassword')}
         </Link>
       </div>
 
@@ -176,17 +178,20 @@ function LoginFormInner() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            Signing in...
+            {t('submitting')}
           </span>
         ) : (
-          'LOG IN'
+          t('submit')
         )}
       </button>
     </form>
   )
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
+  const t = useTranslations('auth.login')
+  const tTabs = useTranslations('auth.tabs')
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -195,13 +200,13 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4 sm:mb-6">
             <div className="inline-flex bg-white border border-gray-200 rounded-lg shadow-sm p-1">
               <div className="px-4 sm:px-6 py-2 text-xs sm:text-sm font-bold text-white bg-brand rounded-md shadow-sm">
-                Sign in
+                {tTabs('signIn')}
               </div>
               <Link
                 href="/register"
                 className="px-4 sm:px-6 py-2 text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all"
               >
-                Register
+                {tTabs('register')}
               </Link>
             </div>
           </div>
@@ -210,15 +215,15 @@ export default function LoginPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2">
               <div className="bg-[#1f2126] p-5 sm:p-8 flex flex-col justify-between">
                 <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Welcome back!</h1>
-                  <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-8">Sign in to your account</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{t('leftHeading')}</h1>
+                  <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-8">{t('leftSubtitle')}</p>
 
                   <div className="space-y-4">
                     {[
-                      'Access your personal dashboard',
-                      'Manage your advertisements',
-                      'View statistics & analytics',
-                      'Save your favorite profiles',
+                      t('bullet1'),
+                      t('bullet2'),
+                      t('bullet3'),
+                      t('bullet4'),
                     ].map((item) => (
                       <div key={item} className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-full bg-brand flex items-center justify-center shrink-0">
@@ -233,9 +238,10 @@ export default function LoginPage() {
                 </div>
 
                 <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-700">
-                  <p className="text-xs text-gray-500">Don&apos;t have an account?{' '}
+                  <p className="text-xs text-gray-500">
+                    {t('noAccount')}{' '}
                     <Link href="/register" className="text-brand hover:text-brand-hover font-semibold transition-colors">
-                      Register here
+                      {t('registerHere')}
                     </Link>
                   </p>
                 </div>
@@ -255,4 +261,8 @@ export default function LoginPage() {
       </div>
     </div>
   )
+}
+
+export default function LoginPage() {
+  return <LoginPageContent />
 }

@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { User, Save, CheckCircle, Camera, Trash2, Loader2 } from 'lucide-react'
-import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import CitySearch from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import Image from 'next/image'
 import { formatDobDisplay } from '@/lib/utils/dob'
@@ -12,6 +13,8 @@ const MAX_AVATAR_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export default function UserProfile() {
+  const t = useTranslations('dashboard.user.profile')
+  const tc = useTranslations('dashboard.user.common')
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -57,11 +60,11 @@ export default function UserProfile() {
     setAvatarError('')
 
     if (!ALLOWED_TYPES.includes(file.type)) {
-      setAvatarError('Only JPG, PNG and WebP images are allowed.')
+      setAvatarError(t('onlyImageTypes'))
       return
     }
     if (file.size > MAX_AVATAR_SIZE) {
-      setAvatarError('Image must be smaller than 5 MB.')
+      setAvatarError(t('imageTooLarge'))
       return
     }
 
@@ -103,11 +106,11 @@ export default function UserProfile() {
       if (updateError) throw updateError
 
       setAvatarUrl(publicUrl)
-      setSuccess('Profile photo updated!')
+      setSuccess(t('photoUpdated'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
       console.error('Avatar upload error:', err)
-      setAvatarError(err.message || 'Failed to upload photo.')
+      setAvatarError(err.message || t('photoUploadFailed'))
     } finally {
       setAvatarUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -115,7 +118,7 @@ export default function UserProfile() {
   }
 
   const handleAvatarRemove = async () => {
-    if (!confirm('Remove your profile photo?')) return
+    if (!confirm(t('removeConfirm'))) return
     setAvatarUploading(true)
     setAvatarError('')
     try {
@@ -138,10 +141,10 @@ export default function UserProfile() {
       }).eq('id', user.id)
 
       setAvatarUrl(null)
-      setSuccess('Profile photo removed.')
+      setSuccess(t('photoRemoved'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setAvatarError(err.message || 'Failed to remove photo.')
+      setAvatarError(err.message || t('photoRemoveFailed'))
     } finally {
       setAvatarUploading(false)
     }
@@ -163,7 +166,7 @@ export default function UserProfile() {
         updated_at: new Date().toISOString()
       }).eq('id', user.id)
       if (!error) {
-        setSuccess('Profile updated successfully!')
+        setSuccess(t('profileUpdated'))
         setTimeout(() => setSuccess(''), 3000)
         await loadProfile()
       }
@@ -188,8 +191,8 @@ export default function UserProfile() {
               <User className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
-              <p className="text-xs text-gray-500">Manage your personal information</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
 
@@ -202,7 +205,7 @@ export default function UserProfile() {
 
           {/* Avatar Section */}
           <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <label className={labelCls}>Profile Photo</label>
+            <label className={labelCls}>{t('photoLabel')}</label>
             <div className="flex items-center gap-5 mt-2">
               <div className="relative group">
                 <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
@@ -238,7 +241,7 @@ export default function UserProfile() {
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-brand text-white rounded-lg text-xs font-bold hover:bg-brand-hover disabled:opacity-50 transition-colors"
                   >
                     <Camera className="w-3.5 h-3.5" />
-                    {avatarUrl ? 'Change Photo' : 'Upload Photo'}
+                    {avatarUrl ? t('changePhoto') : t('uploadPhoto')}
                   </button>
                   {avatarUrl && (
                     <button
@@ -248,11 +251,11 @@ export default function UserProfile() {
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-bold hover:bg-red-100 disabled:opacity-50 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      Remove
+                      {t('removePhoto')}
                     </button>
                   )}
                 </div>
-                <p className="text-xs text-gray-400">JPG, PNG or WebP. Max 5 MB.</p>
+                <p className="text-xs text-gray-400">{t('photoHint')}</p>
                 {avatarError && <p className="text-xs text-red-500">{avatarError}</p>}
               </div>
               <input
@@ -268,63 +271,63 @@ export default function UserProfile() {
           <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
             {/* Email (read-only) */}
             <div>
-              <label className={labelCls}>Email Address</label>
+              <label className={labelCls}>{t('email')}</label>
               <input type="email" value={profile?.email || ''} disabled className={readonlyCls} />
-              <p className="text-xs text-gray-400 mt-0.5">Set at registration</p>
+              <p className="text-xs text-gray-400 mt-0.5">{t('emailHint')}</p>
             </div>
 
-            {/* Phone & DOB row (read-only, set at registration) */}
+            {/* Phone & DOB row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Phone Number</label>
+                <label className={labelCls}>{t('phone')}</label>
                 <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                  placeholder="Enter your phone number" className={inputCls} />
+                  placeholder={t('phonePlaceholder')} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>Date of Birth</label>
+                <label className={labelCls}>{t('dob')}</label>
                 <input
                   type="text"
-                  value={formatDobDisplay(profile?.date_of_birth) || 'Not set'}
+                  value={formatDobDisplay(profile?.date_of_birth) || t('dobNotSet')}
                   disabled
                   className={readonlyCls}
                 />
-                <p className="text-xs text-gray-400 mt-0.5">Set at registration — contact support to change</p>
+                <p className="text-xs text-gray-400 mt-0.5">{t('dobHint')}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={labelCls}>Username</label>
+                <label className={labelCls}>{t('username')}</label>
                 <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-                  placeholder="Enter your username" className={inputCls} />
+                  placeholder={t('usernamePlaceholder')} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>City / Area</label>
+                <label className={labelCls}>{t('city')}</label>
                 <CitySearch
                   value={city}
                   onChange={(c) => setCity(c?.name || '')}
-                  placeholder="Search city or PLZ..."
+                  placeholder={t('cityPlaceholder')}
                 />
               </div>
             </div>
 
-            {/* Real name (optional, private) */}
+            {/* Real name */}
             <div>
-              <p className="text-xs text-gray-400 mb-2">Your real name is private and not visible to other users.</p>
+              <p className="text-xs text-gray-400 mb-2">{t('realNameNote')}</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className={labelCls}>
-                    First Name <span className="font-normal text-gray-400">(optional)</span>
+                    {t('firstName')} <span className="font-normal text-gray-400">{t('optional')}</span>
                   </label>
                   <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
-                    placeholder="Your first name" className={inputCls} />
+                    placeholder={t('firstNamePlaceholder')} className={inputCls} />
                 </div>
                 <div>
                   <label className={labelCls}>
-                    Last Name <span className="font-normal text-gray-400">(optional)</span>
+                    {t('lastName')} <span className="font-normal text-gray-400">{t('optional')}</span>
                   </label>
                   <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
-                    placeholder="Your last name" className={inputCls} />
+                    placeholder={t('lastNamePlaceholder')} className={inputCls} />
                 </div>
               </div>
             </div>
@@ -332,14 +335,14 @@ export default function UserProfile() {
             <RichTextEditor
               value={description}
               onChange={setDescription}
-              label="About Me"
-              placeholder="Tell us a bit about yourself..."
+              label={t('aboutMe')}
+              placeholder={t('aboutMePlaceholder')}
               maxLength={500}
               height={200}
             />
 
             <div>
-              <label className={labelCls}>Member Since</label>
+              <label className={labelCls}>{t('memberSince')}</label>
               <input type="text" value={profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : ''} disabled
                 className={readonlyCls} />
             </div>
@@ -348,7 +351,7 @@ export default function UserProfile() {
               <button type="submit" disabled={saving}
                 className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
                 <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save Changes'}
+                {saving ? tc('saving') : t('saveChanges')}
               </button>
             </div>
           </form>

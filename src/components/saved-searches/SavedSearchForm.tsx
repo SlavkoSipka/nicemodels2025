@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
 import { Loader2, Save, Trash2 } from 'lucide-react'
@@ -47,6 +48,7 @@ const cap = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperC
 
 export default function SavedSearchForm({ existing }: { existing?: SavedSearchRow }) {
   const router = useRouter()
+  const ts = useTranslations('components.savedSearchForm')
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [previewCount, setPreviewCount] = useState<number | null>(null)
@@ -149,7 +151,7 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
       router.refresh()
     } catch (err) {
       console.error('Save error:', err)
-      alert('Could not save the search. Please try again.')
+      alert(ts('saveFailed'))
     } finally {
       setLoading(false)
     }
@@ -157,7 +159,7 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
 
   const handleDelete = async () => {
     if (!existing) return
-    if (!confirm('Delete this saved search? You will stop receiving alerts for it.')) return
+    if (!confirm(ts('deleteConfirm'))) return
     setDeleting(true)
     try {
       const supabase = createClient()
@@ -173,31 +175,46 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
   const inputCls = 'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100'
   const labelCls = 'block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5'
 
+  const previewEntityWord =
+    previewCount === null
+      ? ''
+      : entityType === 'model'
+        ? previewCount === 1
+          ? ts('entityModelOne')
+          : ts('entityModelOther')
+        : entityType === 'club'
+          ? previewCount === 1
+            ? ts('entityClubOne')
+            : ts('entityClubOther')
+          : previewCount === 1
+            ? ts('entityListingOne')
+            : ts('entityListingOther')
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2">
-            <label className={labelCls}>Name</label>
+            <label className={labelCls}>{ts('nameLabel')}</label>
             <input
               className={inputCls}
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder='e.g. "African models in Zurich"'
+              placeholder={ts('namePlaceholder')}
               required
               maxLength={80}
             />
           </div>
           <div>
-            <label className={labelCls}>Search for</label>
+            <label className={labelCls}>{ts('searchForLabel')}</label>
             <select
               className={inputCls}
               value={entityType}
               onChange={e => { setEntityType(e.target.value as SavedEntity); setPreviewCount(null) }}
             >
-              <option value="model">Models</option>
-              <option value="club">Clubs</option>
-              <option value="listing">Jobs / Rent listings</option>
+              <option value="model">{ts('entityModel')}</option>
+              <option value="club">{ts('entityClub')}</option>
+              <option value="listing">{ts('entityListing')}</option>
             </select>
           </div>
         </div>
@@ -209,25 +226,25 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
             onChange={e => setIsActive(e.target.checked)}
             className="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-violet-400"
           />
-          Alert me when new matches appear
+          {ts('alertMatches')}
         </label>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
-        <p className="text-sm font-bold text-gray-900">Criteria</p>
+        <p className="text-sm font-bold text-gray-900">{ts('criteriaTitle')}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>City (exact match)</label>
+            <label className={labelCls}>{ts('cityLabel')}</label>
             <input
               className={inputCls}
               value={criteria.city || ''}
               onChange={e => setCriteria(c => ({ ...c, city: e.target.value || undefined }))}
-              placeholder="e.g. Zurich"
+              placeholder={ts('cityPlaceholder')}
             />
           </div>
           <div>
-            <label className={labelCls}>Nearby (origin + radius)</label>
+            <label className={labelCls}>{ts('nearbyLabel')}</label>
             <NearbyFilter value={nearbyValue} onChange={setNearby} compact />
           </div>
         </div>
@@ -236,52 +253,52 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label className={labelCls}>Ethnicity</label>
+                <label className={labelCls}>{ts('ethnicityLabel')}</label>
                 <select
                   className={inputCls}
                   value={criteria.ethnicity || ''}
                   onChange={e => setCriteria(c => ({ ...c, ethnicity: e.target.value || undefined }))}
                 >
-                  <option value="">Any</option>
+                  <option value="">{ts('any')}</option>
                   {ETHNICITIES.map(v => <option key={v} value={v}>{cap(v)}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelCls}>Hair color</label>
+                <label className={labelCls}>{ts('hairLabel')}</label>
                 <select
                   className={inputCls}
                   value={criteria.hair_color || ''}
                   onChange={e => setCriteria(c => ({ ...c, hair_color: e.target.value || undefined }))}
                 >
-                  <option value="">Any</option>
+                  <option value="">{ts('any')}</option>
                   {HAIR_COLORS.map(v => <option key={v} value={v}>{cap(v)}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelCls}>Gender</label>
+                <label className={labelCls}>{ts('genderLabel')}</label>
                 <select
                   className={inputCls}
                   value={criteria.gender || ''}
                   onChange={e => setCriteria(c => ({ ...c, gender: e.target.value || undefined }))}
                 >
-                  <option value="">Any</option>
+                  <option value="">{ts('any')}</option>
                   {GENDERS.map(v => <option key={v} value={v}>{cap(v)}</option>)}
                 </select>
               </div>
               <div>
-                <label className={labelCls}>Nationality</label>
+                <label className={labelCls}>{ts('nationalityLabel')}</label>
                 <input
                   className={inputCls}
                   value={criteria.nationality || ''}
                   onChange={e => setCriteria(c => ({ ...c, nationality: e.target.value || undefined }))}
-                  placeholder="e.g. Brazilian"
+                  placeholder={ts('nationalityPlaceholder')}
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={labelCls}>Min age</label>
+                <label className={labelCls}>{ts('minAge')}</label>
                 <input
                   type="number"
                   className={inputCls}
@@ -292,7 +309,7 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
                 />
               </div>
               <div>
-                <label className={labelCls}>Max age</label>
+                <label className={labelCls}>{ts('maxAge')}</label>
                 <input
                   type="number"
                   className={inputCls}
@@ -305,7 +322,7 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
             </div>
 
             <div>
-              <label className={labelCls}>Services (all required)</label>
+              <label className={labelCls}>{ts('servicesLabel')}</label>
               <div className="flex flex-wrap gap-1.5">
                 {services.map(s => {
                   const selected = criteria.services?.includes(s.name) ?? false
@@ -328,7 +345,7 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
             </div>
 
             <div>
-              <label className={labelCls}>Languages (all required)</label>
+              <label className={labelCls}>{ts('languagesLabel')}</label>
               <div className="flex flex-wrap gap-1.5">
                 {LANGUAGES.map(l => {
                   const selected = criteria.languages?.includes(l) ?? false
@@ -354,27 +371,27 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
 
         {entityType === 'club' && (
           <div>
-            <label className={labelCls}>Club area</label>
+            <label className={labelCls}>{ts('clubAreaLabel')}</label>
             <input
               className={inputCls}
               value={criteria.club_area || ''}
               onChange={e => setCriteria(c => ({ ...c, club_area: e.target.value || undefined }))}
-              placeholder="e.g. Zurich West"
+              placeholder={ts('clubAreaPlaceholder')}
             />
           </div>
         )}
 
         {entityType === 'listing' && (
           <div>
-            <label className={labelCls}>Listing type</label>
+            <label className={labelCls}>{ts('listingTypeLabel')}</label>
             <div className="flex gap-2">
               {([
-                { v: undefined as 'job' | 'rent' | undefined, l: 'Any' },
-                { v: 'job' as const, l: 'Jobs only' },
-                { v: 'rent' as const, l: 'Rent only' },
+                { v: undefined as 'job' | 'rent' | undefined, l: ts('listingAny') },
+                { v: 'job' as const, l: ts('listingJobsOnly') },
+                { v: 'rent' as const, l: ts('listingRentOnly') },
               ]).map(({ v, l }) => (
                 <button
-                  key={l}
+                  key={String(v ?? 'any')}
                   type="button"
                   onClick={() => setCriteria(c => ({ ...c, listing_type: v }))}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
@@ -399,12 +416,13 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
           className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-violet-100 text-violet-700 rounded-lg hover:bg-violet-200 disabled:opacity-50"
         >
           {previewLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-          Test search
+          {ts('testSearch')}
         </button>
         {previewCount !== null && (
           <p className="text-sm text-gray-700">
-            Currently <span className="font-bold text-violet-700">{previewCount}</span> {entityType}
-            {previewCount === 1 ? '' : 's'} match these criteria.
+            {previewCount === 1
+              ? ts('previewOne', { count: previewCount, entity: previewEntityWord })
+              : ts('previewMany', { count: previewCount, entity: previewEntityWord })}
           </p>
         )}
       </div>
@@ -417,14 +435,14 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 transition-colors"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {existing ? 'Save changes' : 'Create saved search'}
+            {existing ? ts('saveChanges') : ts('create')}
           </button>
           <button
             type="button"
             onClick={() => router.push('/dashboard/user/saved-searches')}
             className="px-4 py-2 text-sm font-semibold bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
           >
-            Cancel
+            {ts('cancel')}
           </button>
         </div>
         {existing && (
@@ -435,7 +453,7 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
             className="inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50"
           >
             <Trash2 className="w-4 h-4" />
-            {deleting ? 'Deleting…' : 'Delete'}
+            {deleting ? ts('deleting') : ts('delete')}
           </button>
         )}
       </div>

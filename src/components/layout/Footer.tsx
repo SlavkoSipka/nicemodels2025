@@ -1,8 +1,14 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { MessageCircle, Mail } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function Footer() {
+  const t = useTranslations('footer')
+  const tNav = useTranslations('nav')
+
   return (
     <footer style={{ backgroundColor: '#1a1a2e' }}>
 
@@ -18,29 +24,29 @@ export default function Footer() {
             <Link href="/" className="inline-block mb-3 sm:mb-4">
               <Image
                 src="/logo.webp"
-                alt="nicemodels.ch"
+                alt={tNav('logoAlt')}
                 width={160}
                 height={40}
                 className="h-8 sm:h-10 w-auto"
               />
             </Link>
             <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.40)' }}>
-              The premium portal for Switzerland. Discreet, safe and professional.
+              {t('tagline')}
             </p>
           </div>
 
           {/* Pages */}
           <div>
             <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-5" style={{ color: '#f9a8d4' }}>
-              Pages
+              {t('pages')}
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { href: '/models-page', label: 'Models' },
-                { href: '/clubs',   label: 'Clubs' },
-                { href: '/comments',label: 'Comments' },
-                { href: '/blog',    label: 'Blog' },
-                { href: '/contact', label: 'Contact' },
+                { href: '/models-page', label: t('linkModels') },
+                { href: '/clubs',   label: t('linkClubs') },
+                { href: '/comments',label: t('linkComments') },
+                { href: '/blog',    label: t('linkBlog') },
+                { href: '/contact', label: t('linkContact') },
               ].map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -54,12 +60,12 @@ export default function Footer() {
           {/* Legal */}
           <div>
             <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-5" style={{ color: '#f9a8d4' }}>
-              Legal
+              {t('legal')}
             </h4>
             <ul className="space-y-3 text-sm">
               {[
-                { href: '/privacy', label: 'Privacy / Datenschutz' },
-                { href: '/terms',   label: 'AGB (Terms)' },
+                { href: '/privacy', label: t('linkPrivacy') },
+                { href: '/terms',   label: t('linkTerms') },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -73,7 +79,7 @@ export default function Footer() {
           {/* Support */}
           <div>
             <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-5" style={{ color: '#f9a8d4' }}>
-              Support
+              {t('support')}
             </h4>
             <div className="rounded-xl p-4 space-y-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <a
@@ -86,7 +92,7 @@ export default function Footer() {
                 <span className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#25D366' }}>
                   <MessageCircle className="w-4 h-4 text-white" />
                 </span>
-                <span>WhatsApp</span>
+                <span>{t('whatsapp')}</span>
               </a>
               <a
                 href="/contact"
@@ -99,7 +105,7 @@ export default function Footer() {
                 >
                   <Mail className="w-4 h-4 text-white" />
                 </span>
-                <span>Contact form</span>
+                <span>{t('contactForm')}</span>
               </a>
             </div>
           </div>
@@ -109,12 +115,12 @@ export default function Footer() {
       {/* Bottom bar */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 text-[10px] sm:text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
-          <span>&copy; {new Date().getFullYear()} nicemodels.ch</span>
+          <span>{t('copyright', { year: new Date().getFullYear() })}</span>
           <div className="flex items-center gap-3 sm:gap-5">
             {[
-              { href: '/privacy', label: 'Privacy' },
-              { href: '/terms',   label: 'AGB' },
-              { href: '/contact', label: 'Imprint' },
+              { href: '/privacy', label: t('bottomPrivacy') },
+              { href: '/terms',   label: t('bottomTerms') },
+              { href: '/contact', label: t('bottomImprint') },
             ].map(({ href, label }) => (
               <Link key={href} href={href} className="hover:text-white/60 transition-colors">
                 {label}

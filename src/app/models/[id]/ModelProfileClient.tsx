@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { htmlToPlainText } from '@/lib/plainText'
@@ -84,6 +85,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     viewCount = 0,
   } = modelData
 
+  const t = useTranslations('models.profile')
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const touchStartX = useRef<number | null>(null)
@@ -712,7 +714,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           }}
           role="status"
         >
-          No active ad package — this profile is not shown in the public directory or homepage until an ad is active.
+          {t('noActiveAdBanner')}
         </div>
       )}
 
@@ -722,7 +724,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           {/* PREV (desktop – tall with label) */}
           <button
             onClick={goToPrev}
-            aria-label="Previous model"
+            aria-label={t('previousModel')}
             className="hidden lg:flex fixed left-3 top-1/2 -translate-y-1/2 z-40 flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
             style={{
               width: 48, height: 96,
@@ -736,13 +738,13 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0'; (e.currentTarget as HTMLButtonElement).style.color = '' }}
           >
             <ChevronLeft className="w-5 h-5" style={{ color: '#64748b' }} />
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>Previous Sedcard</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.15em' }}>{t('previousSedcard')}</span>
           </button>
 
           {/* NEXT (desktop – tall with label) */}
           <button
             onClick={goToNext}
-            aria-label="Next model"
+            aria-label={t('nextModel')}
             className="hidden lg:flex fixed right-3 top-1/2 -translate-y-1/2 z-40 flex-col items-center justify-center gap-1.5 transition-all duration-200 group"
             style={{
               width: 48, height: 96,
@@ -755,14 +757,14 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(157,23,77,0.95)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(236,72,153,0.4)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.92)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0' }}
           >
-            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>Next Sedcard</span>
+            <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8', writingMode: 'vertical-rl', letterSpacing: '0.15em' }}>{t('nextSedcard')}</span>
             <ChevronRight className="w-5 h-5" style={{ color: '#64748b' }} />
           </button>
 
           {/* PREV (mobile – compact round, appears on scroll) */}
           <button
             onClick={goToPrev}
-            aria-label="Previous model"
+            aria-label={t('previousModel')}
             className={`lg:hidden fixed left-2 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 active:scale-95 ${scrolled ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             style={{
               background: 'rgba(255,255,255,0.65)',
@@ -777,7 +779,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           {/* NEXT (mobile – compact round, appears on scroll) */}
           <button
             onClick={goToNext}
-            aria-label="Next model"
+            aria-label={t('nextModel')}
             className={`lg:hidden fixed right-2 top-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 active:scale-95 ${scrolled ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             style={{
               background: 'rgba(255,255,255,0.65)',
@@ -800,7 +802,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           style={{ color: '#64748b' }}
         >
           <ChevronLeft className="w-5 h-5" />
-          <span>Back to all Sedcards</span>
+          <span>{t('backToSedcards')}</span>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_550px] gap-4 sm:gap-8">
@@ -826,7 +828,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           href={listingTelHref(contactDetails.country_code || '', contactDetails.phone_number)}
                           className="inline-flex items-center gap-1 text-[12px] font-semibold whitespace-nowrap px-2 py-1 rounded-md rounded-r-none border border-r-0 hover:opacity-90"
                           style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
-                          aria-label={`Call ${contactDetails.country_code || ''} ${contactDetails.phone_number}`}
+                          aria-label={t('callPhone', { phone: `${contactDetails.country_code || ''} ${contactDetails.phone_number}`.trim() })}
                         >
                           <Phone className="w-3.5 h-3.5 shrink-0" />
                           {`${contactDetails.country_code || ''} ${contactDetails.phone_number}`.trim()}
@@ -835,8 +837,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           href={listingSmsHref(contactDetails.country_code || '', contactDetails.phone_number)}
                           className="text-[11px] font-bold px-2 py-1 rounded-md rounded-l-none border hover:opacity-90 leading-none self-stretch flex items-center"
                           style={{ background: '#ecfdf5', color: '#047857', borderColor: '#a7f3d0' }}
-                          title="Send SMS"
-                          aria-label={`Send SMS to ${contactDetails.country_code || ''} ${contactDetails.phone_number}`}
+                          title={t('sendSms')}
+                          aria-label={t('smsTo', { phone: `${contactDetails.country_code || ''} ${contactDetails.phone_number}`.trim() })}
                         >
                           SMS
                         </a>
@@ -844,7 +846,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     )}
                     {profile.is_verified && (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white px-2.5 py-1 rounded-full" style={{ background: 'rgba(16,185,129,0.25)', border: '1px solid rgba(16,185,129,0.4)' }}>
-                        <CheckCircle className="w-3 h-3" /> Verified
+                        <CheckCircle className="w-3 h-3" /> {t('verified')}
                       </span>
                     )}
                   </div>
@@ -855,7 +857,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   {viewCount > 0 && (
                     <span className="inline-flex items-center gap-1 text-sm font-semibold" style={{ color: '#64748b' }}>
                       <Eye className="w-4 h-4" />
-                      {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+                      {viewCount.toLocaleString()} {viewCount === 1 ? t('view') : t('views')}
                     </span>
                   )}
                   {modelDetails?.city && (
@@ -868,7 +870,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   )}
                   {modelDetails?.age && (
                     <span className="text-sm font-medium" style={{ color: '#64748b' }}>
-                      {modelDetails.age} years
+                      {t('yearsLabel', { age: modelDetails.age })}
                     </span>
                   )}
                 </div>
@@ -884,7 +886,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     className="w-full py-3.5 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 mb-3 text-sm tracking-wide"
                     style={{ background: 'linear-gradient(90deg, #9D174D, #EC4899)', boxShadow: '0 4px 20px rgba(236,72,153,0.4)' }}
                   >
-                    <Phone className="w-4 h-4" /> Show Contact
+                    <Phone className="w-4 h-4" /> {t('showContact')}
                   </button>
                 ) : (
                   <div className="mb-3 p-4 rounded-lg" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
@@ -906,13 +908,14 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                             <div className="flex flex-wrap gap-x-2 gap-y-0.5">
                               {contactDetails.contact_instruction && (
                                 <span className="text-xs" style={{ color: '#94a3b8' }}>
-                                  {contactDetails.contact_instruction === 'sms_and_call' ? 'SMS & call'
-                                    : contactDetails.contact_instruction === 'sms_only' ? 'SMS only'
-                                    : contactDetails.contact_instruction === 'no_sms' ? 'No SMS'
+                                  {contactDetails.contact_instruction === 'sms_and_call' ? t('smsAndCall')
+                                    : contactDetails.contact_instruction === 'sms_only' ? t('smsOnly')
+                                    : contactDetails.contact_instruction === 'no_sms' ? t('noSms')
+                                    : contactDetails.contact_instruction === 'call_only' ? t('callOnly')
                                     : contactDetails.contact_instruction.replace(/_/g, ' ')}
                                 </span>
                               )}
-                              {contactDetails.no_withheld_numbers && <span className="text-xs" style={{ color: '#94a3b8' }}>No withheld numbers</span>}
+                              {contactDetails.no_withheld_numbers && <span className="text-xs" style={{ color: '#94a3b8' }}>{t('noWithheldNumbers')}</span>}
                             </div>
                             {/* Clickable messengers — opens apps / web */}
                             {(contactDetails.has_whatsapp || contactDetails.has_viber || contactDetails.has_telegram) && (
@@ -976,7 +979,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                             )}
                           </div>
                         ) : contactDetails.email ? null : (
-                          <p className="text-sm text-center py-1" style={{ color: '#94a3b8' }}>No contact details provided yet</p>
+                          <p className="text-sm text-center py-1" style={{ color: '#94a3b8' }}>{t('noContactDetails')}</p>
                         )}
                         {contactDetails.email && (
                           <a href={`mailto:${contactDetails.email}`} className="flex items-center gap-2 text-sm transition-colors" style={{ color: '#475569' }}>
@@ -990,7 +993,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm text-center py-1" style={{ color: '#94a3b8' }}>Contact information not available</p>
+                      <p className="text-sm text-center py-1" style={{ color: '#94a3b8' }}>{t('contactNotAvailable')}</p>
                     )}
                   </div>
                 )}
@@ -1007,14 +1010,14 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     }
                   >
                     <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
-                    {isSavingFavorite ? 'Saving…' : isFavorite ? 'Saved' : 'Save'}
+                    {isSavingFavorite ? t('saving') : isFavorite ? t('saved') : t('save')}
                   </button>
                   <button
                     onClick={handleShare}
                     className="py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-1.5"
                     style={{ background: 'transparent', color: '#64748b', border: '1px solid #e2e8f0' }}
                   >
-                    <Share2 className="w-4 h-4" /> Share
+                    <Share2 className="w-4 h-4" /> {t('share')}
                   </button>
                 </div>
               </div>
@@ -1022,18 +1025,18 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               {/* ── Stats row ── */}
               {modelDetails && (() => {
                 const statRows = [
-                  modelDetails.age         && ['Age',         `${modelDetails.age} yrs`],
-                  modelDetails.height_cm   && ['Height',      `${modelDetails.height_cm} cm`],
-                  modelDetails.weight_kg   && ['Weight',      `${modelDetails.weight_kg} kg`],
-                  modelDetails.bust_cm     && ['Bust',        `${modelDetails.bust_cm} cm`],
-                  modelDetails.waist_cm    && ['Waist',       `${modelDetails.waist_cm} cm`],
-                  modelDetails.hip_cm      && ['Hip',         `${modelDetails.hip_cm} cm`],
-                  modelDetails.hair_color  && ['Hair',        formatHairColor(modelDetails.hair_color)],
-                  modelDetails.eye_color   && ['Eyes',        formatEyeColor(modelDetails.eye_color)],
-                  modelDetails.ethnicity   && ['Ethnicity',   formatEthnicity(modelDetails.ethnicity)],
-                  modelDetails.nationality && ['Nationality', modelDetails.nationality],
-                  modelDetails.dress_size  && ['Dress',       modelDetails.dress_size.toUpperCase()],
-                  modelDetails.gender      && ['Gender',      formatGender(modelDetails.gender)],
+                  modelDetails.age         && [t('statAge'),         `${modelDetails.age} ${t('yrsShort')}`],
+                  modelDetails.height_cm   && [t('statHeight'),      `${modelDetails.height_cm} cm`],
+                  modelDetails.weight_kg   && [t('statWeight'),      `${modelDetails.weight_kg} kg`],
+                  modelDetails.bust_cm     && [t('statBust'),        `${modelDetails.bust_cm} cm`],
+                  modelDetails.waist_cm    && [t('statWaist'),       `${modelDetails.waist_cm} cm`],
+                  modelDetails.hip_cm      && [t('statHip'),         `${modelDetails.hip_cm} cm`],
+                  modelDetails.hair_color  && [t('statHair'),        formatHairColor(modelDetails.hair_color)],
+                  modelDetails.eye_color   && [t('statEyes'),        formatEyeColor(modelDetails.eye_color)],
+                  modelDetails.ethnicity   && [t('statEthnicity'),   formatEthnicity(modelDetails.ethnicity)],
+                  modelDetails.nationality && [t('statNationality'), modelDetails.nationality],
+                  modelDetails.dress_size  && [t('statDress'),       modelDetails.dress_size.toUpperCase()],
+                  modelDetails.gender      && [t('statGender'),      formatGender(modelDetails.gender)],
                 ].filter(Boolean)
                 if (!statRows.length) return null
                 return (
@@ -1051,7 +1054,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     </div>
                     {modelDetails.special_characteristics && (
                       <div className="px-5 py-3" style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <span className="text-[11px] uppercase tracking-widest font-medium block mb-1" style={{ color: '#94a3b8' }}>Special</span>
+                        <span className="text-[11px] uppercase tracking-widest font-medium block mb-1" style={{ color: '#94a3b8' }}>{t('statSpecial')}</span>
                         <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>{modelDetails.special_characteristics}</p>
                       </div>
                     )}
@@ -1067,13 +1070,13 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               return (
                 <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Rates</span>
+                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('ratesTitle')}</span>
                   </div>
                   <div className="grid grid-cols-2 divide-x divide-slate-100">
                     {/* Incall */}
                     <div>
                       <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#EC4899' }}>Incall</span>
+                        <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#EC4899' }}>{t('incallTitle')}</span>
                       </div>
                       {incallRates.length > 0 ? incallRates.map((rate: any) => (
                         <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
@@ -1087,7 +1090,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     {/* Outcall */}
                     <div>
                       <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#818CF8' }}>Outcall</span>
+                        <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#818CF8' }}>{t('outcallTitle')}</span>
                       </div>
                       {outcallRates.length > 0 ? outcallRates.map((rate: any) => (
                         <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
@@ -1107,7 +1110,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {modelDetails?.about_me && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>About me</span>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('aboutMeTitle')}</span>
                 </div>
                 <p className="px-5 py-4 whitespace-pre-wrap" style={{ color: '#475569' }}>{htmlToPlainText(modelDetails.about_me || '')}</p>
               </div>
@@ -1117,21 +1120,21 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {(services.length > 0 || (modelDetails?.other_services && String(modelDetails.other_services).trim().length > 0)) && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Services</span>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('servicesTitle')}</span>
                 </div>
                 <div className="px-5 py-4">
                   {services.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {services.map((service: any) => (
                         <span key={service.id} className="text-xs px-3 py-1.5 font-medium rounded-md" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>
-                          {service.service?.name || 'Service'}
+                          {service.service?.name || t('fallbackService')}
                         </span>
                       ))}
                     </div>
                   )}
                   {modelDetails?.services_for?.length > 0 && (
                     <div className={`${services.length > 0 ? 'mt-3 pt-3' : ''}`} style={{ borderTop: services.length > 0 ? '1px solid #f1f5f9' : undefined }}>
-                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>For</p>
+                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>{t('servicesFor')}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {modelDetails.services_for.map((sf: string, i: number) => (
                           <span key={i} className="text-xs px-3 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>{sf}</span>
@@ -1144,7 +1147,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       className={`${services.length > 0 || (modelDetails?.services_for?.length ?? 0) > 0 ? 'mt-3 pt-3' : ''}`}
                       style={{ borderTop: services.length > 0 || (modelDetails?.services_for?.length ?? 0) > 0 ? '1px solid #f1f5f9' : undefined }}
                     >
-                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>Other</p>
+                      <p className="text-[11px] uppercase tracking-widest font-bold mb-2" style={{ color: '#94a3b8' }}>{t('servicesOther')}</p>
                       <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>{String(modelDetails.other_services).trim()}</p>
                     </div>
                   )}
@@ -1156,7 +1159,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {languages.length > 0 && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Languages</span>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('languagesTitle')}</span>
                 </div>
                 <div className="px-5 py-4 flex flex-wrap gap-2">
                   {languages.map((lang: any) => {
@@ -1223,7 +1226,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               return (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Location</span>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('locationTitle')}</span>
                 </div>
                 <div className="px-5 py-4">
                   {modelDetails.city && (
@@ -1252,7 +1255,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                       </span>
-                      Live: {liveLoc}
+                      {t('live', { location: liveLoc })}
                     </p>
                   )}
                   {(modelDetails?.incall_options?.length > 0 || modelDetails?.outcall_options?.length > 0) && (
@@ -1260,14 +1263,14 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   {modelDetails?.incall_options?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mb-1.5">
                       {formatIncallOptions(modelDetails.incall_options).map((opt: string, i: number) => (
-                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>Incall: {opt}</span>
+                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>{t('incallLabel', { opt })}</span>
                       ))}
                     </div>
                   )}
                   {modelDetails?.outcall_options?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {formatIncallOptions(modelDetails.outcall_options).map((opt: string, i: number) => (
-                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>Outcall: {opt}</span>
+                        <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>{t('outcallLabel', { opt })}</span>
                       ))}
                     </div>
                   )}
@@ -1282,7 +1285,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             {workingHours.length > 0 && (
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Availability</span>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('availabilityTitle')}</span>
                 </div>
                 <div className="px-5 py-3">
                   {(() => {
@@ -1292,7 +1295,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     if (is24_7) return (
                       <div className="flex items-center gap-2 py-1">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                        <span className="text-sm font-bold" style={{ color: '#059669' }}>Available 24 / 7</span>
+                        <span className="text-sm font-bold" style={{ color: '#059669' }}>{t('available247')}</span>
                       </div>
                     )
                     return (
@@ -1301,7 +1304,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           <div key={wh.id} className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid #f8fafc' }}>
                             <span className="text-xs" style={{ color: '#64748b' }}>{formatDayOfWeek(wh.day_of_week)}</span>
                             <span className="text-xs font-semibold" style={{ color: '#0f172a' }}>
-                              {wh.start_time && wh.end_time ? `${wh.start_time.slice(0, 5)} – ${wh.end_time.slice(0, 5)}` : 'Closed'}
+                              {wh.start_time && wh.end_time ? `${wh.start_time.slice(0, 5)} – ${wh.end_time.slice(0, 5)}` : t('closedDay')}
                             </span>
                           </div>
                         ))}
@@ -1317,7 +1320,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                 <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <Handshake className="w-4 h-4" style={{ color: '#94a3b8' }} />
-                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Collaborations</span>
+                  <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('collaborationsTitle')}</span>
                   <span className="text-[11px] font-bold ml-auto" style={{ color: '#cbd5e1' }}>({collabModels.length})</span>
                 </div>
                 <div className="p-4">
@@ -1357,7 +1360,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           </p>
                           {(model.city || model.age) && (
                             <p className="text-xs mt-0.5 truncate" style={{ color: '#94a3b8' }}>
-                              {[model.age ? `${model.age} yrs` : '', model.city].filter(Boolean).join(' · ')}
+                              {[model.age ? `${model.age} ${t('yrsShort')}` : '', model.city].filter(Boolean).join(' · ')}
                             </p>
                           )}
                         </div>
@@ -1374,14 +1377,14 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               return isLoggedIn && otherComments.length > 0 && (
                 <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>Reviews</span>
+                    <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('reviewsTitle')}</span>
                     <span className="text-[11px] font-bold" style={{ color: '#cbd5e1' }}>({otherComments.length})</span>
                   </div>
                   <div className="px-5 py-4 space-y-4">
                     {otherComments.map((comment: any) => (
                       <div key={comment.id} className="pb-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <div className="flex items-start justify-between mb-1.5">
-                          <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{comment.user.username || 'Anonymous'}</span>
+                          <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{comment.user.username || t('anonymousAuthor')}</span>
                           {comment.rating && (
                             <div className="flex gap-0.5">
                               {Array.from({ length: comment.rating }).map((_: any, i: number) => (
@@ -1400,7 +1403,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           <div className="mt-3 ml-4 pl-3" style={{ borderLeft: '2px solid rgba(236,72,153,0.4)' }}>
                             <div className="flex items-center gap-1.5 mb-1">
                               <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: '#EC4899' }}>
-                                {modelDetails?.showname || profile?.username || 'Model'} replied
+                                {t('modelRepliedLabel', { name: modelDetails?.showname || profile?.username || t('fallbackModel') })}
                               </span>
                               {comment.replied_at && (
                                 <span className="text-[10px]" style={{ color: '#94a3b8' }}>
@@ -1422,7 +1425,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
             <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <div className="px-5 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
                 <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>
-                  {myComment ? 'Your review' : 'Leave a review'}
+                  {myComment ? t('yourReview') : t('leaveReview')}
                 </span>
               </div>
               <div className="px-5 py-4">
@@ -1434,7 +1437,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       myComment.status === 'rejected' ? 'bg-red-100 text-red-600' :
                       'bg-amber-100 text-amber-700'
                     }`}>
-                      {myComment.status === 'approved' ? 'Published' : myComment.status === 'rejected' ? 'Removed' : 'Published'}
+                      {myComment.status === 'approved' ? t('statusPublished') : myComment.status === 'rejected' ? t('statusRemoved') : t('statusPublished')}
                     </span>
                     <p className="text-xs" style={{ color: '#94a3b8' }}>
                       {new Date(myComment.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
@@ -1453,12 +1456,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 <div>
                   {commentSuccess && (
                     <div className="mb-3 p-3 rounded-md text-sm font-medium" style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#059669' }}>
-                      Your review has been published!
+                      {t('reviewPublished')}
                     </div>
                   )}
                   {!showCommentForm ? (
                     <>
-                      <p className="text-sm mb-3" style={{ color: '#94a3b8' }}>Share your experience with this model.</p>
+                      <p className="text-sm mb-3" style={{ color: '#94a3b8' }}>{t('shareExperience')}</p>
                       <button
                         onClick={() => {
                           const supabase = createClient()
@@ -1470,7 +1473,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         className="w-full py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2"
                         style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
                       >
-                        <MessageCircle className="w-4 h-4" /> Write a review
+                        <MessageCircle className="w-4 h-4" /> {t('writeReview')}
                       </button>
                     </>
                   ) : (
@@ -1486,7 +1489,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       <textarea
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
-                        placeholder="Share your experience…"
+                        placeholder={t('sharePlaceholder')}
                         rows={4}
                         maxLength={1000}
                         className="w-full px-3 py-2.5 text-sm rounded-md focus:outline-none resize-none"
@@ -1500,17 +1503,17 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                           className="flex-1 py-2.5 text-sm font-bold rounded-md transition-all disabled:opacity-50"
                           style={{ background: 'linear-gradient(90deg, #9D174D, #EC4899)', color: 'white' }}
                         >
-                          {submittingComment ? 'Submitting…' : 'Submit'}
+                          {submittingComment ? t('submitting') : t('submit')}
                         </button>
                         <button
                           onClick={() => { setShowCommentForm(false); setCommentText(''); setCommentRating(0) }}
                           className="px-4 py-2.5 text-sm font-semibold rounded-md transition-colors"
                           style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#64748b' }}
                         >
-                          Cancel
+                          {t('cancel')}
                         </button>
                       </div>
-                      <p className="text-xs" style={{ color: '#94a3b8' }}>Your review will be published immediately.</p>
+                      <p className="text-xs" style={{ color: '#94a3b8' }}>{t('reviewWillBePublished')}</p>
                     </div>
                   )}
                 </div>
@@ -1537,8 +1540,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
               >
                 <p className="text-[10px] uppercase tracking-widest font-bold mb-3 flex items-center gap-1.5" style={{ color: '#94a3b8' }}>
                   {currentUserRole === 'model'
-                    ? <><Handshake className="w-3 h-3" /> Quick Collaboration</>
-                    : <><Users className="w-3 h-3" /> Club Invite</>
+                    ? <><Handshake className="w-3 h-3" /> {t('quickCollaboration')}</>
+                    : <><Users className="w-3 h-3" /> {t('clubInvite')}</>
                   }
                 </p>
 
@@ -1547,15 +1550,15 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   <>
                     {collabStatus === 'accepted' ? (
                       <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold" style={{ background: 'rgba(16,185,129,0.15)', color: '#4ade80', border: '1px solid rgba(16,185,129,0.25)' }}>
-                        <Handshake className="w-4 h-4" /> Already collaborating
+                        <Handshake className="w-4 h-4" /> {t('alreadyCollaborating')}
                       </div>
                     ) : collabStatus === 'pending_sent' ? (
                       <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.2)' }}>
-                        <Clock className="w-4 h-4" /> Request sent – awaiting response
+                        <Clock className="w-4 h-4" /> {t('requestSent')}
                       </div>
                     ) : collabStatus === 'pending_received' ? (
                       <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc', border: '1px solid rgba(99,102,241,0.2)' }}>
-                        <Handshake className="w-4 h-4" /> They sent you a request
+                        <Handshake className="w-4 h-4" /> {t('theySentRequest')}
                       </div>
                     ) : (
                       <button
@@ -1569,7 +1572,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         }}
                       >
                         <Handshake className="w-4 h-4" />
-                        {sendingInvite ? 'Sending…' : 'Invite to Collaborate'}
+                        {sendingInvite ? t('sending') : t('inviteToCollaborate')}
                       </button>
                     )}
                   </>
@@ -1580,11 +1583,11 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   <>
                     {clubInviteStatus === 'accepted' ? (
                       <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-bold" style={{ background: 'rgba(16,185,129,0.15)', color: '#4ade80', border: '1px solid rgba(16,185,129,0.25)' }}>
-                        <CheckCircle className="w-4 h-4" /> Already in your club
+                        <CheckCircle className="w-4 h-4" /> {t('alreadyInClub')}
                       </div>
                     ) : clubInviteStatus === 'pending' ? (
                       <div className="flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold" style={{ background: 'rgba(245,158,11,0.1)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.2)' }}>
-                        <Clock className="w-4 h-4" /> Invite sent – awaiting response
+                        <Clock className="w-4 h-4" /> {t('inviteSent')}
                       </div>
                     ) : (
                       <button
@@ -1598,7 +1601,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                         }}
                       >
                         <Users className="w-4 h-4" />
-                        {sendingInvite ? 'Sending…' : 'Invite to My Club'}
+                        {sendingInvite ? t('sending') : t('inviteToMyClub')}
                       </button>
                     )}
                   </>
@@ -1697,7 +1700,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
                     {mediaItems[selectedPhotoIndex]?.type === 'video' && (
                       <span className="bg-black/60 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                        VIDEO
+                        {t('videoBadge')}
                       </span>
                     )}
                     {mediaItems.length > 1 && (
@@ -1722,7 +1725,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
       {showShareToast && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-2xl z-50 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
           <CheckCircle className="w-5 h-5 text-green-400" />
-          <span className="font-medium">Link copied to clipboard!</span>
+          <span className="font-medium">{t('linkCopiedToClipboard')}</span>
         </div>
       )}
 
@@ -1747,12 +1750,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* Title */}
             <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">
-              Leave a Comment
+              {t('loginModalCommentTitle')}
             </h2>
 
             {/* Message */}
             <p className="text-gray-600 text-center mb-8">
-              You need to be logged in to leave a comment. Create an account or log in to share your experience.
+              {t('loginModalCommentMessage')}
             </p>
 
             {/* Buttons */}
@@ -1761,19 +1764,19 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 href={`/register?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg transition-all shadow-lg text-center"
               >
-                Create Account
+                {t('createAccount')}
               </Link>
               <Link
                 href={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-bold rounded-lg transition-all text-center"
               >
-                Log In
+                {t('logIn')}
               </Link>
             </div>
 
             {/* Additional info */}
             <p className="text-xs text-gray-500 text-center mt-6">
-              Share your experience with this model to help others make informed decisions.
+              {t('loginModalCommentExtra')}
             </p>
           </div>
         </div>
@@ -1800,12 +1803,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* Title */}
             <h2 className="text-2xl font-bold text-gray-900 text-center mb-3">
-              Save to Favorites
+              {t('loginModalFavoriteTitle')}
             </h2>
 
             {/* Message */}
             <p className="text-gray-600 text-center mb-8">
-              You need to be logged in to save models to your favorites. Create an account or log in to continue.
+              {t('loginModalFavoriteMessage')}
             </p>
 
             {/* Buttons */}
@@ -1814,19 +1817,19 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 href={`/register?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white font-bold rounded-lg transition-all shadow-lg text-center"
               >
-                Create Account
+                {t('createAccount')}
               </Link>
               <Link
                 href={`/login?redirect=${encodeURIComponent(window.location.pathname)}`}
                 className="block w-full py-3 px-4 border-2 border-pink-600 text-pink-600 hover:bg-pink-50 font-bold rounded-lg transition-all text-center"
               >
-                Log In
+                {t('logIn')}
               </Link>
             </div>
 
             {/* Additional info */}
             <p className="text-xs text-gray-500 text-center mt-6">
-              Create a free account to access favorites, leave comments, and more.
+              {t('loginModalFavoriteExtra')}
             </p>
           </div>
         </div>

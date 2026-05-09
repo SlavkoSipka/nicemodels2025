@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Clock, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
@@ -12,18 +13,19 @@ interface DayHours {
   to: string
 }
 
-const DAYS = [
-  { key: 'monday', label: 'Mon' },
-  { key: 'tuesday', label: 'Tue' },
-  { key: 'wednesday', label: 'Wed' },
-  { key: 'thursday', label: 'Thu' },
-  { key: 'friday', label: 'Fri' },
-  { key: 'saturday', label: 'Sat' },
-  { key: 'sunday', label: 'Sun' }
-]
-
 export default function WorkingHoursPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.workingHours')
+  const tc = useTranslations('dashboard.company.common')
+  const DAYS = useMemo(() => ([
+    { key: 'monday', label: t('dayMon') },
+    { key: 'tuesday', label: t('dayTue') },
+    { key: 'wednesday', label: t('dayWed') },
+    { key: 'thursday', label: t('dayThu') },
+    { key: 'friday', label: t('dayFri') },
+    { key: 'saturday', label: t('daySat') },
+    { key: 'sunday', label: t('daySun') }
+  ]), [t])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -112,7 +114,7 @@ export default function WorkingHoursPage() {
 
     if (scheduleType === 'same_every_day') {
       if (!sameEveryDayHours.from || !sameEveryDayHours.to) {
-        setError('Please specify opening and closing hours')
+        setError(t('errSpecify'))
         return
       }
     }
@@ -120,7 +122,7 @@ export default function WorkingHoursPage() {
     if (scheduleType === 'custom') {
       const hasAnyHours = Object.values(customHours).some(day => day.from || day.to)
       if (!hasAnyHours) {
-        setError('Please specify hours for at least one day')
+        setError(t('errAtLeastOne'))
         return
       }
     }
@@ -190,10 +192,10 @@ export default function WorkingHoursPage() {
         if (insertError) throw insertError
       }
 
-      setSuccess('Working hours updated successfully!')
+      setSuccess(t('successUpdated'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to save. Please try again.')
+      setError(err.message || t('errFailed'))
     } finally {
       setSaving(false)
     }
@@ -210,8 +212,8 @@ export default function WorkingHoursPage() {
             <Clock className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Working Hours</h1>
-            <p className="text-xs text-gray-500">Set your club's operating hours for clients</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -230,7 +232,7 @@ export default function WorkingHoursPage() {
         )}
 
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-          <p className="text-sm font-bold text-gray-800">Schedule type</p>
+          <p className="text-sm font-bold text-gray-800">{t('scheduleType')}</p>
           <div className="space-y-2">
             <label
               className={`flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -247,8 +249,8 @@ export default function WorkingHoursPage() {
                 className="w-4 h-4 text-brand border-gray-300 focus:ring-brand"
               />
               <div>
-                <span className="text-sm font-semibold text-gray-900">Available 24/7</span>
-                <span className="text-xs text-gray-500 ml-1">— open all day, every day</span>
+                <span className="text-sm font-semibold text-gray-900">{t('open247')}</span>
+                <span className="text-xs text-gray-500 ml-1">{t('open247Hint')}</span>
               </div>
             </label>
             <label
@@ -266,8 +268,8 @@ export default function WorkingHoursPage() {
                 className="w-4 h-4 text-brand border-gray-300 focus:ring-brand"
               />
               <div>
-                <span className="text-sm font-semibold text-gray-900">Same hours every day</span>
-                <span className="text-xs text-gray-500 ml-1">— Mon–Sun same times</span>
+                <span className="text-sm font-semibold text-gray-900">{t('sameEveryDay')}</span>
+                <span className="text-xs text-gray-500 ml-1">{t('sameEveryDayHint')}</span>
               </div>
             </label>
             <label
@@ -285,18 +287,18 @@ export default function WorkingHoursPage() {
                 className="w-4 h-4 text-brand border-gray-300 focus:ring-brand"
               />
               <div>
-                <span className="text-sm font-semibold text-gray-900">Custom schedule</span>
-                <span className="text-xs text-gray-500 ml-1">— different hours per day</span>
+                <span className="text-sm font-semibold text-gray-900">{t('custom')}</span>
+                <span className="text-xs text-gray-500 ml-1">{t('customHint')}</span>
               </div>
             </label>
           </div>
 
           {scheduleType === 'same_every_day' && (
             <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <p className="text-xs font-bold text-gray-800 mb-2">Daily hours</p>
+              <p className="text-xs font-bold text-gray-800 mb-2">{t('dailyHours')}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Opens at</label>
+                  <label className="block text-xs text-gray-600 mb-1">{t('opensAt')}</label>
                   <input
                     type="time"
                     value={sameEveryDayHours.from}
@@ -305,7 +307,7 @@ export default function WorkingHoursPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Closes at</label>
+                  <label className="block text-xs text-gray-600 mb-1">{t('closesAt')}</label>
                   <input
                     type="time"
                     value={sameEveryDayHours.to}
@@ -319,7 +321,7 @@ export default function WorkingHoursPage() {
 
           {scheduleType === 'custom' && (
             <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
-              <p className="text-xs font-bold text-gray-800 mb-2">Weekly schedule</p>
+              <p className="text-xs font-bold text-gray-800 mb-2">{t('weeklySchedule')}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
                 {DAYS.map(({ key, label }) => (
                   <div key={key} className="flex items-center gap-2">
@@ -340,13 +342,13 @@ export default function WorkingHoursPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-2">Leave empty for closed days.</p>
+              <p className="text-xs text-gray-500 mt-2">{t('leaveEmpty')}</p>
             </div>
           )}
 
           <div className="bg-blue-50/80 border border-blue-100 rounded-lg p-3">
             <p className="text-xs text-blue-800">
-              <span className="font-semibold">Tip:</span> Working hours are shown on your public profile. Keep them updated so clients know when you're available.
+              <span className="font-semibold">{t('tipPrefix')}</span> {t('tipBody')}
             </p>
           </div>
 
@@ -355,7 +357,7 @@ export default function WorkingHoursPage() {
               onClick={() => router.push('/dashboard/company')}
               className="text-sm font-semibold text-gray-600 hover:text-gray-900"
             >
-              Cancel
+              {tc('cancel')}
             </button>
             <button
               onClick={handleSave}
@@ -363,7 +365,7 @@ export default function WorkingHoursPage() {
               className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save className="w-4 h-4" />
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? tc('saving') : tc('save')}
             </button>
           </div>
         </div>

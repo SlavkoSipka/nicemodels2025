@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Search, UserPlus, AlertCircle, CheckCircle, ArrowLeft, X, Zap } from 'lucide-react'
 
@@ -18,6 +19,7 @@ interface ModelSearchResult {
 
 export default function InviteModelPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.modelInvite')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [user, setUser] = useState<any>(null)
@@ -119,7 +121,7 @@ export default function InviteModelPage() {
         .order('username', { ascending: true })
 
       if (fetchError) {
-        setError('Failed to load models.')
+        setError(t('errLoad'))
         return
       }
 
@@ -150,7 +152,7 @@ export default function InviteModelPage() {
         age: detailsMap.get(profile.id)?.age
       })))
     } catch (err: any) {
-      setError('Failed to load models: ' + err.message)
+      setError(t('errLoadGen', { msg: err.message }))
     }
   }
 
@@ -168,7 +170,7 @@ export default function InviteModelPage() {
     )
 
     setFilteredModels(filtered)
-    setError(filtered.length === 0 ? `No models found matching "${query}"` : '')
+    setError(filtered.length === 0 ? t('noMatch', { query }) : '')
   }
 
   const isMatchingSearch = (model: ModelSearchResult) => {
@@ -203,8 +205,8 @@ export default function InviteModelPage() {
 
       if (existingInvite) {
         setError(existingInvite.status === 'pending'
-          ? 'You already have a pending invite for this model'
-          : 'This model is already part of your club')
+          ? t('errAlreadyPending')
+          : t('errAlreadyMember'))
         setSending(false)
         return
       }
@@ -217,7 +219,7 @@ export default function InviteModelPage() {
         .eq('status', 'accepted')
 
       if ((currentMembers?.length || 0) >= 10) {
-        setError('Your club has reached the maximum of 10 models. Remove one first to invite a new one.')
+        setError(t('errMaxMembers'))
         setSending(false)
         return
       }
@@ -233,7 +235,7 @@ export default function InviteModelPage() {
 
       if (inviteError) throw inviteError
 
-      setSuccess('Invitation sent successfully!')
+      setSuccess(t('successSent'))
       setSelectedModel(null)
       setInviteMessage('')
       setSearchQuery('')
@@ -246,7 +248,7 @@ export default function InviteModelPage() {
         router.push('/dashboard/company/models')
       }, 2000)
     } catch (err: any) {
-      setError(err.message || 'Failed to send invitation. Please try again.')
+      setError(err.message || t('errSendFailed'))
     } finally {
       setSending(false)
     }
@@ -264,14 +266,14 @@ export default function InviteModelPage() {
             <UserPlus className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Invite Model</h1>
-            <p className="text-xs text-gray-500">Search for a model and send them an invitation to join your club</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
           <button
             onClick={() => router.push('/dashboard/company/models')}
             className="ml-auto flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" /> {t('back')}
           </button>
         </div>
 
@@ -296,16 +298,16 @@ export default function InviteModelPage() {
                 <Zap className="w-4 h-4 text-amber-600" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold text-amber-900">Active ad required</p>
+                <p className="text-sm font-bold text-amber-900">{t('activeAdRequired')}</p>
                 <p className="text-xs text-amber-700 mt-1">
-                  You need an active ad package to send invitations to models. Activate an ad first so models can find and view your club profile.
+                  {t('activeAdHint')}
                 </p>
                 <Link
                   href="/dashboard/company/activate-ad"
                   className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover transition-colors"
                 >
                   <Zap className="w-4 h-4" />
-                  Activate Sedcard
+                  {t('activateSedcard')}
                 </Link>
               </div>
             </div>
@@ -324,14 +326,14 @@ export default function InviteModelPage() {
                 setSearchQuery(e.target.value)
                 handleSearch(e.target.value)
               }}
-              placeholder="Search by username or showname..."
+              placeholder={t('searchPlaceholder')}
               className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
             />
           </div>
           <p className="text-xs text-gray-400 mt-2">
             {searchQuery.trim() && filteredModels.length > 0
-              ? `${filteredModels.length} of ${allModels.length} matching`
-              : `${allModels.length} model${allModels.length !== 1 ? 's' : ''} available`}
+              ? t('searchSummaryMatch', { matching: filteredModels.length, total: allModels.length })
+              : t('searchSummaryAvail', { count: allModels.length })}
           </p>
         </div>
 
@@ -339,16 +341,16 @@ export default function InviteModelPage() {
         {!selectedModel && (
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <p className="text-sm font-bold text-gray-800 mb-3">
-              All Models ({allModels.length})
+              {t('allModels', { count: allModels.length })}
               {searchQuery.trim() && filteredModels.length > 0 && (
                 <span className="ml-1.5 text-xs font-normal text-brand">
-                  · {filteredModels.length} match{filteredModels.length !== 1 ? 'es' : ''}
+                  {t('matchSuffix', { count: filteredModels.length })}
                 </span>
               )}
             </p>
             {allModels.length === 0 ? (
               <div className="text-center py-8 border border-dashed border-gray-200 rounded-lg">
-                <p className="text-sm text-gray-500">No models available</p>
+                <p className="text-sm text-gray-500">{t('noModelsAvailable')}</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
@@ -382,14 +384,14 @@ export default function InviteModelPage() {
                             @{model.username}
                             {(model.age || model.city) && (
                               <span className="ml-1">
-                                · {[model.age ? `${model.age}y` : '', model.city].filter(Boolean).join(' · ')}
+                                · {[model.age ? t('ageShort', { age: model.age }) : '', model.city].filter(Boolean).join(' · ')}
                               </span>
                             )}
                           </p>
                         </div>
                       </div>
                       <span className="text-xs font-semibold text-brand bg-brand/10 px-2.5 py-1 rounded-lg shrink-0 ml-2">
-                        Select
+                        {t('select')}
                       </span>
                     </div>
                   )
@@ -402,7 +404,7 @@ export default function InviteModelPage() {
         {/* Send invite panel */}
         {selectedModel && (
           <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-            <p className="text-sm font-bold text-gray-800">Send Invitation</p>
+            <p className="text-sm font-bold text-gray-800">{t('sendInvitation')}</p>
 
             {/* Selected model preview */}
             <div className="flex items-center gap-3 p-3 bg-brand/5 border border-brand/20 rounded-lg">
@@ -427,13 +429,13 @@ export default function InviteModelPage() {
             {/* Message */}
             <div>
               <label className="block text-xs font-bold text-gray-800 mb-1">
-                Personal Message <span className="font-normal text-gray-400">(optional)</span>
+                {t('personalMessage')} <span className="font-normal text-gray-400">{t('optional')}</span>
               </label>
               <textarea
                 value={inviteMessage}
                 onChange={(e) => setInviteMessage(e.target.value)}
                 rows={3}
-                placeholder="Add a personal message to your invitation..."
+                placeholder={t('messagePlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent resize-none"
                 maxLength={500}
               />
@@ -442,12 +444,12 @@ export default function InviteModelPage() {
 
             {/* Info */}
             <div className="bg-gray-50 border border-gray-100 rounded-lg p-3">
-              <p className="text-xs font-semibold text-gray-700 mb-1">What happens next?</p>
+              <p className="text-xs font-semibold text-gray-700 mb-1">{t('whatHappens')}</p>
               <ul className="text-xs text-gray-500 space-y-0.5">
-                <li>· The model will receive a notification</li>
-                <li>· They can accept or decline your invitation</li>
-                <li>· If accepted, they'll appear in your models list</li>
-                <li>· Models can be part of multiple clubs</li>
+                <li>{t('whatItem1')}</li>
+                <li>{t('whatItem2')}</li>
+                <li>{t('whatItem3')}</li>
+                <li>{t('whatItem4')}</li>
               </ul>
             </div>
 
@@ -457,7 +459,7 @@ export default function InviteModelPage() {
                 onClick={() => { setSelectedModel(null); setInviteMessage('') }}
                 className="text-sm font-semibold text-gray-600 hover:text-gray-900"
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleSendInvite}
@@ -465,7 +467,7 @@ export default function InviteModelPage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <UserPlus className="w-4 h-4" />
-                {sending ? 'Sending...' : 'Send Invitation'}
+                {sending ? t('sending') : t('sendBtn')}
               </button>
             </div>
           </div>

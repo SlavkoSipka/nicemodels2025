@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, Users,
@@ -97,6 +98,7 @@ async function loadViewBreakdown(
 
 export default function CompanyDashboardPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.home')
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
@@ -160,7 +162,7 @@ export default function CompanyDashboardPage() {
 
   if (loading) return null
 
-  const clubName = clubDetails?.display_name || clubDetails?.club_name || 'there'
+  const clubName = clubDetails?.display_name || clubDetails?.club_name || t('thereFallback')
   const clientCode = user?.id?.slice(0, 8).toUpperCase() || 'N/A'
 
   const hasPhotos = photoCount >= 1
@@ -177,27 +179,27 @@ export default function CompanyDashboardPage() {
             <div className="flex items-start gap-3">
               <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-bold text-red-800 mb-1">Account suspended</p>
+                <p className="text-sm font-bold text-red-800 mb-1">{t('blockedTitle')}</p>
                 <p className="text-sm text-red-700">
-                  Your account has been suspended by our administration team.
+                  {t('blockedDesc')}
                   {profile?.blocked_reason && <span className="block mt-1 font-medium">{profile.blocked_reason}</span>}
                 </p>
                 {profile?.blocked_at && (
                   <p className="text-xs text-red-500 mt-1">
-                    {new Date(profile.blocked_at).toLocaleDateString()} at {new Date(profile.blocked_at).toLocaleTimeString()}
+                    {t('blockedDateAt', { date: new Date(profile.blocked_at).toLocaleDateString(), time: new Date(profile.blocked_at).toLocaleTimeString() })}
                   </p>
                 )}
                 <div className="mt-3 text-xs text-red-700 space-y-0.5">
-                  <p>· Your club profile is hidden from search results</p>
-                  <p>· Clients cannot view your profile</p>
-                  <p>· You cannot receive new messages</p>
-                  <p>· Advertising features are disabled</p>
+                  <p>{t('blockedItem1')}</p>
+                  <p>{t('blockedItem2')}</p>
+                  <p>{t('blockedItem3')}</p>
+                  <p>{t('blockedItem4')}</p>
                 </div>
                 <a
                   href="mailto:info@nicemodels.ch?subject=Account Blocked - Appeal Request"
                   className="inline-flex items-center gap-1.5 mt-3 text-xs font-semibold text-red-700 hover:text-red-900 underline underline-offset-2"
                 >
-                  <Mail className="w-3.5 h-3.5" /> Contact support to appeal
+                  <Mail className="w-3.5 h-3.5" /> {t('contactSupportAppeal')}
                 </a>
               </div>
             </div>
@@ -210,36 +212,36 @@ export default function CompanyDashboardPage() {
             <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
               <Lightbulb className="w-4 h-4 text-brand" />
             </div>
-            <p className="text-sm font-bold text-gray-800">How to get started</p>
+            <p className="text-sm font-bold text-gray-800">{t('howToStart')}</p>
           </div>
           <div className="space-y-3">
             {[
               {
                 step: '1',
-                title: 'Complete your club profile',
-                desc: 'Go to Club Profile and fill in your basic info, contact details and working hours. This is exactly what clients will see.',
-                action: 'Open Club Profile',
+                title: t('step1Title'),
+                desc: t('step1Desc'),
+                action: t('step1Action'),
                 href: '/dashboard/company/profile/basic-info',
               },
               {
                 step: '2',
-                title: 'Upload club photos',
-                desc: 'Add high-quality photos of your venue. A well-presented club profile attracts far more interest.',
-                action: 'Upload photos',
+                title: t('step2Title'),
+                desc: t('step2Desc'),
+                action: t('step2Action'),
                 href: '/dashboard/company/profile/club-photos',
               },
               {
                 step: '3',
-                title: 'Add models to your roster',
-                desc: 'Invite or create model profiles and link them to your club. More models means more visibility in search results.',
-                action: 'Manage models',
+                title: t('step3Title'),
+                desc: t('step3Desc'),
+                action: t('step3Action'),
                 href: '/dashboard/company/models',
               },
               {
                 step: '4',
-                title: 'Activate your ad',
-                desc: 'Go to Activate Club Ad and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your club appears in search results.',
-                action: 'Activate Club Ad',
+                title: t('step4Title'),
+                desc: t('step4Desc'),
+                action: t('step4Action'),
                 href: '/dashboard/company/activate-ad',
               },
             ].map(({ step, title, desc, action, href }) => (
@@ -271,7 +273,7 @@ export default function CompanyDashboardPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-gray-900">
-                  {notifications.length} unread notification{notifications.length > 1 ? 's' : ''}
+                  {t('unreadCount', { count: notifications.length })}
                 </p>
                 <p className="text-xs text-gray-500">{notifications[0]?.title}</p>
               </div>
@@ -280,7 +282,7 @@ export default function CompanyDashboardPage() {
               onClick={() => router.push('/dashboard/company/notifications')}
               className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 transition-colors"
             >
-              View all <ChevronRight className="w-4 h-4" />
+              {t('viewAll')} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -289,9 +291,9 @@ export default function CompanyDashboardPage() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="text-lg md:text-xl font-bold text-gray-900">
-              Welcome back, <span className="text-brand">{clubName}</span>
+              {t('welcomeBack')} <span className="text-brand">{clubName}</span>
             </h1>
-            <p className="text-xs text-gray-400 mt-0.5 font-mono">Agency ID: {clientCode}</p>
+            <p className="text-xs text-gray-400 mt-0.5 font-mono">{t('agencyId', { code: clientCode })}</p>
           </div>
         </div>
 
@@ -307,11 +309,11 @@ export default function CompanyDashboardPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 px-2 py-0.5 rounded-full">Promotion</span>
-                  <span className="text-sm md:text-base font-bold text-white">Buy a homepage banner</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 bg-white/20 px-2 py-0.5 rounded-full">{t('promoLabel')}</span>
+                  <span className="text-sm md:text-base font-bold text-white">{t('buyHomepageBanner')}</span>
                 </div>
                 <p className="text-xs md:text-sm text-white/90 leading-snug">
-                  Promote your club with a banner on the homepage — use <span className="font-semibold">Buy Banner</span> in the sidebar to pick a slot.
+                  {t.rich('buyHomepagePromo', { bold: (chunks) => <span className="font-semibold">{chunks}</span> })}
                 </p>
               </div>
               <ChevronRight className="w-5 h-5 text-white/90 shrink-0 mt-1 group-hover:translate-x-0.5 transition-transform" />
@@ -332,15 +334,15 @@ export default function CompanyDashboardPage() {
                     <Camera className="w-4 h-4 text-rose-600" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">Your club profile needs photos</p>
-                    <p className="text-xs text-gray-500">Upload at least 1 photo to improve your profile visibility</p>
+                    <p className="text-sm font-semibold text-gray-900">{t('needsPhotos')}</p>
+                    <p className="text-xs text-gray-500">{t('needsPhotosHint')}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => router.push('/dashboard/company/profile/club-photos')}
                   className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 transition-colors"
                 >
-                  Upload <ChevronRight className="w-4 h-4" />
+                  {t('upload')} <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             )}
@@ -348,16 +350,16 @@ export default function CompanyDashboardPage() {
             {/* Welcome notice */}
             <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
               <div className="flex items-center gap-2 mb-3">
-                <p className="text-sm font-bold text-gray-900">Welcome to nicemodels.ch</p>
+                <p className="text-sm font-bold text-gray-900">{t('welcomeTitle')}</p>
               </div>
               <p className="text-sm text-gray-600 mb-3 md:mb-4">
-                Get the most out of <span className="font-semibold text-gray-900">nicemodels.ch</span>. Complete your club profile, add models, then activate your club ad so visitors can find you.
+                {t.rich('welcomeBody', { bold: (chunks) => <span className="font-semibold text-gray-900">{chunks}</span> })}
               </p>
               <div className="space-y-1.5 mb-3 md:mb-4">
                 {[
-                  'Club ad activation from CHF 19',
-                  'Banners and listings paid via secure Stripe checkout',
-                  'A complete profile gets the most visibility',
+                  t('welcomeTip1'),
+                  t('welcomeTip2'),
+                  t('welcomeTip3'),
                 ].map(tip => (
                   <div key={tip} className="flex items-center gap-2 text-sm text-gray-700">
                     <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -366,12 +368,12 @@ export default function CompanyDashboardPage() {
                 ))}
               </div>
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-400 hidden md:block">Complete your club profile and add models to maximize visibility.</p>
+                <p className="text-xs text-gray-400 hidden md:block">{t('welcomeFooterHint')}</p>
                 <button
                   onClick={() => router.push('/dashboard/company/profile/basic-info')}
                   className="shrink-0 text-xs font-bold text-brand hover:text-brand-hover flex items-center gap-1 ml-4"
                 >
-                  Complete profile <ChevronRight className="w-4 h-4" />
+                  {t('completeProfile')} <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -382,36 +384,36 @@ export default function CompanyDashboardPage() {
                 <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                   <Lightbulb className="w-4 h-4 text-brand" />
                 </div>
-                <p className="text-sm font-bold text-gray-800">How to get started</p>
+                <p className="text-sm font-bold text-gray-800">{t('howToStart')}</p>
               </div>
               <div className="space-y-3">
                 {[
                   {
                     step: '1',
-                    title: 'Complete your club profile',
-                    desc: 'Go to Basic Info and fill in your identity, contact, location and amenities. This is exactly what clients will see.',
-                    action: 'Open Club Profile',
+                    title: t('step1Title'),
+                    desc: t('step1Desc'),
+                    action: t('step1Action'),
                     href: '/dashboard/company/profile/basic-info',
                   },
                   {
                     step: '2',
-                    title: 'Upload club photos',
-                    desc: 'Add high-quality photos of your venue. A well-presented club profile attracts far more interest.',
-                    action: 'Upload photos',
+                    title: t('step2Title'),
+                    desc: t('step2Desc'),
+                    action: t('step2Action'),
                     href: '/dashboard/company/profile/club-photos',
                   },
                   {
                     step: '3',
-                    title: 'Add models to your roster',
-                    desc: 'Invite or create model profiles and link them to your club. More models means more visibility in search results.',
-                    action: 'Manage models',
+                    title: t('step3Title'),
+                    desc: t('step3Desc'),
+                    action: t('step3Action'),
                     href: '/dashboard/company/models',
                   },
                   {
                     step: '4',
-                    title: 'Activate your ad',
-                    desc: 'Go to Activate Club Ad and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your club appears in search results.',
-                    action: 'Activate Club Ad',
+                    title: t('step4Title'),
+                    desc: t('step4Desc'),
+                    action: t('step4Action'),
                     href: '/dashboard/company/activate-ad',
                   },
                 ].map(({ step, title, desc, action, href }) => (
@@ -440,13 +442,13 @@ export default function CompanyDashboardPage() {
                 <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                   <Lightbulb className="w-4 h-4 text-amber-600" />
                 </div>
-                <p className="text-sm font-bold text-gray-800">Agency tips</p>
+                <p className="text-sm font-bold text-gray-800">{t('agencyTipsHeading')}</p>
               </div>
               <div className="space-y-2.5">
                 {[
-                  'A complete club profile gets 3× more views than an incomplete one',
-                  'Keep your model roster updated regularly for better ranking',
-                  'Add high-quality photos of your venue to stand out',
+                  t('agencyTip1'),
+                  t('agencyTip2'),
+                  t('agencyTip3'),
                 ].map((tip, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-gray-600">
                     <span className="text-brand font-bold shrink-0 mt-0.5">→</span>
@@ -468,14 +470,14 @@ export default function CompanyDashboardPage() {
                   <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                     <BarChart2 className="w-4 h-4 text-brand" />
                   </div>
-                  <p className="text-sm font-bold text-gray-800">Club stats</p>
+                  <p className="text-sm font-bold text-gray-800">{t('clubStats')}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => router.push('/dashboard/company/statistics')}
                   className="text-[11px] font-bold text-brand hover:text-brand-hover flex items-center gap-0.5"
                 >
-                  Details <ChevronRight className="w-3.5 h-3.5" />
+                  {t('details')} <ChevronRight className="w-3.5 h-3.5" />
                 </button>
               </div>
 
@@ -487,22 +489,22 @@ export default function CompanyDashboardPage() {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <Eye className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs font-semibold text-gray-600">Total views</span>
-                  <span className="ml-auto text-[10px] text-gray-400">all-time</span>
+                  <span className="text-xs font-semibold text-gray-600">{t('totalViews')}</span>
+                  <span className="ml-auto text-[10px] text-gray-400">{t('allTime')}</span>
                 </div>
                 <p className="text-2xl font-bold text-gray-900 leading-none">{views.total}</p>
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-2.5 text-[11px] text-gray-600">
-                  <BreakdownRow icon={Building2} label="Club profile" value={views.club} color="text-blue-500" />
-                  <BreakdownRow icon={Users} label="Sedcards" value={views.sedcards} color="text-pink-500" />
-                  <BreakdownRow icon={Briefcase} label="Jobs / Rent" value={views.listings} color="text-amber-500" />
-                  <BreakdownRow icon={Megaphone} label="Banners" value={views.banners} color="text-purple-500" />
+                  <BreakdownRow icon={Building2} label={t('clubProfileLabel')} value={views.club} color="text-blue-500" />
+                  <BreakdownRow icon={Users} label={t('sedcardsLabel')} value={views.sedcards} color="text-pink-500" />
+                  <BreakdownRow icon={Briefcase} label={t('jobsRentLabel')} value={views.listings} color="text-amber-500" />
+                  <BreakdownRow icon={Megaphone} label={t('bannersLabel')} value={views.banners} color="text-purple-500" />
                 </div>
               </button>
 
               <div className="space-y-3">
                 {[
-                  { icon: Users, label: 'Active models', value: modelCount, color: 'text-indigo-500' },
-                  { icon: Building2, label: 'Club photos', value: photoCount, color: 'text-brand' },
+                  { icon: Users, label: t('activeModels'), value: modelCount, color: 'text-indigo-500' },
+                  { icon: Building2, label: t('clubPhotos'), value: photoCount, color: 'text-brand' },
                 ].map(({ icon: Icon, label, value, color }) => (
                   <div key={label} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                     <div className="flex items-center gap-2">
@@ -518,7 +520,7 @@ export default function CompanyDashboardPage() {
             {/* Profile strength */}
             <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-bold text-gray-800">Profile strength</p>
+                <p className="text-sm font-bold text-gray-800">{t('profileStrength')}</p>
                 <span className="text-sm font-bold text-brand">{strength}%</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-1.5 mb-3 md:mb-4">
@@ -526,19 +528,19 @@ export default function CompanyDashboardPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm text-emerald-600">
-                  <CheckCircle className="w-4 h-4 shrink-0" /> Basic info added
+                  <CheckCircle className="w-4 h-4 shrink-0" /> {t('basicInfoAdded')}
                 </div>
                 <div className={`flex items-center gap-2 text-sm ${hasPhotos ? 'text-emerald-600' : 'text-gray-400'}`}>
                   {hasPhotos
                     ? <CheckCircle className="w-4 h-4 shrink-0" />
                     : <XCircle className="w-4 h-4 shrink-0" />
-                  } Add club photos
+                  } {t('addClubPhotos')}
                 </div>
                 <div className={`flex items-center gap-2 text-sm ${hasModels ? 'text-emerald-600' : 'text-gray-400'}`}>
                   {hasModels
                     ? <CheckCircle className="w-4 h-4 shrink-0" />
                     : <XCircle className="w-4 h-4 shrink-0" />
-                  } Add at least 1 model
+                  } {t('addAtLeastOneModel')}
                 </div>
               </div>
             </div>
@@ -549,14 +551,14 @@ export default function CompanyDashboardPage() {
                 <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
                   <LifeBuoy className="w-4 h-4 text-blue-600" />
                 </div>
-                <p className="text-sm font-bold text-gray-800">Support</p>
+                <p className="text-sm font-bold text-gray-800">{t('support')}</p>
               </div>
               <div className="space-y-2">
                 <a href="mailto:info@nicemodels.ch" className="flex items-center gap-2 text-sm text-gray-600 hover:text-brand transition-colors">
                   <Mail className="w-4 h-4 text-gray-400" /> info@nicemodels.ch
                 </a>
                 <p className="flex items-center gap-2 text-sm text-gray-600">
-                  <Mail className="w-4 h-4 text-gray-400" /> Live chat available 24/7
+                  <Mail className="w-4 h-4 text-gray-400" /> {t('liveChat')}
                 </p>
               </div>
             </div>

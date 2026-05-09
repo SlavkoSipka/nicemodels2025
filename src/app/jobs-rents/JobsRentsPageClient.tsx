@@ -7,6 +7,7 @@ import {
   Briefcase, MapPin, Calendar, Phone, Mail, Globe,
   Building2, ChevronDown, X, Check
 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import Footer from '@/components/layout/Footer'
 import ViewCount from '@/components/ui/ViewCount'
 import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
@@ -40,6 +41,7 @@ type FilterType = 'all' | 'job' | 'rent'
 type RegionFilter = 'all' | RegionId
 
 export default function JobsRentsPageClient({ listings: initialListings }: { listings: ListingData[] }) {
+  const t = useTranslations('jobs.list')
   const [filter, setFilter] = useState<FilterType>('all')
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('all')
   const [listings, setListings] = useState<ListingData[]>(initialListings)
@@ -82,8 +84,8 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
 
           {/* Header */}
           <div className="mb-5 sm:mb-8">
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Jobs & Rent</h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">Browse job opportunities and rental listings</p>
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">{t('title')}</h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5 sm:mt-1">{t('subtitle')}</p>
           </div>
 
           {/* Stats + filter */}
@@ -91,9 +93,9 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
             <div className="flex items-baseline gap-2">
               <span className="text-xl sm:text-2xl font-semibold text-slate-900">{filtered.length}</span>
               <span className="text-xs sm:text-sm text-slate-500">
-                {filtered.length === 1 ? 'listing' : 'listings'}
+                {filtered.length === 1 ? t('listing') : t('listings')}
                 {filter !== 'all' && filtered.length !== listings.length && (
-                  <span className="text-slate-400"> of {listings.length}</span>
+                  <span className="text-slate-400"> {t('ofTotal', { total: listings.length })}</span>
                 )}
               </span>
             </div>
@@ -110,9 +112,9 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
             />
             <div className="flex flex-wrap gap-1.5 sm:gap-2 sm:ml-auto">
               {[
-                { val: 'all' as FilterType, label: 'All', count: listings.length },
-                { val: 'job' as FilterType, label: 'Jobs', count: jobCount },
-                { val: 'rent' as FilterType, label: 'Rent', count: rentCount },
+                { val: 'all' as FilterType, label: t('filterAll'), count: listings.length },
+                { val: 'job' as FilterType, label: t('filterJobs'), count: jobCount },
+                { val: 'rent' as FilterType, label: t('filterRent'), count: rentCount },
               ].map(({ val, label, count }) => (
                 <button
                   key={val}
@@ -134,8 +136,8 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
           {filtered.length === 0 ? (
             <div className="bg-white rounded-lg border border-gray-200 p-8 sm:p-12 text-center">
               <Briefcase className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm font-medium text-gray-700">No listings yet</p>
-              <p className="text-sm text-gray-500 mt-1">Check back soon for new opportunities.</p>
+              <p className="text-sm font-medium text-gray-700">{t('noListings')}</p>
+              <p className="text-sm text-gray-500 mt-1">{t('noListingsHint')}</p>
             </div>
           ) : (
             <ul className="space-y-3 sm:space-y-4">
@@ -152,9 +154,10 @@ export default function JobsRentsPageClient({ listings: initialListings }: { lis
 }
 
 function ListingCard({ listing }: { listing: ListingData }) {
+  const t = useTranslations('jobs.list')
   const hasPhotos = listing.photos.length > 0
   const isJob = listing.listing_type === 'job'
-  const title = listing.title || (isJob ? 'Job Listing' : 'Rent Listing')
+  const title = listing.title || (isJob ? t('fallbackTitleJob') : t('fallbackTitleRent'))
   const description = listing.description.replace(/<[^>]*>/g, '')
   const shortDesc = description.length > 200 ? description.slice(0, 200).trimEnd() + '…' : description
   const dateStr = new Date(listing.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -174,7 +177,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
             Inner interactive elements use `relative z-10` to stay clickable above it. */}
         <Link
           href={`/jobs-rents/${listing.id}`}
-          aria-label={`Open ${title}`}
+          aria-label={t('openListing', { title })}
           className="absolute inset-0 z-[1]"
         />
 
@@ -213,7 +216,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
               backdropFilter: 'blur(4px)',
             }}
           >
-            {isJob ? 'Job' : 'Rent'}
+            {isJob ? t('badgeJob') : t('badgeRent')}
           </span>
 
           {/* Date badge bottom */}
@@ -239,7 +242,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
 
             {/* Type label */}
             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: '#3B82F6' }}>
-              {isJob ? 'Job Opportunity' : 'Rental Offer'}
+              {isJob ? t('labelJob') : t('labelRent')}
             </span>
 
             {/* Title (visual only — the whole card is the link) */}
@@ -349,7 +352,7 @@ function ListingCard({ listing }: { listing: ListingData }) {
                   style={{ color: '#64748b' }}
                 >
                   <Globe className="w-4 h-4 shrink-0" style={{ color: '#94a3b8' }} />
-                  Website
+                  {t('website')}
                 </a>
               )}
             </div>
@@ -369,6 +372,7 @@ function RegionFilterDropdown({
   onChange: (next: 'all' | RegionId) => void
   matchCount: number | null
 }) {
+  const t = useTranslations('jobs.list.regions')
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement | null>(null)
 
@@ -382,7 +386,7 @@ function RegionFilterDropdown({
   }, [open])
 
   const selectedLabel =
-    value === 'all' ? 'All regions' : REGIONS.find(r => r.id === value)?.label ?? 'All regions'
+    value === 'all' ? t('all') : REGIONS.find(r => r.id === value)?.label ?? t('all')
   const isFiltering = value !== 'all'
 
   return (
@@ -409,7 +413,7 @@ function RegionFilterDropdown({
           <span
             role="button"
             tabIndex={0}
-            aria-label="Clear region filter"
+            aria-label={t('clear')}
             onClick={e => {
               e.stopPropagation()
               onChange('all')
@@ -453,7 +457,7 @@ function RegionFilterDropdown({
               {value === 'all' && <Check className="w-3.5 h-3.5 text-indigo-600" strokeWidth={3} />}
             </span>
             <Globe className="w-3.5 h-3.5 text-gray-400" />
-            <span>All regions</span>
+            <span>{t('all')}</span>
             <span className="ml-auto text-[10px] font-bold uppercase text-gray-400">
               {REGIONS.length}
             </span>

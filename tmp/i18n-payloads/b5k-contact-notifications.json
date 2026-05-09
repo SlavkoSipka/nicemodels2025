@@ -1,0 +1,86 @@
+{
+  "en": {
+    "components": {
+      "profile": {
+        "contactButtons": {
+          "showContact": "Show Contact",
+          "noPhone": "No phone number",
+          "noWithheld": "No withheld numbers please"
+        }
+      },
+      "notificationBell": {
+        "title": "Notifications",
+        "unread": "{count} unread",
+        "loading": "Loading…",
+        "emptyTitle": "No notifications",
+        "emptySubtitle": "You're all caught up!",
+        "markRead": "Mark as read",
+        "delete": "Delete",
+        "viewAll": "View all notifications"
+      }
+    }
+  },
+  "de": {
+    "components": {
+      "profile": {
+        "contactButtons": {
+          "showContact": "Kontakt anzeigen",
+          "noPhone": "Keine Telefonnummer",
+          "noWithheld": "Bitte keine unterdrückten Nummern"
+        }
+      },
+      "notificationBell": {
+        "title": "Benachrichtigungen",
+        "unread": "{count} ungelesen",
+        "loading": "Wird geladen…",
+        "emptyTitle": "Keine Benachrichtigungen",
+        "emptySubtitle": "Sie sind auf dem neuesten Stand!",
+        "markRead": "Als gelesen markieren",
+        "delete": "Löschen",
+        "viewAll": "Alle Benachrichtigungen"
+      }
+    }
+  },
+  "fr": {
+    "components": {
+      "profile": {
+        "contactButtons": {
+          "showContact": "Afficher le contact",
+          "noPhone": "Pas de numéro",
+          "noWithheld": "Merci de ne pas masquer votre numéro"
+        }
+      },
+      "notificationBell": {
+        "title": "Notifications",
+        "unread": "{count} non lues",
+        "loading": "Chargement…",
+        "emptyTitle": "Aucune notification",
+        "emptySubtitle": "Rien de nouveau !",
+        "markRead": "Marquer comme lu",
+        "delete": "Supprimer",
+        "viewAll": "Toutes les notifications"
+      }
+    }
+  },
+  "es": {
+    "components": {
+      "profile": {
+        "contactButtons": {
+          "showContact": "Mostrar contacto",
+          "noPhone": "Sin número de teléfono",
+          "noWithheld": "Sin números ocultos, por favor"
+        }
+      },
+      "notificationBell": {
+        "title": "Notificaciones",
+        "unread": "{count} sin leer",
+        "loading": "Cargando…",
+        "emptyTitle": "Sin notificaciones",
+        "emptySubtitle": "¡Todo al día!",
+        "markRead": "Marcar como leída",
+        "delete": "Eliminar",
+        "viewAll": "Ver todas las notificaciones"
+      }
+    }
+  }
+}

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react'
@@ -47,6 +48,22 @@ const LANGUAGES = [
   'Bulgarian', 'Ukrainian', 'Albanian', 'Hindi', 'Thai', 'Vietnamese', 'Indonesian', 'Other'
 ]
 
+const INCALL_OPTIONS = [
+  { value: 'Private apartment', key: 'incall.privateApt' as const },
+  { value: 'Hotel room', key: 'incall.hotel' as const },
+  { value: 'Club/Studio', key: 'incall.club' as const },
+  { value: 'Other', key: 'incall.other' as const },
+]
+
+const OUTCALL_OPTIONS = [
+  { value: 'Hotel visits only', key: 'outcall.hotelOnly' as const },
+  { value: 'Home visits only', key: 'outcall.homeOnly' as const },
+  { value: 'Hotel and Home visits', key: 'outcall.hotelHome' as const },
+  { value: 'Other', key: 'outcall.other' as const },
+]
+
+const WEEKDAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
+
 interface Language {
   language: string
   level: string
@@ -62,6 +79,9 @@ function NewLanguageInput({
   onAdd: (language: string, level: string) => void
   availableLanguages: string[]
 }) {
+  const t = useTranslations('onboarding.model')
+  const labelFor = (name: string) =>
+    t(`langName.${name.toLowerCase().replace(/ /g, '_')}` as Parameters<typeof t>[0])
   const [newLang, setNewLang] = useState('')
 
   const handleLevelSelect = (level: string) => {
@@ -75,18 +95,18 @@ function NewLanguageInput({
     <div className="space-y-3">
       <div>
         <label className="block text-xs font-bold text-gray-700 mb-1">
-          Add Another Language
+          {t('lang.addAnother')}
         </label>
         <select
           value={newLang}
           onChange={(e) => setNewLang(e.target.value)}
           className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
         >
-          <option value="">Select language</option>
+          <option value="">{t('selectLanguage')}</option>
           {availableLanguages
             .filter(lang => !languages.find(l => l.language === lang))
             .map(lang => (
-              <option key={lang} value={lang}>{lang}</option>
+              <option key={lang} value={lang}>{labelFor(lang)}</option>
             ))}
         </select>
       </div>
@@ -94,14 +114,14 @@ function NewLanguageInput({
       {newLang && (
         <div>
           <label className="block text-xs font-bold text-gray-700 mb-2">
-            Level
+            {t('lang.level')}
           </label>
           <div className="grid grid-cols-4 gap-2">
             {[
-              { value: 'basic', label: 'Basic' },
-              { value: 'fair', label: 'Fair' },
-              { value: 'good', label: 'Good' },
-              { value: 'excellent_native', label: 'Excellent' }
+              { value: 'basic', label: t('lang.levelBasic') },
+              { value: 'fair', label: t('lang.levelFair') },
+              { value: 'good', label: t('lang.levelGood') },
+              { value: 'excellent_native', label: t('lang.levelExcellent') },
             ].map((level) => (
               <button
                 key={level.value}
@@ -217,16 +237,24 @@ export default function ModelOnboardingForm() {
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [uploadingVideos, setUploadingVideos] = useState(false)
 
-  const durationOptions = [
-    { value: '30_minutes', label: '30 minutes' },
-    { value: '1_hour', label: '1 hour' },
-    { value: '2_hours', label: '2 hours' },
-    { value: 'specific_time', label: 'For a specific time' },
-    { value: 'additional_hour', label: 'Additional hour' },
-    { value: 'overnight', label: 'Overnight' },
-    { value: 'dinner_date', label: 'Dinner date' },
-    { value: 'weekend', label: 'Weekend' },
-  ]
+  const t = useTranslations('onboarding.model')
+
+  const languageLabel = (name: string) =>
+    t(`langName.${name.toLowerCase().replace(/ /g, '_')}` as Parameters<typeof t>[0])
+
+  const durationOptions = useMemo(
+    () => [
+      { value: '30_minutes', label: t('dur.30m') },
+      { value: '1_hour', label: t('dur.1h') },
+      { value: '2_hours', label: t('dur.2h') },
+      { value: 'specific_time', label: t('dur.specific') },
+      { value: 'additional_hour', label: t('dur.additional') },
+      { value: 'overnight', label: t('dur.overnight') },
+      { value: 'dinner_date', label: t('dur.dinner') },
+      { value: 'weekend', label: t('dur.weekend') },
+    ],
+    [t],
+  )
 
   // Fetch services and cities from database
   useEffect(() => {
@@ -264,7 +292,7 @@ export default function ModelOnboardingForm() {
 
   const handleAddMore = () => {
     if (!primaryLanguage) {
-      setError('Please select a language first')
+      setError(t('err.selectLanguageFirst'))
       return
     }
     
@@ -276,24 +304,24 @@ export default function ModelOnboardingForm() {
 
   const addAdditionalLanguage = (language: string, level: string) => {
     if (!language) {
-      setError('Please select a language')
+      setError(t('err.selectLanguage'))
       return
     }
     
     if (!level) {
-      setError('Please select a level')
+      setError(t('err.selectLevel'))
       return
     }
     
     // Check if language already exists
     if (languages.find(l => l.language === language)) {
-      setError('Language already added')
+      setError(t('err.languageExists'))
       return
     }
     
     // Max 5 languages
     if (languages.length >= 5) {
-      setError('Maximum 5 languages allowed')
+      setError(t('err.maxLanguages'))
       return
     }
     
@@ -335,14 +363,15 @@ export default function ModelOnboardingForm() {
   }
 
   const getCategoryLabel = (category: string) => {
-    const labels: Record<string, string> = {
-      'main': 'Main Services',
-      'extra': 'Extra Services',
-      'fetish_bizarre': 'Fetish / Bizarre',
-      'virtual': 'Virtual Services',
-      'massage': 'Massage services without sex!'
+    const labels: Record<string, Parameters<typeof t>[0]> = {
+      main: 'cat.main',
+      extra: 'cat.extra',
+      fetish_bizarre: 'cat.fetish',
+      virtual: 'cat.virtual',
+      massage: 'cat.massage',
     }
-    return labels[category] || category
+    const k = labels[category]
+    return k ? t(k) : category
   }
 
   const getSelectedCountByCategory = (category: string) => {
@@ -364,14 +393,14 @@ export default function ModelOnboardingForm() {
   // Rates helpers
   const addIncallRate = () => {
     if (!incallAmount || parseFloat(incallAmount) <= 0) {
-      alert('Please enter a valid amount')
+      alert(t('alert.validAmount'))
       return
     }
     
     // For specific_time, validate custom time
     if (incallDuration === 'specific_time') {
       if (!incallCustomTime || parseFloat(incallCustomTime) <= 0) {
-        alert('Please enter a valid time duration')
+        alert(t('alert.validTime'))
         return
       }
     }
@@ -384,12 +413,12 @@ export default function ModelOnboardingForm() {
              r.customUnit === incallCustomUnit
       )
       if (existingCustom) {
-        alert('This specific time duration already exists. Please remove it first.')
+        alert(t('alert.durationExistsCustom'))
         return
       }
     } else {
       if (incallRates.some(r => r.duration === incallDuration)) {
-        alert('This duration already exists. Please remove it first.')
+        alert(t('alert.durationExists'))
         return
       }
     }
@@ -413,14 +442,14 @@ export default function ModelOnboardingForm() {
 
   const addOutcallRate = () => {
     if (!outcallAmount || parseFloat(outcallAmount) <= 0) {
-      alert('Please enter a valid amount')
+      alert(t('alert.validAmount'))
       return
     }
     
     // For specific_time, validate custom time
     if (outcallDuration === 'specific_time') {
       if (!outcallCustomTime || parseFloat(outcallCustomTime) <= 0) {
-        alert('Please enter a valid time duration')
+        alert(t('alert.validTime'))
         return
       }
     }
@@ -433,12 +462,12 @@ export default function ModelOnboardingForm() {
              r.customUnit === outcallCustomUnit
       )
       if (existingCustom) {
-        alert('This specific time duration already exists. Please remove it first.')
+        alert(t('alert.durationExistsCustom'))
         return
       }
     } else {
       if (outcallRates.some(r => r.duration === outcallDuration)) {
-        alert('This duration already exists. Please remove it first.')
+        alert(t('alert.durationExists'))
         return
       }
     }
@@ -480,7 +509,7 @@ export default function ModelOnboardingForm() {
 
   const getDurationLabel = (value: string, customTime?: string, customUnit?: string) => {
     if (value === 'specific_time' && customTime && customUnit) {
-      return `${customTime} ${customUnit}`
+      return `${customTime} ${customUnit === 'minutes' ? t('unit.minutes') : t('unit.hours')}`
     }
     return durationOptions.find(opt => opt.value === value)?.label || value
   }
@@ -500,7 +529,7 @@ export default function ModelOnboardingForm() {
       for (const rawFile of files) {
         // Validate file size (max 10MB)
         if (rawFile.size > 10 * 1024 * 1024) {
-          alert(`${rawFile.name} is too large. Max size is 10MB.`)
+          alert(t('alert.fileTooLarge', { name: rawFile.name }))
           continue
         }
 
@@ -538,7 +567,7 @@ export default function ModelOnboardingForm() {
       }
     } catch (err: any) {
       console.error('Error uploading photos:', err)
-      alert('Failed to upload photos. Please try again.')
+      alert(t('alert.uploadPhotosFail'))
     } finally {
       setUploadingPhotos(false)
       // Reset input
@@ -560,14 +589,14 @@ export default function ModelOnboardingForm() {
       for (const file of files) {
         // Validate file size (max 200MB)
         if (file.size > 200 * 1024 * 1024) {
-          alert(`${file.name} is too large. Max size is 200MB.`)
+          alert(t('alert.videoTooLarge', { name: file.name }))
           continue
         }
 
         // Validate file type
         const allowedTypes = ['video/mp4', 'video/quicktime', 'video/x-ms-wmv', 'video/x-flv', 'video/x-msvideo', 'video/x-matroska']
         if (!allowedTypes.includes(file.type)) {
-          alert(`${file.name} is not a valid video format. Allowed: MP4, MOV, WMV, FLV, AVI, MKV.`)
+          alert(t('alert.videoFormat', { name: file.name }))
           continue
         }
 
@@ -605,7 +634,7 @@ export default function ModelOnboardingForm() {
       }
     } catch (err: any) {
       console.error('Error uploading videos:', err)
-      alert('Failed to upload videos. Please try again.')
+      alert(t('alert.uploadVideosFail'))
     } finally {
       setUploadingVideos(false)
       // Reset input
@@ -614,7 +643,7 @@ export default function ModelOnboardingForm() {
   }
 
   const deletePhoto = async (photoId: string, filePath: string) => {
-    if (!confirm('Are you sure you want to delete this photo?')) return
+    if (!confirm(t('confirm.deletePhoto'))) return
 
     try {
       const supabase = createClient()
@@ -638,12 +667,12 @@ export default function ModelOnboardingForm() {
       setUploadedPhotos(prev => prev.filter(p => p.id !== photoId))
     } catch (err: any) {
       console.error('Error deleting photo:', err)
-      alert('Failed to delete photo.')
+      alert(t('alert.deletePhotoFail'))
     }
   }
 
   const deleteVideo = async (videoId: string, filePath: string) => {
-    if (!confirm('Are you sure you want to delete this video?')) return
+    if (!confirm(t('confirm.deleteVideo'))) return
 
     try {
       const supabase = createClient()
@@ -667,21 +696,21 @@ export default function ModelOnboardingForm() {
       setUploadedVideos(prev => prev.filter(v => v.id !== videoId))
     } catch (err: any) {
       console.error('Error deleting video:', err)
-      alert('Failed to delete video.')
+      alert(t('alert.deleteVideoFail'))
     }
   }
 
   const validateStep1 = () => {
     if (!formData.showname || !formData.gender) {
-      setError('Showname and Gender are required')
+      setError(t('err.shownameGender'))
       return false
     }
     if (!phoneNumber.trim()) {
-      setError('Phone number is required')
+      setError(t('err.phone'))
       return false
     }
     if (formData.age && (parseInt(formData.age) < 18 || parseInt(formData.age) > 100)) {
-      setError('Age must be between 18 and 100')
+      setError(t('err.ageRange'))
       return false
     }
     return true
@@ -698,8 +727,7 @@ export default function ModelOnboardingForm() {
     
     if (currentStep === 1 && !validateStep1()) return
     if (currentStep === 4 && !validateStep4()) return
-    
-    console.log('Moving to step:', currentStep + 1)
+
     setCurrentStep(prev => prev + 1)
   }
 
@@ -760,7 +788,7 @@ export default function ModelOnboardingForm() {
       router.refresh()
     } catch (err: any) {
       console.error('Error saving model details:', err)
-      setError(err.message || 'Failed to save details')
+      setError(err.message || t('err.saveDetails'))
     } finally {
       setLoading(false)
     }
@@ -780,19 +808,19 @@ export default function ModelOnboardingForm() {
         {/* STEP 1: Basic BIO */}
         {currentStep === 1 && (
           <div className="space-y-3">
-            <h2 className="text-xl font-bold text-gray-900">Basic BIO</h2>
+            <h2 className="text-xl font-bold text-gray-900">{t('s1.title')}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Showname */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Showname <span className="text-pink-600">*</span>
+                  {t('s1.showname')} <span className="text-pink-600">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.showname}
                   onChange={(e) => handleChange('showname', e.target.value)}
-                  placeholder="Name on your profile"
+                  placeholder={t('s1.shownamePh')}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                   required
                 />
@@ -801,7 +829,7 @@ export default function ModelOnboardingForm() {
               {/* Gender */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
-                  Gender <span className="text-pink-600">*</span>
+                  {t('s1.gender')} <span className="text-pink-600">*</span>
                 </label>
                 <select
                   value={formData.gender}
@@ -809,10 +837,10 @@ export default function ModelOnboardingForm() {
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                   required
                 >
-                  <option value="">Select gender</option>
-                  <option value="female">Female</option>
-                  <option value="male">Male</option>
-                  <option value="trans">Trans</option>
+                  <option value="">{t('selectGender')}</option>
+                  <option value="female">{t('s1.genderFemale')}</option>
+                  <option value="male">{t('s1.genderMale')}</option>
+                  <option value="trans">{t('s1.genderTrans')}</option>
                 </select>
               </div>
             </div>
@@ -820,7 +848,7 @@ export default function ModelOnboardingForm() {
             {/* Phone Number */}
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                Phone Number <span className="text-pink-600">*</span>
+                {t('s1.phone')} <span className="text-pink-600">*</span>
               </label>
               <div className="flex gap-2">
                 <select
@@ -853,7 +881,7 @@ export default function ModelOnboardingForm() {
                   type="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter phone number"
+                  placeholder={t('s1.phonePh')}
                   className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                   required
                 />
@@ -863,7 +891,7 @@ export default function ModelOnboardingForm() {
             {/* Divider */}
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400 font-medium">optional</span>
+              <span className="text-xs text-gray-400 font-medium">{t('optional')}</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
@@ -871,45 +899,45 @@ export default function ModelOnboardingForm() {
             <div className="grid grid-cols-2 gap-3">
               {/* Slogan */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Slogan</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('s1.slogan')}</label>
                 <input
                   type="text"
                   value={formData.slogan}
                   onChange={(e) => handleChange('slogan', e.target.value)}
-                  placeholder="A short slogan or keyword"
+                  placeholder={t('s1.sloganPh')}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 />
               </div>
 
               {/* Ethnicity */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Ethnicity</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('s1.ethnicity')}</label>
                 <select
                   value={formData.ethnicity}
                   onChange={(e) => handleChange('ethnicity', e.target.value)}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 >
-                  <option value="">Select ethnicity</option>
-                  <option value="asian">Asian</option>
-                  <option value="black">Black</option>
-                  <option value="caucasian_white">Caucasian (white)</option>
-                  <option value="latin">Latin</option>
-                  <option value="mixed">Mixed</option>
-                  <option value="indian">Indian</option>
-                  <option value="arab">Arab</option>
-                  <option value="caucasian">Caucasian</option>
+                  <option value="">{t('selectEthnicity')}</option>
+                  <option value="asian">{t('eth.asian')}</option>
+                  <option value="black">{t('eth.black')}</option>
+                  <option value="caucasian_white">{t('eth.caucasian_white')}</option>
+                  <option value="latin">{t('eth.latin')}</option>
+                  <option value="mixed">{t('eth.mixed')}</option>
+                  <option value="indian">{t('eth.indian')}</option>
+                  <option value="arab">{t('eth.arab')}</option>
+                  <option value="caucasian">{t('eth.caucasian')}</option>
                 </select>
               </div>
 
               {/* Nationality */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Nationality</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('s1.nationality')}</label>
                 <select
                   value={formData.nationality}
                   onChange={(e) => handleChange('nationality', e.target.value)}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 >
-                  <option value="">Select nationality</option>
+                  <option value="">{t('selectNationality')}</option>
                   {COUNTRIES.map(country => (
                     <option key={country} value={country}>{country}</option>
                   ))}
@@ -918,12 +946,12 @@ export default function ModelOnboardingForm() {
 
               {/* Age */}
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Age</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">{t('s1.age')}</label>
                 <input
                   type="number"
                   value={formData.age}
                   onChange={(e) => handleChange('age', e.target.value)}
-                  placeholder="Age"
+                  placeholder={t('s1.agePh')}
                   min="18"
                   max="100"
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
@@ -933,7 +961,7 @@ export default function ModelOnboardingForm() {
 
             {/* Photos Upload */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-gray-700">Photos</label>
+              <label className="block text-xs font-bold text-gray-700">{t('s1.photos')}</label>
 
               {/* Drop zone */}
               <label htmlFor="photo-upload-step1" className="block">
@@ -949,7 +977,7 @@ export default function ModelOnboardingForm() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                       </svg>
-                      <span className="text-sm font-semibold text-pink-500">Uploading...</span>
+                      <span className="text-sm font-semibold text-pink-500">{t('s1.uploading')}</span>
                     </>
                   ) : (
                     <>
@@ -959,8 +987,8 @@ export default function ModelOnboardingForm() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-pink-500">Click to upload photos</p>
-                        <p className="text-xs text-gray-400">JPG, PNG, WEBP — max 10MB each</p>
+                        <p className="text-sm font-semibold text-pink-500">{t('s1.clickUpload')}</p>
+                        <p className="text-xs text-gray-400">{t('s1.photoHint')}</p>
                       </div>
                     </>
                   )}
@@ -1002,7 +1030,7 @@ export default function ModelOnboardingForm() {
               )}
 
               {uploadedPhotos.length === 0 && (
-                <p className="text-xs text-gray-400">No photos uploaded yet</p>
+                <p className="text-xs text-gray-400">{t('s1.noPhotosYet')}</p>
               )}
             </div>
 
@@ -1012,45 +1040,45 @@ export default function ModelOnboardingForm() {
         {/* STEP 2: Physical Features */}
         {currentStep === 2 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Physical Features</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s2.title')}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Hair Color */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Hair Color
+                  {t('s2.hairColor')}
                 </label>
                 <select
                   value={formData.hair_color}
                   onChange={(e) => handleChange('hair_color', e.target.value)}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 >
-                  <option value="">Select hair color</option>
-                  <option value="blond">Blond</option>
-                  <option value="light_brown">Light brown</option>
-                  <option value="brunette">Brunette</option>
-                  <option value="black">Black</option>
-                  <option value="red">Red</option>
-                  <option value="other">Other</option>
+                  <option value="">{t('selectHair')}</option>
+                  <option value="blond">{t('s2.hairBlond')}</option>
+                  <option value="light_brown">{t('s2.hairLightBrown')}</option>
+                  <option value="brunette">{t('s2.hairBrunette')}</option>
+                  <option value="black">{t('s2.hairBlack')}</option>
+                  <option value="red">{t('s2.hairRed')}</option>
+                  <option value="other">{t('s2.hairOther')}</option>
                 </select>
               </div>
 
               {/* Eye Color */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Eye Color
+                  {t('s2.eyeColor')}
                 </label>
                 <select
                   value={formData.eye_color}
                   onChange={(e) => handleChange('eye_color', e.target.value)}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 >
-                  <option value="">Select eye color</option>
-                  <option value="black">Black</option>
-                  <option value="brown">Brown</option>
-                  <option value="green">Green</option>
-                  <option value="blue">Blue</option>
-                  <option value="gray">Gray</option>
+                  <option value="">{t('selectEye')}</option>
+                  <option value="black">{t('s2.eyeBlack')}</option>
+                  <option value="brown">{t('s2.eyeBrown')}</option>
+                  <option value="green">{t('s2.eyeGreen')}</option>
+                  <option value="blue">{t('s2.eyeBlue')}</option>
+                  <option value="gray">{t('s2.eyeGray')}</option>
                 </select>
               </div>
             </div>
@@ -1059,13 +1087,13 @@ export default function ModelOnboardingForm() {
               {/* Height */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Height (cm)
+                  {t('s2.height')}
                 </label>
                 <input
                   type="number"
                   value={formData.height_cm}
                   onChange={(e) => handleChange('height_cm', e.target.value)}
-                  placeholder="cm"
+                  placeholder={t('s2.heightPh')}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 />
               </div>
@@ -1073,14 +1101,14 @@ export default function ModelOnboardingForm() {
               {/* Weight */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Weight (kg)
+                  {t('s2.weight')}
                 </label>
                 <input
                   type="number"
                   step="0.1"
                   value={formData.weight_kg}
                   onChange={(e) => handleChange('weight_kg', e.target.value)}
-                  placeholder="kg"
+                  placeholder={t('s2.weightPh')}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 />
               </div>
@@ -1088,14 +1116,14 @@ export default function ModelOnboardingForm() {
               {/* Dress Size */}
               <div className="col-span-2">
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Dress Size
+                  {t('s2.dressSize')}
                 </label>
                 <select
                   value={formData.dress_size}
                   onChange={(e) => handleChange('dress_size', e.target.value)}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 >
-                  <option value="">Select size</option>
+                  <option value="">{t('selectSize')}</option>
                   <option value="xs">XS</option>
                   <option value="s">S</option>
                   <option value="m">M</option>
@@ -1110,13 +1138,13 @@ export default function ModelOnboardingForm() {
               {/* Bust */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Bust (cm)
+                  {t('s2.bust')}
                 </label>
                 <input
                   type="number"
                   value={formData.bust_cm}
                   onChange={(e) => handleChange('bust_cm', e.target.value)}
-                  placeholder="cm"
+                  placeholder={t('s2.heightPh')}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 />
               </div>
@@ -1124,13 +1152,13 @@ export default function ModelOnboardingForm() {
               {/* Waist */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Waist (cm)
+                  {t('s2.waist')}
                 </label>
                 <input
                   type="number"
                   value={formData.waist_cm}
                   onChange={(e) => handleChange('waist_cm', e.target.value)}
-                  placeholder="cm"
+                  placeholder={t('s2.heightPh')}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 />
               </div>
@@ -1138,13 +1166,13 @@ export default function ModelOnboardingForm() {
               {/* Hip */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Hip (cm)
+                  {t('s2.hip')}
                 </label>
                 <input
                   type="number"
                   value={formData.hip_cm}
                   onChange={(e) => handleChange('hip_cm', e.target.value)}
-                  placeholder="cm"
+                  placeholder={t('s2.heightPh')}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 />
               </div>
@@ -1153,18 +1181,18 @@ export default function ModelOnboardingForm() {
             {/* Pubic Hair */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
-                Pubic Hair
+                {t('s2.pubicHair')}
               </label>
               <select
                 value={formData.pubic_hair}
                 onChange={(e) => handleChange('pubic_hair', e.target.value)}
                 className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
               >
-                <option value="">Select option</option>
-                <option value="shaved_completely">Shaved completely</option>
-                <option value="shaved_mostly">Shaved mostly</option>
-                <option value="trimmed">Trimmed</option>
-                <option value="all_natural">All natural</option>
+                <option value="">{t('selectOption')}</option>
+                <option value="shaved_completely">{t('s2.pubicShavedFull')}</option>
+                <option value="shaved_mostly">{t('s2.pubicShavedMost')}</option>
+                <option value="trimmed">{t('s2.pubicTrimmed')}</option>
+                <option value="all_natural">{t('s2.pubicNatural')}</option>
               </select>
             </div>
           </div>
@@ -1173,40 +1201,40 @@ export default function ModelOnboardingForm() {
         {/* STEP 3: Additional Information */}
         {currentStep === 3 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Additional Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s3.title')}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Smoking */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Smoking
+                  {t('s3.smoking')}
                 </label>
                 <select
                   value={formData.smoking}
                   onChange={(e) => handleChange('smoking', e.target.value)}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 >
-                  <option value="">Select option</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                  <option value="occasionally">Occasionally</option>
+                  <option value="">{t('selectOption')}</option>
+                  <option value="yes">{t('s3.yes')}</option>
+                  <option value="no">{t('s3.no')}</option>
+                  <option value="occasionally">{t('s3.occasionally')}</option>
                 </select>
               </div>
 
               {/* Drinking */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">
-                  Drinking
+                  {t('s3.drinking')}
                 </label>
                 <select
                   value={formData.drinking}
                   onChange={(e) => handleChange('drinking', e.target.value)}
                   className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                 >
-                  <option value="">Select option</option>
-                  <option value="yes">Yes</option>
-                  <option value="no">No</option>
-                  <option value="occasionally">Occasionally</option>
+                  <option value="">{t('selectOption')}</option>
+                  <option value="yes">{t('s3.yes')}</option>
+                  <option value="no">{t('s3.no')}</option>
+                  <option value="occasionally">{t('s3.occasionally')}</option>
                 </select>
               </div>
             </div>
@@ -1214,12 +1242,12 @@ export default function ModelOnboardingForm() {
             {/* Special Characteristics */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
-                Special Characteristics
+                {t('s3.specialChars')}
               </label>
               <textarea
                 value={formData.special_characteristics}
                 onChange={(e) => handleChange('special_characteristics', e.target.value)}
-                placeholder="Please mention any special characteristics e.g. tattoos, piercings, etc."
+                placeholder={t('s3.specialCharsPh')}
                 rows={4}
                 className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 resize-none"
               />
@@ -1230,19 +1258,19 @@ export default function ModelOnboardingForm() {
         {/* STEP 4: About Me */}
         {currentStep === 4 && (
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">About Me</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s4.title')}</h2>
             <p className="text-sm text-gray-600 mb-4">
-              Describe yourself and write some additional information (optional)
+              {t('s4.intro')}
             </p>
             
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-1">
-                Describe yourself
+                {t('s4.describe')}
               </label>
               <RichTextEditor
                 value={formData.about_me}
                 onChange={(val) => handleChange('about_me', val)}
-                placeholder="Tell us about yourself, your personality, what makes you special..."
+                placeholder={t('s4.placeholder')}
                 maxLength={25000}
                 height={300}
               />
@@ -1253,9 +1281,9 @@ export default function ModelOnboardingForm() {
         {/* STEP 5: Languages */}
         {currentStep === 5 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Languages</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s5.title')}</h2>
             <p className="text-sm text-gray-600 mb-4">
-              Select the language you speak
+              {t('s5.intro')}
             </p>
             
             {!showAdvancedLanguages ? (
@@ -1263,16 +1291,16 @@ export default function ModelOnboardingForm() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">
-                    Language
+                    {t('s5.language')}
                   </label>
                   <select
                     value={primaryLanguage}
                     onChange={(e) => setPrimaryLanguage(e.target.value)}
                     className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                   >
-                    <option value="">Select language</option>
+                    <option value="">{t('selectLanguage')}</option>
                     {LANGUAGES.map(lang => (
-                      <option key={lang} value={lang}>{lang}</option>
+                      <option key={lang} value={lang}>{languageLabel(lang)}</option>
                     ))}
                   </select>
                 </div>
@@ -1283,14 +1311,14 @@ export default function ModelOnboardingForm() {
                   className="w-full py-3 px-4 bg-gray-100 text-gray-700 border-2 border-gray-300 rounded-lg font-semibold hover:bg-gray-200 transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
-                  Add More
+                  {t('s5.addMore')}
                 </button>
               </div>
             ) : (
               /* Advanced mode - multiple languages with levels */
               <div className="space-y-6">
                 <p className="text-sm text-gray-500 italic">
-                  You can add up to 5 languages total
+                  {t('s5.advancedHint')}
                 </p>
 
                 {/* Languages List with Level Selection */}
@@ -1298,7 +1326,7 @@ export default function ModelOnboardingForm() {
                   {languages.map((lang, index) => (
                     <div key={`${lang.language}-${index}`} className="bg-gray-50 border-2 border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="font-bold text-gray-900">{lang.language}</span>
+                        <span className="font-bold text-gray-900">{languageLabel(lang.language)}</span>
                         {index > 0 && (
                           <button
                             type="button"
@@ -1312,14 +1340,14 @@ export default function ModelOnboardingForm() {
                       
                       <div>
                         <label className="block text-xs font-bold text-gray-700 mb-2">
-                          Level
+                          {t('lang.level')}
                         </label>
                         <div className="grid grid-cols-4 gap-2">
                           {[
-                            { value: 'basic', label: 'Basic' },
-                            { value: 'fair', label: 'Fair' },
-                            { value: 'good', label: 'Good' },
-                            { value: 'excellent_native', label: 'Excellent' }
+                            { value: 'basic', label: t('lang.levelBasic') },
+                            { value: 'fair', label: t('lang.levelFair') },
+                            { value: 'good', label: t('lang.levelGood') },
+                            { value: 'excellent_native', label: t('lang.levelExcellent') }
                           ].map((level) => (
                             <button
                               key={level.value}
@@ -1354,7 +1382,7 @@ export default function ModelOnboardingForm() {
                 {languages.length >= 5 && (
                   <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded-r-lg">
                     <p className="text-sm text-yellow-700 font-medium">
-                      Maximum 5 languages reached
+                      {t('s5.maxReached')}
                     </p>
                   </div>
                 )}
@@ -1366,15 +1394,15 @@ export default function ModelOnboardingForm() {
         {/* STEP 6: Area / Location */}
         {currentStep === 6 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Area / Address</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s6.title')}</h2>
             
             {/* City */}
             <div>
               <CitySearch
                 value={formData.city}
                 onChange={(city) => handleChange('city', city?.name || '')}
-                label="City"
-                placeholder="Search city or PLZ..."
+                label={t('s6.city')}
+                placeholder={t('s6.cityPh')}
                 inputClassName="border-2 border-gray-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-200"
               />
             </div>
@@ -1382,26 +1410,21 @@ export default function ModelOnboardingForm() {
             {/* Incall Options */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Incall
+                {t('s6.incall')}
               </label>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  'Private apartment',
-                  'Hotel room',
-                  'Club/Studio',
-                  'Other',
-                ].map((option) => (
+                {INCALL_OPTIONS.map((option) => (
                   <button
-                    key={option}
+                    key={option.value}
                     type="button"
-                    onClick={() => toggleArrayOption('incall_options', option)}
+                    onClick={() => toggleArrayOption('incall_options', option.value)}
                     className={`py-2 px-4 text-sm font-semibold rounded-lg transition-all ${
-                      formData.incall_options.includes(option)
+                      formData.incall_options.includes(option.value)
                         ? 'bg-pink-600 text-white'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                   >
-                    {option}
+                    {t(option.key)}
                   </button>
                 ))}
               </div>
@@ -1410,26 +1433,21 @@ export default function ModelOnboardingForm() {
             {/* Outcall Options */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Outcall
+                {t('s6.outcall')}
               </label>
               <div className="grid grid-cols-2 gap-3">
-                {[
-                  'Hotel visits only',
-                  'Home visits only',
-                  'Hotel and Home visits',
-                  'Other',
-                ].map((option) => (
+                {OUTCALL_OPTIONS.map((option) => (
                   <button
-                    key={option}
+                    key={option.value}
                     type="button"
-                    onClick={() => toggleArrayOption('outcall_options', option)}
+                    onClick={() => toggleArrayOption('outcall_options', option.value)}
                     className={`py-2 px-4 text-sm font-semibold rounded-lg transition-all ${
-                      formData.outcall_options.includes(option)
+                      formData.outcall_options.includes(option.value)
                         ? 'bg-pink-600 text-white'
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                   >
-                    {option}
+                    {t(option.key)}
                   </button>
                 ))}
               </div>
@@ -1440,37 +1458,37 @@ export default function ModelOnboardingForm() {
         {/* STEP 7: Services */}
         {currentStep === 7 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Services</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s7.title')}</h2>
             
             {/* Sexual Orientation */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Sexual Orientation
+                {t('s7.orientation')}
               </label>
               <select
                 value={formData.sexual_orientation}
                 onChange={(e) => handleChange('sexual_orientation', e.target.value)}
                 className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
               >
-                <option value="">Sexual Orientation</option>
-                <option value="heterosexual">Heterosexual</option>
-                <option value="bisexual">Bisexual</option>
-                <option value="homosexual">Homosexual</option>
+                <option value="">{t('s7.orientationSelect')}</option>
+                <option value="heterosexual">{t('s7.oriHetero')}</option>
+                <option value="bisexual">{t('s7.oriBi')}</option>
+                <option value="homosexual">{t('s7.oriHomo')}</option>
               </select>
             </div>
 
             {/* Services Offered For */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Services Offered For
+                {t('s7.offeredFor')}
               </label>
               <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                 {[
-                  { value: 'men', label: 'Men' },
-                  { value: 'women', label: 'Women' },
-                  { value: 'couples', label: 'Couples' },
-                  { value: 'trans', label: 'Trans' },
-                  { value: 'gays', label: 'Gays' },
+                  { value: 'men', labelKey: 's7.forMen' as const },
+                  { value: 'women', labelKey: 's7.forWomen' as const },
+                  { value: 'couples', labelKey: 's7.forCouples' as const },
+                  { value: 'trans', labelKey: 's7.forTrans' as const },
+                  { value: 'gays', labelKey: 's7.forGays' as const },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -1482,7 +1500,7 @@ export default function ModelOnboardingForm() {
                         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                   >
-                    {option.label}
+                    {t(option.labelKey)}
                   </button>
                 ))}
               </div>
@@ -1490,7 +1508,7 @@ export default function ModelOnboardingForm() {
 
             {/* Services Categories */}
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-700">Services</h3>
+              <h3 className="text-sm font-bold text-gray-700">{t('s7.servicesHeading')}</h3>
               
               {['main', 'extra', 'fetish_bizarre', 'virtual', 'massage'].map((category) => {
                 const categoryServices = getServicesByCategory(category)
@@ -1560,7 +1578,7 @@ export default function ModelOnboardingForm() {
             {selectedServices.length > 0 && (
               <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
                 <p className="text-sm text-green-800 font-semibold">
-                  {selectedServices.length} service{selectedServices.length !== 1 ? 's' : ''} selected
+                  {t('s7.selected', { count: selectedServices.length })}
                 </p>
               </div>
             )}
@@ -1570,7 +1588,7 @@ export default function ModelOnboardingForm() {
         {/* STEP 8: Working Hours */}
         {currentStep === 8 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Working Hours</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s8.title')}</h2>
             
             {/* Schedule Type Selection */}
             <div className="flex flex-wrap gap-3">
@@ -1583,7 +1601,7 @@ export default function ModelOnboardingForm() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                I am available 24/7
+                {t('s8.avail247')}
               </button>
               <button
                 type="button"
@@ -1594,7 +1612,7 @@ export default function ModelOnboardingForm() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                The same schedule every day
+                {t('s8.sameDaily')}
               </button>
               <button
                 type="button"
@@ -1605,24 +1623,24 @@ export default function ModelOnboardingForm() {
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                Custom Schedule
+                {t('s8.custom')}
               </button>
             </div>
 
             {/* Custom Schedule */}
             {scheduleType === 'custom' && (
               <div className="space-y-4">
-                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => (
+                {WEEKDAY_ORDER.map((day) => (
                   <div key={day} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                    <label className="text-sm font-bold text-gray-700 capitalize">
-                      {day}
+                    <label className="text-sm font-bold text-gray-700">
+                      {t(`day.${day}`)}
                     </label>
                     <div>
                       <input
                         type="time"
                         value={customHours[day as keyof typeof customHours].from}
                         onChange={(e) => updateCustomHours(day, 'from', e.target.value)}
-                        placeholder="From"
+                        placeholder={t('s8.from')}
                         className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 cursor-pointer"
                         style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                       />
@@ -1632,7 +1650,7 @@ export default function ModelOnboardingForm() {
                         type="time"
                         value={customHours[day as keyof typeof customHours].to}
                         onChange={(e) => updateCustomHours(day, 'to', e.target.value)}
-                        placeholder="To"
+                        placeholder={t('s8.to')}
                         className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 cursor-pointer"
                         style={{ WebkitAppearance: 'none', MozAppearance: 'textfield' }}
                       />
@@ -1647,7 +1665,7 @@ export default function ModelOnboardingForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">
-                    From
+                    {t('s8.from')}
                   </label>
                   <input
                     type="time"
@@ -1659,7 +1677,7 @@ export default function ModelOnboardingForm() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">
-                    To
+                    {t('s8.to')}
                   </label>
                   <input
                     type="time"
@@ -1676,7 +1694,7 @@ export default function ModelOnboardingForm() {
             {scheduleType === '24_7' && (
               <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg">
                 <p className="text-sm text-green-800 font-semibold">
-                  ✓ You will be shown as available 24/7
+                  {t('s8.avail247Note')}
                 </p>
               </div>
             )}
@@ -1686,18 +1704,18 @@ export default function ModelOnboardingForm() {
         {/* STEP 9: Rates */}
         {currentStep === 9 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Rates</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s9.title')}</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Incall Rates */}
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900">Incall Rates</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('s9.incallRates')}</h3>
                 
                 {/* Add Incall Rate Form */}
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Duration <span className="text-red-500">*</span>
+                      {t('s9.duration')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={incallDuration}
@@ -1720,7 +1738,7 @@ export default function ModelOnboardingForm() {
                           type="number"
                           value={incallCustomTime}
                           onChange={(e) => setIncallCustomTime(e.target.value)}
-                          placeholder="Enter time"
+                          placeholder={t('dur.timePh')}
                           min="1"
                           step="1"
                           className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
@@ -1731,8 +1749,8 @@ export default function ModelOnboardingForm() {
                         onChange={(e) => setIncallCustomUnit(e.target.value)}
                         className="px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                       >
-                        <option value="minutes">minutes</option>
-                        <option value="hours">hours</option>
+                        <option value="minutes">{t('unit.minutes')}</option>
+                        <option value="hours">{t('unit.hours')}</option>
                       </select>
                     </div>
                   )}
@@ -1749,20 +1767,20 @@ export default function ModelOnboardingForm() {
                         className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                       />
                     </div>
-                    <span className="text-sm font-semibold text-gray-700 px-3 py-3">CHF</span>
+                    <span className="text-sm font-semibold text-gray-700 px-3 py-3">{t('chf')}</span>
                     <button
                       type="button"
                       onClick={addIncallRate}
                       className="px-6 py-3 text-sm font-bold text-pink-600 border-2 border-pink-600 rounded-lg hover:bg-pink-50 transition-all"
                     >
-                      ADD
+                      {t('add')}
                     </button>
                   </div>
                 </div>
 
                 {/* Incall Rates List */}
                 {incallRates.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic mt-4">No rates defined</p>
+                  <p className="text-sm text-gray-500 italic mt-4">{t('s9.noRates')}</p>
                 ) : (
                   <div className="space-y-2 mt-4">
                     {incallRates.map((rate, index) => (
@@ -1775,7 +1793,7 @@ export default function ModelOnboardingForm() {
                             {getDurationLabel(rate.duration, rate.customTime, rate.customUnit)}
                           </span>
                           <span className="text-sm text-gray-600 ml-2">
-                            {rate.amount} CHF
+                            {rate.amount} {t('chf')}
                           </span>
                         </div>
                         <button
@@ -1783,7 +1801,7 @@ export default function ModelOnboardingForm() {
                           onClick={() => removeIncallRate(rate.duration, rate.customTime, rate.customUnit)}
                           className="text-red-600 hover:text-red-800 text-sm font-semibold"
                         >
-                          Remove
+                          {t('remove')}
                         </button>
                       </div>
                     ))}
@@ -1793,13 +1811,13 @@ export default function ModelOnboardingForm() {
 
               {/* Outcall Rates */}
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-gray-900">Outcall Rates</h3>
+                <h3 className="text-xl font-bold text-gray-900">{t('s9.outcallRates')}</h3>
                 
                 {/* Add Outcall Rate Form */}
                 <div className="space-y-3">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                      Duration <span className="text-red-500">*</span>
+                      {t('s9.duration')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={outcallDuration}
@@ -1822,7 +1840,7 @@ export default function ModelOnboardingForm() {
                           type="number"
                           value={outcallCustomTime}
                           onChange={(e) => setOutcallCustomTime(e.target.value)}
-                          placeholder="Enter time"
+                          placeholder={t('dur.timePh')}
                           min="1"
                           step="1"
                           className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
@@ -1833,8 +1851,8 @@ export default function ModelOnboardingForm() {
                         onChange={(e) => setOutcallCustomUnit(e.target.value)}
                         className="px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                       >
-                        <option value="minutes">minutes</option>
-                        <option value="hours">hours</option>
+                        <option value="minutes">{t('unit.minutes')}</option>
+                        <option value="hours">{t('unit.hours')}</option>
                       </select>
                     </div>
                   )}
@@ -1851,20 +1869,20 @@ export default function ModelOnboardingForm() {
                         className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                       />
                     </div>
-                    <span className="text-sm font-semibold text-gray-700 px-3 py-3">CHF</span>
+                    <span className="text-sm font-semibold text-gray-700 px-3 py-3">{t('chf')}</span>
                     <button
                       type="button"
                       onClick={addOutcallRate}
                       className="px-6 py-3 text-sm font-bold text-pink-600 border-2 border-pink-600 rounded-lg hover:bg-pink-50 transition-all"
                     >
-                      ADD
+                      {t('add')}
                     </button>
                   </div>
                 </div>
 
                 {/* Outcall Rates List */}
                 {outcallRates.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic mt-4">No rates defined</p>
+                  <p className="text-sm text-gray-500 italic mt-4">{t('s9.noRates')}</p>
                 ) : (
                   <div className="space-y-2 mt-4">
                     {outcallRates.map((rate, index) => (
@@ -1877,7 +1895,7 @@ export default function ModelOnboardingForm() {
                             {getDurationLabel(rate.duration, rate.customTime, rate.customUnit)}
                           </span>
                           <span className="text-sm text-gray-600 ml-2">
-                            {rate.amount} CHF
+                            {rate.amount} {t('chf')}
                           </span>
                         </div>
                         <button
@@ -1885,7 +1903,7 @@ export default function ModelOnboardingForm() {
                           onClick={() => removeOutcallRate(rate.duration, rate.customTime, rate.customUnit)}
                           className="text-red-600 hover:text-red-800 text-sm font-semibold"
                         >
-                          Remove
+                          {t('remove')}
                         </button>
                       </div>
                     ))}
@@ -1899,7 +1917,7 @@ export default function ModelOnboardingForm() {
         {/* STEP 10: Contact Details */}
         {currentStep === 10 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Details</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s10.title')}</h2>
             
             {/* Phone Number Section */}
             <div className="space-y-4">
@@ -1912,14 +1930,14 @@ export default function ModelOnboardingForm() {
                   className="w-5 h-5 text-pink-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-pink-500 cursor-pointer"
                 />
                 <label htmlFor="showPhoneNumber" className="text-sm font-bold text-gray-900 cursor-pointer">
-                  Show phone number
+                  {t('s10.showPhone')}
                 </label>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Country Code <span className="text-red-500">*</span>
+                    {t('s10.countryCode')} <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={countryCode}
@@ -1943,17 +1961,17 @@ export default function ModelOnboardingForm() {
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    Phone Number <span className="text-red-500">*</span>
+                    {t('s10.phone')} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="Enter phone number"
+                    placeholder={t('s10.phonePh')}
                     className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Please provide the country calling code if you use a non-Swiss number
+                    {t('s10.phoneHint')}
                   </p>
                 </div>
               </div>
@@ -1998,7 +2016,7 @@ export default function ModelOnboardingForm() {
 
             {/* Instructions Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold text-gray-900">Instructions</h3>
+              <h3 className="text-lg font-bold text-gray-900">{t('s10.instructions')}</h3>
               
               <div className="flex flex-wrap gap-3">
                 <button
@@ -2010,7 +2028,7 @@ export default function ModelOnboardingForm() {
                       : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  SMS and Call
+                  {t('s10.smsCall')}
                 </button>
                 <button
                   type="button"
@@ -2021,7 +2039,7 @@ export default function ModelOnboardingForm() {
                       : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  SMS Only
+                  {t('s10.smsOnly')}
                 </button>
                 <button
                   type="button"
@@ -2032,7 +2050,7 @@ export default function ModelOnboardingForm() {
                       : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
-                  No SMS
+                  {t('s10.noSms')}
                 </button>
               </div>
 
@@ -2045,18 +2063,18 @@ export default function ModelOnboardingForm() {
                   className="w-5 h-5 text-pink-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-pink-500 cursor-pointer"
                 />
                 <label htmlFor="noWithheldNumbers" className="text-sm font-semibold text-gray-900 cursor-pointer">
-                  No Withheld Numbers
+                  {t('s10.noWithheld')}
                 </label>
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  Other
+                  {t('s10.other')}
                 </label>
                 <textarea
                   value={otherInstructions}
                   onChange={(e) => setOtherInstructions(e.target.value)}
-                  placeholder="Additional instructions..."
+                  placeholder={t('s10.otherPh')}
                   rows={3}
                   className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 resize-none"
                 />
@@ -2068,24 +2086,24 @@ export default function ModelOnboardingForm() {
         {/* STEP 11: Pictures / Video */}
         {currentStep === 11 && (
           <div className="space-y-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Pictures / Video</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('s11.title')}</h2>
             
             {/* Photos Section */}
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Requirements</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{t('s11.reqTitle')}</h3>
                 <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                  <li>Good quality photos.</li>
-                  <li>Photo without sexually explicit content.</li>
-                  <li>400 x 600 px for portrait images.</li>
-                  <li>500 x 375 px for landscape images.</li>
+                  <li>{t('s11.req1')}</li>
+                  <li>{t('s11.req2')}</li>
+                  <li>{t('s11.req3')}</li>
+                  <li>{t('s11.req4')}</li>
                 </ul>
               </div>
 
               <div>
                 <label htmlFor="photo-upload" className="block">
                   <div className="px-8 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-bold hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg text-center cursor-pointer inline-block">
-                    {uploadingPhotos ? 'UPLOADING...' : 'UPLOAD PHOTO'}
+                    {uploadingPhotos ? t('s11.uploadingCaps') : t('s11.uploadPhoto')}
                   </div>
                 </label>
                 <input
@@ -2101,7 +2119,7 @@ export default function ModelOnboardingForm() {
 
               {/* Uploaded Photos */}
               {uploadedPhotos.length === 0 ? (
-                <p className="text-sm text-gray-500 italic">Your gallery is empty</p>
+                <p className="text-sm text-gray-500 italic">{t('s11.galleryEmpty')}</p>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {uploadedPhotos.map((photo) => (
@@ -2112,7 +2130,7 @@ export default function ModelOnboardingForm() {
                         onClick={() => deletePhoto(photo.id, photo.file_path)}
                         className="w-full px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 font-semibold"
                       >
-                        Delete
+                        {t('delete')}
                       </button>
                     </div>
                   ))}
@@ -2124,25 +2142,23 @@ export default function ModelOnboardingForm() {
             {/* Video Section */}
             <div className="space-y-4 pt-6 border-t border-gray-200">
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Video</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{t('s11.videoTitle')}</h3>
                 <p className="text-sm text-gray-700 mb-2">
-                  Showing a video in your sedcard makes you unique and spices your profile up! 
-                  Even a short and simple video taken by smartphone will raise the number of 
-                  visitors on your profile.
+                  {t('s11.videoIntro')}
                 </p>
-                <h4 className="text-sm font-bold text-gray-900 mb-1">Requirements</h4>
+                <h4 className="text-sm font-bold text-gray-900 mb-1">{t('s11.videoReqTitle')}</h4>
                 <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                  <li>Video Max size is 200mb</li>
-                  <li>Allowed video formats: MP4, MOV, WMV, FLV, AVI, MKV</li>
-                  <li>Explicit nudity is not allowed</li>
-                  <li>Min video height is 360px</li>
+                  <li>{t('s11.vreq1')}</li>
+                  <li>{t('s11.vreq2')}</li>
+                  <li>{t('s11.vreq3')}</li>
+                  <li>{t('s11.vreq4')}</li>
                 </ul>
               </div>
 
               <div>
                 <label htmlFor="video-upload" className="block">
                   <div className="px-8 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-bold hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg text-center cursor-pointer inline-block">
-                    {uploadingVideos ? 'UPLOADING...' : 'UPLOAD VIDEOS'}
+                    {uploadingVideos ? t('s11.uploadingCaps') : t('s11.uploadVideos')}
                   </div>
                 </label>
                 <input
@@ -2158,21 +2174,21 @@ export default function ModelOnboardingForm() {
 
               {/* Uploaded Videos */}
               {uploadedVideos.length === 0 ? (
-                <p className="text-sm text-gray-500 italic">No videos uploaded</p>
+                <p className="text-sm text-gray-500 italic">{t('s11.noVideos')}</p>
               ) : (
                 <div className="space-y-3">
                   {uploadedVideos.map((video) => (
                     <div key={video.id} className="flex items-center justify-between bg-gray-100 rounded-lg p-4 border-2 border-gray-200">
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-gray-900">{video.file_name}</p>
-                        <p className="text-xs text-gray-500">Pending verification</p>
+                        <p className="text-xs text-gray-500">{t('s11.pendingVerification')}</p>
                       </div>
                       <button
                         type="button"
                         onClick={() => deleteVideo(video.id, video.file_path)}
                         className="px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 font-semibold"
                       >
-                        Delete
+                        {t('delete')}
                       </button>
                     </div>
                   ))}
@@ -2183,8 +2199,7 @@ export default function ModelOnboardingForm() {
             {/* Info Box */}
             <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
               <p className="text-sm text-blue-800">
-                <span className="font-semibold">Note:</span> All uploaded photos and videos will be reviewed 
-                by our admin team before being published on your profile. You will be notified once they are approved.
+                <span className="font-semibold">{t('s11.noteTitle')}</span>{' '}{t('s11.noteBody')}
               </p>
             </div>
           </div>
@@ -2198,7 +2213,7 @@ export default function ModelOnboardingForm() {
               onClick={handleBack}
               className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
             >
-              Back
+              {t('nav.back')}
             </button>
           ) : (
             <div></div>
@@ -2210,7 +2225,7 @@ export default function ModelOnboardingForm() {
               onClick={handleNext}
               className="px-8 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-bold hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg"
             >
-              Next Step
+              {t('nav.next')}
             </button>
           ) : (
             <button
@@ -2219,7 +2234,7 @@ export default function ModelOnboardingForm() {
               className="px-8 py-2 text-white rounded-lg font-bold transition-all shadow-lg disabled:opacity-50"
               style={{ background: 'linear-gradient(90deg, #ec4899, #f472b6)', boxShadow: 'rgba(236,72,153,0.25) 0px 2px 10px' }}
             >
-              {loading ? 'Saving...' : 'FINISH'}
+              {loading ? t('nav.saving') : t('nav.finish')}
             </button>
           )}
         </div>

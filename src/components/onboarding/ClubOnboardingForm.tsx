@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
@@ -20,6 +21,7 @@ interface ClubFormData {
 
 export default function ClubOnboardingForm() {
   const router = useRouter()
+  const t = useTranslations('onboarding.club')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -48,11 +50,11 @@ export default function ClubOnboardingForm() {
     e.preventDefault()
 
     if (!formData.club_name) {
-      setError('Club Name is required')
+      setError(t('clubNameRequired'))
       return
     }
     if (!formData.phone_number.trim()) {
-      setError('Phone Number is required')
+      setError(t('phoneRequired'))
       return
     }
 
@@ -101,7 +103,7 @@ export default function ClubOnboardingForm() {
       router.refresh()
     } catch (err: any) {
       console.error('Submission error:', err)
-      setError(err.message || 'An error occurred during submission')
+      setError(err.message || t('submissionError'))
     } finally {
       setLoading(false)
     }
@@ -115,15 +117,15 @@ export default function ClubOnboardingForm() {
         <div className="flex items-center justify-between mb-2">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-pink-600">
-              Club / Agency onboarding
+              {t('header')}
             </p>
             <h2 className="text-lg md:text-xl font-bold text-gray-900">
-              Basic Info & Contact
+              {t('title')}
             </h2>
           </div>
           <div className="text-right">
             <span className="text-xs font-semibold text-gray-600">
-              Step 1 of 1
+              {t('stepOf')}
             </span>
             <div className="mt-1 w-32 bg-gray-200/80 rounded-full h-1.5 overflow-hidden">
               <div
@@ -144,18 +146,18 @@ export default function ClubOnboardingForm() {
 
         {/* Info Section */}
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-3">Info</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-3">{t('infoSection')}</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Club Name <span className="text-pink-600">*</span>
+                {t('clubName')} <span className="text-pink-600">*</span>
               </label>
               <input
                 type="text"
                 value={formData.club_name}
                 onChange={(e) => handleChange('club_name', e.target.value)}
-                placeholder="Enter club name"
+                placeholder={t('clubNamePlaceholder')}
                 className={inputCls}
                 required
               />
@@ -163,13 +165,13 @@ export default function ClubOnboardingForm() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Display Name
+                {t('displayName')}
               </label>
               <input
                 type="text"
                 value={formData.display_name}
                 onChange={(e) => handleChange('display_name', e.target.value)}
-                placeholder="Enter display name"
+                placeholder={t('displayNamePlaceholder')}
                 className={inputCls}
               />
             </div>
@@ -178,8 +180,8 @@ export default function ClubOnboardingForm() {
               <CitySearch
                 value={formData.area}
                 onChange={handleCitySelect}
-                label="Area"
-                placeholder="Search area..."
+                label={t('areaLabel')}
+                placeholder={t('areaPlaceholder')}
               />
             </div>
           </div>
@@ -187,13 +189,13 @@ export default function ClubOnboardingForm() {
 
         {/* Contact Details Section */}
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-3">Contact Details</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-3">{t('contactDetails')}</h2>
 
           <div className="space-y-4">
             {/* Phone */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number <span className="text-pink-600">*</span>
+                {t('phoneNumber')} <span className="text-pink-600">*</span>
               </label>
               <div className="grid grid-cols-[140px_1fr] gap-3">
                 <div className="relative">
@@ -220,7 +222,7 @@ export default function ClubOnboardingForm() {
                   type="tel"
                   value={formData.phone_number}
                   onChange={(e) => handleChange('phone_number', e.target.value)}
-                  placeholder="Phone number"
+                  placeholder={t('phonePlaceholder')}
                   required
                   className={inputCls}
                 />
@@ -229,7 +231,7 @@ export default function ClubOnboardingForm() {
 
             {/* Messaging apps */}
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-2">Available on (same number):</p>
+              <p className="text-xs font-medium text-gray-600 mb-2">{t('availableOn')}</p>
               <div className="flex flex-wrap gap-3">
                 {([
                   { label: 'WhatsApp', field: 'has_whatsapp' as const, color: 'bg-green-100 text-green-700 border-green-300' },
@@ -254,25 +256,25 @@ export default function ClubOnboardingForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email <span className="text-gray-400 font-normal">(optional)</span>
+                  {t('email')} <span className="text-gray-400 font-normal">{t('optional')}</span>
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  placeholder="contact@example.com"
+                  placeholder={t('emailPlaceholder')}
                   className={inputCls}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Website <span className="text-gray-400 font-normal">(optional)</span>
+                  {t('website')} <span className="text-gray-400 font-normal">{t('optional')}</span>
                 </label>
                 <input
                   type="text"
                   value={formData.website}
                   onChange={(e) => handleChange('website', e.target.value)}
-                  placeholder="https://..."
+                  placeholder={t('websitePlaceholder')}
                   className={inputCls}
                 />
               </div>
@@ -283,7 +285,7 @@ export default function ClubOnboardingForm() {
         {/* Info box */}
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
           <p className="text-sm text-blue-800">
-            <span className="font-semibold">Tip:</span> You can add your description, photos, working hours, and other details later from the dashboard.
+            <span className="font-semibold">{t('tipLabel')}</span> {t('tip')}
           </p>
         </div>
 
@@ -294,7 +296,7 @@ export default function ClubOnboardingForm() {
             disabled={loading || !formData.club_name || !formData.phone_number.trim()}
             className="px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg font-medium hover:from-pink-600 hover:to-pink-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Saving...' : 'FINISH'}
+            {loading ? t('saving') : t('finish')}
           </button>
         </div>
       </form>

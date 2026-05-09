@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import * as React from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
@@ -20,6 +21,7 @@ function getAge(dateString: string): number {
 export default function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const t = useTranslations('auth.register')
   const [formData, setFormData] = useState({
     userType: '',
     username: '',
@@ -47,43 +49,43 @@ export default function RegisterForm() {
     setSuccess(false)
 
     if (!formData.userType) {
-      setError('Please select a user type')
+      setError(t('errorSelectType'))
       setLoading(false)
       return
     }
 
     if (!formData.phone.trim()) {
-      setError('Phone number is required')
+      setError(t('errorPhoneRequired'))
       setLoading(false)
       return
     }
 
     if (!formData.dateOfBirth) {
-      setError('Date of birth is required')
+      setError(t('errorDobRequired'))
       setLoading(false)
       return
     }
 
     if (getAge(formData.dateOfBirth) < 18) {
-      setError('You must be at least 18 years old to register')
+      setError(t('errorAge18'))
       setLoading(false)
       return
     }
 
     if (!termsAccepted || !privacyAccepted) {
-      setError('You must accept the terms and conditions and privacy policy')
+      setError(t('errorAcceptTerms'))
       setLoading(false)
       return
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('errorPasswordsMatch'))
       setLoading(false)
       return
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError(t('errorPasswordLength'))
       setLoading(false)
       return
     }
@@ -108,7 +110,7 @@ export default function RegisterForm() {
       if (authError) {
         if (!authError.message.includes('Refresh Token Not Found')) {
           const msg = /already|exists|registered/i.test(authError.message)
-            ? 'This email is already registered. Please sign in or use a different email.'
+            ? t('errorAlreadyRegistered')
             : authError.message
           setError(msg)
           setLoading(false)
@@ -119,7 +121,7 @@ export default function RegisterForm() {
       // Supabase returns success with empty identities[] when email is already taken
       // (with email confirmation enabled). Surface a clear error in that case.
       if (authData?.user && Array.isArray(authData.user.identities) && authData.user.identities.length === 0) {
-        setError('This email is already registered. Please sign in or use a different email.')
+        setError(t('errorAlreadyRegistered'))
         setLoading(false)
         return
       }
@@ -129,7 +131,7 @@ export default function RegisterForm() {
       setResendCooldown(60)
     } catch (err: any) {
       if (!err.message?.includes('Refresh Token Not Found')) {
-        setError(err.message || 'Registration failed. Please try again.')
+        setError(err.message || t('errorRegistrationFailed'))
       } else {
         setSuccess(true)
         setRegisteredEmail(formData.email)
@@ -163,9 +165,9 @@ export default function RegisterForm() {
       if (error) throw error
       
       setResendCooldown(60)
-      alert('Verification email sent! Check your inbox.')
+      alert(t('resendSuccess'))
     } catch (err: any) {
-      setError(err.message || 'Failed to resend email')
+      setError(err.message || t('errorResendFailed'))
     } finally {
       setLoading(false)
     }
@@ -181,14 +183,10 @@ export default function RegisterForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email!</h2>
-        <p className="text-sm text-gray-600 mb-2">
-          We've sent a verification link to:
-        </p>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('successTitle')}</h2>
+        <p className="text-sm text-gray-600 mb-2">{t('successWeSent')}</p>
         <p className="text-sm font-semibold text-pink-600 mb-4">{registeredEmail}</p>
-        <p className="text-xs text-gray-500 mb-6">
-          Please click the link to verify your account.
-        </p>
+        <p className="text-xs text-gray-500 mb-6">{t('successInstruction')}</p>
 
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg mb-4 text-left">
@@ -197,19 +195,17 @@ export default function RegisterForm() {
         )}
 
         <div className="space-y-3 mb-6">
-          <p className="text-xs text-gray-500">Didn't receive the email? Check your spam folder.</p>
+          <p className="text-xs text-gray-500">{t('successDidntReceive')}</p>
           <button
             onClick={handleResendEmail}
             disabled={resendCooldown > 0 || loading}
             className="w-full px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? (
-              'Sending...'
-            ) : resendCooldown > 0 ? (
-              `Resend Email (${resendCooldown}s)`
-            ) : (
-              'Resend Verification Email'
-            )}
+            {loading
+              ? t('resendSending')
+              : resendCooldown > 0
+                ? t('resendCooldown', { seconds: resendCooldown })
+                : t('resendButton')}
           </button>
         </div>
 
@@ -217,7 +213,7 @@ export default function RegisterForm() {
           href={searchParams.get('redirect') ? `/login?redirect=${searchParams.get('redirect')}` : '/login'}
           className="inline-block px-6 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all"
         >
-          Go to Login
+          {t('goToLogin')}
         </Link>
       </div>
     )
@@ -232,13 +228,13 @@ export default function RegisterForm() {
       )}
 
       <div className="text-center mb-3">
-        <h2 className="text-lg font-bold text-gray-900">Create new account</h2>
+        <h2 className="text-lg font-bold text-gray-900">{t('title')}</h2>
       </div>
 
       {/* User Type */}
       <div>
         <label htmlFor="userType" className="block text-xs font-bold text-gray-700 mb-1">
-          User type<span className="text-pink-600">*</span>
+          {t('userTypeLabel')}<span className="text-pink-600">*</span>
         </label>
         <select
           id="userType"
@@ -247,17 +243,17 @@ export default function RegisterForm() {
           required
           className={inputCls + ' text-gray-700'}
         >
-          <option value="">Who are you?</option>
-          <option value="user">Member / Visitor</option>
-          <option value="model">Independent Model</option>
-          <option value="company">Agency / Club</option>
+          <option value="">{t('userTypePlaceholder')}</option>
+          <option value="user">{t('userTypeMember')}</option>
+          <option value="model">{t('userTypeModel')}</option>
+          <option value="company">{t('userTypeCompany')}</option>
         </select>
       </div>
 
       {/* Username */}
       <div>
         <label htmlFor="username" className="block text-xs font-bold text-gray-700 mb-1">
-          Username<span className="text-pink-600">*</span>
+          {t('usernameLabel')}<span className="text-pink-600">*</span>
         </label>
         <input
           id="username"
@@ -265,7 +261,7 @@ export default function RegisterForm() {
           value={formData.username}
           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
           required
-          placeholder="Username"
+          placeholder={t('usernamePlaceholder')}
           className={inputCls}
         />
       </div>
@@ -273,7 +269,7 @@ export default function RegisterForm() {
       {/* Email */}
       <div>
         <label htmlFor="email" className="block text-xs font-bold text-gray-700 mb-1">
-          Email<span className="text-pink-600">*</span>
+          {t('emailLabel')}<span className="text-pink-600">*</span>
         </label>
         <input
           id="email"
@@ -281,7 +277,7 @@ export default function RegisterForm() {
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required
-          placeholder="name@domain.com"
+          placeholder={t('emailPlaceholder')}
           className={inputCls}
         />
       </div>
@@ -289,7 +285,7 @@ export default function RegisterForm() {
       {/* Phone */}
       <div>
         <label htmlFor="phone" className="block text-xs font-bold text-gray-700 mb-1">
-          Phone number<span className="text-pink-600">*</span>
+          {t('phoneLabel')}<span className="text-pink-600">*</span>
         </label>
         <input
           id="phone"
@@ -297,7 +293,7 @@ export default function RegisterForm() {
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           required
-          placeholder="+41 79 123 45 67"
+          placeholder={t('phonePlaceholder')}
           className={inputCls}
         />
       </div>
@@ -305,8 +301,8 @@ export default function RegisterForm() {
       {/* Date of Birth */}
       <div>
         <label htmlFor="dateOfBirth" className="block text-xs font-bold text-gray-700 mb-1">
-          Date of birth<span className="text-pink-600">*</span>
-          <span className="font-normal text-gray-400 ml-1">(must be 18+)</span>
+          {t('dobLabel')}<span className="text-pink-600">*</span>
+          <span className="font-normal text-gray-400 ml-1">{t('dobHint')}</span>
         </label>
         <DobInput
           id="dateOfBirth"
@@ -321,7 +317,7 @@ export default function RegisterForm() {
       {/* Password */}
       <div>
         <label htmlFor="password" className="block text-xs font-bold text-gray-700 mb-1">
-          Password<span className="text-pink-600">*</span>
+          {t('passwordLabel')}<span className="text-pink-600">*</span>
         </label>
         <div className="relative">
           <input
@@ -330,7 +326,7 @@ export default function RegisterForm() {
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             required
-            placeholder="••••••••••"
+            placeholder={t('passwordPlaceholder')}
             className={inputCls + ' pr-10'}
           />
           <button
@@ -346,7 +342,7 @@ export default function RegisterForm() {
       {/* Confirm Password */}
       <div>
         <label htmlFor="confirmPassword" className="block text-xs font-bold text-gray-700 mb-1">
-          Confirm password<span className="text-pink-600">*</span>
+          {t('confirmPasswordLabel')}<span className="text-pink-600">*</span>
         </label>
         <div className="relative">
           <input
@@ -355,7 +351,7 @@ export default function RegisterForm() {
             value={formData.confirmPassword}
             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
             required
-            placeholder="••••••••••"
+            placeholder={t('passwordPlaceholder')}
             className={inputCls + ' pr-10'}
           />
           <button
@@ -378,9 +374,9 @@ export default function RegisterForm() {
             className="mt-0.5 w-4 h-4 text-pink-600 border-2 border-gray-300 rounded focus:ring-1 focus:ring-pink-200 cursor-pointer"
           />
           <span className="text-xs text-gray-700 leading-tight">
-            I accept the{' '}
+            {t('acceptTerms')}{' '}
             <a href="/terms" className="text-pink-600 hover:text-pink-700 font-semibold underline">
-              terms and conditions
+              {t('termsLink')}
             </a>
           </span>
         </label>
@@ -393,9 +389,9 @@ export default function RegisterForm() {
             className="mt-0.5 w-4 h-4 text-pink-600 border-2 border-gray-300 rounded focus:ring-1 focus:ring-pink-200 cursor-pointer"
           />
           <span className="text-xs text-gray-700 leading-tight">
-            I accept the{' '}
+            {t('acceptPrivacy')}{' '}
             <a href="/privacy" className="text-pink-600 hover:text-pink-700 font-semibold underline">
-              privacy policy
+              {t('privacyLink')}
             </a>
           </span>
         </label>
@@ -408,7 +404,7 @@ export default function RegisterForm() {
             className="mt-0.5 w-4 h-4 text-pink-600 border-2 border-gray-300 rounded focus:ring-1 focus:ring-pink-200 cursor-pointer"
           />
           <span className="text-xs text-gray-700 leading-tight">
-            Subscribe to newsletter
+            {t('newsletter')}
           </span>
         </label>
       </div>
@@ -425,10 +421,10 @@ export default function RegisterForm() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            Creating account...
+            {t('submitting')}
           </span>
         ) : (
-          'Register'
+          t('submit')
         )}
       </button>
     </form>

@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LoginForm() {
+  const t = useTranslations('auth.login')
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
@@ -50,7 +52,7 @@ export default function LoginForm() {
         .single()
 
       if (!profile) {
-        setError('Profile not found for this account.')
+        setError(t('errorProfileNotFound'))
         return
       }
 
@@ -106,7 +108,7 @@ export default function LoginForm() {
     } catch (err: any) {
       // Ignore "Refresh Token Not Found" error
       if (!err.message?.includes('Refresh Token Not Found')) {
-        setError(err.message || 'Failed to login. Please check your credentials.')
+        setError(err.message || t('errorFailed'))
       }
     } finally {
       setLoading(false)
@@ -122,7 +124,7 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-3">
       {verifiedMessage && (
         <div className="bg-green-50 border-l-4 border-green-500 p-2 rounded-r-lg">
-          <p className="text-xs text-green-700 font-medium">✓ Email verified successfully! You can now login.</p>
+          <p className="text-xs text-green-700 font-medium">{t('verifiedSuccess')}</p>
         </div>
       )}
       
@@ -133,13 +135,13 @@ export default function LoginForm() {
       )}
 
       <div className="text-center mb-3">
-        <h2 className="text-lg font-bold text-gray-900">Sign in to your account</h2>
+        <h2 className="text-lg font-bold text-gray-900">{t('title')}</h2>
       </div>
 
       {/* Email */}
       <div>
         <label htmlFor="email" className="block text-xs font-bold text-gray-700 mb-1">
-          Email<span className="text-pink-600">*</span>
+          {t('emailLabel')}<span className="text-pink-600">*</span>
         </label>
         <input
           id="email"
@@ -147,7 +149,7 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="name@domain.com"
+          placeholder={t('emailPlaceholder')}
           className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
         />
       </div>
@@ -155,7 +157,7 @@ export default function LoginForm() {
       {/* Password */}
       <div>
         <label htmlFor="password" className="block text-xs font-bold text-gray-700 mb-1">
-          Password<span className="text-pink-600">*</span>
+          {t('passwordLabel')}<span className="text-pink-600">*</span>
         </label>
         <div className="relative">
           <input
@@ -164,7 +166,7 @@ export default function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            placeholder="••••••••••"
+            placeholder={t('passwordPlaceholder')}
             className="w-full px-3 py-2 pr-10 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
           />
           <button
@@ -180,7 +182,7 @@ export default function LoginForm() {
       {/* Forgot Password */}
       <div className="text-right">
         <Link href="/forgot-password" className="text-xs text-pink-600 hover:text-pink-700 font-semibold">
-          Forgot password?
+          {t('forgotPassword')}
         </Link>
       </div>
 
@@ -196,10 +198,10 @@ export default function LoginForm() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            Signing in...
+            {t('submitting')}
           </span>
         ) : (
-          'LOG IN'
+          t('submit')
         )}
       </button>
     </form>

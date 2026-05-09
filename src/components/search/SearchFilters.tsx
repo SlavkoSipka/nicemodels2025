@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { Filter, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 export default function SearchFilters() {
+  const t = useTranslations('search.filters')
   const [isOpen, setIsOpen] = useState(true)
   const [filters, setFilters] = useState({
     category: '',
@@ -17,16 +19,21 @@ export default function SearchFilters() {
     verified: false,
   })
 
-  const categories = ['Escort', 'Trans', 'Couples', 'VIP']
+  const categories = [
+    { value: 'escort', label: t('categories.escort') },
+    { value: 'trans', label: t('categories.trans') },
+    { value: 'couples', label: t('categories.couples') },
+    { value: 'vip', label: t('categories.vip') },
+  ]
   const services = [
-    'GFE (Girlfriend Experience)',
-    'Massage',
-    'Outcall',
-    'Overnight',
-    'Couples',
-    'Party',
-    'Travel Companion',
-    'Dinner Date',
+    { value: 'gfe', label: t('servicesList.gfe') },
+    { value: 'massage', label: t('servicesList.massage') },
+    { value: 'outcall', label: t('servicesList.outcall') },
+    { value: 'overnight', label: t('servicesList.overnight') },
+    { value: 'couples', label: t('servicesList.couples') },
+    { value: 'party', label: t('servicesList.party') },
+    { value: 'travelCompanion', label: t('servicesList.travelCompanion') },
+    { value: 'dinnerDate', label: t('servicesList.dinnerDate') },
   ]
 
   const handleServiceToggle = (service: string) => {
@@ -44,7 +51,7 @@ export default function SearchFilters() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold flex items-center">
           <Filter className="w-5 h-5 mr-2 text-pink-600" />
-          Filters
+          {t('title')}
         </h2>
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -59,16 +66,16 @@ export default function SearchFilters() {
           {/* Category */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Category
+              {t('category')}
             </label>
             <select
               value={filters.category}
               onChange={(e) => setFilters({ ...filters, category: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
             >
-              <option value="">All Categories</option>
+              <option value="">{t('allCategories')}</option>
               {categories.map(cat => (
-                <option key={cat} value={cat.toLowerCase()}>{cat}</option>
+                <option key={cat.value} value={cat.value}>{cat.label}</option>
               ))}
             </select>
           </div>
@@ -78,27 +85,27 @@ export default function SearchFilters() {
             <CitySearch
               value={filters.city}
               onChange={(city) => setFilters({ ...filters, city: city?.name || '' })}
-              label="Location"
-              placeholder="Search city or PLZ..."
+              label={t('location')}
+              placeholder={t('locationPlaceholder')}
             />
           </div>
 
           {/* Age Range */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Age Range
+              {t('ageRange')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="number"
-                placeholder="Min"
+                placeholder={t('min')}
                 value={filters.minAge}
                 onChange={(e) => setFilters({ ...filters, minAge: e.target.value })}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               />
               <input
                 type="number"
-                placeholder="Max"
+                placeholder={t('max')}
                 value={filters.maxAge}
                 onChange={(e) => setFilters({ ...filters, maxAge: e.target.value })}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
@@ -109,19 +116,19 @@ export default function SearchFilters() {
           {/* Price Range */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Price per Hour ($)
+              {t('pricePerHour')}
             </label>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="number"
-                placeholder="Min"
+                placeholder={t('min')}
                 value={filters.minPrice}
                 onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               />
               <input
                 type="number"
-                placeholder="Max"
+                placeholder={t('max')}
                 value={filters.maxPrice}
                 onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
@@ -132,18 +139,18 @@ export default function SearchFilters() {
           {/* Services */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Services
+              {t('services')}
             </label>
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {services.map(service => (
-                <label key={service} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                <label key={service.value} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
                   <input
                     type="checkbox"
-                    checked={filters.services.includes(service)}
-                    onChange={() => handleServiceToggle(service)}
+                    checked={filters.services.includes(service.value)}
+                    onChange={() => handleServiceToggle(service.value)}
                     className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700">{service}</span>
+                  <span className="ml-2 text-sm text-gray-700">{service.label}</span>
                 </label>
               ))}
             </div>
@@ -159,7 +166,7 @@ export default function SearchFilters() {
                 className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
               />
               <span className="ml-2 text-sm font-semibold text-gray-700">
-                Verified Profiles Only
+                {t('verifiedOnly')}
               </span>
             </label>
           </div>
@@ -167,10 +174,10 @@ export default function SearchFilters() {
           {/* Apply Buttons */}
           <div className="space-y-2 pt-4 border-t">
             <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition">
-              Apply Filters
+              {t('applyFilters')}
             </button>
             <button className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition">
-              Reset All
+              {t('resetAll')}
             </button>
           </div>
         </div>

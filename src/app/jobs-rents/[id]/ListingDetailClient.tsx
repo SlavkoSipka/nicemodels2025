@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import {
   MapPin, Calendar, Phone, Mail, Globe,
@@ -54,10 +55,11 @@ interface ListingDetail {
 }
 
 export default function ListingDetailClient({ listing }: { listing: ListingDetail }) {
+  const t = useTranslations('publicPages.listingDetail')
   const [isOwner, setIsOwner] = useState(false)
 
   const isJob = listing.listing_type === 'job'
-  const displayTitle = listing.title || (isJob ? 'Job Listing' : 'Rent Listing')
+  const displayTitle = listing.title || (isJob ? t('fallbackJobTitle') : t('fallbackRentTitle'))
   const cc = listing.country_code || '+41'
   const phone = listing.phone_number
   const phoneDigitsOk = phone ? listingPhoneDigits(cc, phone).length >= 8 : false
@@ -79,8 +81,8 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
   }, [listing.club_id])
 
   useEffect(() => {
-    const t = setTimeout(() => trackListingView(listing.id), 800)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => trackListingView(listing.id), 800)
+    return () => clearTimeout(timer)
   }, [listing.id])
 
   return (
@@ -95,7 +97,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
             style={{ color: '#64748b' }}
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to listings
+            {t('backToListings')}
           </Link>
 
           {/* ── Photos (top) ────────────────────────── */}
@@ -113,7 +115,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   >
                     <Image
                       src={url}
-                      alt={`Photo ${i + 1}`}
+                      alt={t('photoAlt', { n: i + 1 })}
                       fill
                       className="object-cover"
                       sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
@@ -131,9 +133,9 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                 <Calendar className="w-5 h-5" style={{ color: '#ea580c' }} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold" style={{ color: '#9a3412' }}>This listing has expired</p>
+                <p className="text-sm font-bold" style={{ color: '#9a3412' }}>{t('expiredTitle')}</p>
                 <p className="text-xs mt-0.5" style={{ color: '#9a3412' }}>
-                  Expired on {expiredDateStr}. {isOwner ? 'Edit it from your dashboard to renew or extend.' : 'The advertiser may not respond.'}
+                  {t('expiredOn', { date: expiredDateStr })} {isOwner ? t('expiredHintOwner') : t('expiredHintVisitor')}
                 </p>
               </div>
             </div>
@@ -166,7 +168,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                       border: `1px solid ${isJob ? 'rgba(124,58,237,0.25)' : 'rgba(245,158,11,0.25)'}`,
                     }}
                   >
-                    {isJob ? 'Job Opportunity' : 'Rental Offer'}
+                    {isJob ? t('jobBadge') : t('rentBadge')}
                   </span>
 
                   <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-4" style={{ color: '#0f172a' }}>
@@ -203,7 +205,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                     style={{ background: 'rgba(59,130,246,0.08)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.25)' }}
                   >
                     <Pencil className="w-4 h-4" />
-                    Edit
+                    {t('edit')}
                   </Link>
                 )}
               </div>
@@ -211,7 +213,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
               {/* ── Description ────────────────────────── */}
               <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
                 <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
-                  Description
+                  {t('description')}
                 </p>
                 <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap" style={{ color: '#475569' }}>
                   {htmlToPlainText(listing.description)}
@@ -225,25 +227,25 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   {(listing.rent_price_daily || listing.rent_price_weekly || listing.rent_price_monthly) && (
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#94a3b8' }}>
-                        Pricing
+                        {t('pricing')}
                       </p>
                       <div className="grid grid-cols-3 gap-3">
                         {listing.rent_price_daily != null && (
                           <div className="rounded-xl p-4 text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                             <p className="text-xl font-bold" style={{ color: '#0f172a' }}>CHF {listing.rent_price_daily}</p>
-                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>per day</p>
+                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>{t('perDay')}</p>
                           </div>
                         )}
                         {listing.rent_price_weekly != null && (
                           <div className="rounded-xl p-4 text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                             <p className="text-xl font-bold" style={{ color: '#0f172a' }}>CHF {listing.rent_price_weekly}</p>
-                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>per week</p>
+                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>{t('perWeek')}</p>
                           </div>
                         )}
                         {listing.rent_price_monthly != null && (
                           <div className="rounded-xl p-4 text-center" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                             <p className="text-xl font-bold" style={{ color: '#0f172a' }}>CHF {listing.rent_price_monthly}</p>
-                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>per month</p>
+                            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>{t('perMonth')}</p>
                           </div>
                         )}
                       </div>
@@ -254,42 +256,42 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   {(listing.rent_room_size || listing.rent_work_permit || listing.rent_furnished || listing.rent_kitchen || listing.rent_bathroom || listing.rent_air_conditioning || listing.rent_towels) && (
                     <div>
                       <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#94a3b8' }}>
-                        Room Details & Amenities
+                        {t('roomDetails')}
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {listing.rent_room_size && (
                           <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(59,130,246,0.08)', color: '#1D4ED8', border: '1px solid rgba(59,130,246,0.20)' }}>
-                            Size: {listing.rent_room_size}
+                            {t('roomSize', { size: listing.rent_room_size })}
                           </span>
                         )}
                         {listing.rent_work_permit && (
                           <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(16,185,129,0.08)', color: '#047857', border: '1px solid rgba(16,185,129,0.20)' }}>
-                            Work Permit Allowed
+                            {t('workPermit')}
                           </span>
                         )}
                         {listing.rent_furnished && (
                           <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
-                            Furnished
+                            {t('furnished')}
                           </span>
                         )}
                         {listing.rent_kitchen && (
                           <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
-                            Kitchen
+                            {t('kitchen')}
                           </span>
                         )}
                         {listing.rent_bathroom && (
                           <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
-                            Shower + WC
+                            {t('bathroom')}
                           </span>
                         )}
                         {listing.rent_air_conditioning && (
                           <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
-                            Air Conditioning
+                            {t('airConditioning')}
                           </span>
                         )}
                         {listing.rent_towels && (
                           <span className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.20)' }}>
-                            Towels
+                            {t('towels')}
                           </span>
                         )}
                       </div>
@@ -302,7 +304,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
               {listing.services.length > 0 && (
                 <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
                   <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: '#94a3b8' }}>
-                    Services
+                    {t('services')}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {listing.services.map(s => (
@@ -325,12 +327,12 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
               {/* ── Contact ────────────────────────────── */}
               <div style={{ borderTop: '1px solid #f1f5f9' }} className="pt-6">
                 <p className="text-[11px] font-bold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>
-                  Contact
+                  {t('contact')}
                 </p>
                 {(listing.phone_number || listing.email || listing.website) ? (
                 <>
                   <p className="text-xs mb-4" style={{ color: '#94a3b8' }}>
-                    Tap any option below to get in touch.
+                    {t('tapToContact')}
                   </p>
                   <div className="space-y-2.5">
                     {listing.phone_number && phoneDigitsOk && (
@@ -343,7 +345,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                           <Phone className="w-5 h-5 text-blue-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Call now</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-blue-600">{t('callNow')}</p>
                           <p className="text-sm font-bold text-slate-900 break-all">{cc} {listing.phone_number}</p>
                         </div>
                         <span className="text-blue-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
@@ -360,7 +362,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                           <MessageSquare className="w-5 h-5 text-emerald-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Send SMS</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">{t('sendSms')}</p>
                           <p className="text-sm font-bold text-slate-900 break-all">{cc} {listing.phone_number}</p>
                         </div>
                         <span className="text-emerald-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
@@ -381,7 +383,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                               <MessageSquare className="w-5 h-5" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Chat on</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">{t('chatOn')}</p>
                               <p className="text-sm font-bold">WhatsApp</p>
                             </div>
                             <span className="text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
@@ -397,7 +399,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                               <Phone className="w-5 h-5" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Chat on</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">{t('chatOn')}</p>
                               <p className="text-sm font-bold">Viber</p>
                             </div>
                             <span className="text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
@@ -415,7 +417,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                               <MessageSquare className="w-5 h-5" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">Chat on</p>
+                              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">{t('chatOn')}</p>
                               <p className="text-sm font-bold">Telegram</p>
                             </div>
                             <span className="text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
@@ -434,7 +436,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                           <Mail className="w-5 h-5 text-pink-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-pink-600">Send email</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-pink-600">{t('sendEmail')}</p>
                           <p className="text-sm font-bold text-slate-900 break-all">{listing.email}</p>
                         </div>
                         <span className="text-pink-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
@@ -453,7 +455,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                           <Globe className="w-5 h-5 text-violet-600" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-violet-600">Visit website</p>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-violet-600">{t('visitWebsite')}</p>
                           <p className="text-sm font-bold text-slate-900 break-all">{listing.website}</p>
                         </div>
                         <span className="text-violet-500 text-lg shrink-0 group-hover:translate-x-0.5 transition-transform">→</span>
@@ -464,7 +466,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                 ) : (
                   <div className="rounded-xl p-4 bg-amber-50 border border-amber-200">
                     <p className="text-sm text-amber-800">
-                      The advertiser hasn&apos;t provided contact info for this listing yet.
+                      {t('noContact')}
                     </p>
                   </div>
                 )}
@@ -482,7 +484,7 @@ export default function ListingDetailClient({ listing }: { listing: ListingDetai
                   }}
                 >
                   <Briefcase className="w-4 h-4" />
-                  View {listing.club_name}&apos;s profile
+                  {t('viewClubProfile', { clubName: listing.club_name })}
                 </Link>
               </div>
 

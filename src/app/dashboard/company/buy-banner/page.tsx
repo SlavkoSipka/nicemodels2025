@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import {
   Megaphone, Upload, X, CheckCircle, AlertCircle, Trash2,
@@ -59,6 +60,7 @@ function activePlacementsFromRows(rows: BannerRow[]): Set<BannerPlacement> {
 
 export default function BuyBannerPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.buyBanner')
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
@@ -92,10 +94,10 @@ export default function BuyBannerPage() {
   }, [selectedPlacement, activeSlots])
 
   const uploadHint = useMemo(() => {
-    if (selectedPlacement === 'feed_card') return 'Recommended: portrait ~3:4 (like a profile card). Max 10MB.'
-    if (selectedPlacement === 'sidebar_left') return 'Recommended: portrait ~2:3 or 9:16. Max 10MB.'
-    return 'Recommended: wide landscape 4:1. Max 10MB. JPG, PNG, WebP.'
-  }, [selectedPlacement])
+    if (selectedPlacement === 'feed_card') return t('uploadHintFeedCard')
+    if (selectedPlacement === 'sidebar_left') return t('uploadHintSidebar')
+    return t('uploadHintWide')
+  }, [selectedPlacement, t])
 
   const previewAspectClass = useMemo(() => {
     if (selectedPlacement === 'feed_card') return 'aspect-[3/4] max-w-xs mx-auto'
@@ -115,14 +117,14 @@ export default function BuyBannerPage() {
 
   useEffect(() => {
     if (!selectedPlacement) return
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       afterPlacementRef.current?.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
         inline: 'nearest',
       })
     }, 80)
-    return () => window.clearTimeout(t)
+    return () => window.clearTimeout(timer)
   }, [selectedPlacement, selectedPackage])
 
   const load = async () => {
@@ -171,7 +173,7 @@ export default function BuyBannerPage() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.size > 10 * 1024 * 1024) { setError('Image too large. Max 10MB.'); return }
+    if (file.size > 10 * 1024 * 1024) { setError(t('errImageTooLarge')); return }
     setImageFile(file)
     setImagePreview(URL.createObjectURL(file))
   }
@@ -184,14 +186,14 @@ export default function BuyBannerPage() {
 
   const handleActivate = async () => {
     setError(''); setSuccess('')
-    if (!selectedPlacement) { setError('Please select a placement'); return }
-    if (activeSlots.has(selectedPlacement)) { setError('You already have an active banner in this slot'); return }
-    if (selectedCantons.length === 0) { setError('Please select at least one target region'); return }
-    if (!selectedPackage) { setError('Please select a package'); return }
-    if (!imageFile) { setError('Please upload a banner image'); return }
-    if (!termsAccepted) { setError('Please accept the terms and conditions'); return }
+    if (!selectedPlacement) { setError(t('errSelectPlacement')); return }
+    if (activeSlots.has(selectedPlacement)) { setError(t('errSlotTaken')); return }
+    if (selectedCantons.length === 0) { setError(t('errSelectRegion')); return }
+    if (!selectedPackage) { setError(t('errSelectPackage')); return }
+    if (!imageFile) { setError(t('errUploadImage')); return }
+    if (!termsAccepted) { setError(t('errAcceptTerms')); return }
     if (currentPrice == null || currentPrice <= 0) {
-      setError('Banner pricing is not configured. Contact support.')
+      setError(t('errPricingMissing'))
       return
     }
 
@@ -204,7 +206,7 @@ export default function BuyBannerPage() {
         .upload(path, imageFile, { cacheControl: '3600', upsert: true })
       if (upErr) throw upErr
 
-      const title = clubDetails?.club_name || 'Banner'
+      const title = clubDetails?.club_name || t('bannerFallbackTitle')
 
       const { data: draft, error: dbErr } = await supabase
         .from('banners')
@@ -220,7 +222,7 @@ export default function BuyBannerPage() {
         })
         .select()
         .single()
-      if (dbErr || !draft) throw dbErr || new Error('Failed to draft banner')
+      if (dbErr || !draft) throw dbErr || new Error(t('errDraftFailed'))
 
       const res = await fetch('/api/checkout/session', {
         method: 'POST',
@@ -245,18 +247,18 @@ export default function BuyBannerPage() {
         const j = await res.json().catch(() => ({}))
         await supabase.from('banners').delete().eq('id', draft.id)
         await supabase.storage.from('banners').remove([path])
-        throw new Error(j?.error || 'Failed to start checkout')
+        throw new Error(j?.error || t('errCheckoutFailed'))
       }
       const { url } = await res.json() as { url: string }
       window.location.href = url
     } catch (e: any) {
-      setError(e?.message || 'Failed to activate banner')
+      setError(e?.message || t('errActivateFailed'))
       setSaving(false)
     }
   }
 
   const handleDelete = async (banner: BannerRow) => {
-    if (!confirm('Delete this banner?')) return
+    if (!confirm(t('confirmDelete'))) return
     try {
       if (banner.image_path) await supabase.storage.from('banners').remove([banner.image_path])
       await supabase.from('banners').delete().eq('id', banner.id)
@@ -264,7 +266,7 @@ export default function BuyBannerPage() {
       setBanners(updated)
       setActiveSlots(activePlacementsFromRows(updated))
     } catch (e: any) {
-      setError(e?.message || 'Failed to delete banner')
+      setError(e?.message || t('errDeleteFailed'))
     }
   }
 
@@ -273,10 +275,10 @@ export default function BuyBannerPage() {
 
   const statusBadge = (status: string) => {
     const map: Record<string, { cls: string; label: string }> = {
-      pending:  { cls: 'bg-yellow-100 text-yellow-800', label: 'Pending Review' },
-      active:   { cls: 'bg-emerald-100 text-emerald-800', label: 'Active' },
-      expired:  { cls: 'bg-gray-100 text-gray-600', label: 'Expired' },
-      rejected: { cls: 'bg-red-100 text-red-800', label: 'Rejected' },
+      pending:  { cls: 'bg-yellow-100 text-yellow-800', label: t('statusPending') },
+      active:   { cls: 'bg-emerald-100 text-emerald-800', label: t('statusActive') },
+      expired:  { cls: 'bg-gray-100 text-gray-600', label: t('statusExpired') },
+      rejected: { cls: 'bg-red-100 text-red-800', label: t('statusRejected') },
     }
     const s = map[status] || map.pending
     return <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.cls}`}>{s.label}</span>
@@ -284,9 +286,9 @@ export default function BuyBannerPage() {
 
   const placementLabel = (p: string | null | undefined) => {
     const pl = normalizePlacement(p)
-    if (pl === 'feed_card') return 'Card slot'
-    if (pl === 'sidebar_left') return 'Left column'
-    return 'Wide feed'
+    if (pl === 'feed_card') return t('placementCard')
+    if (pl === 'sidebar_left') return t('placementSidebar')
+    return t('placementWide')
   }
 
   if (loading) return null
@@ -300,18 +302,17 @@ export default function BuyBannerPage() {
             <Megaphone className="w-4 h-4 text-purple-600" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Buy Banner</h1>
-            <p className="text-xs text-gray-500">
-              One active banner per placement. Secure checkout via Stripe.
-            </p>
+            <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-sm text-blue-900">
-            You can have <span className="font-semibold">one active banner per placement</span>{' '}
-            (wide, card, or left column).{' '}
-            <span className="font-medium">Left column</span> does not show on mobile — only on larger screens.
+            {t.rich('infoBox', {
+              bold: (chunks) => <span className="font-semibold">{chunks}</span>,
+              em: (chunks) => <span className="font-medium">{chunks}</span>,
+            })}
           </p>
         </div>
 
@@ -323,16 +324,14 @@ export default function BuyBannerPage() {
               <Zap className="w-5 h-5 text-blue-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-blue-900 mb-1">Tip: pair your banner with an active club ad</p>
-              <p className="text-sm text-blue-800 mb-3">
-                You can buy a banner right now without an active ad. For maximum reach, also activate your club ad — banners and an active sedcard work best together.
-              </p>
+              <p className="text-sm font-bold text-blue-900 mb-1">{t('tipTitle')}</p>
+              <p className="text-sm text-blue-800 mb-3">{t('tipBody')}</p>
               <button
                 onClick={() => router.push('/dashboard/company/activate-ad')}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Zap className="w-3.5 h-3.5" />
-                Activate Club Ad
+                {t('activateClubAd')}
                 <ChevronRight className="w-3 h-3" />
               </button>
             </div>
@@ -354,7 +353,7 @@ export default function BuyBannerPage() {
 
         {activeSlots.size > 0 && (
           <div className="bg-white border border-emerald-200 rounded-lg p-3.5 md:p-5 space-y-2">
-            <p className="text-sm font-bold text-emerald-800">Active banner slots</p>
+            <p className="text-sm font-bold text-emerald-800">{t('activeBannerSlots')}</p>
             <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
               {Array.from(activeSlots).map(pl => (
                 <li key={pl}>
@@ -366,7 +365,7 @@ export default function BuyBannerPage() {
         )}
 
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
-          <p className="text-sm font-bold text-gray-800">1. Choose placement</p>
+          <p className="text-sm font-bold text-gray-800">{t('step1')}</p>
           <PlacementPicker
             value={selectedPlacement}
             onChange={p => {
@@ -385,10 +384,8 @@ export default function BuyBannerPage() {
         {slotFreeForSelection && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
             <div>
-              <p className="text-sm font-bold text-gray-800">2. Choose target regions</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Banner will only show to visitors from these Swiss cantons. Pick up to {MAX_BANNER_REGIONS} regions — price scales with region count.
-              </p>
+              <p className="text-sm font-bold text-gray-800">{t('step2')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('step2Hint', { max: MAX_BANNER_REGIONS })}</p>
             </div>
             <CantonMultiSelect
               value={selectedCantons}
@@ -400,7 +397,7 @@ export default function BuyBannerPage() {
 
         {slotFreeForSelection && selectedCantons.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-            <p className="text-sm font-bold text-gray-800 mb-4">3. Select duration:</p>
+            <p className="text-sm font-bold text-gray-800 mb-4">{t('step3')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
@@ -423,7 +420,7 @@ export default function BuyBannerPage() {
                           return (
                             <>
                               <p className="text-base font-bold text-gray-900">{price != null ? `CHF ${price.toFixed(0)}.-` : '—'}</p>
-                              <p className="text-xs text-gray-400 mt-0.5">One-time payment</p>
+                              <p className="text-xs text-gray-400 mt-0.5">{t('oneTimePayment')}</p>
                             </>
                           )
                         })()}
@@ -445,11 +442,11 @@ export default function BuyBannerPage() {
 
         {slotFreeForSelection && selectedPackage && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
-            <p className="text-sm font-bold text-gray-800">4. Upload banner image:</p>
+            <p className="text-sm font-bold text-gray-800">{t('step4')}</p>
             <p className="text-xs text-gray-400">{uploadHint}</p>
             {imagePreview ? (
               <div className={`relative rounded-xl overflow-hidden border border-gray-200 ${previewAspectClass}`}>
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                <img src={imagePreview} alt={t('previewAlt')} className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={clearImage}
@@ -465,19 +462,19 @@ export default function BuyBannerPage() {
                 className={`w-full border-2 border-dashed border-gray-200 rounded-xl text-gray-400 hover:border-brand hover:text-brand transition-colors flex flex-col items-center justify-center gap-2 ${uploadAspectClass}`}
               >
                 <Upload className="w-8 h-8" />
-                <span className="text-sm font-medium">Click to upload banner</span>
+                <span className="text-sm font-medium">{t('clickToUpload')}</span>
                 <span className="text-xs">JPG, PNG, WebP</span>
               </button>
             )}
             <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">Link (optional)</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('linkOptional')}</label>
               <input
                 type="url"
                 value={ctaUrl}
                 onChange={e => setCtaUrl(e.target.value)}
-                placeholder="https://... or leave empty for your club profile"
+                placeholder={t('linkPlaceholder')}
                 className="w-full max-w-lg px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
@@ -487,9 +484,9 @@ export default function BuyBannerPage() {
         {slotFreeForSelection && selectedPackage && imageFile && (
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-bold text-gray-800">5. Confirm:</p>
+              <p className="text-sm font-bold text-gray-800">{t('step5')}</p>
               <div className="text-right">
-                <p className="text-sm font-bold text-gray-900">Total:</p>
+                <p className="text-sm font-bold text-gray-900">{t('total')}</p>
                 <p className="text-base font-bold text-gray-900">{formatPrice(currentPrice)}</p>
               </div>
             </div>
@@ -497,12 +494,15 @@ export default function BuyBannerPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-semibold text-gray-900">{selectedPackage.name} — {placementLabel(selectedPlacement)}</p>
-                  <p className="text-xs text-gray-500">Activate immediately</p>
+                  <p className="text-xs text-gray-500">{t('activateImmediately')}</p>
                 </div>
                 <span className="text-sm font-bold text-gray-900">{formatPrice(currentPrice)}</span>
               </div>
               <div className="text-xs text-gray-500">
-                Targeting <span className="font-semibold text-gray-700">{selectedCantons.length}</span> region{selectedCantons.length === 1 ? '' : 's'}
+                {t.rich('targeting', {
+                  count: selectedCantons.length,
+                  bold: (chunks) => <span className="font-semibold text-gray-700">{chunks}</span>,
+                })}
               </div>
             </div>
             <div className="mb-3">
@@ -518,15 +518,17 @@ export default function BuyBannerPage() {
               className="w-full py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
-              {saving ? 'Redirecting to checkout...' : 'Pay securely'}
+              {saving ? t('redirecting') : t('paySecurely')}
             </button>
           </div>
         )}
 
         {!slotFreeForSelection && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900">
-            You already have an active banner in <span className="font-semibold">{placementLabel(selectedPlacement)}</span>.
-            Delete it below to purchase a new one for this slot, or pick another placement above.
+            {t.rich('alreadyActive', {
+              placement: placementLabel(selectedPlacement),
+              bold: (chunks) => <span className="font-semibold">{chunks}</span>,
+            })}
           </div>
         )}
           </div>
@@ -534,14 +536,14 @@ export default function BuyBannerPage() {
 
         {banners.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">Your Banners</h2>
+            <h2 className="text-lg font-bold text-gray-900">{t('yourBanners')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {banners.map(banner => (
                 <div key={banner.id} className="border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
                   {banner.image_path && (
                     <img
                       src={storageUrl(banner.image_path)!}
-                      alt="Banner"
+                      alt={t('bannerFallbackTitle')}
                       className={`w-full object-cover ${
                         normalizePlacement(banner.placement) === 'feed_wide'
                           ? 'aspect-[4/1]'
@@ -560,14 +562,14 @@ export default function BuyBannerPage() {
                       </p>
                       {banner.expires_at && (
                         <p className="text-xs text-gray-400">
-                          Expires: {new Date(banner.expires_at).toLocaleDateString()}
+                          {t('expires', { date: new Date(banner.expires_at).toLocaleDateString() })}
                         </p>
                       )}
                     </div>
                     <button
                       onClick={() => handleDelete(banner)}
                       className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
-                      title="Delete"
+                      title={t('deleteTitle')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

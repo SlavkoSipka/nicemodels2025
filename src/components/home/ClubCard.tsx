@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Building2 } from 'lucide-react'
 import ViewCount from '@/components/ui/ViewCount'
 
@@ -26,9 +27,10 @@ const BLUR =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z'
 
 export default function ClubCard({ club, priority = false }: ClubCardProps) {
-  const title = club.display_name || 'Club'
+  const t = useTranslations('components.home.clubCard')
+  const title = club.display_name || t('fallbackName')
   const location = [club.city, club.area].filter(Boolean).join(' · ')
-  const typeLabel = club.is_club ? 'Club' : 'Agency'
+  const typeLabel = club.is_club ? t('typeClub') : t('typeAgency')
   const description = (() => {
     const raw = (club.description || '').replace(/<[^>]*>/g, '')
     return raw.length > 200 ? raw.slice(0, 200).trimEnd() + '…' : raw

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Camera, Upload, Trash2, AlertCircle, Film } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
@@ -11,6 +12,7 @@ interface Video { id: string; file_name: string; file_path: string; is_verified:
 
 export default function PicturesVideoPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.media')
   const [loading, setLoading] = useState(true)
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [uploadingVideos, setUploadingVideos] = useState(false)
@@ -41,7 +43,7 @@ export default function PicturesVideoPage() {
       }
       setPhotoUrls(urls)
     } catch (err: any) {
-      setError('Failed to load media files')
+      setError(t('loadFailed'))
     } finally { setLoading(false) }
   }
 
@@ -54,7 +56,7 @@ export default function PicturesVideoPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
       for (const rawFile of files) {
-        if (rawFile.size > 10 * 1024 * 1024) { setError(`${rawFile.name} is too large. Max 10MB.`); continue }
+        if (rawFile.size > 10 * 1024 * 1024) { setError(t('tooLarge', { name: rawFile.name })); continue }
         const file = await processImage(rawFile)
         const path = `${user.email}/photos/${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
         const { error: ue } = await supabase.storage.from('model-photos').upload(path, file)
@@ -66,7 +68,7 @@ export default function PicturesVideoPage() {
         if (ud) setPhotoUrls(prev => new Map(prev).set(pd.id, ud.publicUrl))
       }
     } catch (err: any) {
-      setError('Failed to upload photos. Please try again.')
+      setError(t('uploadPhotoFailed'))
     } finally { setUploadingPhotos(false); e.target.value = '' }
   }
 
@@ -80,8 +82,8 @@ export default function PicturesVideoPage() {
       if (!user) throw new Error('Not authenticated')
       const allowed = ['video/mp4', 'video/quicktime', 'video/x-ms-wmv', 'video/x-flv', 'video/x-msvideo', 'video/x-matroska']
       for (const file of files) {
-        if (file.size > 200 * 1024 * 1024) { setError(`${file.name} is too large. Max 200MB.`); continue }
-        if (!allowed.includes(file.type)) { setError(`${file.name}: invalid video format.`); continue }
+        if (file.size > 200 * 1024 * 1024) { setError(t('videoTooLarge', { name: file.name })); continue }
+        if (!allowed.includes(file.type)) { setError(t('invalidVideo', { name: file.name })); continue }
         const ext = file.name.split('.').pop()
         const path = `${user.email}/videos/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
         const { error: ue } = await supabase.storage.from('model-videos').upload(path, file)
@@ -91,28 +93,28 @@ export default function PicturesVideoPage() {
         setUploadedVideos(prev => [vd, ...prev])
       }
     } catch (err: any) {
-      setError('Failed to upload video. Please try again.')
+      setError(t('uploadVideoFailed'))
     } finally { setUploadingVideos(false); e.target.value = '' }
   }
 
   const deletePhoto = async (photo: Photo) => {
-    if (!confirm('Delete this photo?')) return
+    if (!confirm(t('deleteConfirmPhoto'))) return
     try {
       const supabase = createClient()
       await supabase.storage.from('model-photos').remove([photo.file_path])
       await supabase.from('model_photos').delete().eq('id', photo.id)
       setUploadedPhotos(prev => prev.filter(p => p.id !== photo.id))
-    } catch { setError('Failed to delete photo.') }
+    } catch { setError(t('deletePhotoFailed')) }
   }
 
   const deleteVideo = async (video: Video) => {
-    if (!confirm('Delete this video?')) return
+    if (!confirm(t('deleteConfirmVideo'))) return
     try {
       const supabase = createClient()
       await supabase.storage.from('model-videos').remove([video.file_path])
       await supabase.from('model_videos').delete().eq('id', video.id)
       setUploadedVideos(prev => prev.filter(v => v.id !== video.id))
-    } catch { setError('Failed to delete video.') }
+    } catch { setError(t('deleteVideoFailed')) }
   }
 
   if (loading) return null
@@ -127,11 +129,11 @@ export default function PicturesVideoPage() {
               <Camera className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Pictures / Video</h1>
-              <p className="text-xs text-gray-500">Manage your photos and videos</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Back</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('back')}</button>
         </div>
 
         {error && (
@@ -144,22 +146,22 @@ export default function PicturesVideoPage() {
         {/* Photos */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-bold text-gray-800">Photos</p>
+            <p className="text-sm font-bold text-gray-800">{t('photos')}</p>
             <label htmlFor="photo-upload" className="flex items-center gap-1.5 px-3 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover cursor-pointer">
               <Upload className="w-4 h-4" />
-              {uploadingPhotos ? 'Uploading...' : 'Upload Photos'}
+              {uploadingPhotos ? t('uploading') : t('uploadPhotos')}
             </label>
             <input id="photo-upload" type="file" accept="image/*" multiple onChange={handlePhotoUpload} disabled={uploadingPhotos} className="hidden" />
           </div>
           <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <p className="text-xs font-semibold text-gray-700 mb-1">Requirements</p>
+            <p className="text-xs font-semibold text-gray-700 mb-1">{t('requirements')}</p>
             <ul className="text-xs text-gray-500 space-y-0.5 list-disc list-inside">
-              <li>Good quality photos, no explicit content</li>
-              <li>Portrait: 400×600 px · Landscape: 500×375 px · Max 10MB</li>
+              <li>{t('photoReq1')}</li>
+              <li>{t('photoReq2')}</li>
             </ul>
           </div>
           {uploadedPhotos.length === 0 ? (
-            <p className="text-xs text-gray-400 italic py-2">No photos uploaded yet</p>
+            <p className="text-xs text-gray-400 italic py-2">{t('noPhotos')}</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
               {uploadedPhotos.map(photo => (
@@ -169,15 +171,15 @@ export default function PicturesVideoPage() {
                       <img src={photoUrls.get(photo.id)} alt={photo.file_name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <p className="text-xs text-gray-400">Loading...</p>
+                        <p className="text-xs text-gray-400">{t('loadingItem')}</p>
                       </div>
                     )}
                   </div>
                   <div className="p-2">
-                    <span className="inline-block px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded mb-1">Published</span>
+                    <span className="inline-block px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded mb-1">{t('published')}</span>
                     <button onClick={() => deletePhoto(photo)}
                       className="w-full px-2 py-1 text-xs bg-red-50 text-red-600 rounded hover:bg-red-100 font-semibold flex items-center justify-center gap-1">
-                      <Trash2 className="w-3 h-3" /> Delete
+                      <Trash2 className="w-3 h-3" /> {t('delete')}
                     </button>
                   </div>
                 </div>
@@ -191,34 +193,34 @@ export default function PicturesVideoPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Film className="w-4 h-4 text-brand" />
-              <p className="text-sm font-bold text-gray-800">Video</p>
+              <p className="text-sm font-bold text-gray-800">{t('video')}</p>
             </div>
             <label htmlFor="video-upload" className="flex items-center gap-1.5 px-3 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover cursor-pointer">
               <Upload className="w-4 h-4" />
-              {uploadingVideos ? 'Uploading...' : 'Upload Video'}
+              {uploadingVideos ? t('uploading') : t('uploadVideo')}
             </label>
             <input id="video-upload" type="file" accept="video/mp4,video/quicktime,video/x-ms-wmv,video/x-flv,video/x-msvideo,video/x-matroska" multiple onChange={handleVideoUpload} disabled={uploadingVideos} className="hidden" />
           </div>
           <div className="bg-gray-50 rounded-lg p-3 mb-4">
-            <p className="text-xs font-semibold text-gray-700 mb-1">Requirements</p>
+            <p className="text-xs font-semibold text-gray-700 mb-1">{t('requirements')}</p>
             <ul className="text-xs text-gray-500 space-y-0.5 list-disc list-inside">
-              <li>Max 200MB · Formats: MP4, MOV, WMV, FLV, AVI, MKV</li>
-              <li>No explicit nudity · Min height 360px</li>
+              <li>{t('videoReq1')}</li>
+              <li>{t('videoReq2')}</li>
             </ul>
           </div>
           {uploadedVideos.length === 0 ? (
-            <p className="text-xs text-gray-400 italic py-2">No videos uploaded yet</p>
+            <p className="text-xs text-gray-400 italic py-2">{t('noVideos')}</p>
           ) : (
             <div className="space-y-2">
               {uploadedVideos.map(video => (
                 <div key={video.id} className="flex items-center justify-between px-3 py-2.5 bg-gray-50 rounded-lg border border-gray-200">
                   <div>
                     <p className="text-sm font-semibold text-gray-900 truncate max-w-xs">{video.file_name}</p>
-                    <span className="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">Uploaded</span>
+                    <span className="inline-block px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded">{t('uploaded')}</span>
                   </div>
                   <button onClick={() => deleteVideo(video)}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-50 text-red-600 rounded-lg hover:bg-red-100 font-semibold">
-                    <Trash2 className="w-3 h-3" /> Delete
+                    <Trash2 className="w-3 h-3" /> {t('delete')}
                   </button>
                 </div>
               ))}
@@ -228,7 +230,7 @@ export default function PicturesVideoPage() {
 
         <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
           <p className="text-xs text-emerald-800">
-            <span className="font-bold">Auto-publish:</span> Uploaded content appears on your profile immediately. Our team monitors for policy compliance.
+            <span className="font-bold">{t('autoPublishLabel')}</span> {t('autoPublishHint')}
           </p>
         </div>
       </div>

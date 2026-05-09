@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Filter, MapPin, Calendar, User, Search, X } from 'lucide-react'
 
@@ -28,6 +29,7 @@ export default function Filters({
   selectedEthnicity,
   setSelectedEthnicity
 }: FiltersProps) {
+  const tf = useTranslations('home.filters')
   const supabase = createClient()
   const [cityQuery, setCityQuery] = useState('')
   const [cityResults, setCityResults] = useState<CityOption[]>([])
@@ -97,7 +99,7 @@ export default function Filters({
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2 text-white font-bold">
             <Filter className="w-5 h-5" />
-            <span>Filters:</span>
+            <span>{tf('stripLabel')}</span>
           </div>
 
           {/* City Filter with autocomplete */}
@@ -109,7 +111,7 @@ export default function Filters({
                 value={cityQuery}
                 onChange={(e) => handleCityInput(e.target.value)}
                 onFocus={() => { if (cityQuery) setIsCityOpen(true) }}
-                placeholder={selectedCity === 'all' ? 'All Cities' : selectedCity}
+                placeholder={selectedCity === 'all' ? tf('allCities') : selectedCity}
                 className="bg-transparent text-white font-semibold text-sm outline-none placeholder-white/70 w-36"
               />
               {selectedCity !== 'all' && (
@@ -141,12 +143,12 @@ export default function Filters({
               onChange={(e) => setSelectedAge(e.target.value)}
               className="bg-transparent text-white font-semibold text-sm outline-none cursor-pointer"
             >
-              <option value="all" className="text-gray-900">All Ages</option>
-              <option value="18-25" className="text-gray-900">18-25</option>
-              <option value="26-30" className="text-gray-900">26-30</option>
-              <option value="31-35" className="text-gray-900">31-35</option>
-              <option value="36-40" className="text-gray-900">36-40</option>
-              <option value="41-99" className="text-gray-900">41+</option>
+              <option value="all" className="text-gray-900">{tf('allAges')}</option>
+              <option value="18-25" className="text-gray-900">{tf('age1825')}</option>
+              <option value="26-30" className="text-gray-900">{tf('age2630')}</option>
+              <option value="31-35" className="text-gray-900">{tf('age3135')}</option>
+              <option value="36-40" className="text-gray-900">{tf('age3640')}</option>
+              <option value="41-99" className="text-gray-900">{tf('age41plus')}</option>
             </select>
           </div>
 
@@ -158,13 +160,13 @@ export default function Filters({
               onChange={(e) => setSelectedEthnicity(e.target.value)}
               className="bg-transparent text-white font-semibold text-sm outline-none cursor-pointer"
             >
-              <option value="all" className="text-gray-900">All Ethnicities</option>
-              <option value="european" className="text-gray-900">European</option>
-              <option value="asian" className="text-gray-900">Asian</option>
-              <option value="latina" className="text-gray-900">Latina</option>
-              <option value="african" className="text-gray-900">African</option>
-              <option value="middle_eastern" className="text-gray-900">Middle Eastern</option>
-              <option value="mixed" className="text-gray-900">Mixed</option>
+              <option value="all" className="text-gray-900">{tf('allEthnicities')}</option>
+              <option value="european" className="text-gray-900">{tf('ethnicityEuropean')}</option>
+              <option value="asian" className="text-gray-900">{tf('ethnicityAsian')}</option>
+              <option value="latina" className="text-gray-900">{tf('ethnicityLatina')}</option>
+              <option value="african" className="text-gray-900">{tf('ethnicityAfrican')}</option>
+              <option value="middle_eastern" className="text-gray-900">{tf('ethnicityMiddleEastern')}</option>
+              <option value="mixed" className="text-gray-900">{tf('ethnicityMixed')}</option>
             </select>
           </div>
 
@@ -180,7 +182,7 @@ export default function Filters({
               }}
               className="ml-auto px-4 py-2 bg-white text-pink-600 font-semibold rounded-lg hover:bg-gray-100 transition-all text-sm"
             >
-              Reset Filters
+              {tf('resetFilters')}
             </button>
           )}
         </div>

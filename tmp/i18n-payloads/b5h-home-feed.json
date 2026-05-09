@@ -1,0 +1,182 @@
+{
+  "en": {
+    "components": {
+      "home": {
+        "modelCard": {
+          "viewProfileAria": "View profile: {title}",
+          "premium": "Premium",
+          "ageYears": "{age} yrs",
+          "liveCity": "Live: {city}",
+          "liveCityPostal": "Live: {city} ({postal})",
+          "timeSec": "{n}s",
+          "timeMin": "{n}m",
+          "timeHour": "{n}h",
+          "timeDay": "{n}d"
+        },
+        "clubCard": {
+          "fallbackName": "Club",
+          "typeClub": "Club",
+          "typeAgency": "Agency"
+        },
+        "latestStatus": {
+          "title": "Latest status messages",
+          "justNow": "just now",
+          "minutesAgo": "{count} min ago",
+          "oneHourAgo": "1 hour ago",
+          "hoursAgo": "{count} hours ago",
+          "oneDayAgo": "1 day ago",
+          "daysAgo": "{count} days ago"
+        },
+        "availableForChat": {
+          "title": "Available for 1:1 Chat",
+          "viewAll": "View All Chats"
+        }
+      },
+      "sitePreview": {
+        "livePreview": "Live preview",
+        "desktop": "Desktop",
+        "mobile": "Mobile",
+        "defaultTitle": "Preview",
+        "sidebarNote": "Note: The left column banner is desktop-only and does not appear on mobile devices."
+      },
+      "viewCount": {
+        "tooltip": "{formatted} {count, plural, one {view} other {views}}"
+      }
+    }
+  },
+  "de": {
+    "components": {
+      "home": {
+        "modelCard": {
+          "viewProfileAria": "Profil ansehen: {title}",
+          "premium": "Premium",
+          "ageYears": "{age} J.",
+          "liveCity": "Live: {city}",
+          "liveCityPostal": "Live: {city} ({postal})",
+          "timeSec": "{n}s",
+          "timeMin": "{n} Min.",
+          "timeHour": "{n} Std.",
+          "timeDay": "{n} T."
+        },
+        "clubCard": {
+          "fallbackName": "Club",
+          "typeClub": "Club",
+          "typeAgency": "Agentur"
+        },
+        "latestStatus": {
+          "title": "Neueste Statusmeldungen",
+          "justNow": "gerade eben",
+          "minutesAgo": "vor {count} Min.",
+          "oneHourAgo": "vor 1 Std.",
+          "hoursAgo": "vor {count} Std.",
+          "oneDayAgo": "vor 1 Tag",
+          "daysAgo": "vor {count} Tagen"
+        },
+        "availableForChat": {
+          "title": "Verfügbar für 1:1 Chat",
+          "viewAll": "Alle Chats anzeigen"
+        }
+      },
+      "sitePreview": {
+        "livePreview": "Live-Vorschau",
+        "desktop": "Desktop",
+        "mobile": "Mobil",
+        "defaultTitle": "Vorschau",
+        "sidebarNote": "Hinweis: Das Banner in der linken Spalte ist nur auf dem Desktop sichtbar und erscheint nicht auf Mobilgeräten."
+      },
+      "viewCount": {
+        "tooltip": "{formatted} {count, plural, one {Aufruf} other {Aufrufe}}"
+      }
+    }
+  },
+  "fr": {
+    "components": {
+      "home": {
+        "modelCard": {
+          "viewProfileAria": "Voir le profil : {title}",
+          "premium": "Premium",
+          "ageYears": "{age} ans",
+          "liveCity": "En direct : {city}",
+          "liveCityPostal": "En direct : {city} ({postal})",
+          "timeSec": "{n}s",
+          "timeMin": "{n} min",
+          "timeHour": "{n} h",
+          "timeDay": "{n} j"
+        },
+        "clubCard": {
+          "fallbackName": "Club",
+          "typeClub": "Club",
+          "typeAgency": "Agence"
+        },
+        "latestStatus": {
+          "title": "Derniers statuts",
+          "justNow": "à l’instant",
+          "minutesAgo": "il y a {count} min",
+          "oneHourAgo": "il y a 1 h",
+          "hoursAgo": "il y a {count} h",
+          "oneDayAgo": "il y a 1 jour",
+          "daysAgo": "il y a {count} jours"
+        },
+        "availableForChat": {
+          "title": "Disponible pour chat 1:1",
+          "viewAll": "Voir tous les chats"
+        }
+      },
+      "sitePreview": {
+        "livePreview": "Aperçu en direct",
+        "desktop": "Bureau",
+        "mobile": "Mobile",
+        "defaultTitle": "Aperçu",
+        "sidebarNote": "Remarque : la bannière de la colonne de gauche est réservée au bureau et n’apparaît pas sur mobile."
+      },
+      "viewCount": {
+        "tooltip": "{formatted} {count, plural, one {vue} other {vues}}"
+      }
+    }
+  },
+  "es": {
+    "components": {
+      "home": {
+        "modelCard": {
+          "viewProfileAria": "Ver perfil: {title}",
+          "premium": "Premium",
+          "ageYears": "{age} años",
+          "liveCity": "En vivo: {city}",
+          "liveCityPostal": "En vivo: {city} ({postal})",
+          "timeSec": "{n}s",
+          "timeMin": "{n} min",
+          "timeHour": "{n} h",
+          "timeDay": "{n} d"
+        },
+        "clubCard": {
+          "fallbackName": "Club",
+          "typeClub": "Club",
+          "typeAgency": "Agencia"
+        },
+        "latestStatus": {
+          "title": "Últimos estados",
+          "justNow": "ahora mismo",
+          "minutesAgo": "hace {count} min",
+          "oneHourAgo": "hace 1 h",
+          "hoursAgo": "hace {count} h",
+          "oneDayAgo": "hace 1 día",
+          "daysAgo": "hace {count} días"
+        },
+        "availableForChat": {
+          "title": "Disponible para chat 1:1",
+          "viewAll": "Ver todos los chats"
+        }
+      },
+      "sitePreview": {
+        "livePreview": "Vista previa en vivo",
+        "desktop": "Escritorio",
+        "mobile": "Móvil",
+        "defaultTitle": "Vista previa",
+        "sidebarNote": "Nota: el banner de la columna izquierda solo se muestra en escritorio y no aparece en móviles."
+      },
+      "viewCount": {
+        "tooltip": "{formatted} {count, plural, one {visita} other {visitas}}"
+      }
+    }
+  }
+}

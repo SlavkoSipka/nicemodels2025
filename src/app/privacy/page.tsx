@@ -1,6 +1,7 @@
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
+import ForceGermanProvider from '@/components/legal/ForceGermanProvider'
 
 export const metadata = {
   title: 'Datenschutz | nicemodels.ch',
@@ -9,7 +10,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <>
+    <ForceGermanProvider>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 py-8 px-4">
         <div className="max-w-4xl mx-auto">
@@ -68,6 +69,6 @@ export default function PrivacyPage() {
         </div>
       </div>
       <Footer />
-    </>
+    </ForceGermanProvider>
   )
 }

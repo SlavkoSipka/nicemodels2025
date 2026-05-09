@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Monitor, Smartphone, Eye } from 'lucide-react'
 import DesktopFrame from './DesktopFrame'
 import PhoneFrame from './PhoneFrame'
@@ -20,12 +21,14 @@ interface SitePreviewProps {
 export default function SitePreview({
   page,
   highlight,
-  title = 'Preview',
+  title,
   previewUrl,
   listingTitle,
   listingLocation,
 }: SitePreviewProps) {
+  const t = useTranslations('components.sitePreview')
   const [mode, setMode] = useState<PreviewMode>('desktop')
+  const resolvedTitle = title ?? t('defaultTitle')
 
   const urlForPage = page === 'jobs-rents' ? 'nicemodels.ch/jobs-rents' : 'nicemodels.ch'
 
@@ -51,8 +54,8 @@ export default function SitePreview({
             <Eye className="w-4 h-4" aria-hidden />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-violet-700">Live preview</p>
-            <p className="text-sm font-bold text-slate-900 leading-tight truncate">{title}</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-violet-700">{t('livePreview')}</p>
+            <p className="text-sm font-bold text-slate-900 leading-tight truncate">{resolvedTitle}</p>
           </div>
         </div>
 
@@ -68,7 +71,7 @@ export default function SitePreview({
             aria-pressed={mode === 'desktop'}
           >
             <Monitor className="w-3.5 h-3.5" />
-            Desktop
+            {t('desktop')}
           </button>
           <button
             type="button"
@@ -81,7 +84,7 @@ export default function SitePreview({
             aria-pressed={mode === 'mobile'}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            Mobile
+            {t('mobile')}
           </button>
         </div>
       </div>
@@ -96,7 +99,7 @@ export default function SitePreview({
 
       {sidebarDesktopOnly && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-          <span className="font-semibold">Note:</span> The left column banner is <span className="font-semibold">desktop-only</span> and does not appear on mobile devices.
+          {t('sidebarNote')}
         </div>
       )}
     </div>

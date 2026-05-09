@@ -1,0 +1,90 @@
+{
+  "en": {
+    "home": {
+      "filters": {
+        "stripLabel": "Filters:",
+        "allCities": "All Cities",
+        "allAges": "All Ages",
+        "age1825": "18-25",
+        "age2630": "26-30",
+        "age3135": "31-35",
+        "age3640": "36-40",
+        "age41plus": "41+",
+        "allEthnicities": "All Ethnicities",
+        "ethnicityEuropean": "European",
+        "ethnicityAsian": "Asian",
+        "ethnicityLatina": "Latina",
+        "ethnicityAfrican": "African",
+        "ethnicityMiddleEastern": "Middle Eastern",
+        "ethnicityMixed": "Mixed",
+        "resetFilters": "Reset Filters"
+      }
+    }
+  },
+  "de": {
+    "home": {
+      "filters": {
+        "stripLabel": "Filter:",
+        "allCities": "Alle Städte",
+        "allAges": "Alle Alter",
+        "age1825": "18-25",
+        "age2630": "26-30",
+        "age3135": "31-35",
+        "age3640": "36-40",
+        "age41plus": "41+",
+        "allEthnicities": "Alle Ethnien",
+        "ethnicityEuropean": "Europäisch",
+        "ethnicityAsian": "Asiatisch",
+        "ethnicityLatina": "Latina",
+        "ethnicityAfrican": "Afrikanisch",
+        "ethnicityMiddleEastern": "Naher Osten",
+        "ethnicityMixed": "Gemischt",
+        "resetFilters": "Filter zurücksetzen"
+      }
+    }
+  },
+  "fr": {
+    "home": {
+      "filters": {
+        "stripLabel": "Filtres :",
+        "allCities": "Toutes les villes",
+        "allAges": "Tous les âges",
+        "age1825": "18-25",
+        "age2630": "26-30",
+        "age3135": "31-35",
+        "age3640": "36-40",
+        "age41plus": "41+",
+        "allEthnicities": "Toutes origines",
+        "ethnicityEuropean": "Européenne",
+        "ethnicityAsian": "Asiatique",
+        "ethnicityLatina": "Latina",
+        "ethnicityAfrican": "Africaine",
+        "ethnicityMiddleEastern": "Moyen-Orient",
+        "ethnicityMixed": "Métisse",
+        "resetFilters": "Réinitialiser les filtres"
+      }
+    }
+  },
+  "es": {
+    "home": {
+      "filters": {
+        "stripLabel": "Filtros:",
+        "allCities": "Todas las ciudades",
+        "allAges": "Todas las edades",
+        "age1825": "18-25",
+        "age2630": "26-30",
+        "age3135": "31-35",
+        "age3640": "36-40",
+        "age41plus": "41+",
+        "allEthnicities": "Todas las etnias",
+        "ethnicityEuropean": "Europea",
+        "ethnicityAsian": "Asiática",
+        "ethnicityLatina": "Latina",
+        "ethnicityAfrican": "Africana",
+        "ethnicityMiddleEastern": "Oriente Medio",
+        "ethnicityMixed": "Mixta",
+        "resetFilters": "Restablecer filtros"
+      }
+    }
+  }
+}

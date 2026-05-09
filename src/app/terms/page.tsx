@@ -2,6 +2,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
 import NicemodelsAgbDe from '@/components/legal/NicemodelsAgbDe'
+import ForceGermanProvider from '@/components/legal/ForceGermanProvider'
 
 export const metadata = {
   title: 'AGB | nicemodels.ch',
@@ -10,7 +11,7 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <>
+    <ForceGermanProvider>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 py-8 px-4">
         <div className="max-w-4xl mx-auto">
@@ -47,6 +48,6 @@ export default function TermsPage() {
         </div>
       </div>
       <Footer />
-    </>
+    </ForceGermanProvider>
   )
 }

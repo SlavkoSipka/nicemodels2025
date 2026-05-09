@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { processImage } from '@/lib/imageProcessor'
 import CitySearch, { CityResult } from '@/components/ui/CitySearch'
@@ -36,6 +37,7 @@ export default function EditJobRentPage() {
   const params = useParams()
   const listingId = params.id as string
   const supabase = createClient()
+  const t = useTranslations('dashboard.company.jobsRentEdit')
 
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -98,7 +100,7 @@ export default function EditJobRentPage() {
         .single()
 
       if (listingErr || !listing) {
-        setError('Listing not found or you do not have permission to edit it.')
+        setError(t('errNotFound'))
         setLoading(false)
         return
       }
@@ -205,9 +207,9 @@ export default function EditJobRentPage() {
 
   const handleSubmit = async () => {
     if (!user) return
-    if (!title.trim()) { setError('Title is required'); return }
-    if (!location.trim()) { setError('Location is required'); return }
-    if (!description.trim()) { setError('Description is required'); return }
+    if (!title.trim()) { setError(t('errTitle')); return }
+    if (!location.trim()) { setError(t('errLocation')); return }
+    if (!description.trim()) { setError(t('errDescription')); return }
 
     setError('')
     setSubmitting(true)
@@ -297,10 +299,10 @@ export default function EditJobRentPage() {
         )
       }
 
-      setSuccess('Listing updated successfully!')
+      setSuccess(t('successUpdated'))
       setTimeout(() => router.push('/dashboard/company/jobs-rent'), 1500)
     } catch (err: any) {
-      setError(err.message || 'Failed to update listing')
+      setError(err.message || t('errFailed'))
     } finally {
       setSubmitting(false)
     }
@@ -324,14 +326,14 @@ export default function EditJobRentPage() {
             <Briefcase className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Edit Listing</h1>
-            <p className="text-xs text-gray-500">Update your job or rent listing</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
           <button
             onClick={() => router.push('/dashboard/company/jobs-rent')}
             className="ml-auto flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" /> {t('back')}
           </button>
         </div>
 
@@ -354,42 +356,42 @@ export default function EditJobRentPage() {
             <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
               <MapPin className="w-4 h-4 text-violet-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">About</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionAbout')}</p>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Type</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('type')}</label>
             <div className="flex gap-2">
-              {(['job', 'rent'] as const).map(t => (
+              {(['job', 'rent'] as const).map(lt => (
                 <button
-                  key={t}
-                  onClick={() => setListingType(t)}
+                  key={lt}
+                  onClick={() => setListingType(lt)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-                    listingType === t
+                    listingType === lt
                       ? 'bg-brand text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {t === 'job' ? 'Job' : 'Rent'}
+                  {lt === 'job' ? t('typeJob') : t('typeRent')}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Title *</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('titleField')}</label>
             <input
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="e.g. Looking for experienced dancers, Studio for rent in Zurich..."
+              placeholder={t('titlePlaceholder')}
               maxLength={200}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Location *</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('locationField')}</label>
             <CitySearch
               value={location}
               postalCode={locationPostalCode}
@@ -397,7 +399,7 @@ export default function EditJobRentPage() {
                 setLocation(city?.name || '')
                 setLocationPostalCode(city?.postal_code || '')
               }}
-              placeholder="Search city or postal code..."
+              placeholder={t('cityPlaceholder')}
               inputClassName="border-gray-200 focus:ring-brand"
             />
           </div>
@@ -409,8 +411,8 @@ export default function EditJobRentPage() {
             <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
               <Globe className="w-4 h-4 text-indigo-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Where to show</p>
-            <span className="text-xs text-gray-400">— pick regions</span>
+            <p className="text-sm font-bold text-gray-800">{t('sectionVisibility')}</p>
+            <span className="text-xs text-gray-400">{t('visibilityHint')}</span>
           </div>
           <RegionsCheckboxList selected={regions} onChange={setRegions} />
         </div>
@@ -422,54 +424,54 @@ export default function EditJobRentPage() {
               <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                 <Home className="w-4 h-4 text-amber-600" />
               </div>
-              <p className="text-sm font-bold text-gray-800">Rent Details</p>
+              <p className="text-sm font-bold text-gray-800">{t('sectionRent')}</p>
             </div>
 
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-                <p className="text-xs font-bold text-gray-700">Pricing (CHF)</p>
+                <p className="text-xs font-bold text-gray-700">{t('pricing')}</p>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Day</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perDay')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceDaily} onChange={e => setRentPriceDaily(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Week</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perWeek')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceWeekly} onChange={e => setRentPriceWeekly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Month</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perMonth')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceMonthly} onChange={e => setRentPriceMonthly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Room Size <span className="font-normal text-gray-400">(optional)</span></label>
-              <input type="text" value={rentRoomSize} onChange={e => setRentRoomSize(e.target.value)} placeholder="e.g. 25m², Large, Studio..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('roomSize')} <span className="font-normal text-gray-400">{t('roomSizeOptional')}</span></label>
+              <input type="text" value={rentRoomSize} onChange={e => setRentRoomSize(e.target.value)} placeholder={t('roomSizePlaceholder')} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
 
             <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">Work Permit</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t('workPermit')}</p>
               <button type="button" onClick={() => setRentWorkPermit(!rentWorkPermit)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${rentWorkPermit ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}>
                 <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${rentWorkPermit ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
                   {rentWorkPermit && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </span>
-                Allowed to work in the space
+                {t('workAllowed')}
               </button>
             </div>
 
             <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">Amenities</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t('amenities')}</p>
               <div className="flex flex-wrap gap-2">
                 {([
-                  { label: 'Furnished', value: rentFurnished, set: setRentFurnished },
-                  { label: 'Kitchen', value: rentKitchen, set: setRentKitchen },
-                  { label: 'Shower + WC', value: rentBathroom, set: setRentBathroom },
-                  { label: 'Air Conditioning', value: rentAirConditioning, set: setRentAirConditioning },
-                  { label: 'Towels', value: rentTowels, set: setRentTowels },
+                  { label: t('amFurnished'), value: rentFurnished, set: setRentFurnished },
+                  { label: t('amKitchen'), value: rentKitchen, set: setRentKitchen },
+                  { label: t('amBathroom'), value: rentBathroom, set: setRentBathroom },
+                  { label: t('amAirConditioning'), value: rentAirConditioning, set: setRentAirConditioning },
+                  { label: t('amTowels'), value: rentTowels, set: setRentTowels },
                 ] as const).map(({ label, value, set }) => (
                   <button key={label} type="button" onClick={() => set(!value)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${value ? 'bg-brand/10 text-brand border-brand/30' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
                     <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${value ? 'bg-brand border-brand' : 'border-gray-300'}`}>
@@ -489,12 +491,12 @@ export default function EditJobRentPage() {
             <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
               <FileText className="w-4 h-4 text-blue-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Description *</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionDescription')}</p>
           </div>
           <RichTextEditor
             value={description}
             onChange={setDescription}
-            placeholder="Describe the job position or rental property in detail..."
+            placeholder={t('descPlaceholder')}
             maxLength={5000}
             height={250}
           />
@@ -506,14 +508,14 @@ export default function EditJobRentPage() {
             <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
               <Upload className="w-4 h-4 text-amber-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Photos</p>
-            <span className="text-xs text-gray-400">(optional)</span>
+            <p className="text-sm font-bold text-gray-800">{t('sectionPhotos')}</p>
+            <span className="text-xs text-gray-400">{t('photosOptional')}</span>
           </div>
 
           <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-gray-300 transition-colors">
             <label className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover">
               <Upload className="w-4 h-4" />
-              Add Photos
+              {t('addPhotos')}
               <input
                 type="file"
                 accept="image/*"
@@ -522,7 +524,7 @@ export default function EditJobRentPage() {
                 className="hidden"
               />
             </label>
-            <p className="text-xs text-gray-500 mt-2">JPG, PNG or WEBP - Max 10MB per file</p>
+            <p className="text-xs text-gray-500 mt-2">{t('photoHint')}</p>
           </div>
 
           {(existingPhotos.length > 0 || newPhotos.length > 0) && (
@@ -541,7 +543,7 @@ export default function EditJobRentPage() {
               {newPhotos.map((p, i) => (
                 <div key={`new-${i}`} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-brand/30">
                   <img src={p.preview} alt="" className="w-full h-full object-cover" />
-                  <span className="absolute top-1 left-1 text-[9px] font-bold bg-brand text-white px-1.5 py-0.5 rounded">NEW</span>
+                  <span className="absolute top-1 left-1 text-[9px] font-bold bg-brand text-white px-1.5 py-0.5 rounded">{t('newBadge')}</span>
                   <button
                     onClick={() => removeNewPhoto(i)}
                     className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
@@ -560,12 +562,12 @@ export default function EditJobRentPage() {
             <div className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center">
               <Phone className="w-4 h-4 text-emerald-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Contact</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionContact')}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Code</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('code')}</label>
               <input
                 type="text"
                 value={countryCode}
@@ -574,24 +576,24 @@ export default function EditJobRentPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Phone Number</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('phoneNumber')}</label>
               <input
                 type="text"
                 value={phoneNumber}
                 onChange={e => setPhoneNumber(e.target.value)}
-                placeholder="Phone number"
+                placeholder={t('phonePlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
           </div>
 
-          <p className="text-xs text-gray-500 mb-2">How applicants can reach you (same number as above for phone-based options):</p>
+          <p className="text-xs text-gray-500 mb-2">{t('contactWaysHint')}</p>
           <div className="flex flex-wrap gap-3">
             {[
-              { label: 'SMS', value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
-              { label: 'WhatsApp', value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
-              { label: 'Viber', value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
-              { label: 'Telegram', value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },
+              { label: t('sms'), value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
+              { label: t('whatsapp'), value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
+              { label: t('viber'), value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
+              { label: t('telegram'), value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },
             ].map(({ label, value, set, color }) => (
               <button
                 key={label}
@@ -607,22 +609,22 @@ export default function EditJobRentPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Email <span className="font-normal text-gray-400">(optional)</span></label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('email')} <span className="font-normal text-gray-400">{t('emailOptional')}</span></label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="contact@example.com"
+                placeholder={t('emailPlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Website <span className="font-normal text-gray-400">(optional)</span></label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('website')} <span className="font-normal text-gray-400">{t('websiteOptional')}</span></label>
               <input
                 type="text"
                 value={website}
                 onChange={e => setWebsite(e.target.value)}
-                placeholder="https://..."
+                placeholder={t('websitePlaceholder')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
@@ -639,11 +641,11 @@ export default function EditJobRentPage() {
               <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 text-rose-600" />
               </div>
-              <p className="text-sm font-bold text-gray-800">Services</p>
-              <span className="text-xs text-gray-400">(optional)</span>
+              <p className="text-sm font-bold text-gray-800">{t('sectionServices')}</p>
+              <span className="text-xs text-gray-400">{t('servicesOptional')}</span>
               {selectedServices.length > 0 && (
                 <span className="text-xs font-semibold text-brand bg-brand/10 px-2 py-0.5 rounded-full">
-                  {selectedServices.length} selected
+                  {t('servicesSelected', { count: selectedServices.length })}
                 </span>
               )}
             </div>
@@ -684,7 +686,7 @@ export default function EditJobRentPage() {
             onClick={() => router.push('/dashboard/company/jobs-rent')}
             className="text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            Cancel
+            {t('cancelBtn')}
           </button>
           <button
             onClick={handleSubmit}
@@ -692,7 +694,7 @@ export default function EditJobRentPage() {
             className="flex items-center gap-1.5 px-6 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
-            {submitting ? 'Saving...' : 'Save Changes'}
+            {submitting ? t('savingBtn') : t('saveChanges')}
           </button>
         </div>
 

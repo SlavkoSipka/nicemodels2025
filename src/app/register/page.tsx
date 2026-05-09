@@ -1,10 +1,16 @@
+'use client'
+
 import { Suspense } from 'react'
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import RegisterForm from '@/components/auth/RegisterForm'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
 
 export default function RegisterPage() {
+  const t = useTranslations('auth.register')
+  const tTabs = useTranslations('auth.tabs')
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -17,10 +23,10 @@ export default function RegisterPage() {
                 href="/login"
                 className="px-4 py-2 sm:px-6 text-sm font-semibold text-gray-500 hover:text-gray-900 transition-all"
               >
-                Sign in
+                {tTabs('signIn')}
               </Link>
               <div className="px-4 py-2 sm:px-6 text-sm font-bold text-white bg-brand rounded-md shadow-sm">
-                Register
+                {tTabs('register')}
               </div>
             </div>
           </div>
@@ -32,17 +38,17 @@ export default function RegisterPage() {
               <div className="bg-[#1f2126] p-5 sm:p-8 flex flex-col justify-between">
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">
-                    Your personal login in one minute.
+                    {t('leftHeading')}
                   </h1>
-                  <p className="text-sm text-gray-400 mb-5 sm:mb-8">Free of charge and discreet.</p>
+                  <p className="text-sm text-gray-400 mb-5 sm:mb-8">{t('leftSubtitle')}</p>
 
                   <div className="space-y-3 sm:space-y-4">
                     {[
-                      'Absolutely free registration',
-                      'Discreet & secure',
-                      'Access to Advertisement Manager',
-                      'Reach 1.5 million monthly searches',
-                      'Swiss company quality standards',
+                      t('bullet1'),
+                      t('bullet2'),
+                      t('bullet3'),
+                      t('bullet4'),
+                      t('bullet5'),
                     ].map((item) => (
                       <div key={item} className="flex items-center gap-3">
                         <div className="w-5 h-5 rounded-full bg-brand flex items-center justify-center shrink-0">
@@ -58,9 +64,9 @@ export default function RegisterPage() {
 
                 <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-700">
                   <p className="text-xs text-gray-500">
-                    Already have an account?{' '}
+                    {t('haveAccount')}{' '}
                     <Link href="/login" className="text-brand hover:text-brand-hover font-semibold transition-colors">
-                      Sign in here
+                      {t('signInHere')}
                     </Link>
                   </p>
                 </div>

@@ -1,53 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Building2, Save, AlertCircle, CheckCircle, Phone, MapPin } from 'lucide-react'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import CitySearch from '@/components/ui/CitySearch'
 
-const ENTRANCE_FEE_OPTIONS = [
-  { value: 'na', label: 'N/A' },
-  { value: 'free', label: 'Free' },
-  { value: 'with_cost', label: 'With cost' },
-]
-
-const WELLNESS_OPTIONS = [
-  { value: 'na', label: 'N/A' },
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-]
-
-const FOOD_DRINKS_OPTIONS = [
-  { value: 'na', label: 'N/A' },
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-]
-
-const OUTDOOR_AREA_OPTIONS = [
-  { value: 'na', label: 'N/A' },
-  { value: 'yes', label: 'Yes' },
-  { value: 'no', label: 'No' },
-]
-
 type ContactMethod = 'call' | 'sms' | 'whatsapp' | 'viber' | 'telegram' | 'email'
-
-const CONTACT_METHOD_OPTIONS: Array<{
-  id: ContactMethod
-  label: string
-  helper: string
-  needsPhone: boolean
-  needsEmail: boolean
-  swatch: string
-}> = [
-  { id: 'call',     label: 'Phone call', helper: 'Clients can tap to call your number',     needsPhone: true,  needsEmail: false, swatch: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  { id: 'sms',      label: 'SMS',        helper: 'Clients can tap to send an SMS',          needsPhone: true,  needsEmail: false, swatch: 'bg-sky-100 text-sky-700 border-sky-200' },
-  { id: 'whatsapp', label: 'WhatsApp',   helper: 'Open WhatsApp chat with your number',     needsPhone: true,  needsEmail: false, swatch: 'bg-green-100 text-green-700 border-green-200' },
-  { id: 'viber',    label: 'Viber',      helper: 'Open Viber chat with your number',        needsPhone: true,  needsEmail: false, swatch: 'bg-purple-100 text-purple-700 border-purple-200' },
-  { id: 'telegram', label: 'Telegram',   helper: 'Open Telegram chat with your number',     needsPhone: true,  needsEmail: false, swatch: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { id: 'email',    label: 'Email',      helper: 'Clients can tap to compose an email',     needsPhone: false, needsEmail: true,  swatch: 'bg-rose-100 text-rose-700 border-rose-200' },
-]
 
 interface FormData {
   // Basic identity / amenities (club_details)
@@ -78,6 +39,26 @@ interface FormData {
 
 export default function BasicInfoPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.basicInfo')
+  const tc = useTranslations('dashboard.company.common')
+  const ENTRANCE_FEE_OPTIONS = useMemo(() => ([
+    { value: 'na', label: tc('na') },
+    { value: 'free', label: tc('free') },
+    { value: 'with_cost', label: tc('withCost') },
+  ]), [tc])
+  const YES_NO_OPTIONS = useMemo(() => ([
+    { value: 'na', label: tc('na') },
+    { value: 'yes', label: tc('yes') },
+    { value: 'no', label: tc('no') },
+  ]), [tc])
+  const CONTACT_METHOD_OPTIONS = useMemo(() => ([
+    { id: 'call' as ContactMethod,     label: t('methodCall'),     helper: t('methodCallHelp'),     needsPhone: true,  needsEmail: false, swatch: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+    { id: 'sms' as ContactMethod,      label: t('methodSms'),      helper: t('methodSmsHelp'),      needsPhone: true,  needsEmail: false, swatch: 'bg-sky-100 text-sky-700 border-sky-200' },
+    { id: 'whatsapp' as ContactMethod, label: t('methodWhatsapp'), helper: t('methodWhatsappHelp'), needsPhone: true,  needsEmail: false, swatch: 'bg-green-100 text-green-700 border-green-200' },
+    { id: 'viber' as ContactMethod,    label: t('methodViber'),    helper: t('methodViberHelp'),    needsPhone: true,  needsEmail: false, swatch: 'bg-purple-100 text-purple-700 border-purple-200' },
+    { id: 'telegram' as ContactMethod, label: t('methodTelegram'), helper: t('methodTelegramHelp'), needsPhone: true,  needsEmail: false, swatch: 'bg-blue-100 text-blue-700 border-blue-200' },
+    { id: 'email' as ContactMethod,    label: t('methodEmail'),    helper: t('methodEmailHelp'),    needsPhone: false, needsEmail: true,  swatch: 'bg-rose-100 text-rose-700 border-rose-200' },
+  ]), [t])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -180,11 +161,11 @@ export default function BasicInfoPage() {
     setSuccess('')
 
     if (!formData.club_name.trim()) {
-      setError('Club name is required')
+      setError(t('errClubName'))
       return
     }
     if (!formData.display_name.trim()) {
-      setError('Display name is required')
+      setError(t('errDisplayName'))
       return
     }
 
@@ -244,10 +225,10 @@ export default function BasicInfoPage() {
         }, { onConflict: 'club_id' })
       if (contactErr) throw contactErr
 
-      setSuccess('Basic info updated successfully!')
+      setSuccess(t('successUpdated'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to save. Please try again.')
+      setError(err.message || t('errFailed'))
     } finally {
       setSaving(false)
     }
@@ -264,10 +245,8 @@ export default function BasicInfoPage() {
             <Building2 className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Basic Info</h1>
-            <p className="text-xs text-gray-500">
-              Manage your club&apos;s identity, contact, location, and amenities — all in one place
-            </p>
+            <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -289,31 +268,31 @@ export default function BasicInfoPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
           <div className="flex items-center gap-2">
             <Building2 className="w-4 h-4 text-brand" />
-            <p className="text-sm font-bold text-gray-800">Identity</p>
+            <p className="text-sm font-bold text-gray-800">{t('identity')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-800 mb-1">
-                Club Name <span className="text-red-500">*</span>
+                {t('clubName')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.club_name}
                 onChange={(e) => handleChange('club_name', e.target.value)}
-                placeholder="Official name"
+                placeholder={t('clubNamePh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-800 mb-1">
-                Display Name <span className="text-red-500">*</span>
+                {t('displayName')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.display_name}
                 onChange={(e) => handleChange('display_name', e.target.value)}
-                placeholder="How your club appears to visitors"
+                placeholder={t('displayNamePh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
@@ -322,8 +301,8 @@ export default function BasicInfoPage() {
           <RichTextEditor
             value={formData.about_description}
             onChange={(val) => handleChange('about_description', val)}
-            label="About Your Club"
-            placeholder="Describe your club, services, atmosphere..."
+            label={t('aboutLabel')}
+            placeholder={t('aboutPh')}
             maxLength={maxChars}
             height={250}
           />
@@ -337,15 +316,15 @@ export default function BasicInfoPage() {
               className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
             />
             <label htmlFor="is_club" className="text-sm text-gray-700">
-              This is a physical club/venue (nightclub, gentlemen&apos;s club, etc.)
+              {t('isPhysical')}
             </label>
           </div>
 
           <div className="pt-3 border-t border-gray-100">
-            <p className="text-xs font-bold text-gray-800 mb-2">Amenities &amp; Features</p>
+            <p className="text-xs font-bold text-gray-800 mb-2">{t('amenities')}</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs text-gray-500 mb-0.5">Entrance</label>
+                <label className="block text-xs text-gray-500 mb-0.5">{t('entrance')}</label>
                 <select
                   value={formData.entrance_fee}
                   onChange={(e) => handleChange('entrance_fee', e.target.value)}
@@ -355,33 +334,33 @@ export default function BasicInfoPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-0.5">Wellness</label>
+                <label className="block text-xs text-gray-500 mb-0.5">{t('wellness')}</label>
                 <select
                   value={formData.wellness}
                   onChange={(e) => handleChange('wellness', e.target.value)}
                   className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                 >
-                  {WELLNESS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {YES_NO_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-0.5">Food &amp; Drinks</label>
+                <label className="block text-xs text-gray-500 mb-0.5">{t('foodDrinks')}</label>
                 <select
                   value={formData.food_and_drinks}
                   onChange={(e) => handleChange('food_and_drinks', e.target.value)}
                   className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                 >
-                  {FOOD_DRINKS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {YES_NO_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-500 mb-0.5">Outdoor</label>
+                <label className="block text-xs text-gray-500 mb-0.5">{t('outdoor')}</label>
                 <select
                   value={formData.outdoor_area}
                   onChange={(e) => handleChange('outdoor_area', e.target.value)}
                   className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                 >
-                  {OUTDOOR_AREA_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  {YES_NO_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
             </div>
@@ -392,15 +371,15 @@ export default function BasicInfoPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-5">
           <div className="flex items-center gap-2">
             <Phone className="w-4 h-4 text-brand" />
-            <p className="text-sm font-bold text-gray-800">Contact Details</p>
+            <p className="text-sm font-bold text-gray-800">{t('contactDetails')}</p>
           </div>
 
           {/* Phone */}
           <div>
-            <p className="text-xs font-bold text-gray-700 mb-2">Phone number</p>
+            <p className="text-xs font-bold text-gray-700 mb-2">{t('phoneNumber')}</p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Country Code</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{t('countryCode')}</label>
                 <input
                   type="text"
                   value={formData.country_code}
@@ -410,7 +389,7 @@ export default function BasicInfoPage() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Phone Number</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">{t('phoneNumberLabel')}</label>
                 <input
                   type="text"
                   value={formData.phone_number}
@@ -425,22 +404,22 @@ export default function BasicInfoPage() {
           {/* Email + Website */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('email')}</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                placeholder="info@yourclub.ch"
+                placeholder={t('emailPh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Website</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('website')}</label>
               <input
                 type="url"
                 value={formData.website}
                 onChange={(e) => handleChange('website', e.target.value)}
-                placeholder="https://www.yourclub.ch"
+                placeholder={t('websitePh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
@@ -448,10 +427,9 @@ export default function BasicInfoPage() {
 
           {/* Available contact methods (multi-checkbox) */}
           <div className="pt-3 border-t border-gray-100">
-            <p className="text-xs font-bold text-gray-700">Available contact methods</p>
+            <p className="text-xs font-bold text-gray-700">{t('availableMethods')}</p>
             <p className="text-[11px] text-gray-500 mb-3">
-              Choose which channels appear as clickable buttons on your public club page.
-              Methods that need a phone number or email are auto-disabled if those fields are empty.
+              {t('availableMethodsHint')}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {CONTACT_METHOD_OPTIONS.map(opt => {
@@ -486,7 +464,7 @@ export default function BasicInfoPage() {
                       <p className="text-sm font-bold leading-tight">{opt.label}</p>
                       <p className="text-[11px] opacity-80 leading-tight">
                         {blocked
-                          ? (opt.needsPhone ? 'Add a phone number first' : 'Add an email first')
+                          ? (opt.needsPhone ? t('addPhoneFirst') : t('addEmailFirst'))
                           : opt.helper}
                       </p>
                     </div>
@@ -505,17 +483,17 @@ export default function BasicInfoPage() {
               className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
             />
             <label htmlFor="no_withheld" className="text-sm text-gray-700">
-              No withheld numbers (don&apos;t accept hidden/private)
+              {t('noWithheld')}
             </label>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Other Instructions</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{t('otherInstructions')}</label>
             <textarea
               value={formData.other_instructions}
               onChange={(e) => handleChange('other_instructions', e.target.value)}
               rows={2}
-              placeholder="Any additional contact instructions..."
+              placeholder={t('otherInstructionsPh')}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent resize-none"
             />
           </div>
@@ -529,7 +507,7 @@ export default function BasicInfoPage() {
               className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand"
             />
             <label htmlFor="hide_contact" className="text-sm text-gray-700">
-              Hide all contact information from public (clients contact via internal messaging)
+              {t('hideContact')}
             </label>
           </div>
         </div>
@@ -538,39 +516,39 @@ export default function BasicInfoPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-brand" />
-            <p className="text-sm font-bold text-gray-800">Physical Location</p>
+            <p className="text-sm font-bold text-gray-800">{t('physicalLocation')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-600 mb-1">Street</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('street')}</label>
               <input
                 type="text"
                 value={formData.street}
                 onChange={(e) => handleChange('street', e.target.value)}
-                placeholder="Bahnhofstrasse"
+                placeholder={t('streetPh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Number</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">{t('number')}</label>
               <input
                 type="text"
                 value={formData.street_number}
                 onChange={(e) => handleChange('street_number', e.target.value)}
-                placeholder="123"
+                placeholder={t('numberPh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Additional Info</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">{t('additionalInfo')}</label>
             <input
               type="text"
               value={formData.additional_info}
               onChange={(e) => handleChange('additional_info', e.target.value)}
-              placeholder="Floor, apartment number, etc."
+              placeholder={t('additionalInfoPh')}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
             />
           </div>
@@ -589,17 +567,17 @@ export default function BasicInfoPage() {
                     handleChange('zip_code', '')
                   }
                 }}
-                label="City"
-                placeholder="Search city or PLZ..."
+                label={t('city')}
+                placeholder={t('cityPh')}
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">ZIP Code</label>
+              <label className="block text-sm font-bold text-gray-700 mb-1">{t('zipCode')}</label>
               <input
                 type="text"
                 value={formData.zip_code}
                 onChange={(e) => handleChange('zip_code', e.target.value)}
-                placeholder="Auto-filled from city"
+                placeholder={t('zipCodePh')}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
               />
             </div>
@@ -612,7 +590,7 @@ export default function BasicInfoPage() {
             onClick={() => router.push('/dashboard/company')}
             className="text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            Cancel
+            {tc('cancel')}
           </button>
           <button
             onClick={handleSave}
@@ -620,7 +598,7 @@ export default function BasicInfoPage() {
             className="flex items-center gap-1.5 px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save All'}
+            {saving ? tc('saving') : tc('saveAll')}
           </button>
         </div>
       </div>

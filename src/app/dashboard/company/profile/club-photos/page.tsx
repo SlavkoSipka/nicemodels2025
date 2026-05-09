@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Image as ImageIcon, Upload, Trash2, AlertCircle, CheckCircle } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
@@ -16,6 +17,8 @@ interface Photo {
 
 export default function ClubPhotosPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.clubPhotos')
+  const tc = useTranslations('dashboard.company.common')
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
@@ -69,11 +72,11 @@ export default function ClubPhotosPage() {
 
       for (const rawFile of files) {
         if (rawFile.size > 10 * 1024 * 1024) {
-          setError(`${rawFile.name} is too large. Max size is 10MB.`)
+          setError(t('errTooLarge', { name: rawFile.name }))
           continue
         }
         if (!rawFile.type.startsWith('image/')) {
-          setError(`${rawFile.name} is not a valid image file.`)
+          setError(t('errInvalidImage', { name: rawFile.name }))
           continue
         }
 
@@ -99,18 +102,18 @@ export default function ClubPhotosPage() {
         if (dbError) throw dbError
       }
 
-      setSuccess('Photos uploaded successfully!')
+      setSuccess(t('successUpload'))
       setTimeout(() => setSuccess(''), 3000)
       await loadPhotos(user.id)
     } catch (err: any) {
-      setError(err.message || 'Failed to upload photos. Please try again.')
+      setError(err.message || t('errUpload'))
     } finally {
       setUploading(false)
     }
   }
 
   const handleDeletePhoto = async (photoId: string, filePath: string) => {
-    if (!confirm('Are you sure you want to delete this photo?')) return
+    if (!confirm(t('deleteConfirm'))) return
 
     try {
       const supabase = createClient()
@@ -129,10 +132,10 @@ export default function ClubPhotosPage() {
       if (dbError) throw dbError
 
       setPhotos(photos.filter(p => p.id !== photoId))
-      setSuccess('Photo deleted successfully!')
+      setSuccess(t('successDelete'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to delete photo. Please try again.')
+      setError(err.message || t('errDelete'))
     }
   }
 
@@ -156,15 +159,15 @@ export default function ClubPhotosPage() {
               <ImageIcon className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Club Photos</h1>
-              <p className="text-xs text-gray-500">Upload and manage photos of your club</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
           <button
             onClick={() => router.push('/dashboard/company')}
             className="text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            Back to Dashboard
+            {tc('backToDashboard')}
           </button>
         </div>
 
@@ -184,19 +187,19 @@ export default function ClubPhotosPage() {
 
         {/* Upload + requirements in one card */}
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-          <p className="text-sm font-bold text-gray-800">Upload photos</p>
+          <p className="text-sm font-bold text-gray-800">{t('uploadHeader')}</p>
           <div className="border-2 border-dashed border-gray-200 rounded-lg p-5 text-center hover:border-gray-300 transition-colors">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <div className="w-12 h-12 rounded-lg bg-brand/10 flex items-center justify-center shrink-0">
                 <Upload className="w-6 h-6 text-brand" />
               </div>
               <div className="text-center sm:text-left">
-                <p className="text-sm font-semibold text-gray-900">JPG, PNG or WEBP · Max 10MB per file</p>
-                <p className="text-xs text-gray-500 mt-0.5">High-quality photos of your venue work best</p>
+                <p className="text-sm font-semibold text-gray-900">{t('uploadInfo')}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{t('uploadHint')}</p>
               </div>
               <label className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50">
                 <Upload className="w-4 h-4" />
-                {uploading ? 'Uploading...' : 'Choose Photos'}
+                {uploading ? t('uploading') : t('choosePhotos')}
                 <input
                   type="file"
                   accept="image/*"
@@ -209,24 +212,24 @@ export default function ClubPhotosPage() {
             </div>
           </div>
           <div className="bg-gray-50 border border-gray-100 rounded-lg p-3">
-            <p className="text-xs font-semibold text-gray-700 mb-1">Requirements</p>
+            <p className="text-xs font-semibold text-gray-700 mb-1">{t('requirements')}</p>
             <ul className="text-xs text-gray-600 space-y-0.5">
-              <li>· Photos must show your actual club/venue</li>
-              <li>· No watermarks or logos from other sites</li>
-              <li>· Photos may be reviewed before going live</li>
+              <li>{t('req1')}</li>
+              <li>{t('req2')}</li>
+              <li>{t('req3')}</li>
             </ul>
           </div>
         </div>
 
         {/* Gallery */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
-          <p className="text-sm font-bold text-gray-800 mb-3">Your photos ({photos.length})</p>
+          <p className="text-sm font-bold text-gray-800 mb-3">{t('yourPhotos', { count: photos.length })}</p>
 
           {photos.length === 0 ? (
             <div className="text-center py-8 border border-dashed border-gray-200 rounded-lg">
               <ImageIcon className="mx-auto w-10 h-10 text-gray-300" />
-              <p className="text-sm font-medium text-gray-600 mt-2">No photos yet</p>
-              <p className="text-xs text-gray-500 mt-0.5">Upload your first club photos above</p>
+              <p className="text-sm font-medium text-gray-600 mt-2">{t('noPhotos')}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{t('noPhotosHint')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
@@ -242,17 +245,17 @@ export default function ClubPhotosPage() {
                   />
                   {photo.is_approved ? (
                     <span className="absolute top-1.5 left-1.5 bg-emerald-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
-                      OK
+                      {t('ok')}
                     </span>
                   ) : (
                     <span className="absolute top-1.5 left-1.5 bg-amber-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
-                      Pending
+                      {t('pending')}
                     </span>
                   )}
                   <button
                     onClick={() => handleDeletePhoto(photo.id, photo.file_path)}
                     className="absolute top-1.5 right-1.5 bg-red-600 text-white p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
-                    aria-label="Delete"
+                    aria-label={t('deleteBtn')}
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

@@ -2,11 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { User, Save, AlertCircle, CheckCircle } from 'lucide-react'
 
 export default function BiographyEditPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.biography')
+  const tc = useTranslations('dashboard.model.common')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -84,7 +87,7 @@ export default function BiographyEditPage() {
   const handleSave = async () => {
     setError('')
     setSuccess('')
-    if (!formData.showname) { setError('Showname is required'); return }
+    if (!formData.showname) { setError(t('shownameRequired')); return }
     setSaving(true)
     try {
       const supabase = createClient()
@@ -111,10 +114,10 @@ export default function BiographyEditPage() {
       }, { onConflict: 'model_id' })
 
       if (e) throw e
-      setSuccess('Biography saved successfully!')
+      setSuccess(t('savedSuccess'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save. Please try again.')
+      setError(e?.message || tc('saveFailed'))
     } finally {
       setSaving(false)
     }
@@ -145,12 +148,12 @@ export default function BiographyEditPage() {
               <User className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900">Edit Profile — Biography</h1>
-              <p className="text-xs text-gray-500">Mandatory fields are marked with <span className="text-red-500">*</span></p>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')} <span className="text-red-500">*</span></p>
             </div>
           </div>
           <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">
-            Cancel
+            {t('cancel')}
           </button>
         </div>
 
@@ -169,34 +172,34 @@ export default function BiographyEditPage() {
 
         {/* Basic BIO */}
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-          <p className="text-sm font-bold text-gray-800 mb-3">Basic BIO</p>
+          <p className="text-sm font-bold text-gray-800 mb-3">{t('basicBio')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             <div>
-              <label className={labelCls}>Showname <span className="text-red-500">*</span></label>
+              <label className={labelCls}>{t('showname')} <span className="text-red-500">*</span></label>
               <input type="text" value={formData.showname}
                 onChange={e => handleChange('showname', e.target.value)}
                 placeholder="marina" className={inputCls} />
-              <p className="text-xs text-gray-400 mt-0.5">Appears on your profile</p>
+              <p className="text-xs text-gray-400 mt-0.5">{t('shownameHint')}</p>
             </div>
             <div>
-              <label className={labelCls}>Slogan</label>
+              <label className={labelCls}>{t('slogan')}</label>
               <input type="text" value={formData.slogan}
                 onChange={e => handleChange('slogan', e.target.value)}
-                placeholder="Your slogan or keyword..." className={inputCls} />
+                placeholder={t('sloganPlaceholder')} className={inputCls} />
             </div>
             <div>
-              <label className={labelCls}>Gender</label>
+              <label className={labelCls}>{t('gender')}</label>
               <select value={formData.gender} onChange={e => handleChange('gender', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
+                <option value="">{tc('select')}</option>
                 <option value="female">Female</option>
                 <option value="male">Male</option>
                 <option value="trans">Trans</option>
               </select>
             </div>
             <div>
-              <label className={labelCls}>Ethnicity</label>
+              <label className={labelCls}>{t('ethnicity')}</label>
               <select value={formData.ethnicity} onChange={e => handleChange('ethnicity', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
+                <option value="">{tc('select')}</option>
                 <option value="asian">Asian</option>
                 <option value="black">Black</option>
                 <option value="caucasian_white">Caucasian (white)</option>
@@ -208,9 +211,9 @@ export default function BiographyEditPage() {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Nationality</label>
+              <label className={labelCls}>{t('nationality')}</label>
               <select value={formData.nationality} onChange={e => handleChange('nationality', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
+                <option value="">{tc('select')}</option>
                 <option value="Switzerland">Switzerland</option>
                 <option value="Afghanistan">Afghanistan</option>
                 <option value="Albania">Albania</option>
@@ -288,7 +291,7 @@ export default function BiographyEditPage() {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Age</label>
+              <label className={labelCls}>{t('age')}</label>
               <input type="number" value={formData.age}
                 onChange={e => handleChange('age', e.target.value)}
                 min="18" max="99" placeholder="25" className={inputCls} />
@@ -298,12 +301,12 @@ export default function BiographyEditPage() {
 
         {/* Physical Features */}
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-          <p className="text-sm font-bold text-gray-800 mb-3">Physical Features</p>
+          <p className="text-sm font-bold text-gray-800 mb-3">{t('physicalFeatures')}</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             <div>
-              <label className={labelCls}>Hair Color</label>
+              <label className={labelCls}>{t('hairColor')}</label>
               <select value={formData.hair_color} onChange={e => handleChange('hair_color', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
+                <option value="">{tc('select')}</option>
                 <option value="blond">Blond</option>
                 <option value="light_brown">Light brown</option>
                 <option value="brunette">Brunette</option>
@@ -313,9 +316,9 @@ export default function BiographyEditPage() {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Eye Color</label>
+              <label className={labelCls}>{t('eyeColor')}</label>
               <select value={formData.eye_color} onChange={e => handleChange('eye_color', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
+                <option value="">{tc('select')}</option>
                 <option value="black">Black</option>
                 <option value="brown">Brown</option>
                 <option value="green">Green</option>
@@ -324,9 +327,9 @@ export default function BiographyEditPage() {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Dress Size</label>
+              <label className={labelCls}>{t('dressSize')}</label>
               <select value={formData.dress_size} onChange={e => handleChange('dress_size', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
+                <option value="">{tc('select')}</option>
                 <option value="xs">XS</option>
                 <option value="s">S</option>
                 <option value="m">M</option>
@@ -336,29 +339,29 @@ export default function BiographyEditPage() {
               </select>
             </div>
             <div>
-              <label className={labelCls}>Height</label>
+              <label className={labelCls}>{t('height')}</label>
               {unitInput('height_cm', '165', 'cm')}
             </div>
             <div>
-              <label className={labelCls}>Weight</label>
+              <label className={labelCls}>{t('weight')}</label>
               {unitInput('weight_kg', '55', 'kg')}
             </div>
             <div>
-              <label className={labelCls}>Bust</label>
+              <label className={labelCls}>{t('bust')}</label>
               {unitInput('bust_cm', '90', 'cm')}
             </div>
             <div>
-              <label className={labelCls}>Waist</label>
+              <label className={labelCls}>{t('waist')}</label>
               {unitInput('waist_cm', '60', 'cm')}
             </div>
             <div>
-              <label className={labelCls}>Hip</label>
+              <label className={labelCls}>{t('hip')}</label>
               {unitInput('hip_cm', '90', 'cm')}
             </div>
             <div>
-              <label className={labelCls}>Pubic Hair</label>
+              <label className={labelCls}>{t('pubicHair')}</label>
               <select value={formData.pubic_hair} onChange={e => handleChange('pubic_hair', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
+                <option value="">{tc('select')}</option>
                 <option value="shaved_completely">Shaved completely</option>
                 <option value="shaved_mostly">Shaved mostly</option>
                 <option value="trimmed">Trimmed</option>
@@ -370,33 +373,33 @@ export default function BiographyEditPage() {
 
         {/* Additional Info */}
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-          <p className="text-sm font-bold text-gray-800 mb-3">Additional Information</p>
+          <p className="text-sm font-bold text-gray-800 mb-3">{t('additionalInfo')}</p>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label className={labelCls}>Smoking</label>
+              <label className={labelCls}>{t('smoking')}</label>
               <select value={formData.smoking} onChange={e => handleChange('smoking', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-                <option value="occasionally">Occasionally</option>
+                <option value="">{tc('select')}</option>
+                <option value="yes">{t('yes')}</option>
+                <option value="no">{t('no')}</option>
+                <option value="occasionally">{t('occasionally')}</option>
               </select>
             </div>
             <div>
-              <label className={labelCls}>Drinking</label>
+              <label className={labelCls}>{t('drinking')}</label>
               <select value={formData.drinking} onChange={e => handleChange('drinking', e.target.value)} className={inputCls}>
-                <option value="">Select...</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-                <option value="occasionally">Occasionally</option>
+                <option value="">{tc('select')}</option>
+                <option value="yes">{t('yes')}</option>
+                <option value="no">{t('no')}</option>
+                <option value="occasionally">{t('occasionally')}</option>
               </select>
             </div>
           </div>
           <div>
-            <label className={labelCls}>Special Characteristics</label>
+            <label className={labelCls}>{t('specialChars')}</label>
             <textarea value={formData.special_characteristics}
               onChange={e => handleChange('special_characteristics', e.target.value)}
               rows={3}
-              placeholder="Tattoos, piercings, etc."
+              placeholder={t('specialPlaceholder')}
               className={inputCls + ' resize-none'} />
           </div>
         </div>
@@ -404,12 +407,12 @@ export default function BiographyEditPage() {
         {/* Actions */}
         <div className="flex items-center justify-end gap-3 pb-2">
           <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">
-            Cancel
+            {t('cancel')}
           </button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('saving') : t('saveChanges')}
           </button>
         </div>
       </div>

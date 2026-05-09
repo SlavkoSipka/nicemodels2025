@@ -3,26 +3,28 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { StatusMessage } from './HomePageClient'
 
 const PER_PAGE = 6
 
-function formatTimeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const minutes = Math.floor(diff / 60000)
-  if (minutes < 1) return 'just now'
-  if (minutes < 60) return `${minutes} min ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`
-  const days = Math.floor(hours / 24)
-  return `${days} day${days > 1 ? 's' : ''} ago`
-}
-
 export default function LatestStatusMessages({ messages }: { messages: StatusMessage[] }) {
+  const t = useTranslations('components.home.latestStatus')
   const [page, setPage] = useState(0)
   const totalPages = Math.ceil(messages.length / PER_PAGE)
   const visible = messages.slice(page * PER_PAGE, (page + 1) * PER_PAGE)
+
+  function formatTimeAgo(dateStr: string): string {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const minutes = Math.floor(diff / 60000)
+    if (minutes < 1) return t('justNow')
+    if (minutes < 60) return t('minutesAgo', { count: minutes })
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return hours === 1 ? t('oneHourAgo') : t('hoursAgo', { count: hours })
+    const days = Math.floor(hours / 24)
+    return days === 1 ? t('oneDayAgo') : t('daysAgo', { count: days })
+  }
 
   if (messages.length === 0) return null
 
@@ -38,7 +40,7 @@ export default function LatestStatusMessages({ messages }: { messages: StatusMes
       >
         {/* Header */}
         <div className="px-4 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-          <p className="text-sm font-semibold" style={{ color: '#1a1a2e' }}>Latest status messages</p>
+          <p className="text-sm font-semibold" style={{ color: '#1a1a2e' }}>{t('title')}</p>
         </div>
 
         {/* Messages */}

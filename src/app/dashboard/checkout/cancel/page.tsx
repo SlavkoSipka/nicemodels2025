@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { XCircle, RotateCcw, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -14,6 +15,7 @@ export default async function CheckoutCancelPage({ searchParams }: PageProps) {
   const params = await searchParams
   const sessionId = params.session_id
 
+  const t = await getTranslations('publicPages.checkout')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -42,11 +44,8 @@ export default async function CheckoutCancelPage({ searchParams }: PageProps) {
             <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center mx-auto mb-3 shadow-sm">
               <XCircle className="w-8 h-8 text-amber-600" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Checkout cancelled</h1>
-            <p className="text-sm text-gray-700">
-              No payment was taken. Your draft is being held briefly so you can
-              try again, otherwise it will be cleaned up automatically.
-            </p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-1">{t('checkoutCancelled')}</h1>
+            <p className="text-sm text-gray-700">{t('checkoutCancelledDesc')}</p>
           </div>
 
           <div className="p-6 md:p-8 space-y-3">
@@ -54,13 +53,13 @@ export default async function CheckoutCancelPage({ searchParams }: PageProps) {
               href={returnPath}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
             >
-              <RotateCcw className="w-4 h-4" /> Try again
+              <RotateCcw className="w-4 h-4" /> {t('tryAgain')}
             </Link>
             <Link
               href="/dashboard/model"
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-200"
             >
-              <ArrowLeft className="w-4 h-4" /> Back to dashboard
+              <ArrowLeft className="w-4 h-4" /> {t('backToDashboard')}
             </Link>
           </div>
         </div>

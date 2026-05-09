@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { BarChart2, Eye, MousePointerClick, Heart, Share2 } from 'lucide-react'
 
@@ -9,6 +10,7 @@ interface DailyStats { date: string; profile_views: number; contact_views: numbe
 type DateRange = 'all' | 'week' | 'month' | 'year'
 
 export default function StatisticsPage() {
+  const t = useTranslations('dashboard.model.statistics')
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [modelStats, setModelStats] = useState<ModelStats | null>(null)
@@ -38,7 +40,7 @@ export default function StatisticsPage() {
   const getVal = (key: keyof ModelStats, dailyKey: keyof DailyStats) =>
     dateRange === 'all' ? (modelStats?.[key] || 0) : dailyStats.reduce((s, d) => s + (d[dailyKey] as number), 0)
 
-  const rangeLabel = { all: 'All time', week: 'Last 7 days', month: 'Last month', year: 'Last year' }[dateRange]
+  const rangeLabel = { all: t('rangeAll'), week: t('rangeWeek'), month: t('rangeMonth'), year: t('rangeYear') }[dateRange]
 
   const tabBtn = (val: DateRange, label: string) => (
     <button onClick={() => setDateRange(val)}
@@ -50,10 +52,10 @@ export default function StatisticsPage() {
   if (loading) return null
 
   const stats = [
-    { label: 'Profile Views', value: getVal('total_profile_views', 'profile_views'), icon: Eye, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Contact Views', value: getVal('total_contact_views', 'contact_views'), icon: MousePointerClick, color: 'text-purple-600 bg-purple-50' },
-    { label: 'Favorites', value: getVal('total_favorites', 'favorites'), icon: Heart, color: 'text-brand bg-brand/10' },
-    { label: 'Shares', value: getVal('total_shares', 'shares'), icon: Share2, color: 'text-indigo-600 bg-indigo-50' },
+    { label: t('profileViews'), value: getVal('total_profile_views', 'profile_views'), icon: Eye, color: 'text-blue-600 bg-blue-50' },
+    { label: t('contactViews'), value: getVal('total_contact_views', 'contact_views'), icon: MousePointerClick, color: 'text-purple-600 bg-purple-50' },
+    { label: t('favorites'), value: getVal('total_favorites', 'favorites'), icon: Heart, color: 'text-brand bg-brand/10' },
+    { label: t('shares'), value: getVal('total_shares', 'shares'), icon: Share2, color: 'text-indigo-600 bg-indigo-50' },
   ]
 
   return (
@@ -66,21 +68,21 @@ export default function StatisticsPage() {
               <BarChart2 className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Statistics</h1>
-              <p className="text-xs text-gray-500">Track your profile performance</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 overflow-x-auto whitespace-nowrap">
-            {tabBtn('all', 'All Time')}
-            {tabBtn('week', 'Last 7 Days')}
-            {tabBtn('month', 'Last Month')}
-            {tabBtn('year', 'Last Year')}
+            {tabBtn('all', t('allTime'))}
+            {tabBtn('week', t('last7Days'))}
+            {tabBtn('month', t('lastMonth'))}
+            {tabBtn('year', t('lastYear'))}
           </div>
         </div>
 
         {/* Stat cards */}
         <div>
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Statistics · {rangeLabel}</p>
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('header', { range: rangeLabel })}</p>
           <div className="grid grid-cols-2 gap-2 md:gap-3">
             {stats.map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-white border border-gray-200 rounded-lg p-4">
@@ -101,17 +103,17 @@ export default function StatisticsPage() {
         {dailyStats.length > 0 && (
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="px-3 md:px-5 py-3 border-b border-gray-100">
-              <p className="text-sm font-bold text-gray-800">Recent Daily Activity</p>
+              <p className="text-sm font-bold text-gray-800">{t('recentDailyActivity')}</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500">Date</th>
-                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">Views</th>
-                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">Contacts</th>
-                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">Favorites</th>
-                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">Shares</th>
+                    <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500">{t('date')}</th>
+                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">{t('views')}</th>
+                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">{t('contacts')}</th>
+                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">{t('favorites')}</th>
+                    <th className="text-right py-2.5 px-4 text-xs font-semibold text-gray-500">{t('shares')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -134,14 +136,14 @@ export default function StatisticsPage() {
 
         {!modelStats && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-sm font-bold text-amber-900 mb-1">No Statistics Yet</p>
-            <p className="text-xs text-amber-700">Your stats will appear once visitors start viewing your profile. Make sure your profile is complete and active!</p>
+            <p className="text-sm font-bold text-amber-900 mb-1">{t('noStats')}</p>
+            <p className="text-xs text-amber-700">{t('noStatsHint')}</p>
           </div>
         )}
         {modelStats && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm font-bold text-blue-900 mb-1">About Statistics</p>
-            <p className="text-xs text-blue-700">Stats are tracked when visitors view your profile, click "Show Contact", save to favorites, or share your profile. Updates in real-time.</p>
+            <p className="text-sm font-bold text-blue-900 mb-1">{t('aboutStats')}</p>
+            <p className="text-xs text-blue-700">{t('aboutStatsHint')}</p>
           </div>
         )}
       </div>

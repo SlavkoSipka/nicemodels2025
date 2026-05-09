@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ModelCard from './ModelCard'
@@ -93,6 +94,7 @@ function buildInitialCards(
 export default function MixedHomeClient({
   models, clubs, banners, listings, statusMessages, chatModels,
 }: MixedHomeClientProps) {
+  const t = useTranslations('home')
   // Filter state
   const [selectedRegion, setSelectedRegion] = useState('all')
 
@@ -416,7 +418,7 @@ export default function MixedHomeClient({
             }}
           >
             <span className="truncate">
-              {selectedRegion === 'all' ? 'Region' : cantonName(selectedRegion)}
+              {selectedRegion === 'all' ? t('filters.region') : cantonName(selectedRegion)}
             </span>
             <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
           </button>
@@ -435,7 +437,7 @@ export default function MixedHomeClient({
                   className="block w-full text-left px-4 py-2 text-sm text-gray-500 hover:bg-[#fef7fa] hover:text-[#be185d] transition-colors"
                   onClick={() => { setSelectedRegion(canton); setRegionOpen(false); setPage(0) }}
                 >
-                  {canton === 'all' ? 'All regions' : cantonName(canton)}
+                  {canton === 'all' ? t('filters.allRegions') : cantonName(canton)}
                   <span className="ml-1 text-gray-400">({count})</span>
                 </button>
               ))}
@@ -450,7 +452,7 @@ export default function MixedHomeClient({
             value={cityQuery}
             onChange={e => handleCityInput(e.target.value)}
             onFocus={() => setCityOpen(true)}
-            placeholder="City, postal code, or live location"
+            placeholder={t('filters.cityPlaceholder')}
             className="w-full appearance-none"
             style={{
               paddingLeft: 34, paddingRight: 32, paddingTop: 10, paddingBottom: 10,
@@ -493,14 +495,14 @@ export default function MixedHomeClient({
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                       </span>
-                      <span>Live: {city}</span>
+                      <span>{t('filters.live', { city })}</span>
                       <span className="text-emerald-600/70 font-normal">({count})</span>
                     </span>
                   </button>
                 ))}
               {cityQuery.length >= 1 && (cityResults.length > 0 || cityLoading) && (
                 <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-gray-100">
-                  Search cities
+                  {t('filters.searchCities')}
                 </div>
               )}
               {cityResults.map(city => (
@@ -516,7 +518,7 @@ export default function MixedHomeClient({
               ))}
               {cityQuery.length >= 1 && !cityLoading && cityResults.length === 0 && (
                 <div className="px-4 py-3 text-center text-sm text-gray-400 border-t border-gray-100">
-                  No cities match “{cityQuery}”
+                  {t('filters.noCitiesMatch', { query: cityQuery })}
                 </div>
               )}
             </div>
@@ -529,7 +531,7 @@ export default function MixedHomeClient({
             type="search"
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); setPage(0) }}
-            placeholder="Search all cards..."
+            placeholder={t('filters.searchAllCards')}
             className="w-full appearance-none"
             style={{
               paddingLeft: 34, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
@@ -555,10 +557,10 @@ export default function MixedHomeClient({
           style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)' }}
         >
           <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>
-            {isFiltering ? 'No results found' : 'No content yet'}
+            {isFiltering ? t('feed.noResults') : t('feed.noContent')}
           </p>
           <p style={{ color: '#94a3b8' }}>
-            {isFiltering ? 'Try changing your filters' : 'Check back soon'}
+            {isFiltering ? t('feed.tryChangingFilters') : t('feed.checkBackSoon')}
           </p>
         </div>
       )
@@ -606,7 +608,7 @@ export default function MixedHomeClient({
               className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
             >
-              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Prev</span>
+              <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">{t('feed.prev')}</span>
             </button>
 
             <div className="flex items-center gap-1">
@@ -640,7 +642,7 @@ export default function MixedHomeClient({
               className="flex items-center gap-0.5 sm:gap-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed"
               style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.10)', color: '#374151' }}
             >
-              <span className="hidden sm:inline">Next</span> <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">{t('feed.next')}</span> <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         )}

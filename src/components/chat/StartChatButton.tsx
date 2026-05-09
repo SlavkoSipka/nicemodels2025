@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 
 export default function StartChatButton({ modelId }: { modelId: string }) {
+  const ts = useTranslations('components.chat.startButton');
   const supabase = createClient();
 
   async function handleStartChat() {
@@ -22,7 +23,7 @@ export default function StartChatButton({ modelId }: { modelId: string }) {
 
     if (error) {
       console.error('Error creating conversation:', error);
-      alert('Failed to start chat. Please try again.');
+      alert(ts('failedAlert'));
       return;
     }
 
@@ -35,7 +36,7 @@ export default function StartChatButton({ modelId }: { modelId: string }) {
       onClick={handleStartChat}
       className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md text-lg"
     >
-      💬 Send Message
+      {ts('label')}
     </button>
   );
 }

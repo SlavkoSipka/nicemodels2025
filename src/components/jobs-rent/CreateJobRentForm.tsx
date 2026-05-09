@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { processImage } from '@/lib/imageProcessor'
@@ -55,11 +56,12 @@ interface Props {
 export default function CreateJobRentForm({
   backHref,
   successHref,
-  subtitle = 'Post a new job or rent listing',
+  subtitle,
   prefillFromClubContact = false,
   requireActiveAd = false,
   activateAdHref = '/dashboard/company/activate-ad',
 }: Props) {
+  const t = useTranslations('components.createJobRentForm')
   const router = useRouter()
   const supabase = createClient()
 
@@ -211,18 +213,18 @@ export default function CreateJobRentForm({
 
   const handleSubmit = async () => {
     if (!user) return
-    if (requireActiveAd && !hasActiveAd) { setError('You need an active ad before publishing a listing'); return }
-    if (!title.trim()) { setError('Title is required'); return }
-    if (!location.trim()) { setError('City is required'); return }
-    if (!description.trim()) { setError('Description is required'); return }
+    if (requireActiveAd && !hasActiveAd) { setError(t('errNeedActiveAd')); return }
+    if (!title.trim()) { setError(t('errTitleRequired')); return }
+    if (!location.trim()) { setError(t('errCityRequired')); return }
+    if (!description.trim()) { setError(t('errDescriptionRequired')); return }
     if (!phoneNumber.trim() && !email.trim()) {
-      setError('Add at least a phone number or an email so people can contact you')
+      setError(t('errContactRequired'))
       return
     }
-    if (!selectedPackage) { setError('Please select a duration package'); return }
-    if (!termsAccepted) { setError('Please accept the terms and conditions'); return }
+    if (!selectedPackage) { setError(t('errSelectPackage')); return }
+    if (!termsAccepted) { setError(t('errTermsRequired')); return }
     if (!Number(selectedPackage.price_chf)) {
-      setError('This package is not available for purchase. Refresh and try again.')
+      setError(t('errPackageUnavailable'))
       return
     }
 
@@ -276,7 +278,7 @@ export default function CreateJobRentForm({
         })
         .select()
         .single()
-      if (listingErr || !listing) throw listingErr || new Error('Failed to create listing')
+      if (listingErr || !listing) throw listingErr || new Error(t('errCreateFailed'))
       createdListingId = listing.id
 
       // 2. Upload photos and tag services to the draft listing.
@@ -324,7 +326,7 @@ export default function CreateJobRentForm({
 
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
-        throw new Error(j?.error || 'Failed to start checkout')
+        throw new Error(j?.error || t('errCheckoutFailed'))
       }
       const { url } = await res.json() as { url: string }
       window.location.href = url
@@ -337,7 +339,7 @@ export default function CreateJobRentForm({
       if (uploadedPhotoPaths.length) {
         await supabase.storage.from('job-listing-photos').remove(uploadedPhotoPaths)
       }
-      setError(err.message || 'Failed to create listing')
+      setError(err.message || t('errCreateFailed'))
       setSubmitting(false)
     }
   }
@@ -360,14 +362,14 @@ export default function CreateJobRentForm({
             <Briefcase className="w-4 h-4 text-brand" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-base md:text-xl font-bold text-gray-900 truncate">Create Listing</h1>
-            <p className="text-[11px] md:text-xs text-gray-500 truncate">{subtitle}</p>
+            <h1 className="text-base md:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
+            <p className="text-[11px] md:text-xs text-gray-500 truncate">{subtitle ?? t('subtitleFallback')}</p>
           </div>
           <button
             onClick={() => router.push(backHref)}
             className="shrink-0 flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="w-4 h-4" /> Back
+            <ArrowLeft className="w-4 h-4" /> {t('back')}
           </button>
         </div>
 
@@ -390,16 +392,16 @@ export default function CreateJobRentForm({
               <Lock className="w-5 h-5 text-amber-600" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-amber-900 mb-1">Activate your ad first</p>
+              <p className="text-sm font-bold text-amber-900 mb-1">{t('activateAdTitle')}</p>
               <p className="text-sm text-amber-800 mb-3">
-                You can only post a job or rent listing while you have an active ad. Activate one and come back to publish.
+                {t('activateAdBody')}
               </p>
               <button
                 onClick={() => router.push(activateAdHref)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 text-white text-xs font-bold rounded-lg hover:bg-amber-700 transition-colors"
               >
                 <Zap className="w-3.5 h-3.5" />
-                Activate Sedcard
+                {t('activateSedcardCta')}
                 <ChevronRight className="w-3 h-3" />
               </button>
             </div>
@@ -414,42 +416,42 @@ export default function CreateJobRentForm({
             <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
               <MapPin className="w-4 h-4 text-violet-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">About</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionAbout')}</p>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Type</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('typeLabel')}</label>
             <div className="flex gap-2">
-              {(['job', 'rent'] as const).map(t => (
+              {(['job', 'rent'] as const).map(kind => (
                 <button
-                  key={t}
-                  onClick={() => setListingType(t)}
+                  key={kind}
+                  onClick={() => setListingType(kind)}
                   className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-                    listingType === t
+                    listingType === kind
                       ? 'bg-brand text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  {t === 'job' ? 'Job' : 'Rent'}
+                  {kind === 'job' ? t('typeJob') : t('typeRent')}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Title *</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('titleLabel')}</label>
             <input
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="e.g. Looking for experienced dancers, Studio for rent in Zurich..."
+              placeholder={t('titlePlaceholder')}
               maxLength={200}
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">City *</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('cityLabel')}</label>
             <CitySearch
               value={location}
               postalCode={locationPostalCode}
@@ -457,7 +459,7 @@ export default function CreateJobRentForm({
                 setLocation(city?.name || '')
                 setLocationPostalCode(city?.postal_code || '')
               }}
-              placeholder="Search city or postal code..."
+              placeholder={t('cityPlaceholder')}
               inputClassName="border-gray-200 focus:ring-brand"
             />
           </div>
@@ -466,7 +468,7 @@ export default function CreateJobRentForm({
           <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                Street <span className="font-normal text-gray-400">(optional)</span>
+                {t('streetLabel')} <span className="font-normal text-gray-400">{t('optionalTag')}</span>
               </label>
               <div className="relative">
                 <MapPin className="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -474,7 +476,7 @@ export default function CreateJobRentForm({
                   type="text"
                   value={addressStreet}
                   onChange={e => setAddressStreet(e.target.value)}
-                  placeholder="Bahnhofstrasse"
+                  placeholder={t('streetPlaceholder')}
                   maxLength={120}
                   className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                 />
@@ -482,7 +484,7 @@ export default function CreateJobRentForm({
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">
-                Number <span className="font-normal text-gray-400">(optional)</span>
+                {t('numberLabel')} <span className="font-normal text-gray-400">{t('optionalTag')}</span>
               </label>
               <div className="relative">
                 <Hash className="w-4 h-4 text-gray-300 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -490,7 +492,7 @@ export default function CreateJobRentForm({
                   type="text"
                   value={addressNumber}
                   onChange={e => setAddressNumber(e.target.value)}
-                  placeholder="42"
+                  placeholder={t('numberPlaceholder')}
                   maxLength={10}
                   className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
                 />
@@ -505,8 +507,8 @@ export default function CreateJobRentForm({
             <div className="w-7 h-7 rounded-md bg-indigo-100 flex items-center justify-center">
               <Globe className="w-4 h-4 text-indigo-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Where to show</p>
-            <span className="text-xs text-gray-400">— pick regions</span>
+            <p className="text-sm font-bold text-gray-800">{t('sectionVisibility')}</p>
+            <span className="text-xs text-gray-400">{t('visibilityHint')}</span>
           </div>
           <RegionsCheckboxList selected={regions} onChange={setRegions} />
         </div>
@@ -514,7 +516,7 @@ export default function CreateJobRentForm({
         <SitePreview
           page="jobs-rents"
           highlight={listingType === 'job' ? 'listing-job' : 'listing-rent'}
-          title={`Where your ${listingType === 'job' ? 'job' : 'rent'} listing will appear`}
+          title={listingType === 'job' ? t('previewTitleJob') : t('previewTitleRent')}
           listingTitle={title}
           listingLocation={location}
         />
@@ -526,62 +528,62 @@ export default function CreateJobRentForm({
               <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                 <Home className="w-4 h-4 text-amber-600" />
               </div>
-              <p className="text-sm font-bold text-gray-800">Rent Details</p>
+              <p className="text-sm font-bold text-gray-800">{t('sectionRentDetails')}</p>
             </div>
 
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <DollarSign className="w-3.5 h-3.5 text-gray-400" />
-                <p className="text-xs font-bold text-gray-700">Pricing (CHF)</p>
+                <p className="text-xs font-bold text-gray-700">{t('pricingChf')}</p>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Day</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perDay')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceDaily} onChange={e => setRentPriceDaily(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Week</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perWeek')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceWeekly} onChange={e => setRentPriceWeekly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-600 mb-1">Per Month</label>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">{t('perMonth')}</label>
                   <input type="number" min="0" step="0.01" value={rentPriceMonthly} onChange={e => setRentPriceMonthly(e.target.value)} placeholder="0.00" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Room Size <span className="font-normal text-gray-400">(optional)</span></label>
-              <input type="text" value={rentRoomSize} onChange={e => setRentRoomSize(e.target.value)} placeholder="e.g. 25m², Large, Studio..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('roomSizeLabel')} <span className="font-normal text-gray-400">{t('optionalTag')}</span></label>
+              <input type="text" value={rentRoomSize} onChange={e => setRentRoomSize(e.target.value)} placeholder={t('roomSizePlaceholder')} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
 
             <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">Work Permit</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t('workPermitLabel')}</p>
               <button type="button" onClick={() => setRentWorkPermit(!rentWorkPermit)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-colors ${rentWorkPermit ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}>
                 <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${rentWorkPermit ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300'}`}>
                   {rentWorkPermit && <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                 </span>
-                Allowed to work in the space
+                {t('workPermitToggle')}
               </button>
             </div>
 
             <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">Amenities</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t('amenitiesLabel')}</p>
               <div className="flex flex-wrap gap-2">
                 {([
-                  { label: 'Furnished', value: rentFurnished, set: setRentFurnished },
-                  { label: 'Kitchen', value: rentKitchen, set: setRentKitchen },
-                  { label: 'Shower + WC', value: rentBathroom, set: setRentBathroom },
-                  { label: 'Air Conditioning', value: rentAirConditioning, set: setRentAirConditioning },
-                  { label: 'Towels', value: rentTowels, set: setRentTowels },
-                ] as const).map(({ label, value, set }) => (
-                  <button key={label} type="button" onClick={() => set(!value)}
+                  { amenityKey: 'amenityFurnished' as const, value: rentFurnished, set: setRentFurnished },
+                  { amenityKey: 'amenityKitchen' as const, value: rentKitchen, set: setRentKitchen },
+                  { amenityKey: 'amenityBathroom' as const, value: rentBathroom, set: setRentBathroom },
+                  { amenityKey: 'amenityAc' as const, value: rentAirConditioning, set: setRentAirConditioning },
+                  { amenityKey: 'amenityTowels' as const, value: rentTowels, set: setRentTowels },
+                ] as const).map(({ amenityKey, value, set }) => (
+                  <button key={amenityKey} type="button" onClick={() => set(!value)}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${value ? 'bg-brand/10 text-brand border-brand/30' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
                     <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${value ? 'bg-brand border-brand' : 'border-gray-300'}`}>
                       {value && <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
                     </span>
-                    {label}
+                    {t(amenityKey)}
                   </button>
                 ))}
               </div>
@@ -595,12 +597,12 @@ export default function CreateJobRentForm({
             <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center">
               <FileText className="w-4 h-4 text-blue-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Description *</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionDescription')}</p>
           </div>
           <RichTextEditor
             value={description}
             onChange={setDescription}
-            placeholder="Describe the job position or rental property in detail..."
+            placeholder={t('descriptionPlaceholder')}
             maxLength={5000}
             height={250}
           />
@@ -612,16 +614,16 @@ export default function CreateJobRentForm({
             <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
               <Upload className="w-4 h-4 text-amber-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Photos</p>
-            <span className="text-xs text-gray-400">(optional)</span>
+            <p className="text-sm font-bold text-gray-800">{t('sectionPhotos')}</p>
+            <span className="text-xs text-gray-400">{t('optionalTag')}</span>
           </div>
           <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-gray-300 transition-colors">
             <label className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover">
               <Upload className="w-4 h-4" />
-              Choose Photos
+              {t('choosePhotos')}
               <input type="file" accept="image/*" multiple onChange={handlePhotoSelect} className="hidden" />
             </label>
-            <p className="text-xs text-gray-500 mt-2">JPG, PNG or WEBP - Max 10MB per file</p>
+            <p className="text-xs text-gray-500 mt-2">{t('photosHint')}</p>
           </div>
           {photos.length > 0 && (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
@@ -643,43 +645,43 @@ export default function CreateJobRentForm({
             <div className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center">
               <Phone className="w-4 h-4 text-emerald-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Contact</p>
-            <span className="text-xs text-red-500 font-semibold">* required</span>
+            <p className="text-sm font-bold text-gray-800">{t('sectionContact')}</p>
+            <span className="text-xs text-red-500 font-semibold">{t('contactRequiredBadge')}</span>
           </div>
           <p className="text-xs text-gray-500 -mt-1">
-            Add at least a phone number or an email — without contact info nobody can reach you.
+            {t('contactHint')}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Code</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('codeLabel')}</label>
               <input type="text" value={countryCode} onChange={e => setCountryCode(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Phone Number</label>
-              <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} placeholder="Phone number" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('phoneLabel')}</label>
+              <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} placeholder={t('phonePlaceholder')} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
           </div>
-          <p className="text-xs text-gray-500 mb-2">How applicants can reach you (same number as above for phone-based options):</p>
+          <p className="text-xs text-gray-500 mb-2">{t('reachYouHint')}</p>
           <div className="flex flex-wrap gap-3">
             {[
-              { label: 'SMS', value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
-              { label: 'WhatsApp', value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
-              { label: 'Viber', value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
-              { label: 'Telegram', value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },
-            ].map(({ label, value, set, color }) => (
-              <button key={label} onClick={() => set(!value)} className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${value ? color : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}>
-                {label} {value ? '✓' : ''}
+              { channelKey: 'channelSms' as const, value: hasSms, set: setHasSms, color: 'bg-slate-100 text-slate-800 border-slate-300' },
+              { channelKey: 'channelWhatsapp' as const, value: hasWhatsapp, set: setHasWhatsapp, color: 'bg-green-100 text-green-700 border-green-300' },
+              { channelKey: 'channelViber' as const, value: hasViber, set: setHasViber, color: 'bg-purple-100 text-purple-700 border-purple-300' },
+              { channelKey: 'channelTelegram' as const, value: hasTelegram, set: setHasTelegram, color: 'bg-blue-100 text-blue-700 border-blue-300' },
+            ].map(({ channelKey, value, set, color }) => (
+              <button key={channelKey} onClick={() => set(!value)} className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${value ? color : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'}`}>
+                {t(channelKey)} {value ? '✓' : ''}
               </button>
             ))}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Email <span className="font-normal text-gray-400">(optional)</span></label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="contact@example.com" className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('emailLabel')} <span className="font-normal text-gray-400">{t('optionalTag')}</span></label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('emailPlaceholder')} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Website <span className="font-normal text-gray-400">(optional)</span></label>
-              <input type="text" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
+              <label className="block text-xs font-bold text-gray-700 mb-1">{t('websiteLabel')} <span className="font-normal text-gray-400">{t('optionalTag')}</span></label>
+              <input type="text" value={website} onChange={e => setWebsite(e.target.value)} placeholder={t('websitePlaceholder')} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
           </div>
         </div>
@@ -691,10 +693,10 @@ export default function CreateJobRentForm({
               <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
                 <CheckCircle className="w-4 h-4 text-rose-600" />
               </div>
-              <p className="text-sm font-bold text-gray-800">Services</p>
-              <span className="text-xs text-gray-400">(optional)</span>
+              <p className="text-sm font-bold text-gray-800">{t('sectionServices')}</p>
+              <span className="text-xs text-gray-400">{t('optionalTag')}</span>
               {selectedServices.length > 0 && (
-                <span className="text-xs font-semibold text-brand bg-brand/10 px-2 py-0.5 rounded-full">{selectedServices.length} selected</span>
+                <span className="text-xs font-semibold text-brand bg-brand/10 px-2 py-0.5 rounded-full">{t('selectedCount', { count: selectedServices.length })}</span>
               )}
             </div>
             {servicesOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
@@ -724,7 +726,7 @@ export default function CreateJobRentForm({
             <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
               <Zap className="w-4 h-4 text-brand" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Duration</p>
+            <p className="text-sm font-bold text-gray-800">{t('sectionDuration')}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -750,13 +752,13 @@ export default function CreateJobRentForm({
 
           {selectedPackage && (
             <div>
-              <p className="text-xs font-bold text-gray-700 mb-2">When to start:</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t('whenToStart')}</p>
               <div className="flex gap-2">
                 <button onClick={() => setActivationType('immediately')} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activationType === 'immediately' ? 'bg-brand text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                  <Zap className="w-4 h-4" /> Immediately
+                  <Zap className="w-4 h-4" /> {t('activationImmediately')}
                 </button>
                 <button onClick={() => setActivationType('at_date')} className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${activationType === 'at_date' ? 'bg-brand text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
-                  <Calendar className="w-4 h-4" /> At date
+                  <Calendar className="w-4 h-4" /> {t('activationAtDate')}
                 </button>
               </div>
               {activationType === 'at_date' && (
@@ -773,7 +775,7 @@ export default function CreateJobRentForm({
 
         {/* Submit */}
         <div className="flex items-center justify-between pt-2">
-          <button onClick={() => router.push(backHref)} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.push(backHref)} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
           <button
             onClick={handleSubmit}
             disabled={submitting || !title.trim() || !location.trim() || !description.trim() || !selectedPackage || !termsAccepted}
@@ -781,10 +783,10 @@ export default function CreateJobRentForm({
           >
             <Briefcase className="w-4 h-4" />
             {submitting
-              ? 'Redirecting to checkout...'
+              ? t('submitRedirecting')
               : selectedPackage
-                ? `Pay CHF ${Number(selectedPackage.price_chf).toFixed(0)}.- securely`
-                : 'Continue to checkout'}
+                ? t('submitPay', { amount: Number(selectedPackage.price_chf).toFixed(0) })
+                : t('submitContinue')}
           </button>
         </div>
 

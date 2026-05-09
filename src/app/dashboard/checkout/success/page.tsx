@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { CheckCircle, Receipt, ArrowRight, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -15,6 +16,7 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   const sessionId = params.session_id
   if (!sessionId) redirect('/dashboard/model')
 
+  const t = await getTranslations('publicPages.checkout')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -36,16 +38,13 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
     return (
       <div className="min-h-screen bg-gray-50 ml-0 md:ml-[280px] flex items-center justify-center px-4">
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8 max-w-md text-center">
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Order not found</h1>
-          <p className="text-sm text-gray-600 mb-6">
-            We could not find your checkout session. If you were charged it
-            will be reflected in your purchase history shortly.
-          </p>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">{t('orderNotFound')}</h1>
+          <p className="text-sm text-gray-600 mb-6">{t('orderNotFoundDesc')}</p>
           <Link
             href="/dashboard/model/purchase-history"
             className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
           >
-            View Purchase History
+            {t('viewPurchaseHistory')}
           </Link>
         </div>
       </div>
@@ -67,28 +66,26 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
                 : <Clock className="w-8 h-8 text-amber-600" />}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {isPaid ? 'Payment successful' : 'Payment processing'}
+              {isPaid ? t('paymentSuccessful') : t('paymentProcessing')}
             </h1>
             <p className="text-sm text-gray-700">
-              {isPaid
-                ? 'Your purchase is confirmed and your items are now active.'
-                : 'Your payment is being confirmed. This page will reflect the change shortly. Refresh in a few seconds.'}
+              {isPaid ? t('paymentSuccessfulDesc') : t('paymentProcessingDesc')}
             </p>
           </div>
 
           <div className="p-6 md:p-8 space-y-4">
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Order</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">{t('order')}</p>
               <p className="text-sm text-gray-900 font-mono">{order.id}</p>
             </div>
 
             <div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Items</p>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('items')}</p>
               <ul className="space-y-2">
                 {(order.order_items || []).map((it: any) => (
                   <li key={it.id} className="flex items-center justify-between text-sm">
                     <span className="text-gray-900">
-                      {it.product?.name || 'Item'}
+                      {it.product?.name || t('itemFallback')}
                       <span className="text-xs text-gray-500 ml-2">
                         ({(it.product?.product_type || '').replace('_', ' ')})
                       </span>
@@ -99,14 +96,14 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
             </div>
 
             <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-              <p className="text-sm font-bold text-gray-900">Total</p>
+              <p className="text-sm font-bold text-gray-900">{t('total')}</p>
               <p className="text-base font-bold text-gray-900">
                 CHF {Number(order.total_amount || 0).toFixed(2)}
               </p>
             </div>
 
             <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>Payment method</span>
+              <span>{t('paymentMethod')}</span>
               <span className="font-semibold text-gray-700 uppercase">{order.payment_method}</span>
             </div>
 
@@ -118,14 +115,14 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
                   rel="noopener noreferrer"
                   className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-200"
                 >
-                  <Receipt className="w-4 h-4" /> View Receipt
+                  <Receipt className="w-4 h-4" /> {t('viewReceipt')}
                 </a>
               )}
               <Link
                 href="/dashboard/model/purchase-history"
                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
               >
-                Purchase History <ArrowRight className="w-4 h-4" />
+                {t('purchaseHistory')} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>

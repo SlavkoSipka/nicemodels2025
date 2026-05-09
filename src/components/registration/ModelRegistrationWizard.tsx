@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import BiographyStep from './steps/BiographyStep'
 import AboutMeStep from './steps/AboutMeStep'
 import LanguagesStep from './steps/LanguagesStep'
@@ -176,7 +177,7 @@ export default function ModelRegistrationWizard() {
   const handleSubmit = async () => {
     console.log('Submitting registration:', formData)
     // TODO: Submit to Supabase
-    alert('Registration completed! (Backend integration pending)')
+    alert(tw('completeNotice'))
   }
 
   return (

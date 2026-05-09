@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+
 interface RichTextEditorProps {
   value: string
   onChange: (value: string) => void
@@ -13,13 +15,15 @@ interface RichTextEditorProps {
 export default function RichTextEditor({
   value,
   onChange,
-  placeholder = 'Start writing...',
+  placeholder,
   maxLength,
   height = 300,
   label,
   required = false,
 }: RichTextEditorProps) {
+  const t = useTranslations('components.richTextEditor')
   const charCount = value?.length ?? 0
+  const ph = placeholder ?? t('defaultPlaceholder')
 
   return (
     <div>
@@ -36,7 +40,7 @@ export default function RichTextEditor({
           if (maxLength != null && v.length > maxLength) return
           onChange(v)
         }}
-        placeholder={placeholder}
+        placeholder={ph}
         maxLength={maxLength}
         rows={Math.max(8, Math.ceil(height / 28))}
         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand resize-y text-gray-900 placeholder:text-gray-400"

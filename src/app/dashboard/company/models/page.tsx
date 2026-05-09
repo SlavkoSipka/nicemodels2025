@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Trash2, Eye, UserPlus, X, Clock, Users, CheckCircle, MapPin } from 'lucide-react'
 
@@ -37,6 +38,8 @@ type TabType = 'models' | 'invites'
 
 export default function ManageModelsPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.models')
+  const tc = useTranslations('dashboard.company.common')
   const [loading, setLoading] = useState(true)
   const [models, setModels] = useState<Model[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -132,7 +135,7 @@ export default function ManageModelsPage() {
           return {
             ...invite,
             model: {
-              username: p?.username || 'Model',
+              username: p?.username || t('modelFallback'),
               showname: d?.showname ?? null,
               public_id: p?.public_id ?? null,
               city: d?.city ?? null,
@@ -152,7 +155,7 @@ export default function ManageModelsPage() {
   }, [router])
 
   const handleDelete = async (modelId: string) => {
-    if (!confirm('Are you sure you want to remove this model from your club?')) return
+    if (!confirm(t('confirmRemove'))) return
 
     const supabase = createClient()
     const { error } = await supabase
@@ -163,14 +166,14 @@ export default function ManageModelsPage() {
       .eq('status', 'accepted')
 
     if (error) {
-      alert('Failed to remove model. Please try again.')
+      alert(t('removeFailed'))
     } else {
       setModels(models.filter(m => m.id !== modelId))
     }
   }
 
   const handleCancelInvite = async (inviteId: string) => {
-    if (!confirm('Cancel this invitation?')) return
+    if (!confirm(t('confirmCancel'))) return
 
     const supabase = createClient()
     const { error } = await supabase
@@ -179,7 +182,7 @@ export default function ManageModelsPage() {
       .eq('id', inviteId)
 
     if (error) {
-      alert('Failed to cancel invite. Please try again.')
+      alert(t('cancelFailed'))
     } else {
       setInvites(invites.filter(i => i.id !== inviteId))
     }
@@ -198,8 +201,8 @@ export default function ManageModelsPage() {
               <Users className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900">Manage Models</h1>
-              <p className="text-xs text-gray-500">View and manage your models & invitations</p>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
@@ -207,14 +210,14 @@ export default function ManageModelsPage() {
               onClick={() => router.push('/dashboard/company')}
               className="text-sm font-semibold text-gray-600 hover:text-gray-900"
             >
-              Back to Dashboard
+              {tc('backToDashboard')}
             </button>
             <button
               onClick={() => router.push('/dashboard/company/models/invite')}
               className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
             >
               <UserPlus className="w-4 h-4" />
-              Invite Model
+              {t('inviteBtn')}
             </button>
           </div>
         </div>
@@ -231,7 +234,7 @@ export default function ManageModelsPage() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              My Models
+              {t('tabModels')}
               <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${activeTab === 'models' ? 'bg-brand/10 text-brand' : 'bg-gray-100 text-gray-600'}`}>
                 {models.length}
               </span>
@@ -244,7 +247,7 @@ export default function ManageModelsPage() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Pending Invites
+              {t('tabInvites')}
               {invites.length > 0 && (
                 <span className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${activeTab === 'invites' ? 'bg-amber-100 text-amber-700' : 'bg-amber-100 text-amber-700'}`}>
                   {invites.length}
@@ -260,14 +263,14 @@ export default function ManageModelsPage() {
                 {models.length === 0 ? (
                   <div className="text-center py-10 border border-dashed border-gray-200 rounded-lg">
                     <Users className="mx-auto w-10 h-10 text-gray-300" />
-                    <p className="text-sm font-medium text-gray-600 mt-2">No models yet</p>
-                    <p className="text-xs text-gray-500 mt-0.5 mb-3">Invite models to join your club roster</p>
+                    <p className="text-sm font-medium text-gray-600 mt-2">{t('noModels')}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 mb-3">{t('noModelsHint')}</p>
                     <button
                       onClick={() => router.push('/dashboard/company/models/invite')}
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
                     >
                       <UserPlus className="w-4 h-4" />
-                      Invite Model
+                      {t('inviteBtn')}
                     </button>
                   </div>
                 ) : (
@@ -291,18 +294,18 @@ export default function ManageModelsPage() {
                               <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 truncate">
                                 <MapPin className="w-3 h-3 shrink-0 text-gray-400" />
                                 <span className="truncate">
-                                  {[model.city, model.age != null ? `${model.age} yrs` : null].filter(Boolean).join(' · ')}
+                                  {[model.city, model.age != null ? t('yrs', { age: model.age }) : null].filter(Boolean).join(' · ')}
                                 </span>
                               </p>
                             )}
                           </div>
                           {model.is_verified ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200 shrink-0">
-                              <CheckCircle className="w-3 h-3" /> Verified
+                              <CheckCircle className="w-3 h-3" /> {t('verified')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 text-gray-500 text-xs font-semibold rounded-full border border-gray-200 shrink-0">
-                              Unverified
+                              {t('unverified')}
                             </span>
                           )}
                         </div>
@@ -310,11 +313,11 @@ export default function ManageModelsPage() {
                         <div className="mb-3">
                           {model.hasActiveAd ? (
                             <span className="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-800 text-[11px] font-semibold rounded-md border border-emerald-200">
-                              Active on site
+                              {t('activeOnSite')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-900 text-[11px] font-semibold rounded-md border border-amber-200">
-                              No active ad — not listed publicly
+                              {t('noActiveAd')}
                             </span>
                           )}
                         </div>
@@ -324,12 +327,12 @@ export default function ManageModelsPage() {
                             onClick={() => router.push(`/models/${model.id}`)}
                             className="flex-1 flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View public profile
+                            <Eye className="w-3.5 h-3.5" /> {t('viewProfile')}
                           </button>
                           <button
                             onClick={() => handleDelete(model.id)}
                             className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
-                            title="Remove from club"
+                            title={t('removeFromClub')}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -347,21 +350,21 @@ export default function ManageModelsPage() {
                 {invites.length === 0 ? (
                   <div className="text-center py-10 border border-dashed border-gray-200 rounded-lg">
                     <Clock className="mx-auto w-10 h-10 text-gray-300" />
-                    <p className="text-sm font-medium text-gray-600 mt-2">No pending invites</p>
-                    <p className="text-xs text-gray-500 mt-0.5 mb-3">Invite models to join your club</p>
+                    <p className="text-sm font-medium text-gray-600 mt-2">{t('noInvites')}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 mb-3">{t('noInvitesHint')}</p>
                     <button
                       onClick={() => router.push('/dashboard/company/models/invite')}
                       className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
                     >
                       <UserPlus className="w-4 h-4" />
-                      Invite Model
+                      {t('inviteBtn')}
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {invites.map((invite) => {
                       const m = invite.model
-                      const displayName = m.showname || m.username || 'Model'
+                      const displayName = m.showname || m.username || t('modelFallback')
                       return (
                         <div
                           key={invite.id}
@@ -385,7 +388,7 @@ export default function ManageModelsPage() {
                                   <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
                                   {m.is_verified && (
                                     <span className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
-                                      <CheckCircle className="w-2.5 h-2.5" /> Verified
+                                      <CheckCircle className="w-2.5 h-2.5" /> {t('verified')}
                                     </span>
                                   )}
                                 </div>
@@ -401,10 +404,10 @@ export default function ManageModelsPage() {
                                 )}
                                 <div className="flex items-center gap-2 mt-1">
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-[11px] font-semibold rounded-full border border-amber-200">
-                                    <Clock className="w-3 h-3" /> Pending
+                                    <Clock className="w-3 h-3" /> {t('pending')}
                                   </span>
                                   <span className="text-[11px] text-gray-400">
-                                    Sent {new Date(invite.invited_at).toLocaleDateString()}
+                                    {t('sentOn', { date: new Date(invite.invited_at).toLocaleDateString() })}
                                   </span>
                                 </div>
                               </div>
@@ -413,24 +416,24 @@ export default function ManageModelsPage() {
                               <button
                                 onClick={() => router.push(`/models/${invite.invited_model_id}`)}
                                 className="flex items-center justify-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
-                                title="View public sedcard"
+                                title={t('viewSedcard')}
                               >
                                 <Eye className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">View</span>
+                                <span className="hidden sm:inline">{t('viewShort')}</span>
                               </button>
                               <button
                                 onClick={() => handleCancelInvite(invite.id)}
                                 className="flex items-center justify-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-colors"
                               >
                                 <X className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Cancel</span>
+                                <span className="hidden sm:inline">{t('cancelShort')}</span>
                               </button>
                             </div>
                           </div>
                           {invite.message && (
                             <div className="mt-2 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
                               <p className="text-xs text-gray-600">
-                                <span className="font-semibold">Message:</span> {invite.message}
+                                <span className="font-semibold">{t('messageLabel')}</span> {invite.message}
                               </p>
                             </div>
                           )}

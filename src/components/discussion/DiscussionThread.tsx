@@ -2,20 +2,9 @@
 
 import type { DiscussionPostNode } from '@/lib/discussion/tree'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import ReplyForm from './ReplyForm'
 import { MessageCircle, Pencil, Trash2, ChevronDown, ChevronUp, Check, X } from 'lucide-react'
-
-function timeAgo(dateStr: string) {
-  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (seconds < 60) return 'just now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
-  return new Date(dateStr).toLocaleDateString(undefined, { dateStyle: 'medium' })
-}
 
 function isEdited(node: DiscussionPostNode) {
   if (!node.updated_at) return false
@@ -67,11 +56,24 @@ function ThreadNode({
   onPosted: () => void
   isAdmin: boolean
 }) {
+  const t = useTranslations('components.discussion.thread')
   const [replyOpen, setReplyOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editBody, setEditBody] = useState('')
   const [saving, setSaving] = useState(false)
+
+  function timeAgoLabel(dateStr: string) {
+    const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
+    if (seconds < 60) return t('justNow')
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return t('minAgo', { n: minutes })
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return t('hourAgo', { n: hours })
+    const days = Math.floor(hours / 24)
+    if (days < 30) return t('dayAgo', { n: days })
+    return new Date(dateStr).toLocaleDateString(undefined, { dateStyle: 'medium' })
+  }
 
   const handleEdit = () => {
     const plain = node.body.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
@@ -94,7 +96,7 @@ function ThreadNode({
   }
 
   const handleDelete = async () => {
-    if (!confirm('Delete this post? It will be hidden from public view.')) return
+    if (!confirm(t('deleteConfirm'))) return
     setSaving(true)
     await fetch('/api/admin/discussion-posts', {
       method: 'PATCH',
@@ -115,10 +117,10 @@ function ThreadNode({
           <span className="font-bold text-gray-900">{node.author_label}</span>
           <span className="text-gray-400">·</span>
           <time className="text-gray-400" dateTime={node.created_at}>
-            {timeAgo(node.created_at)}
+            {timeAgoLabel(node.created_at)}
           </time>
           {isEdited(node) && (
-            <span className="text-gray-400 italic text-[10px]">(edited)</span>
+            <span className="text-gray-400 italic text-[10px]">{t('edited')}</span>
           )}
           {node.children.length > 0 && (
             <button
@@ -127,7 +129,7 @@ function ThreadNode({
               className="ml-auto inline-flex items-center gap-0.5 text-gray-400 hover:text-gray-600"
             >
               {collapsed ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronUp className="w-3.5 h-3.5" />}
-              {collapsed ? `${node.children.length} more` : 'collapse'}
+              {collapsed ? t('moreReplies', { count: node.children.length }) : t('collapse')}
             </button>
           )}
         </div>
@@ -147,14 +149,14 @@ function ThreadNode({
                 disabled={saving}
                 className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md bg-pink-600 text-white hover:bg-pink-700 disabled:opacity-50"
               >
-                <Check className="w-3 h-3" /> Save
+                <Check className="w-3 h-3" /> {t('save')}
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
                 className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50"
               >
-                <X className="w-3 h-3" /> Cancel
+                <X className="w-3 h-3" /> {t('cancel')}
               </button>
             </div>
           </div>
@@ -174,7 +176,7 @@ function ThreadNode({
                 className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-pink-600 transition-colors"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
-                {replyOpen ? 'Cancel' : 'Reply'}
+                {replyOpen ? t('cancel') : t('reply')}
               </button>
             )}
             {isAdmin && (
@@ -185,7 +187,7 @@ function ThreadNode({
                   disabled={saving}
                   className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-blue-600 transition-colors disabled:opacity-50"
                 >
-                  <Pencil className="w-3 h-3" /> Edit
+                  <Pencil className="w-3 h-3" /> {t('edit')}
                 </button>
                 <button
                   type="button"
@@ -193,7 +195,7 @@ function ThreadNode({
                   disabled={saving}
                   className="inline-flex items-center gap-1 text-xs font-semibold text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
                 >
-                  <Trash2 className="w-3 h-3" /> Delete
+                  <Trash2 className="w-3 h-3" /> {t('delete')}
                 </button>
               </>
             )}
@@ -209,7 +211,7 @@ function ThreadNode({
                 setReplyOpen(false)
                 onPosted()
               }}
-              placeholder={`Reply to ${node.author_label}...`}
+              placeholder={t('replyPlaceholder', { author: node.author_label })}
             />
           </div>
         )}

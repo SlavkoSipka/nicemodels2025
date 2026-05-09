@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Languages, Trash2, Plus, Save, CheckCircle, AlertCircle } from 'lucide-react'
 
 export default function LanguagesPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.languages')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
@@ -38,10 +40,10 @@ export default function LanguagesPage() {
   }
 
   const starLabel = (stars: number) => {
-    if (stars <= 2) return 'Basic'
-    if (stars === 3) return 'Fair'
-    if (stars === 4) return 'Good'
-    return 'Excellent'
+    if (stars <= 2) return t('basic')
+    if (stars === 3) return t('fair')
+    if (stars === 4) return t('good')
+    return t('excellent')
   }
 
   useEffect(() => {
@@ -79,7 +81,7 @@ export default function LanguagesPage() {
   const handleSave = async () => {
     setError(''); setSuccess('')
     const valid = languages.filter(l => l.language)
-    if (valid.length === 0) { setError('Please add at least one language'); return }
+    if (valid.length === 0) { setError(t('addAtLeastOne')); return }
     setSaving(true)
     try {
       const supabase = createClient()
@@ -88,10 +90,10 @@ export default function LanguagesPage() {
         valid.map(l => ({ model_id: user.id, language: l.language, level: l.level }))
       )
       if (e) throw e
-      setSuccess('Languages saved successfully!')
+      setSuccess(t('savedSuccess'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save. Please try again.')
+      setError(e?.message || t('saveFailed'))
     } finally { setSaving(false) }
   }
 
@@ -109,11 +111,11 @@ export default function LanguagesPage() {
               <Languages className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Edit Profile — Languages</h1>
-              <p className="text-xs text-gray-500">Add languages you speak and your proficiency level</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
         </div>
 
         {error && (
@@ -135,7 +137,7 @@ export default function LanguagesPage() {
               <div key={i} className="flex gap-2 items-center">
                 <select value={lang.language} onChange={e => updateLanguageField(i, e.target.value)}
                   className={selectCls + ' flex-1'}>
-                  <option value="">Select language...</option>
+                  <option value="">{t('selectLanguage')}</option>
                   {availableLanguages.map(l => <option key={l} value={l}>{l}</option>)}
                 </select>
                 <div className="flex items-center gap-1">
@@ -160,7 +162,7 @@ export default function LanguagesPage() {
                 </div>
                 {languages.length > 1 && (
                   <button onClick={() => removeLanguage(i)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove">
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title={t('remove')}>
                     <Trash2 className="w-4 h-4" />
                   </button>
                 )}
@@ -170,16 +172,16 @@ export default function LanguagesPage() {
           <button onClick={addLanguage}
             className="flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-brand-hover">
             <Plus className="w-4 h-4" />
-            Add Another Language
+            {t('addAnother')}
           </button>
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>

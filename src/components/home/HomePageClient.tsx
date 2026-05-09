@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 import { randomShuffle } from '@/lib/randomShuffle'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -64,6 +65,7 @@ interface HomePageClientProps {
 }
 
 export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [] }: HomePageClientProps) {
+  const t = useTranslations('home')
   const [selectedRegion,       setSelectedRegion]       = useState<string>('all')
   const [selectedCity,         setSelectedCity]         = useState<string>('all')
   const [selectedCategory,     setSelectedCategory]     = useState<string>('all')
@@ -159,9 +161,9 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
           {filteredModels.length.toLocaleString()}
         </span>
         <span className="text-xs sm:text-sm text-slate-600 font-medium">
-          {filteredModels.length === 1 ? 'model' : 'models'}
+          {filteredModels.length === 1 ? t('feed.model') : t('feed.models')}
           {isFiltered && initialModels.length !== filteredModels.length && (
-            <span className="text-slate-400"> of {initialModels.length.toLocaleString()}</span>
+            <span className="text-slate-400"> {t('feed.ofTotal', { total: initialModels.length.toLocaleString() })}</span>
           )}
         </span>
       </div>
@@ -180,8 +182,8 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
           className="text-center py-20 rounded-xl"
           style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
         >
-          <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>No models found</p>
-          <p style={{ color: '#94a3b8' }}>Try changing filters</p>
+          <p className="text-2xl font-bold mb-2" style={{ color: '#cbd5e1' }}>{t('feed.noModelsFound')}</p>
+          <p style={{ color: '#94a3b8' }}>{t('feed.tryChangingFiltersShort')}</p>
         </div>
       )
     }

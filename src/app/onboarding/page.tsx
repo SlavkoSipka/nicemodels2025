@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/layout/Navbar'
 import ModelOnboardingForm from '@/components/onboarding/ModelOnboardingForm'
@@ -11,6 +12,7 @@ import OnboardingFooter from '@/components/onboarding/OnboardingFooter'
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const t = useTranslations('onboarding')
   const [loading, setLoading] = useState(true)
   const [userRole, setUserRole] = useState<string | null>(null)
 
@@ -64,7 +66,7 @@ export default function OnboardingPage() {
           <div className="flex-1 flex items-center justify-center px-4 py-6 pb-32 md:pb-20">
             <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl px-8 py-10 max-w-md w-full">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-600 mx-auto"></div>
-              <p className="mt-4 text-sm text-gray-600">Preparing your onboarding…</p>
+              <p className="mt-4 text-sm text-gray-600">{t('preparing')}</p>
             </div>
           </div>
           <OnboardingFooter />
@@ -83,14 +85,13 @@ export default function OnboardingPage() {
           <div className="max-w-5xl w-full">
             <div className="text-center mb-3">
               <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 tracking-tight">
-                Welcome to <span className="text-pink-600">nicemodels.ch</span>
+                {t('welcome')}<span className="text-pink-600">nicemodels.ch</span>
               </h1>
               <p className="text-xs md:text-sm text-gray-600 max-w-2xl mx-auto">
-                Complete your profile so we can prepare your{' '}
-                <span className="font-semibold">model</span> or{' '}
-                <span className="font-semibold">club/agency</span> page.
-                Profile setup is <span className="font-semibold text-pink-600">free</span>;
-                ad activation, banners and listings are paid services.
+                {t.rich('subtitle', {
+                  model: (chunks) => <span className="font-semibold">{chunks}</span>,
+                  club: (chunks) => <span className="font-semibold">{chunks}</span>,
+                })}
               </p>
             </div>
 

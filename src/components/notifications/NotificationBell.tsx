@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Bell, X, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
 
 interface Notification {
   id: string
@@ -24,6 +25,8 @@ interface NotificationBellProps {
 
 export default function NotificationBell({ userRole = 'model' }: NotificationBellProps) {
   const router = useRouter()
+  const locale = useLocale()
+  const t = useTranslations('components.notificationBell')
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -175,9 +178,9 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
             {/* Header */}
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold text-gray-900">Notifications</h3>
+                <h3 className="font-bold text-gray-900">{t('title')}</h3>
                 {unreadCount > 0 && (
-                  <span className="text-xs text-gray-500">{unreadCount} unread</span>
+                  <span className="text-xs text-gray-500">{t('unread', { count: unreadCount })}</span>
                 )}
               </div>
             </div>
@@ -187,13 +190,13 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
               {loading ? (
                 <div className="p-8 text-center text-gray-500">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto mb-2"></div>
-                  Loading...
+                  {t('loading')}
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium">No notifications</p>
-                  <p className="text-sm mt-1">You're all caught up!</p>
+                  <p className="font-medium">{t('emptyTitle')}</p>
+                  <p className="text-sm mt-1">{t('emptySubtitle')}</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -227,11 +230,11 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
                             {notification.message}
                           </p>
                           <p className="text-xs text-gray-400 mt-2">
-                            {new Date(notification.created_at).toLocaleDateString('en-US', {
+                            {new Date(notification.created_at).toLocaleString(locale, {
                               month: 'short',
                               day: 'numeric',
                               hour: '2-digit',
-                              minute: '2-digit'
+                              minute: '2-digit',
                             })}
                           </p>
                         </div>
@@ -245,7 +248,7 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
                                 markAsRead(notification.id)
                               }}
                               className="p-1 hover:bg-green-100 rounded text-green-600"
-                              title="Mark as read"
+                              title={t('markRead')}
                             >
                               <Check className="w-4 h-4" />
                             </button>
@@ -256,7 +259,7 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
                               deleteNotification(notification.id)
                             }}
                             className="p-1 hover:bg-red-100 rounded text-red-600"
-                            title="Delete"
+                            title={t('delete')}
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -283,7 +286,7 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
                   }}
                   className="w-full text-center text-sm font-medium text-pink-600 hover:text-pink-700"
                 >
-                  View all notifications
+                  {t('viewAll')}
                 </button>
               </div>
             )}

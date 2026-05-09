@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Settings, Mail, Bell, Lock, Trash2, CheckCircle } from 'lucide-react'
 
 export default function UserSettings() {
   const router = useRouter()
+  const t = useTranslations('dashboard.user.settings')
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -35,7 +37,7 @@ export default function UserSettings() {
         .eq('id', user.id)
       if (!error) {
         setNewsletterEnabled(!newsletterEnabled)
-        setSuccess('Newsletter preferences updated!')
+        setSuccess(t('newsletterUpdated'))
         setTimeout(() => setSuccess(''), 3000)
       }
     }
@@ -43,7 +45,7 @@ export default function UserSettings() {
   }
 
   const handleDeleteAccount = async () => {
-    const confirmation = prompt('This action cannot be undone. Type "DELETE" to confirm:')
+    const confirmation = prompt(t('deleteConfirmPrompt'))
     if (confirmation !== 'DELETE') return
     setSaving(true)
     try {
@@ -54,13 +56,13 @@ export default function UserSettings() {
       })
       if (!res.ok) {
         const data = await res.json()
-        throw new Error(data.error || 'Failed to delete')
+        throw new Error(data.error || t('deleteFailed'))
       }
       const supabase = createClient()
       await supabase.auth.signOut()
       router.push('/')
     } catch (e: any) {
-      alert(e.message || 'Failed to delete account. Please contact support.')
+      alert(e.message || t('deleteFailed'))
     } finally {
       setSaving(false)
     }
@@ -79,8 +81,8 @@ export default function UserSettings() {
               <Settings className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Settings</h1>
-              <p className="text-xs text-gray-500">Manage your account preferences</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
 
@@ -95,13 +97,13 @@ export default function UserSettings() {
           <div className="bg-white border border-gray-200 rounded-lg p-5">
             <div className="flex items-center gap-2 mb-4">
               <Mail className="w-4 h-4 text-brand" />
-              <p className="text-sm font-bold text-gray-800">Email Preferences</p>
+              <p className="text-sm font-bold text-gray-800">{t('emailPrefs')}</p>
             </div>
 
             <div className="flex items-center justify-between py-2">
               <div>
-                <p className="text-sm font-semibold text-gray-800">Newsletter</p>
-                <p className="text-xs text-gray-500">Receive updates and promotions</p>
+                <p className="text-sm font-semibold text-gray-800">{t('newsletter')}</p>
+                <p className="text-xs text-gray-500">{t('newsletterHint')}</p>
               </div>
               <button onClick={handleNewsletterToggle} disabled={saving}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 ${
@@ -118,10 +120,10 @@ export default function UserSettings() {
           <div className="bg-white border border-gray-200 rounded-lg p-5">
             <div className="flex items-center gap-2 mb-4">
               <Bell className="w-4 h-4 text-blue-600" />
-              <p className="text-sm font-bold text-gray-800">Notifications</p>
+              <p className="text-sm font-bold text-gray-800">{t('notifications')}</p>
             </div>
             <p className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
-              More notification options coming soon. You'll be able to customize what you receive.
+              {t('notificationsSoon')}
             </p>
           </div>
 
@@ -129,10 +131,10 @@ export default function UserSettings() {
           <div className="bg-white border border-gray-200 rounded-lg p-5">
             <div className="flex items-center gap-2 mb-4">
               <Lock className="w-4 h-4 text-purple-600" />
-              <p className="text-sm font-bold text-gray-800">Security</p>
+              <p className="text-sm font-bold text-gray-800">{t('security')}</p>
             </div>
             <p className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
-              Password change coming soon. For now, use the "Forgot Password" feature on the login page.
+              {t('securitySoon')}
             </p>
           </div>
 
@@ -140,15 +142,15 @@ export default function UserSettings() {
           <div className="bg-white border border-red-200 rounded-lg p-5">
             <div className="flex items-center gap-2 mb-4">
               <Trash2 className="w-4 h-4 text-red-600" />
-              <p className="text-sm font-bold text-red-800">Danger Zone</p>
+              <p className="text-sm font-bold text-red-800">{t('dangerZone')}</p>
             </div>
             <button
               onClick={handleDeleteAccount}
               disabled={saving}
               className="w-full text-left px-3 py-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors disabled:opacity-50"
             >
-              <p className="text-sm font-semibold text-red-800">Delete Account</p>
-              <p className="text-xs text-red-500 mt-0.5">Permanently delete your account and all data</p>
+              <p className="text-sm font-semibold text-red-800">{t('deleteAccount')}</p>
+              <p className="text-xs text-red-500 mt-0.5">{t('deleteHint')}</p>
             </button>
           </div>
 

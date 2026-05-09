@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { Sparkles } from 'lucide-react'
 import { trackProfileView } from '@/lib/tracking'
 import ViewCount from '@/components/ui/ViewCount'
@@ -33,31 +34,34 @@ interface ModelCardProps {
 const BLUR =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z'
 
-function timeAgo(dateStr?: string): string {
-  if (!dateStr) return ''
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (diff < 60)    return `vor ${diff} Sek.`
-  if (diff < 3600)  return `vor ${Math.floor(diff / 60)} Min.`
-  if (diff < 86400) return `vor ${Math.floor(diff / 3600)} Std.`
-  return `vor ${Math.floor(diff / 86400)} Tag${Math.floor(diff / 86400) === 1 ? '' : 'en'}`
-}
-
 export default function ModelCard({ model, priority = false }: ModelCardProps) {
+  const t = useTranslations('components.home.modelCard')
   const [cardHover, setCardHover] = useState(false)
   const details     = model.model_details
   const title       = details?.showname || model.username
   const city        = details?.city || ''
-  const age         = details?.age ? `${details.age} yrs` : ''
+  const age         = details?.age ? t('ageYears', { age: details.age }) : ''
   const tags        = details?.services_for?.length ? details.services_for : []
   const description = (() => {
     const raw = (details?.about_me || '').replace(/<[^>]*>/g, '')
     return raw.length > 200 ? raw.slice(0, 200).trimEnd() + '…' : raw
   })()
-  const ago = timeAgo(model.created_at)
+
+  let ago = ''
+  if (model.created_at) {
+    const diff = Math.floor((Date.now() - new Date(model.created_at).getTime()) / 1000)
+    if (diff < 60) ago = t('timeSec', { n: Math.max(diff, 1) })
+    else if (diff < 3600) ago = t('timeMin', { n: Math.floor(diff / 60) })
+    else if (diff < 86400) ago = t('timeHour', { n: Math.floor(diff / 3600) })
+    else ago = t('timeDay', { n: Math.floor(diff / 86400) })
+  }
+
   const liveCity = details?.live_location_city?.trim()
   const liveLine =
     liveCity
-      ? `Live: ${liveCity}${details?.live_location_postal_code ? ` (${details.live_location_postal_code})` : ''}`
+      ? details?.live_location_postal_code
+        ? t('liveCityPostal', { city: liveCity, postal: details.live_location_postal_code })
+        : t('liveCity', { city: liveCity })
       : null
 
   const cardStyle = {
@@ -81,7 +85,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
         href={`/models/${model.id}`}
         onClick={() => trackProfileView(model.id)}
         className="absolute inset-0 z-0 rounded-[12px]"
-        aria-label={`View profile: ${title}`}
+        aria-label={t('viewProfileAria', { title })}
       />
       <div
         className="relative z-10 pointer-events-none overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
@@ -151,7 +155,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
               className="text-[9px] font-bold uppercase tracking-[0.12em] self-start px-2 py-0.5 rounded-full"
               style={{ background: '#fce7f3', color: '#be185d' }}
             >
-              Premium
+              {t('premium')}
             </span>
 
             {/* Name */}

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { ArrowLeft, MessageCircle } from 'lucide-react'
 import DiscussionThread from '@/components/discussion/DiscussionThread'
 import ReplyForm from '@/components/discussion/ReplyForm'
@@ -19,15 +20,15 @@ export interface TopicPayload {
   updated_at: string
 }
 
-function timeAgo(dateStr: string) {
+function timeAgo(dateStr: string, t: (k: string, vars?: any) => string) {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (seconds < 60) return 'just now'
+  if (seconds < 60) return t('justNow')
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return t('minutesAgo', { n: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return t('hoursAgo', { n: hours })
   const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
+  if (days < 30) return t('daysAgo', { n: days })
   return new Date(dateStr).toLocaleDateString(undefined, { dateStyle: 'medium' })
 }
 
@@ -41,6 +42,7 @@ export default function BlogTopicClient({
   isAdmin?: boolean
 }) {
   const router = useRouter()
+  const t = useTranslations('publicPages.blog')
   const nodes = buildPostTree(flatPosts)
   const refresh = () => router.refresh()
 
@@ -73,7 +75,7 @@ export default function BlogTopicClient({
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-pink-600 transition-colors mb-5"
               >
                 <ArrowLeft className="w-4 h-4" />
-                All discussions
+                {t('allDiscussions')}
               </Link>
 
               <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-tight tracking-tight">
@@ -81,17 +83,17 @@ export default function BlogTopicClient({
               </h1>
 
               <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-400">
-                <span>Posted {timeAgo(topic.created_at)}</span>
+                <span>{t('posted', { time: timeAgo(topic.created_at, t) })}</span>
                 {topic.updated_at !== topic.created_at && (
                   <>
                     <span className="text-gray-300">·</span>
-                    <span>Updated {timeAgo(topic.updated_at)}</span>
+                    <span>{t('updated', { time: timeAgo(topic.updated_at, t) })}</span>
                   </>
                 )}
                 <span className="text-gray-300">·</span>
                 <span className="inline-flex items-center gap-1">
                   <MessageCircle className="w-3.5 h-3.5" />
-                  {flatPosts.length} {flatPosts.length === 1 ? 'reply' : 'replies'}
+                  {t('replies', { count: flatPosts.length })}
                 </span>
               </div>
 
@@ -109,7 +111,7 @@ export default function BlogTopicClient({
           <div className="flex items-center gap-2 mb-5">
             <MessageCircle className="w-5 h-5 text-gray-400" />
             <h2 className="text-lg font-bold text-gray-900">
-              Discussion
+              {t('discussion')}
               {flatPosts.length > 0 && (
                 <span className="ml-2 text-sm font-normal text-gray-400">
                   ({flatPosts.length})
@@ -121,7 +123,7 @@ export default function BlogTopicClient({
           {nodes.length === 0 ? (
             <div className="text-center py-10 bg-white rounded-xl border border-gray-200">
               <MessageCircle className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">No replies yet. Be the first to comment.</p>
+              <p className="text-sm text-gray-500">{t('noRepliesYet')}</p>
             </div>
           ) : (
             <div className="mb-6">
@@ -130,7 +132,7 @@ export default function BlogTopicClient({
           )}
 
           <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6 shadow-sm">
-            <h3 className="text-sm font-bold text-gray-800 mb-3">Leave a reply</h3>
+            <h3 className="text-sm font-bold text-gray-800 mb-3">{t('leaveReply')}</h3>
             <ReplyForm topicId={topic.id} parentId={null} onSuccess={refresh} />
           </div>
         </div>

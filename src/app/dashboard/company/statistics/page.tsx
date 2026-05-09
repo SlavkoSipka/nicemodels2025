@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import {
   BarChart2, Eye, MousePointerClick, Lightbulb,
@@ -88,18 +89,18 @@ function bucketizeByCreatedAt(
   return out
 }
 
-function placementLabel(p: string): { label: string; color: string } {
-  if (p === 'feed_card') return { label: 'Card slot', color: 'bg-blue-100 text-blue-700' }
-  if (p === 'sidebar_left') return { label: 'Left column', color: 'bg-amber-100 text-amber-700' }
-  return { label: 'Wide banner', color: 'bg-purple-100 text-purple-700' }
+function placementLabel(p: string, t: (k: string) => string): { label: string; color: string } {
+  if (p === 'feed_card') return { label: t('placementCard'), color: 'bg-blue-100 text-blue-700' }
+  if (p === 'sidebar_left') return { label: t('placementSidebar'), color: 'bg-amber-100 text-amber-700' }
+  return { label: t('placementWide'), color: 'bg-purple-100 text-purple-700' }
 }
 
-function statusBadge(status: string): { label: string; color: string } {
-  if (status === 'active') return { label: 'Active', color: 'bg-emerald-100 text-emerald-700' }
-  if (status === 'pending') return { label: 'Pending', color: 'bg-yellow-100 text-yellow-700' }
-  if (status === 'expired') return { label: 'Expired', color: 'bg-gray-100 text-gray-600' }
-  if (status === 'rejected') return { label: 'Rejected', color: 'bg-red-100 text-red-700' }
-  if (status === 'deleted') return { label: 'Deleted', color: 'bg-gray-100 text-gray-600' }
+function statusBadge(status: string, t: (k: string) => string): { label: string; color: string } {
+  if (status === 'active') return { label: t('statusActive'), color: 'bg-emerald-100 text-emerald-700' }
+  if (status === 'pending') return { label: t('statusPending'), color: 'bg-yellow-100 text-yellow-700' }
+  if (status === 'expired') return { label: t('statusExpired'), color: 'bg-gray-100 text-gray-600' }
+  if (status === 'rejected') return { label: t('statusRejected'), color: 'bg-red-100 text-red-700' }
+  if (status === 'deleted') return { label: t('statusDeleted'), color: 'bg-gray-100 text-gray-600' }
   return { label: status, color: 'bg-gray-100 text-gray-600' }
 }
 
@@ -110,6 +111,8 @@ function ctr(impressions: number, clicks: number): string {
 
 export default function StatisticsPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.company.statistics')
+  const tc = useTranslations('dashboard.company.common')
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [analytics, setAnalytics] = useState<AnalyticsData>({
@@ -139,7 +142,7 @@ export default function StatisticsPage() {
       try {
         await loadAnalytics(user.id, supabase)
       } catch {
-        setLoadError('Failed to load statistics.')
+        setLoadError(t('loadFailed'))
       } finally {
         setLoading(false)
       }
@@ -297,7 +300,7 @@ export default function StatisticsPage() {
         const filePath = photoByModel.get(m.id)
         return {
           id: m.id,
-          showname: d?.showname || m.username || 'Model',
+          showname: d?.showname || m.username || t('modelFallback'),
           city: d?.city ?? null,
           photo_url: filePath
             ? `${SUPA_URL}/storage/v1/object/public/model-photos/${filePath}`
@@ -354,17 +357,15 @@ export default function StatisticsPage() {
               <BarChart2 className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Statistics & Analytics</h1>
-              <p className="text-xs text-gray-500">
-                Track performance of your club page, banners, and job/rent listings
-              </p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
           <button
             onClick={() => router.push('/dashboard/company')}
             className="text-sm font-semibold text-gray-600 hover:text-gray-900"
           >
-            Back to Dashboard
+            {tc('backToDashboard')}
           </button>
         </div>
 
@@ -381,24 +382,26 @@ export default function StatisticsPage() {
           icon={<Building2 className="w-5 h-5 text-blue-600" />}
           iconBg="bg-blue-100"
           accent="text-blue-700"
-          title="Club Profile Page"
-          subtitle="Performance of your public club page (when visitors open your club profile)"
+          title={t('section1Title')}
+          subtitle={t('section1Subtitle')}
         />
 
         <PeriodGrid
-          label="Profile Views"
-          sublabel="Visits to your club profile page"
+          label={t('profileViews')}
+          sublabel={t('profileViewsHint')}
           icon={<Eye className="w-4 h-4 text-blue-600" />}
           iconBg="bg-blue-100"
           counts={analytics.profile.views}
+          t={t}
         />
 
         <PeriodGrid
-          label="Contact Button Clicks"
-          sublabel="Clicks on phone, email, or website buttons on your club page"
+          label={t('contactClicks')}
+          sublabel={t('contactClicksHint')}
           icon={<MousePointerClick className="w-4 h-4 text-brand" />}
           iconBg="bg-brand/10"
           counts={analytics.profile.contactClicks}
+          t={t}
         />
 
         <Divider />
@@ -410,29 +413,30 @@ export default function StatisticsPage() {
           icon={<Users className="w-5 h-5 text-pink-600" />}
           iconBg="bg-pink-100"
           accent="text-pink-700"
-          title="Model Sedcards"
-          subtitle="Performance of sedcards (profile pages) of all models linked to your club"
+          title={t('section2Title')}
+          subtitle={t('section2Subtitle')}
         />
 
         {analytics.models.length === 0 ? (
           <EmptyState
-            title="No models linked yet"
-            body="Once you invite models and they accept, their sedcard view stats will show here."
+            title={t('noModelsTitle')}
+            body={t('noModelsBody')}
           />
         ) : (
           <>
             <PeriodGrid
-              label="Total Sedcard Views"
-              sublabel={`How many times your ${analytics.models.length} model${analytics.models.length === 1 ? '' : 's'} sedcard${analytics.models.length === 1 ? '' : 's'} were opened (all combined)`}
+              label={t('totalSedcardViews')}
+              sublabel={t('totalSedcardViewsHint', { count: analytics.models.length })}
               icon={<Eye className="w-4 h-4 text-pink-600" />}
               iconBg="bg-pink-100"
               counts={analytics.modelTotals.views}
+              t={t}
             />
 
             <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <p className="text-sm font-bold text-gray-800 mb-1">Per model</p>
+              <p className="text-sm font-bold text-gray-800 mb-1">{t('perModel')}</p>
               <p className="text-xs text-gray-500 mb-4">
-                Sorted by total sedcard views (most viewed first).
+                {t('perModelHint')}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {analytics.models.map(m => (
@@ -464,10 +468,10 @@ export default function StatisticsPage() {
                       </div>
                       {m.city && <p className="text-[11px] text-gray-500 truncate">{m.city}</p>}
                       <div className="grid grid-cols-4 gap-1.5 mt-1.5">
-                        <MiniStat label="All" value={m.views.all} />
-                        <MiniStat label="30d" value={m.views.month} />
-                        <MiniStat label="7d" value={m.views.week} />
-                        <MiniStat label="Today" value={m.views.today} accent />
+                        <MiniStat label={t('miniAll')} value={m.views.all} />
+                        <MiniStat label={t('mini30d')} value={m.views.month} />
+                        <MiniStat label={t('mini7d')} value={m.views.week} />
+                        <MiniStat label={t('miniToday')} value={m.views.today} accent />
                       </div>
                     </div>
                   </button>
@@ -486,47 +490,49 @@ export default function StatisticsPage() {
           icon={<Megaphone className="w-5 h-5 text-purple-600" />}
           iconBg="bg-purple-100"
           accent="text-purple-700"
-          title="Banners"
-          subtitle="Performance of banner ads you purchased (shown across Home, Girls, Clubs and other pages)"
+          title={t('section3Title')}
+          subtitle={t('section3Subtitle')}
         />
 
         {analytics.banners.length === 0 ? (
           <EmptyState
-            title="No banners yet"
-            body="You haven't purchased any banners. Once you buy a banner, its impressions and clicks will appear here."
+            title={t('noBannersTitle')}
+            body={t('noBannersBody')}
           />
         ) : (
           <>
             <PeriodGrid
-              label="Total Banner Impressions"
-              sublabel="How many times your banners were seen (all banners combined)"
+              label={t('totalImpressions')}
+              sublabel={t('totalImpressionsHint')}
               icon={<Eye className="w-4 h-4 text-purple-600" />}
               iconBg="bg-purple-100"
               counts={analytics.bannerTotals.impressions}
+              t={t}
             />
 
             <PeriodGrid
-              label="Total Banner Clicks"
-              sublabel="How many times your banners were clicked (all banners combined)"
+              label={t('totalBannerClicks')}
+              sublabel={t('totalBannerClicksHint')}
               icon={<MousePointerClick className="w-4 h-4 text-purple-600" />}
               iconBg="bg-purple-100"
               counts={analytics.bannerTotals.clicks}
+              t={t}
               highlight={
                 <span className="text-purple-700">
-                  CTR: {ctr(analytics.bannerTotals.impressions.all, analytics.bannerTotals.clicks.all)}
+                  {t('ctr', { value: ctr(analytics.bannerTotals.impressions.all, analytics.bannerTotals.clicks.all) })}
                 </span>
               }
             />
 
             <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <p className="text-sm font-bold text-gray-800 mb-1">Per banner</p>
+              <p className="text-sm font-bold text-gray-800 mb-1">{t('perBanner')}</p>
               <p className="text-xs text-gray-500 mb-4">
-                One card per banner you purchased. CTR = clicks ÷ impressions.
+                {t('perBannerHint')}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {analytics.banners.map(b => {
-                  const p = placementLabel(b.placement)
-                  const s = statusBadge(b.status)
+                  const p = placementLabel(b.placement, t)
+                  const s = statusBadge(b.status, t)
                   return (
                     <div
                       key={b.id}
@@ -535,7 +541,7 @@ export default function StatisticsPage() {
                       {b.image_path ? (
                         <img
                           src={bannerUrl(b.image_path)!}
-                          alt={b.title || 'Banner'}
+                          alt={b.title || t('bannerFallbackTitle')}
                           className="w-full aspect-[4/1] object-cover bg-gray-100"
                         />
                       ) : (
@@ -545,7 +551,7 @@ export default function StatisticsPage() {
                       )}
                       <div className="p-3 space-y-2">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <p className="text-sm font-bold text-gray-900 truncate">{b.title || 'Banner'}</p>
+                          <p className="text-sm font-bold text-gray-900 truncate">{b.title || t('bannerFallbackTitle')}</p>
                           <div className="flex gap-1 shrink-0">
                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${p.color}`}>
                               {p.label}
@@ -556,9 +562,9 @@ export default function StatisticsPage() {
                           </div>
                         </div>
                         <div className="grid grid-cols-3 gap-2 pt-1">
-                          <StatBox label="Impressions" value={b.impressions.all} />
-                          <StatBox label="Clicks" value={b.clicks.all} />
-                          <StatBox label="CTR" value={ctr(b.impressions.all, b.clicks.all)} />
+                          <StatBox label={t('boxImpressions')} value={b.impressions.all} />
+                          <StatBox label={t('boxClicks')} value={b.clicks.all} />
+                          <StatBox label={t('boxCtr')} value={ctr(b.impressions.all, b.clicks.all)} />
                         </div>
                       </div>
                     </div>
@@ -578,37 +584,39 @@ export default function StatisticsPage() {
           icon={<Briefcase className="w-5 h-5 text-amber-600" />}
           iconBg="bg-amber-100"
           accent="text-amber-700"
-          title="Job & Rent Listings"
-          subtitle="Performance of your job and room rent listings on the Jobs & Rent page"
+          title={t('section4Title')}
+          subtitle={t('section4Subtitle')}
         />
 
         {analytics.listings.length === 0 ? (
           <EmptyState
-            title="No job or rent listings yet"
-            body="Create a job or rent listing from your dashboard. Once published, views and contact clicks will appear here."
+            title={t('noListingsTitle')}
+            body={t('noListingsBody')}
           />
         ) : (
           <>
             <PeriodGrid
-              label="Total Listing Views"
-              sublabel="How many times visitors opened your listing detail pages (all listings combined)"
+              label={t('totalListingViews')}
+              sublabel={t('totalListingViewsHint')}
               icon={<Eye className="w-4 h-4 text-amber-600" />}
               iconBg="bg-amber-100"
               counts={analytics.listingTotals.views}
+              t={t}
             />
 
             <PeriodGrid
-              label="Total Contact Clicks"
-              sublabel="Clicks on phone, SMS, email, website, WhatsApp, Viber, or Telegram on your listings"
+              label={t('totalContactClicks')}
+              sublabel={t('totalContactClicksHint')}
               icon={<MousePointerClick className="w-4 h-4 text-amber-600" />}
               iconBg="bg-amber-100"
               counts={analytics.listingTotals.clicks}
+              t={t}
             />
 
             <div className="bg-white border border-gray-200 rounded-lg p-5">
-              <p className="text-sm font-bold text-gray-800 mb-1">Per listing</p>
+              <p className="text-sm font-bold text-gray-800 mb-1">{t('perListing')}</p>
               <p className="text-xs text-gray-500 mb-4">
-                One card per job or rent listing you published.
+                {t('perListingHint')}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {analytics.listings.map(l => {
@@ -616,7 +624,7 @@ export default function StatisticsPage() {
                   const typeColor = isRent
                     ? 'bg-amber-100 text-amber-700'
                     : 'bg-purple-100 text-purple-700'
-                  const s = statusBadge(l.status)
+                  const s = statusBadge(l.status, t)
                   return (
                     <div
                       key={l.id}
@@ -631,12 +639,12 @@ export default function StatisticsPage() {
                             }
                           </div>
                           <p className="text-sm font-bold text-gray-900 truncate">
-                            {l.title || (isRent ? 'Rent listing' : 'Job listing')}
+                            {l.title || (isRent ? t('rentListingFallback') : t('jobListingFallback'))}
                           </p>
                         </div>
                         <div className="flex gap-1 shrink-0">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${typeColor}`}>
-                            {isRent ? 'Rent' : 'Job'}
+                            {isRent ? t('typeRent') : t('typeJob')}
                           </span>
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${s.color}`}>
                             {s.label}
@@ -644,8 +652,8 @@ export default function StatisticsPage() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 pt-1">
-                        <StatBox label="Views" value={l.views.all} />
-                        <StatBox label="Contact clicks" value={l.clicks.all} />
+                        <StatBox label={t('boxViews')} value={l.views.all} />
+                        <StatBox label={t('boxContactClicks')} value={l.clicks.all} />
                       </div>
                     </div>
                   )
@@ -661,20 +669,20 @@ export default function StatisticsPage() {
             <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
               <Lightbulb className="w-4 h-4 text-amber-600" />
             </div>
-            <p className="text-sm font-bold text-gray-800">Tips to improve your stats</p>
+            <p className="text-sm font-bold text-gray-800">{t('tipsHeading')}</p>
           </div>
           <ul className="space-y-2 text-sm text-gray-600">
             <li className="flex items-start gap-2">
               <span className="text-brand font-bold shrink-0">→</span>
-              Complete your club profile and add high-quality photos
+              {t('tip1')}
             </li>
             <li className="flex items-start gap-2">
               <span className="text-brand font-bold shrink-0">→</span>
-              Use a clear, eye-catching banner image to increase click-through rate (CTR)
+              {t('tip2')}
             </li>
             <li className="flex items-start gap-2">
               <span className="text-brand font-bold shrink-0">→</span>
-              Keep job and rent listings up to date and respond quickly to inquiries
+              {t('tip3')}
             </li>
           </ul>
         </div>
@@ -715,7 +723,7 @@ function Divider() {
 }
 
 function PeriodGrid({
-  label, sublabel, icon, iconBg, counts, highlight,
+  label, sublabel, icon, iconBg, counts, highlight, t,
 }: {
   label: string
   sublabel?: string
@@ -723,6 +731,7 @@ function PeriodGrid({
   iconBg: string
   counts: PeriodCounts
   highlight?: React.ReactNode
+  t: (k: string) => string
 }) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-5">
@@ -737,10 +746,10 @@ function PeriodGrid({
       </div>
       {sublabel && <p className="text-xs text-gray-500 mb-4">{sublabel}</p>}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <PeriodBox label="All time" value={counts.all} />
-        <PeriodBox label="Last 30 days" value={counts.month} />
-        <PeriodBox label="Last 7 days" value={counts.week} />
-        <PeriodBox label="Today" value={counts.today} accent />
+        <PeriodBox label={t('labelAll')} value={counts.all} />
+        <PeriodBox label={t('labelMonth')} value={counts.month} />
+        <PeriodBox label={t('labelWeek')} value={counts.week} />
+        <PeriodBox label={t('labelToday')} value={counts.today} accent />
       </div>
     </div>
   )

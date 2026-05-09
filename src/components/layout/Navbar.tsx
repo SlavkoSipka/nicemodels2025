@@ -4,15 +4,17 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Menu, X, User } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
 import ChatWidget from '@/components/chat/ChatWidget'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 
 export default function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
+  const t = useTranslations('nav')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [languageOpen, setLanguageOpen] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
 
@@ -78,7 +80,7 @@ export default function Navbar() {
             >
               <Image
                 src="/logo.webp"
-                alt="nicemodels.ch"
+                alt={t('logoAlt')}
                 width={240}
                 height={60}
                 className="h-8 w-auto sm:h-10 md:h-12"
@@ -89,15 +91,7 @@ export default function Navbar() {
             {/* Desktop Auth Section */}
             <div className="hidden lg:flex items-stretch h-16 self-stretch" style={{ marginBottom: '-1px' }}>
               {/* Language */}
-              <div
-                className="flex items-center justify-center gap-1.5 px-5 text-xs font-semibold cursor-pointer select-none border-l transition-colors"
-                style={{ color: '#475569', borderColor: 'rgba(137,207,240,0.35)' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#1e293b'; e.currentTarget.style.backgroundColor = 'rgba(137,207,240,0.15)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
-              >
-                <span>🇩🇪</span>
-                <span>DE</span>
-              </div>
+              <LanguageSwitcher variant="navbar" />
 
               {user ? (
                 <>
@@ -116,7 +110,7 @@ export default function Navbar() {
                     ) : (
                       <User className="w-3.5 h-3.5" />
                     )}
-                    <span>{profile?.username || 'User'}</span>
+                    <span>{profile?.username || t('user')}</span>
                   </Link>
                   <button
                     type="button"
@@ -126,7 +120,7 @@ export default function Navbar() {
                     onMouseEnter={e => { e.currentTarget.style.color = '#1e293b'; e.currentTarget.style.backgroundColor = 'rgba(137,207,240,0.15)' }}
                     onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
                   >
-                    Logout
+                    {t('logout')}
                   </button>
                 </>
               ) : (
@@ -136,7 +130,7 @@ export default function Navbar() {
                     className="flex items-center justify-center px-6 text-xs font-bold text-white transition-all border-l hover:brightness-110"
                     style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)', borderColor: 'rgba(137,207,240,0.35)' }}
                   >
-                    Register
+                    {t('register')}
                   </Link>
                   <Link
                     href="/login"
@@ -145,7 +139,7 @@ export default function Navbar() {
                     onMouseEnter={e => { e.currentTarget.style.color = '#ec4899'; e.currentTarget.style.backgroundColor = 'rgba(236,72,153,0.05)' }}
                     onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
                   >
-                    Log in
+                    {t('login')}
                   </Link>
                 </>
               )}
@@ -168,14 +162,14 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-4 w-full">
           <div className="hidden lg:flex items-center justify-center gap-1">
             {[
-              { href: '/models-page',    label: 'Models' },
-              { href: '/clubs',          label: 'Clubs / Agency' },
-              { href: '/jobs-rents',     label: 'Jobs / Rent' },
-              { href: '/latest-actions', label: 'Latest Actions' },
-              { href: '/comments',       label: 'Comments' },
-              { href: '/contact',        label: 'Contact' },
-              { href: '/blog',           label: 'Blog' },
-            ].map(({ href, label, ...rest }) => (
+              { href: '/models-page',    label: t('models') },
+              { href: '/clubs',          label: t('clubsAgency') },
+              { href: '/jobs-rents',     label: t('jobsRent') },
+              { href: '/latest-actions', label: t('latestActions') },
+              { href: '/comments',       label: t('comments') },
+              { href: '/contact',        label: t('contact') },
+              { href: '/blog',           label: t('blog') },
+            ].map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
@@ -184,14 +178,7 @@ export default function Navbar() {
                 onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#ffffff' }}
                 onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.85)' }}
               >
-                {'mobileLabel' in rest && rest.mobileLabel ? (
-                  <>
-                    <span className="sm:hidden">{rest.mobileLabel}</span>
-                    <span className="hidden sm:inline">{label}</span>
-                  </>
-                ) : (
-                  label
-                )}
+                {label}
                 <span
                   className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 rounded-full transition-all duration-300 group-hover:w-3/4"
                   style={{ backgroundColor: 'white' }}
@@ -207,13 +194,13 @@ export default function Navbar() {
         <div className="lg:hidden" style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
           <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
             {[
-              { href: '/models-page',    label: 'Models' },
-              { href: '/clubs',          label: 'Clubs / Agency' },
-              { href: '/jobs-rents',     label: 'Jobs / Rent' },
-              { href: '/latest-actions', label: 'Latest Actions' },
-              { href: '/comments',       label: 'Comments' },
-              { href: '/contact',        label: 'Contact' },
-              { href: '/blog',           label: 'Blog' },
+              { href: '/models-page',    label: t('models') },
+              { href: '/clubs',          label: t('clubsAgency') },
+              { href: '/jobs-rents',     label: t('jobsRent') },
+              { href: '/latest-actions', label: t('latestActions') },
+              { href: '/comments',       label: t('comments') },
+              { href: '/contact',        label: t('contact') },
+              { href: '/blog',           label: t('blog') },
             ].map(({ href, label }) => (
               <Link
                 key={href}
@@ -228,11 +215,19 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} className="pt-4 mt-4 space-y-2">
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} className="pt-4 mt-4">
+              <LanguageSwitcher variant="mobile" />
+            </div>
+
+            <div className="space-y-2">
               {user ? (
                 <>
                   <div className="px-4 py-2 text-sm" style={{ color: '#94a3b8' }}>
-                    Logged in as <span className="font-semibold" style={{ color: '#1a1a2e' }}>{profile?.username}</span>
+                    {t.rich('loggedInAs', {
+                      username: () => (
+                        <span className="font-semibold" style={{ color: '#1a1a2e' }}>{profile?.username}</span>
+                      ),
+                    })}
                   </div>
                   <Link
                     href={
@@ -245,14 +240,14 @@ export default function Navbar() {
                     style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Dashboard
+                    {t('dashboard')}
                   </Link>
                   <button
                     onClick={() => { setMobileMenuOpen(false); handleLogout() }}
                     className="block w-full px-4 py-3 text-sm font-bold text-center rounded-lg transition-all"
                     style={{ background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca' }}
                   >
-                    Logout
+                    {t('logout')}
                   </button>
                 </>
               ) : (
@@ -263,7 +258,7 @@ export default function Navbar() {
                     style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    REGISTER
+                    {t('register').toUpperCase()}
                   </Link>
                   <Link
                     href="/login"
@@ -271,7 +266,7 @@ export default function Navbar() {
                     style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    LOG IN
+                    {t('login').toUpperCase()}
                   </Link>
                 </>
               )}

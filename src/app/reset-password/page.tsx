@@ -1,7 +1,12 @@
+'use client'
+
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import ResetPasswordForm from '@/components/auth/ResetPasswordForm'
 
 export default function ResetPasswordPage() {
+  const t = useTranslations('auth.resetPassword')
+
   return (
     <>
       <Navbar />
@@ -16,10 +21,10 @@ export default function ResetPasswordPage() {
                 </svg>
               </div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Reset your password
+                {t('title')}
               </h1>
               <p className="text-sm text-gray-600">
-                Enter your new password below
+                {t('subtitle')}
               </p>
             </div>
 
@@ -30,4 +35,3 @@ export default function ResetPasswordPage() {
     </>
   )
 }
-

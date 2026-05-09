@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { DollarSign, Trash2, Plus, Save, CheckCircle, AlertCircle } from 'lucide-react'
 
 type Rate = { id?: number; duration: string; amount: string; customTime?: string; customUnit?: string }
 
-const DURATION_OPTIONS = [
-  { value: '30_minutes', label: '30 min' }, { value: '1_hour', label: '1 hour' },
-  { value: '2_hours', label: '2 hours' }, { value: 'specific_time', label: 'Specific time' },
-  { value: 'additional_hour', label: 'Additional hour' }, { value: 'overnight', label: 'Overnight' },
-  { value: 'dinner_date', label: 'Dinner date' }, { value: 'weekend', label: 'Weekend' },
+const DURATION_KEYS: Array<{ value: string; key: string }> = [
+  { value: '30_minutes', key: 'min30' }, { value: '1_hour', key: 'hour1' },
+  { value: '2_hours', key: 'hours2' }, { value: 'specific_time', key: 'specificTime' },
+  { value: 'additional_hour', key: 'additionalHour' }, { value: 'overnight', key: 'overnight' },
+  { value: 'dinner_date', key: 'dinnerDate' }, { value: 'weekend', key: 'weekend' },
 ]
 
 const inputCls = 'px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand'
@@ -24,13 +25,17 @@ function RateSection({ title, rates, newRate, setNewRate, onAdd, onRemove }: {
   onAdd: () => void
   onRemove: (i: number) => void
 }) {
-  const getDurationLabel = (v: string) => DURATION_OPTIONS.find(o => o.value === v)?.label || v
+  const t = useTranslations('dashboard.model.rates')
+  const getDurationLabel = (v: string) => {
+    const k = DURATION_KEYS.find(o => o.value === v)?.key
+    return k ? t(k as any) : v
+  }
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-5">
       <p className="text-sm font-bold text-gray-800 mb-3">{title}</p>
       <div className="space-y-2.5 mb-3">
         <select value={newRate.duration} onChange={e => setNewRate(prev => ({ ...prev, duration: e.target.value }))} className={inputCls + ' w-full'}>
-          {DURATION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          {DURATION_KEYS.map(o => <option key={o.value} value={o.value}>{t(o.key as any)}</option>)}
         </select>
         <div className="flex gap-2 items-center">
           <input
@@ -50,12 +55,12 @@ function RateSection({ title, rates, newRate, setNewRate, onAdd, onRemove }: {
           <button onClick={onAdd}
             className="flex items-center gap-1 px-3 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover">
             <Plus className="w-4 h-4" />
-            Add
+            {t('add')}
           </button>
         </div>
       </div>
       {rates.length === 0 ? (
-        <p className="text-xs text-gray-400 italic">No rates defined yet</p>
+        <p className="text-xs text-gray-400 italic">{t('noRates')}</p>
       ) : (
         <div className="space-y-1.5">
           {rates.map((r, i) => (
@@ -77,6 +82,7 @@ function RateSection({ title, rates, newRate, setNewRate, onAdd, onRemove }: {
 
 export default function RatesPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.rates')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState('')
@@ -108,13 +114,11 @@ export default function RatesPage() {
 
   const addRate = (type: 'incall' | 'outcall') => {
     const rate = type === 'incall' ? newIncall : newOutcall
-    if (!rate.amount || parseFloat(rate.amount) <= 0) { setError('Please enter a valid amount'); return }
+    if (!rate.amount || parseFloat(rate.amount) <= 0) { setError(t('validAmount')); return }
     setError('')
     if (type === 'incall') { setIncallRates([...incallRates, { ...rate }]); setNewIncall({ duration: '30_minutes', amount: '' }) }
     else { setOutcallRates([...outcallRates, { ...rate }]); setNewOutcall({ duration: '1_hour', amount: '' }) }
   }
-
-  const getDurationLabel = (v: string) => DURATION_OPTIONS.find(o => o.value === v)?.label || v
 
   const handleSave = async () => {
     setError(''); setSuccess('')
@@ -136,10 +140,10 @@ export default function RatesPage() {
         const { error: e } = await supabase.from('model_rates').insert(toInsert)
         if (e) throw e
       }
-      setSuccess('Rates saved successfully!')
+      setSuccess(t('savedSuccess'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (e: any) {
-      setError(e?.message || 'Failed to save.')
+      setError(e?.message || t('saveFailed'))
     } finally { setSaving(false) }
   }
 
@@ -155,11 +159,11 @@ export default function RatesPage() {
               <DollarSign className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Edit Profile — Rates</h1>
-              <p className="text-xs text-gray-500">Set your incall and outcall pricing in CHF</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
         </div>
 
         {error && (
@@ -176,18 +180,18 @@ export default function RatesPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <RateSection title="Incall Rates" rates={incallRates} newRate={newIncall} setNewRate={setNewIncall}
+          <RateSection title={t('incallRates')} rates={incallRates} newRate={newIncall} setNewRate={setNewIncall}
             onAdd={() => addRate('incall')} onRemove={i => setIncallRates(incallRates.filter((_, x) => x !== i))} />
-          <RateSection title="Outcall Rates" rates={outcallRates} newRate={newOutcall} setNewRate={setNewOutcall}
+          <RateSection title={t('outcallRates')} rates={outcallRates} newRate={newOutcall} setNewRate={setNewOutcall}
             onAdd={() => addRate('outcall')} onRemove={i => setOutcallRates(outcallRates.filter((_, x) => x !== i))} />
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>

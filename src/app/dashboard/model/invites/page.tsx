@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Building2, Check, X, AlertCircle, CheckCircle, MapPin } from 'lucide-react'
 
@@ -17,6 +18,7 @@ type TabType = 'invites' | 'clubs'
 
 export default function ModelInvitesPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.invites')
   const [loading, setLoading] = useState(true)
   const [responding, setResponding] = useState<string | null>(null)
   const [invites, setInvites] = useState<ClubInvite[]>([])
@@ -72,7 +74,7 @@ export default function ModelInvitesPage() {
           .eq('status', 'accepted')
 
         if ((currentMembers?.length || 0) >= 10) {
-          setError('This club has already reached its maximum of 10 models and cannot accept you at this time.')
+          setError(t('limitReached'))
           setResponding(null)
           return
         }
@@ -84,10 +86,10 @@ export default function ModelInvitesPage() {
       if (e) throw e
       await supabase.from('notifications').delete().eq('user_id', user.id).eq('related_entity_id', inviteId)
       setInvites(invites.filter(i => i.id !== inviteId))
-      setSuccess(action === 'accept' ? 'Invitation accepted!' : 'Invitation declined')
+      setSuccess(action === 'accept' ? t('accepted') : t('declined'))
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to respond. Please try again.')
+      setError(err.message || t('respondFailed'))
     } finally { setResponding(null) }
   }
 
@@ -105,19 +107,19 @@ export default function ModelInvitesPage() {
             <Building2 className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Clubs & Invitations</h1>
-            <p className="text-xs text-gray-500">Manage your club memberships and pending invitations</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('header')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
         {/* Tabs */}
         <div className="flex items-center gap-2 border-b border-gray-200">
           <button onClick={() => setActiveTab('invites')} className={tabBtn(activeTab === 'invites')}>
-            Pending Invites
+            {t('tabPending')}
             {invites.length > 0 && <span className="ml-1.5 px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded-full">{invites.length}</span>}
           </button>
           <button onClick={() => setActiveTab('clubs')} className={tabBtn(activeTab === 'clubs')}>
-            My Clubs
+            {t('tabClubs')}
             <span className="ml-1.5 px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] rounded-full">{myClubs.length}</span>
           </button>
         </div>
@@ -140,8 +142,8 @@ export default function ModelInvitesPage() {
           invites.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
               <Building2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-600 mb-1">No pending invitations</p>
-              <p className="text-xs text-gray-400">You don't have any club invitations at the moment</p>
+              <p className="text-sm font-semibold text-gray-600 mb-1">{t('noPending')}</p>
+              <p className="text-xs text-gray-400">{t('noPendingHint')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -153,7 +155,7 @@ export default function ModelInvitesPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <Link href={`/clubs/${invite.club_id}`} className="text-sm font-bold text-gray-900 hover:text-brand hover:underline transition-colors">
-                        {invite.club_details?.display_name || invite.club_details?.club_name || 'Unknown Club'}
+                        {invite.club_details?.display_name || invite.club_details?.club_name || t('unknownClub')}
                       </Link>
                       {invite.club_details?.area && (
                         <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
@@ -161,7 +163,7 @@ export default function ModelInvitesPage() {
                         </p>
                       )}
                       <p className="text-xs text-gray-400 mt-0.5">
-                        Invited {new Date(invite.invited_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        {t('invitedAt', { date: new Date(invite.invited_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) })}
                       </p>
                     </div>
                   </div>
@@ -172,18 +174,18 @@ export default function ModelInvitesPage() {
                   )}
                   {invite.message && (
                     <div className="mb-3 p-3 bg-brand/5 border border-brand/20 rounded-lg">
-                      <p className="text-xs font-bold text-brand mb-0.5">Personal message:</p>
+                      <p className="text-xs font-bold text-brand mb-0.5">{t('personalMessage')}</p>
                       <p className="text-xs text-gray-700">{invite.message}</p>
                     </div>
                   )}
                   <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
                     <button onClick={() => handleRespond(invite.id, invite.club_id, 'accept')} disabled={responding === invite.id}
                       className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50">
-                      <Check className="w-4 h-4" />{responding === invite.id ? 'Processing...' : 'Accept'}
+                      <Check className="w-4 h-4" />{responding === invite.id ? t('processing') : t('accept')}
                     </button>
                     <button onClick={() => handleRespond(invite.id, invite.club_id, 'reject')} disabled={responding === invite.id}
                       className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 disabled:opacity-50">
-                      <X className="w-4 h-4" />Decline
+                      <X className="w-4 h-4" />{t('decline')}
                     </button>
                   </div>
                 </div>
@@ -197,8 +199,8 @@ export default function ModelInvitesPage() {
           myClubs.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
               <Building2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-600 mb-1">No clubs yet</p>
-              <p className="text-xs text-gray-400">Accept an invitation to join a club</p>
+              <p className="text-sm font-semibold text-gray-600 mb-1">{t('noClubs')}</p>
+              <p className="text-xs text-gray-400">{t('noClubsHint')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

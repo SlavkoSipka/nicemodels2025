@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 
 export default function ResetPasswordForm() {
   const router = useRouter()
+  const t = useTranslations('auth.resetPassword')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -22,13 +24,13 @@ export default function ResetPasswordForm() {
     setError('')
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('errorPasswordsMatch'))
       setLoading(false)
       return
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError(t('errorPasswordLength'))
       setLoading(false)
       return
     }
@@ -48,7 +50,7 @@ export default function ResetPasswordForm() {
         router.push('/login')
       }, 2000)
     } catch (err: any) {
-      setError(err.message || 'Failed to reset password. Please try again.')
+      setError(err.message || t('errorFailed'))
     } finally {
       setLoading(false)
     }
@@ -62,9 +64,9 @@ export default function ResetPasswordForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Password reset successful!</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('successTitle')}</h2>
         <p className="text-sm text-gray-600 mb-6">
-          Your password has been updated. Redirecting to login...
+          {t('successSubtitle')}
         </p>
       </div>
     )
@@ -81,7 +83,7 @@ export default function ResetPasswordForm() {
       {/* New Password */}
       <div>
         <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-2">
-          New Password
+          {t('newPasswordLabel')}
         </label>
         <div className="relative">
           <input
@@ -90,7 +92,7 @@ export default function ResetPasswordForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            placeholder="••••••••••"
+            placeholder={t('passwordPlaceholder')}
             className="w-full px-4 py-3 pr-10 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
           />
           <button
@@ -106,7 +108,7 @@ export default function ResetPasswordForm() {
       {/* Confirm Password */}
       <div>
         <label htmlFor="confirmPassword" className="block text-sm font-bold text-gray-700 mb-2">
-          Confirm Password
+          {t('confirmPasswordLabel')}
         </label>
         <div className="relative">
           <input
@@ -115,7 +117,7 @@ export default function ResetPasswordForm() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            placeholder="••••••••••"
+            placeholder={t('passwordPlaceholder')}
             className="w-full px-4 py-3 pr-10 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
           />
           <button
@@ -140,20 +142,19 @@ export default function ResetPasswordForm() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            Resetting...
+            {t('submitting')}
           </span>
         ) : (
-          'Reset Password'
+          t('submit')
         )}
       </button>
 
       {/* Back to Login */}
       <div className="text-center pt-2">
         <Link href="/login" className="text-sm text-gray-600 hover:text-pink-600 font-semibold">
-          Back to Login
+          {t('backToLogin')}
         </Link>
       </div>
     </form>
   )
 }
-

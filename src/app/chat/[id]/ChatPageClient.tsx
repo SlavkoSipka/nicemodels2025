@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { ArrowLeft, Send, Circle, Check, CheckCheck, Flag, X, Upload, AlertTriangle } from 'lucide-react';
 import Image from 'next/image';
 
@@ -34,6 +35,7 @@ interface ChatPageClientProps {
 }
 
 export default function ChatPageClient({ conversationId }: ChatPageClientProps) {
+  const t = useTranslations('publicPages.chat');
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversation, setConversation] = useState<ConversationData | null>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -236,7 +238,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
       .single();
 
     // Fetch display name via server API (bypasses RLS for model shownames)
-    let displayUsername = profile?.username || 'User';
+    let displayUsername = profile?.username || t('userFallback');
     try {
       const res = await fetch('/api/chat/display-names', {
         method: 'POST',
@@ -277,7 +279,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
       ...convData,
       other_user: profile
         ? { ...profile, username: displayUsername, photo_url: photoUrl }
-        : { id: otherUserId, username: 'User', role: 'user', photo_url: null },
+        : { id: otherUserId, username: t('userFallback'), role: 'user', photo_url: null },
       is_online: onlineStatus?.is_online || false,
     });
 
@@ -370,7 +372,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
 
     if (error) {
       console.error('Error sending message:', error);
-      alert('Failed to send message');
+      alert(t('failedToSend'));
     } else {
       setNewMessage('');
     }
@@ -412,7 +414,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
       }, 2000);
     } else {
       const data = await res.json();
-      alert(data.error || 'Failed to submit report');
+      alert(data.error || t('errSubmitFailed'));
     }
     setReportSubmitting(false);
   }
@@ -433,9 +435,9 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
     if (days === 0) {
-      return 'Today';
+      return t('today');
     } else if (days === 1) {
-      return 'Yesterday';
+      return t('yesterday');
     } else {
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
@@ -444,7 +446,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
   if (loading) {
     return (
       <div className="bg-gray-50 flex items-center justify-center" style={{ minHeight: '100dvh' }}>
-        <div className="text-gray-500 text-sm">Loading conversation...</div>
+        <div className="text-gray-500 text-sm">{t('loading')}</div>
       </div>
     );
   }
@@ -453,12 +455,12 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
     return (
       <div className="bg-gray-50 flex items-center justify-center" style={{ minHeight: '100dvh' }}>
         <div className="text-center px-4">
-          <p className="text-gray-500 mb-4">Conversation not found</p>
+          <p className="text-gray-500 mb-4">{t('conversationNotFound')}</p>
           <button
             onClick={() => router.back()}
             className="text-pink-600 hover:underline"
           >
-            Go back
+            {t('goBack')}
           </button>
         </div>
       </div>
@@ -477,7 +479,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
         <button
           onClick={() => router.back()}
           className="p-2 -ml-1 hover:bg-gray-100 active:bg-gray-200 rounded-lg transition-colors shrink-0"
-          aria-label="Back"
+          aria-label={t('back')}
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -506,17 +508,17 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           {conversation.is_online ? (
             <p className="text-[11px] sm:text-xs text-green-600 flex items-center gap-1 leading-tight">
               <Circle className="w-1.5 h-1.5 sm:w-2 sm:h-2 fill-green-600" />
-              Online
+              {t('online')}
             </p>
           ) : (
-            <p className="text-[11px] sm:text-xs text-gray-400 leading-tight">Offline</p>
+            <p className="text-[11px] sm:text-xs text-gray-400 leading-tight">{t('offline')}</p>
           )}
         </div>
 
         <button
           onClick={() => setShowReportModal(true)}
-          title="Report this user"
-          aria-label="Report this user"
+          title={t('reportUser')}
+          aria-label={t('reportUser')}
           className="p-2 -mr-1 text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-colors shrink-0"
         >
           <Flag className="w-5 h-5" />
@@ -530,7 +532,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
       >
         {messages.length === 0 ? (
           <div className="text-center text-gray-500 text-sm py-8">
-            No messages yet. Start the conversation!
+            {t('noMessagesYet')}
           </div>
         ) : (
           messages.map((message) => {
@@ -611,7 +613,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
               setNewMessage(e.target.value);
               handleTyping();
             }}
-            placeholder="Type a message..."
+            placeholder={t('typeMessage')}
             disabled={sending}
             inputMode="text"
             autoComplete="off"
@@ -622,7 +624,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
             type="submit"
             disabled={!newMessage.trim() || sending}
             className="w-11 h-11 sm:w-12 sm:h-12 shrink-0 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-full flex items-center justify-center active:scale-95 sm:hover:scale-110 transition-transform disabled:opacity-50 disabled:active:scale-100 disabled:hover:scale-100"
-            aria-label="Send message"
+            aria-label={t('sendMessage')}
           >
             <Send className="w-5 h-5" />
           </button>
@@ -638,15 +640,15 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
                 <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
                   <AlertTriangle className="w-7 h-7 text-emerald-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-1">Report Submitted</h3>
-                <p className="text-sm text-gray-500">Admin will review your report shortly.</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">{t('reportSubmitted')}</h3>
+                <p className="text-sm text-gray-500">{t('reportSubmittedHint')}</p>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                   <div className="flex items-center gap-2">
                     <Flag className="w-4 h-4 text-red-500" />
-                    <h3 className="font-bold text-gray-900">Report User</h3>
+                    <h3 className="font-bold text-gray-900">{t('reportTitle')}</h3>
                   </div>
                   <button onClick={() => setShowReportModal(false)} className="p-1 hover:bg-gray-100 rounded-lg">
                     <X className="w-4 h-4 text-gray-500" />
@@ -655,25 +657,28 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
 
                 <div className="p-5 space-y-4">
                   <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-xs text-red-700">
-                    Reporting <span className="font-bold">@{conversation.other_user.username}</span>
+                    {t.rich('reportingUser', {
+                      username: conversation.other_user.username,
+                      bold: (chunks) => <span className="font-bold">{chunks}</span>,
+                    })}
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                      Reason <span className="text-gray-400 font-normal">(optional)</span>
+                      {t('reportReason')} <span className="text-gray-400 font-normal">{t('optional')}</span>
                     </label>
                     <textarea
                       rows={3}
                       value={reportReason}
                       onChange={e => setReportReason(e.target.value)}
-                      placeholder="Describe what happened..."
+                      placeholder={t('reasonPlaceholder')}
                       className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                      Screenshot <span className="text-gray-400 font-normal">(optional)</span>
+                      {t('screenshot')} <span className="text-gray-400 font-normal">{t('optional')}</span>
                     </label>
                     <input
                       ref={screenshotInputRef}
@@ -686,7 +691,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
                       <div className="relative rounded-lg overflow-hidden border border-gray-200">
                         <Image
                           src={reportScreenshotPreview}
-                          alt="Screenshot preview"
+                          alt={t('screenshotPreview')}
                           width={400}
                           height={200}
                           className="w-full object-cover max-h-40"
@@ -705,7 +710,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
                         className="w-full py-6 border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center gap-1.5 text-gray-400 hover:border-red-300 hover:text-red-400 transition-colors"
                       >
                         <Upload className="w-5 h-5" />
-                        <span className="text-xs font-medium">Click to upload screenshot</span>
+                        <span className="text-xs font-medium">{t('uploadScreenshot')}</span>
                       </button>
                     )}
                   </div>
@@ -716,7 +721,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
                     onClick={() => setShowReportModal(false)}
                     className="flex-1 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button
                     onClick={handleSubmitReport}
@@ -729,12 +734,12 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
-                        Submitting...
+                        {t('submitting')}
                       </span>
                     ) : (
                       <>
                         <Flag className="w-3.5 h-3.5" />
-                        Submit Report
+                        {t('submitReport')}
                       </>
                     )}
                   </button>

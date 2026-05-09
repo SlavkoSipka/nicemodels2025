@@ -1,4 +1,7 @@
+'use client'
+
 import { Eye } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ViewCountProps {
   count: number
@@ -14,12 +17,15 @@ function formatCount(n: number): string {
 }
 
 export default function ViewCount({ count, variant = 'badge', className = '' }: ViewCountProps) {
+  const t = useTranslations('components.viewCount')
+  const formatted = formatCount(count)
+  const labeled = t('tooltip', { count, formatted })
+
   if (variant === 'inline') {
     return (
       <span className={`inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 ${className}`}>
         <Eye className="w-3 h-3" aria-hidden />
-        {formatCount(count)}
-        <span className="font-medium text-slate-400">{count === 1 ? 'view' : 'views'}</span>
+        {labeled}
       </span>
     )
   }
@@ -32,10 +38,10 @@ export default function ViewCount({ count, variant = 'badge', className = '' }: 
         color: 'rgba(255,255,255,0.9)',
         backdropFilter: 'blur(8px)',
       }}
-      title={`${count.toLocaleString()} ${count === 1 ? 'view' : 'views'}`}
+      title={labeled}
     >
       <Eye className="w-3 h-3" aria-hidden />
-      {formatCount(count)}
+      {formatted}
     </span>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { MapPin, Search, X, Loader2 } from 'lucide-react'
 
@@ -27,13 +28,14 @@ export default function CitySearch({
   value,
   postalCode,
   onChange,
-  placeholder = 'Search city or postal code...',
+  placeholder,
   required = false,
   label,
   className = '',
   inputClassName = '',
   showPostalCode = true,
 }: CitySearchProps) {
+  const t = useTranslations('components.citySearch')
   const [query, setQuery] = useState(value || '')
   const [results, setResults] = useState<CityResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -188,7 +190,7 @@ export default function CitySearch({
           onChange={handleInputChange}
           onFocus={() => { if (query && results.length > 0) setIsOpen(true) }}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t('defaultPlaceholder')}
           required={required}
           className={`w-full pl-9 pr-16 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent bg-gray-50 ${inputClassName}`}
           autoComplete="off"
@@ -231,7 +233,7 @@ export default function CitySearch({
 
       {isOpen && query.length >= 1 && results.length === 0 && !loading && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          <p className="text-sm text-gray-500 text-center">No cities found</p>
+          <p className="text-sm text-gray-500 text-center">{t('noResults')}</p>
         </div>
       )}
     </div>

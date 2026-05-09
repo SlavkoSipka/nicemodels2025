@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import emailjs from '@emailjs/browser'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -12,6 +13,7 @@ const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID ?? ''
 const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ?? ''
 
 export default function ContactPage() {
+  const t = useTranslations('publicPages.contact')
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
@@ -32,7 +34,7 @@ export default function ContactPage() {
     setError(null)
 
     if (!serviceId || !templateId || !publicKey) {
-      setError('The contact form is not configured. Please try email or WhatsApp on the left.')
+      setError(t('errNotConfigured'))
       return
     }
 
@@ -56,7 +58,7 @@ export default function ContactPage() {
       setFormData({ email: '', phone: '', subject: '', message: '' })
       setTimeout(() => setSuccess(false), 8000)
     } catch {
-      setError('Something went wrong. Please try again or email info@nicemodels.ch directly.')
+      setError(t('errGeneric'))
     } finally {
       setSending(false)
     }
@@ -69,10 +71,10 @@ export default function ContactPage() {
         {/* Minimal header */}
         <div style={{ borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div className="max-w-7xl mx-auto px-3 py-4 sm:px-4 sm:py-8">
-            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Contact</h1>
-            <p className="text-sm text-slate-500 mt-1">Reach out anytime.</p>
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">{t('title')}</h1>
+            <p className="text-sm text-slate-500 mt-1">{t('subtitle')}</p>
             <p className="text-sm text-slate-600 mt-3 px-3 py-2 rounded-lg max-w-2xl" style={{ background: 'rgba(236,72,153,0.08)', border: '1px solid rgba(236,72,153,0.20)' }}>
-              <span className="font-medium text-slate-900">Beta:</span> We're still improving the site. If you notice any issues or have feedback, please get in touch — we'd love to hear from you.
+              <span className="font-medium text-slate-900">{t('betaLabel')}</span> {t('betaText')}
             </p>
           </div>
         </div>
@@ -90,7 +92,7 @@ export default function ContactPage() {
                       <Phone className="w-4 h-4" style={{ color: '#EC4899' }} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>WhatsApp</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>{t('labelWhatsapp')}</p>
                       <a
                         href="https://wa.me/41783339396"
                         target="_blank"
@@ -99,10 +101,10 @@ export default function ContactPage() {
                       >
                         +41 78 333 93 96
                       </a>
-                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Contact via WhatsApp</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>{t('whatsappHint')}</p>
                       <div className="text-xs mt-1 space-y-0.5" style={{ color: '#94a3b8' }}>
-                        <p><span className="font-medium text-slate-600">Mon–Fri (CET):</span> 09:00–11:00 / 14:00–16:00 / 19:00–20:00</p>
-                        <p><span className="font-medium text-slate-600">Sat, Sun &amp; holidays:</span> 16:00–18:00</p>
+                        <p><span className="font-medium text-slate-600">{t('monFri')}</span> 09:00–11:00 / 14:00–16:00 / 19:00–20:00</p>
+                        <p><span className="font-medium text-slate-600">{t('weekendHolidays')}</span> 16:00–18:00</p>
                       </div>
                     </div>
                   </div>
@@ -112,11 +114,11 @@ export default function ContactPage() {
                       <Mail className="w-4 h-4" style={{ color: '#EC4899' }} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Email</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>{t('labelEmail')}</p>
                       <a href="mailto:info@nicemodels.ch" className="font-medium text-slate-800 hover:text-pink-500 transition-colors break-all">
                         info@nicemodels.ch
                       </a>
-                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Reply within 24h</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>{t('emailHint')}</p>
                     </div>
                   </div>
                   <div style={{ borderTop: '1px solid #e2e8f0' }} />
@@ -125,9 +127,9 @@ export default function ContactPage() {
                       <MapPin className="w-4 h-4" style={{ color: '#EC4899' }} />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>Location</p>
-                      <p className="font-medium text-slate-800">Aargau, Switzerland</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Serving all of Switzerland</p>
+                      <p className="text-xs font-semibold uppercase tracking-wider mb-0.5" style={{ color: '#94a3b8' }}>{t('labelLocation')}</p>
+                      <p className="font-medium text-slate-800">{t('locationValue')}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>{t('locationHint')}</p>
                     </div>
                   </div>
                 </div>
@@ -135,9 +137,9 @@ export default function ContactPage() {
 
               {/* Quick Info */}
               <div className="rounded-xl p-4 sm:p-5" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
-                <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-2 sm:mb-3">Quick Info</h3>
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-2 sm:mb-3">{t('quickInfo')}</h3>
                 <ul className="space-y-2 text-sm">
-                  {['24/7 platform access', 'Verified profiles', 'Safe & secure', 'Switzerland wide'].map(item => (
+                  {[t('quickItem1'), t('quickItem2'), t('quickItem3'), t('quickItem4')].map(item => (
                     <li key={item} className="flex items-center gap-2 text-slate-600">
                       <CheckCircle className="w-4 h-4 flex-shrink-0 text-emerald-500" />
                       {item}
@@ -151,15 +153,15 @@ export default function ContactPage() {
             <div className="lg:col-span-2">
               <div className="rounded-xl p-4 sm:p-7" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
                 <div className="mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900">Send a message</h2>
-                  <p className="text-sm mt-1 text-slate-500">We'll get back to you as soon as possible.</p>
+                  <h2 className="text-lg sm:text-xl font-semibold text-slate-900">{t('sendMessage')}</h2>
+                  <p className="text-sm mt-1 text-slate-500">{t('sendMessageHint')}</p>
                 </div>
 
                 {success ? (
                   <div className="rounded-lg p-6 text-center" style={{ background: 'rgba(52,211,153,0.08)', border: '1px solid rgba(52,211,153,0.30)' }}>
                     <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto mb-3" />
-                    <h3 className="font-semibold text-slate-800 mb-1">Message sent</h3>
-                    <p className="text-sm text-slate-500">We'll reply within 24 hours.</p>
+                    <h3 className="font-semibold text-slate-800 mb-1">{t('messageSent')}</h3>
+                    <p className="text-sm text-slate-500">{t('messageSentHint')}</p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
@@ -171,7 +173,7 @@ export default function ContactPage() {
                     )}
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
-                        Email <span className="text-red-500">*</span>
+                        {t('fieldEmail')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="email"
@@ -180,14 +182,14 @@ export default function ContactPage() {
                         required
                         className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors text-slate-800 placeholder-slate-300"
                         style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
-                        placeholder="john@example.com"
+                        placeholder={t('emailPlaceholder')}
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
-                          Phone
+                          {t('fieldPhone')}
                         </label>
                         <input
                           type="tel"
@@ -195,12 +197,12 @@ export default function ContactPage() {
                           onChange={(e) => handleChange('phone', e.target.value)}
                           className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors text-slate-800 placeholder-slate-300"
                           style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
-                          placeholder="+41 79 123 45 67"
+                          placeholder={t('phonePlaceholder')}
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
-                          Subject <span className="text-red-500">*</span>
+                          {t('fieldSubject')} <span className="text-red-500">*</span>
                         </label>
                         <select
                           value={formData.subject}
@@ -209,22 +211,22 @@ export default function ContactPage() {
                           className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors text-slate-800"
                           style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
                         >
-                          <option value="">Select a subject</option>
-                          <option value="general">General Inquiry</option>
-                          <option value="model">Model Registration</option>
-                          <option value="club">Club/Agency Registration</option>
-                          <option value="verification">Account Verification</option>
-                          <option value="technical">Technical Support</option>
-                          <option value="billing">Billing & Payments</option>
-                          <option value="report">Report an Issue</option>
-                          <option value="other">Other</option>
+                          <option value="">{t('subjectPlaceholder')}</option>
+                          <option value="general">{t('subjectGeneral')}</option>
+                          <option value="model">{t('subjectModel')}</option>
+                          <option value="club">{t('subjectClub')}</option>
+                          <option value="verification">{t('subjectVerification')}</option>
+                          <option value="technical">{t('subjectTechnical')}</option>
+                          <option value="billing">{t('subjectBilling')}</option>
+                          <option value="report">{t('subjectReport')}</option>
+                          <option value="other">{t('subjectOther')}</option>
                         </select>
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
-                        Message <span className="text-red-500">*</span>
+                        {t('fieldMessage')} <span className="text-red-500">*</span>
                       </label>
                       <textarea
                         value={formData.message}
@@ -234,15 +236,13 @@ export default function ContactPage() {
                         rows={5}
                         className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors resize-none text-slate-800 placeholder-slate-300"
                         style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
-                        placeholder="How can we help?"
+                        placeholder={t('messagePlaceholder')}
                       />
                       <p className="text-xs mt-1 text-slate-400">{formData.message.length} / 1000</p>
                     </div>
 
                     <div className="rounded-lg p-3" style={{ background: '#f0f9ff', border: '1px solid #bae6fd' }}>
-                      <p className="text-xs text-slate-500">
-                        Your data is kept confidential and only used to respond. We never share it with third parties.
-                      </p>
+                      <p className="text-xs text-slate-500">{t('privacyNote')}</p>
                     </div>
 
                     <button
@@ -253,12 +253,12 @@ export default function ContactPage() {
                       {sending ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                          Sending...
+                          {t('sending')}
                         </>
                       ) : (
                         <>
                           <Send className="w-4 h-4" />
-                          Send message
+                          {t('sendBtn')}
                         </>
                       )}
                     </button>
@@ -268,16 +268,12 @@ export default function ContactPage() {
 
               <div className="mt-3 sm:mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div className="rounded-xl p-3 sm:p-4" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                  <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-1">For models</h3>
-                  <p className="text-xs text-slate-500">
-                    Registration, verification or advertising — we're here to help.
-                  </p>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-1">{t('forModels')}</h3>
+                  <p className="text-xs text-slate-500">{t('forModelsDesc')}</p>
                 </div>
                 <div className="rounded-xl p-3 sm:p-4" style={{ background: '#ffffff', border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                  <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-1">For clubs & agencies</h3>
-                  <p className="text-xs text-slate-500">
-                    List your club or agency. Contact us for packages and benefits.
-                  </p>
+                  <h3 className="text-xs sm:text-sm font-semibold text-slate-800 mb-1">{t('forClubs')}</h3>
+                  <p className="text-xs text-slate-500">{t('forClubsDesc')}</p>
                 </div>
               </div>
             </div>

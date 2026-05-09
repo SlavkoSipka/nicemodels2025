@@ -1,8 +1,13 @@
+'use client'
+
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import ForgotPasswordForm from '@/components/auth/ForgotPasswordForm'
 import Link from 'next/link'
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations('auth.forgotPassword')
+
   return (
     <>
       <Navbar />
@@ -17,7 +22,7 @@ export default function ForgotPasswordPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
-              Back to login
+              {t('backToLogin')}
             </Link>
           </div>
 
@@ -30,10 +35,10 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-                Forgot your password?
+                {t('title')}
               </h1>
               <p className="text-sm text-gray-600">
-                No worries! Enter your email and we'll send you a reset link.
+                {t('subtitle')}
               </p>
             </div>
 
@@ -44,4 +49,3 @@ export default function ForgotPasswordPage() {
     </>
   )
 }
-

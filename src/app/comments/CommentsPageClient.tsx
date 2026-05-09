@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MessageSquare, Star, Calendar, User, MapPin, Lock, ChevronRight, Reply } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Footer from '@/components/layout/Footer'
 
@@ -31,6 +32,7 @@ interface Comment {
 }
 
 export default function CommentsPageClient({ comments }: { comments: Comment[] }) {
+  const t = useTranslations('comments.list')
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -60,9 +62,9 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
           <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5" style={{ background: 'rgba(236,72,153,0.10)' }}>
             <Lock className="w-6 h-6" style={{ color: '#EC4899' }} />
           </div>
-          <h1 className="text-lg sm:text-xl font-semibold text-slate-900 mb-2">Login required</h1>
+          <h1 className="text-lg sm:text-xl font-semibold text-slate-900 mb-2">{t('loginRequired')}</h1>
           <p className="text-sm mb-5 sm:mb-6 text-slate-500">
-            Sign in to view reviews and comments.
+            {t('loginPrompt')}
           </p>
           <div className="space-y-2">
             <Link
@@ -70,14 +72,14 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
               className="block w-full py-2.5 px-4 text-white text-sm font-medium rounded-md transition-colors text-center"
               style={{ background: '#EC4899' }}
             >
-              Log in
+              {t('logIn')}
             </Link>
             <Link
               href="/register?redirect=%2Fcomments"
               className="block w-full py-2.5 px-4 text-sm font-medium rounded-md transition-colors text-center"
               style={{ border: '1px solid rgba(0,0,0,0.12)', color: '#475569' }}
             >
-              Create account
+              {t('createAccount')}
             </Link>
           </div>
         </div>
@@ -93,10 +95,10 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
         {/* Header */}
         <div className="mb-5 sm:mb-8">
           <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
-            Reviews & Comments
+            {t('title')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Community experiences
+            {t('subtitle')}
           </p>
         </div>
 
@@ -104,7 +106,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
         <div className="flex items-baseline gap-2 mb-5 sm:mb-8 pb-4 sm:pb-6 border-b border-gray-200">
           <span className="text-xl sm:text-2xl font-semibold text-slate-900">{comments.length}</span>
           <span className="text-sm text-slate-500">
-            {comments.length === 1 ? 'review' : 'reviews'}
+            {comments.length === 1 ? t('review') : t('reviews')}
           </span>
         </div>
 
@@ -112,8 +114,8 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
         {comments.length === 0 ? (
           <div className="p-8 sm:p-12 text-center rounded-xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)' }}>
             <MessageSquare className="w-10 h-10 mx-auto mb-3" style={{ color: 'rgba(12,53,71,0.25)' }} />
-            <p className="text-sm font-medium text-slate-700">No reviews yet</p>
-            <p className="text-sm mt-1" style={{ color: '#64748b' }}>Be the first to share your experience.</p>
+            <p className="text-sm font-medium text-slate-700">{t('noReviews')}</p>
+            <p className="text-sm mt-1" style={{ color: '#64748b' }}>{t('noReviewsHint')}</p>
           </div>
         ) : (
           <ul className="space-y-3 sm:space-y-4">
@@ -203,7 +205,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                             <div className="rounded-lg px-3 py-2.5 sm:px-4 sm:py-3 ml-2 sm:ml-4" style={{ background: 'rgba(236,72,153,0.06)', border: '1px solid rgba(236,72,153,0.18)' }}>
                               <div className="flex items-center gap-1.5 mb-1">
                                 <Reply className="w-3.5 h-3.5 text-pink-500" />
-                                <span className="text-xs font-bold text-pink-500">{modelName} replied</span>
+                                <span className="text-xs font-bold text-pink-500">{t('replied', { modelName })}</span>
                                 {comment.replied_at && (
                                   <span className="text-[11px] ml-1" style={{ color: '#94a3b8' }}>
                                     · {new Date(comment.replied_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -229,7 +231,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                                   <User className="w-4 h-4" style={{ color: '#94a3b8' }} />
                                 )}
                               </div>
-                              <span className="font-medium" style={{ color: '#475569' }}>{comment.user.username || 'Anonymous'}</span>
+                              <span className="font-medium" style={{ color: '#475569' }}>{comment.user.username || t('anonymous')}</span>
                             </span>
                             <span className="flex items-center gap-1.5">
                               <Calendar className="w-4 h-4" />
@@ -245,7 +247,7 @@ export default function CommentsPageClient({ comments }: { comments: Comment[] }
                             className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 rounded-md font-semibold text-sm transition-all"
                             style={{ background: 'rgba(59,130,246,0.10)', color: '#2563EB', border: '1px solid rgba(59,130,246,0.25)' }}
                           >
-                            View Profile
+                            {t('viewProfile')}
                             <ChevronRight className="w-4 h-4" />
                           </Link>
                         </div>

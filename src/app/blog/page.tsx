@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -10,20 +11,21 @@ function excerptFromHtml(html: string, n = 180): string {
   return t.length > n ? `${t.slice(0, n)}...` : t
 }
 
-function timeAgo(dateStr: string) {
+function timeAgo(dateStr: string, t: (k: string, vars?: any) => string) {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (seconds < 60) return 'just now'
+  if (seconds < 60) return t('justNow')
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
+  if (minutes < 60) return t('minutesAgo', { n: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
+  if (hours < 24) return t('hoursAgo', { n: hours })
   const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
+  if (days < 30) return t('daysAgo', { n: days })
   return new Date(dateStr).toLocaleDateString(undefined, { dateStyle: 'medium' })
 }
 
 export default async function BlogPage() {
   const supabase = await createClient()
+  const t = await getTranslations('publicPages.blog')
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 
   const { data: topics, error: topicsErr } = await supabase
@@ -61,13 +63,13 @@ export default async function BlogPage() {
         <div className="border-b border-gray-200 bg-white">
           <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 sm:py-14">
             <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-              Community
+              {t('communityLabel')}
             </p>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
-              Discussions
+              {t('discussionsTitle')}
             </h1>
             <p className="mt-2 text-gray-500 text-base sm:text-lg max-w-xl">
-              Open topics from the team. Sign in to reply and join the conversation.
+              {t('discussionsSubtitle')}
             </p>
           </div>
         </div>
@@ -76,8 +78,8 @@ export default async function BlogPage() {
           {list.length === 0 ? (
             <div className="rounded-xl border border-gray-200 bg-white px-6 py-14 text-center shadow-sm">
               <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600 font-medium">No open topics yet.</p>
-              <p className="text-sm text-gray-400 mt-1">Check back soon for new discussions.</p>
+              <p className="text-gray-600 font-medium">{t('noTopics')}</p>
+              <p className="text-sm text-gray-400 mt-1">{t('noTopicsHint')}</p>
             </div>
           ) : (
             <ul className="space-y-3">
@@ -118,9 +120,9 @@ export default async function BlogPage() {
                               <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-400">
                                 <span className="inline-flex items-center gap-1">
                                   <MessageSquare className="w-3.5 h-3.5" />
-                                  {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+                                  {t('replies', { count: replyCount })}
                                 </span>
-                                <span>{timeAgo(topic.updated_at)}</span>
+                                <span>{timeAgo(topic.updated_at, t)}</span>
                               </div>
                             </div>
                           </div>

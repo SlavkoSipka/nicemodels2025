@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 
 const CANTON_NAMES: Record<string, string> = {
@@ -97,6 +98,7 @@ export default function CitySelector({
   totalModels,
   models,
 }: CitySelectorProps) {
+  const t = useTranslations('home.filters')
   const [openDropdown, setOpenDropdown] = useState<'region' | 'category' | 'offer' | null>(null)
   const regionRef = useRef<HTMLDivElement>(null)
   const categoryRef = useRef<HTMLDivElement>(null)
@@ -346,12 +348,12 @@ export default function CitySelector({
               style={selectedRegion !== 'all' ? btnActive : btnBase}
               onClick={() => setOpenDropdown(v => v === 'region' ? null : 'region')}
             >
-              <span className="truncate">{selectedRegion === 'all' ? 'Region' : cantonName(selectedRegion)}</span>
+              <span className="truncate">{selectedRegion === 'all' ? t('region') : cantonName(selectedRegion)}</span>
               <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
             </button>
             {openDropdown === 'region' && (
               <div style={panelStyle}>
-                <Opt label={`All regions (${totalModels})`} onSel={() => { setSelectedRegion('all'); setOpenDropdown(null) }} />
+                <Opt label={t('allRegionsCount', { count: totalModels })} onSel={() => { setSelectedRegion('all'); setOpenDropdown(null) }} />
                 {sortedRegions.map(([canton, count]) => (
                   <Opt key={canton} label={`${cantonName(canton)} (${count})`} onSel={() => { setSelectedRegion(canton); setOpenDropdown(null) }} />
                 ))}
@@ -368,7 +370,7 @@ export default function CitySelector({
                 value={cityQuery}
                 onChange={e => handleCityInput(e.target.value)}
                 onFocus={() => setCityOpen(true)}
-                placeholder="City, postal code, or live location"
+                placeholder={t('cityPlaceholder')}
                 className="appearance-none py-2 pl-9 pr-8 text-xs sm:py-2.5 sm:pl-[34px] sm:pr-8 sm:text-[13px]"
                 style={{
                   ...btnBase,
@@ -422,14 +424,14 @@ export default function CitySelector({
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                         </span>
-                        Live: {city}
+                        {t('live', { city })}
                         <span className="text-emerald-600/70 font-normal">({count})</span>
                       </span>
                     </button>
                   ))}
                 {cityQuery.length >= 1 && (cityResults.length > 0 || cityLoading) && (
                   <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-t border-gray-100">
-                    Search cities
+                    {t('searchCities')}
                   </div>
                 )}
                 {cityResults.map(city => (
@@ -449,7 +451,7 @@ export default function CitySelector({
                 ))}
                 {cityQuery.length >= 1 && !cityLoading && cityResults.length === 0 && (
                   <div className="px-4 py-3 text-center text-sm text-gray-400 border-t border-gray-100">
-                    No cities match “{cityQuery}”
+                    {t('noCitiesMatch', { query: cityQuery })}
                   </div>
                 )}
               </div>
@@ -464,12 +466,12 @@ export default function CitySelector({
               style={selectedCategory !== 'all' ? btnActive : btnBase}
               onClick={() => setOpenDropdown(v => v === 'category' ? null : 'category')}
             >
-              <span className="truncate">{selectedCategory === 'all' ? 'Category' : selectedCategory}</span>
+              <span className="truncate">{selectedCategory === 'all' ? t('category') : selectedCategory}</span>
               <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
             </button>
             {openDropdown === 'category' && (
               <div style={panelStyle}>
-                <Opt label={`All (${modelsForCategory.length})`} onSel={() => { setSelectedCategory('all'); setOpenDropdown(null) }} />
+                <Opt label={t('allCount', { count: modelsForCategory.length })} onSel={() => { setSelectedCategory('all'); setOpenDropdown(null) }} />
                 {categories.map(c => (
                   <Opt key={c.name} label={`${c.name} (${c.count})`} onSel={() => { setSelectedCategory(c.name); setOpenDropdown(null) }} />
                 ))}
@@ -485,12 +487,12 @@ export default function CitySelector({
               style={selectedOffer !== 'all' ? btnActive : btnBase}
               onClick={() => setOpenDropdown(v => v === 'offer' ? null : 'offer')}
             >
-              <span className="truncate">{selectedOffer === 'all' ? 'Offer' : selectedOffer}</span>
+              <span className="truncate">{selectedOffer === 'all' ? t('offer') : selectedOffer}</span>
               <ChevronDown style={{ width: 15, height: 15, flexShrink: 0, color: '#94a3b8' }} />
             </button>
             {openDropdown === 'offer' && (
               <div style={panelStyle}>
-                <Opt label="All" onSel={() => { setSelectedOffer('all'); setOpenDropdown(null) }} />
+                <Opt label={t('all')} onSel={() => { setSelectedOffer('all'); setOpenDropdown(null) }} />
                 {offers.map(o => (
                   <Opt key={o.name} label={`${o.name} (${o.count})`} onSel={() => { setSelectedOffer(o.name); setOpenDropdown(null) }} />
                 ))}
@@ -505,8 +507,8 @@ export default function CitySelector({
               type="search"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search"
-              aria-label="Search models by name"
+              placeholder={t('search')}
+              aria-label={t('searchModelsAria')}
               className="appearance-none w-full rounded-[10px] font-normal outline-none py-2 pl-9 pr-3 text-xs sm:py-2.5 sm:pl-[34px] sm:pr-3 sm:text-[13px]"
               style={{
                 backgroundColor: '#ffffff',

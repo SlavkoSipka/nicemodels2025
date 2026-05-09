@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Home, User, BarChart3, Settings, LogOut, ExternalLink, Heart, MessageSquare, Building2, Users, Camera, Megaphone, Briefcase, Handshake, Menu, X, ShieldCheck, Search as SearchIcon, Bell } from 'lucide-react'
 import NotificationBell from '@/components/notifications/NotificationBell'
+import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 
 interface DashboardSidebarProps {
   userRole?: 'model' | 'company' | 'user' | 'admin'
@@ -15,6 +17,8 @@ interface DashboardSidebarProps {
 export default function DashboardSidebar({ userRole = 'model' }: DashboardSidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const t = useTranslations('dashboard.sidebar')
+  const tNav = useTranslations('nav')
   const [myProfileOpen, setMyProfileOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -69,7 +73,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
           <Link href="/" className="flex items-center">
             <Image
               src="/logo.webp"
-              alt="nicemodels.ch"
+              alt={tNav('logoAlt')}
               width={162}
               height={48}
               className="h-8 md:h-10 w-auto object-contain"
@@ -96,31 +100,31 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
             <>
               <Link href="/dashboard/user" className={navLinkCls('/dashboard/user')}>
                 <Home className="w-5 h-5 shrink-0" />
-                <span>Dashboard</span>
+                <span>{t('dashboard')}</span>
               </Link>
               <Link href="/dashboard/user/profile" className={navLinkCls('/dashboard/user/profile')}>
                 <User className="w-5 h-5 shrink-0" />
-                <span>Profile</span>
+                <span>{t('profile')}</span>
               </Link>
               <Link href="/dashboard/user/verification" className={navLinkCls('/dashboard/user/verification')}>
                 <ShieldCheck className="w-5 h-5 shrink-0" />
-                <span>Verification</span>
+                <span>{t('verification')}</span>
               </Link>
               <Link href="/dashboard/user/favorites" className={navLinkCls('/dashboard/user/favorites')}>
                 <Heart className="w-5 h-5 shrink-0" />
-                <span>Favorites</span>
+                <span>{t('favorites')}</span>
               </Link>
               <Link href="/dashboard/user/saved-searches" className={navLinkCls('/dashboard/user/saved-searches')}>
                 <SearchIcon className="w-5 h-5 shrink-0" />
-                <span>Saved Searches</span>
+                <span>{t('savedSearches')}</span>
               </Link>
               <Link href="/dashboard/user/notifications" className={navLinkCls('/dashboard/user/notifications')}>
                 <Bell className="w-5 h-5 shrink-0" />
-                <span>Inbox</span>
+                <span>{t('inbox')}</span>
               </Link>
               <Link href="/dashboard/user/comments" className={navLinkCls('/dashboard/user/comments')}>
                 <MessageSquare className="w-5 h-5 shrink-0" />
-                <span>Comments</span>
+                <span>{t('comments')}</span>
               </Link>
               <Link
                 href="/dashboard/user/jobs-rent"
@@ -131,11 +135,11 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 }`}
               >
                 <Briefcase className="w-5 h-5 shrink-0" />
-                <span>Jobs / Rent</span>
+                <span>{t('jobsRent')}</span>
               </Link>
               <Link href="/dashboard/user/settings" className={navLinkCls('/dashboard/user/settings')}>
                 <Settings className="w-5 h-5 shrink-0" />
-                <span>Settings</span>
+                <span>{t('settings')}</span>
               </Link>
               <div className="pt-3 mt-3 border-t border-gray-200">
                 <button
@@ -143,7 +147,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                   className="w-full flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium text-sm"
                 >
                   <LogOut className="w-5 h-5" />
-                  <span>Logout</span>
+                  <span>{t('logout')}</span>
                 </button>
               </div>
             </>
@@ -154,7 +158,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
             <>
               <Link href="/dashboard/model" className={navLinkCls('/dashboard/model')}>
                 <Home className="w-5 h-5 shrink-0" />
-                <span>Dashboard</span>
+                <span>{t('dashboard')}</span>
               </Link>
 
               <div>
@@ -168,7 +172,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 >
                   <div className="flex items-center gap-3">
                     <User className="w-5 h-5 shrink-0" />
-                    <span>My Profile</span>
+                    <span>{t('myProfile')}</span>
                   </div>
                   <svg 
                     className={`w-4 h-4 transition-transform ${myProfileOpen ? 'rotate-180' : ''}`} 
@@ -182,15 +186,15 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 
                 {myProfileOpen && (
                   <div className="ml-3 md:ml-4 mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 border-l-2 border-pink-200 pl-3 md:pl-4">
-                    <Link href="/dashboard/model/profile/biography" className={subLinkCls('/dashboard/model/profile/biography')}>Biography</Link>
-                    <Link href="/dashboard/model/profile/about-me" className={subLinkCls('/dashboard/model/profile/about-me')}>About Me</Link>
-                    <Link href="/dashboard/model/profile/contact-details" className={subLinkCls('/dashboard/model/profile/contact-details')}>Contact Details</Link>
-                    <Link href="/dashboard/model/profile/area" className={subLinkCls('/dashboard/model/profile/area')}>Area / Address</Link>
-                    <Link href="/dashboard/model/profile/pictures-video" className={subLinkCls('/dashboard/model/profile/pictures-video')}>Pictures / Video</Link>
-                    <Link href="/dashboard/model/profile/languages" className={subLinkCls('/dashboard/model/profile/languages')}>Languages</Link>
-                    <Link href="/dashboard/model/profile/services" className={subLinkCls('/dashboard/model/profile/services')}>Services</Link>
-                    <Link href="/dashboard/model/profile/working-hours" className={subLinkCls('/dashboard/model/profile/working-hours')}>Working Hours</Link>
-                    <Link href="/dashboard/model/profile/rates" className={subLinkCls('/dashboard/model/profile/rates')}>Rates</Link>
+                    <Link href="/dashboard/model/profile/biography" className={subLinkCls('/dashboard/model/profile/biography')}>{t('biography')}</Link>
+                    <Link href="/dashboard/model/profile/about-me" className={subLinkCls('/dashboard/model/profile/about-me')}>{t('aboutMe')}</Link>
+                    <Link href="/dashboard/model/profile/contact-details" className={subLinkCls('/dashboard/model/profile/contact-details')}>{t('contactDetails')}</Link>
+                    <Link href="/dashboard/model/profile/area" className={subLinkCls('/dashboard/model/profile/area')}>{t('areaAddress')}</Link>
+                    <Link href="/dashboard/model/profile/pictures-video" className={subLinkCls('/dashboard/model/profile/pictures-video')}>{t('picturesVideo')}</Link>
+                    <Link href="/dashboard/model/profile/languages" className={subLinkCls('/dashboard/model/profile/languages')}>{t('languages')}</Link>
+                    <Link href="/dashboard/model/profile/services" className={subLinkCls('/dashboard/model/profile/services')}>{t('services')}</Link>
+                    <Link href="/dashboard/model/profile/working-hours" className={subLinkCls('/dashboard/model/profile/working-hours')}>{t('workingHours')}</Link>
+                    <Link href="/dashboard/model/profile/rates" className={subLinkCls('/dashboard/model/profile/rates')}>{t('rates')}</Link>
                   </div>
                 )}
               </div>
@@ -206,7 +210,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Activate Sedcard</span>
+                <span>{t('activateSedcard')}</span>
               </Link>
 
               <Link
@@ -218,53 +222,53 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 }`}
               >
                 <Megaphone className="w-5 h-5 shrink-0" />
-                <span>Buy Banner</span>
+                <span>{t('buyBanner')}</span>
               </Link>
 
               <Link href="/dashboard/model/upload-story" className={navLinkCls('/dashboard/model/upload-story')}>
                 <Camera className="w-5 h-5 shrink-0" />
-                <span>Upload Story</span>
+                <span>{t('uploadStory')}</span>
               </Link>
 
               <Link href="/dashboard/model/verification" className={navLinkCls('/dashboard/model/verification')}>
                 <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>Verification</span>
+                <span>{t('verification')}</span>
               </Link>
 
               <Link href="/dashboard/model/invites" className={navLinkCls('/dashboard/model/invites')}>
                 <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                <span>Clubs & Invites</span>
+                <span>{t('clubsAndInvites')}</span>
               </Link>
 
               <Link href="/dashboard/model/comments" className={navLinkCls('/dashboard/model/comments')}>
                 <MessageSquare className="w-5 h-5 shrink-0" />
-                <span>Reviews</span>
+                <span>{t('reviews')}</span>
               </Link>
 
               <Link href="/dashboard/model/collaborations" className={navLinkCls('/dashboard/model/collaborations')}>
                 <Handshake className="w-5 h-5 shrink-0" />
-                <span>Collaborations</span>
+                <span>{t('collaborations')}</span>
               </Link>
 
               <Link href="/dashboard/model/purchase-history" className={navLinkCls('/dashboard/model/purchase-history')}>
                 <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
-                <span>Purchase History</span>
+                <span>{t('purchaseHistory')}</span>
               </Link>
 
               <Link href="/dashboard/model/statistics" className={navLinkCls('/dashboard/model/statistics')}>
                 <BarChart3 className="w-5 h-5 shrink-0" />
-                <span>Statistics</span>
+                <span>{t('statistics')}</span>
               </Link>
 
               <Link href="/dashboard/model/settings" className={navLinkCls('/dashboard/model/settings')}>
                 <Settings className="w-5 h-5 shrink-0" />
-                <span>Settings</span>
+                <span>{t('settings')}</span>
               </Link>
 
               <div className="pt-3 mt-3 border-t border-gray-200">
@@ -273,7 +277,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                   className="w-full flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium text-sm"
                 >
                   <LogOut className="w-5 h-5" />
-                  <span>Logout</span>
+                  <span>{t('logout')}</span>
                 </button>
               </div>
             </>
@@ -284,7 +288,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
             <>
               <Link href="/dashboard/company" className={navLinkCls('/dashboard/company')}>
                 <Home className="w-5 h-5 shrink-0" />
-                <span>Dashboard</span>
+                <span>{t('dashboard')}</span>
               </Link>
 
               <div>
@@ -298,7 +302,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 >
                   <div className="flex items-center gap-3">
                     <Building2 className="w-5 h-5 shrink-0" />
-                    <span>Agency Profile</span>
+                    <span>{t('agencyProfile')}</span>
                   </div>
                   <svg 
                     className={`w-4 h-4 transition-transform ${myProfileOpen ? 'rotate-180' : ''}`} 
@@ -312,9 +316,9 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 
                 {myProfileOpen && (
                   <div className="ml-3 md:ml-4 mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 border-l-2 border-pink-200 pl-3 md:pl-4">
-                    <Link href="/dashboard/company/profile/basic-info" className={subLinkCls('/dashboard/company/profile/basic-info')}>Basic Info</Link>
-                    <Link href="/dashboard/company/profile/working-hours" className={subLinkCls('/dashboard/company/profile/working-hours')}>Working Hours</Link>
-                    <Link href="/dashboard/company/profile/club-photos" className={subLinkCls('/dashboard/company/profile/club-photos')}>Club Photos</Link>
+                    <Link href="/dashboard/company/profile/basic-info" className={subLinkCls('/dashboard/company/profile/basic-info')}>{t('basicInfo')}</Link>
+                    <Link href="/dashboard/company/profile/working-hours" className={subLinkCls('/dashboard/company/profile/working-hours')}>{t('workingHours')}</Link>
+                    <Link href="/dashboard/company/profile/club-photos" className={subLinkCls('/dashboard/company/profile/club-photos')}>{t('clubPhotos')}</Link>
                   </div>
                 )}
               </div>
@@ -330,7 +334,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                <span>Activate Sedcard</span>
+                <span>{t('activateSedcard')}</span>
               </Link>
 
               <Link
@@ -342,12 +346,12 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 }`}
               >
                 <Megaphone className="w-5 h-5 shrink-0" />
-                <span>Buy Banner</span>
+                <span>{t('buyBanner')}</span>
               </Link>
 
               <Link href="/dashboard/company/models" className={navLinkCls('/dashboard/company/models')}>
                 <Users className="w-5 h-5 shrink-0" />
-                <span>Manage Models</span>
+                <span>{t('manageModels')}</span>
               </Link>
 
               <Link
@@ -359,17 +363,17 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 }`}
               >
                 <Briefcase className="w-5 h-5 shrink-0" />
-                <span>Jobs / Rent</span>
+                <span>{t('jobsRent')}</span>
               </Link>
 
               <Link href="/dashboard/company/statistics" className={navLinkCls('/dashboard/company/statistics')}>
                 <BarChart3 className="w-5 h-5 shrink-0" />
-                <span>Statistics</span>
+                <span>{t('statistics')}</span>
               </Link>
 
               <Link href="/dashboard/company/settings" className={navLinkCls('/dashboard/company/settings')}>
                 <Settings className="w-5 h-5 shrink-0" />
-                <span>Settings</span>
+                <span>{t('settings')}</span>
               </Link>
 
               <div className="pt-3 mt-3 border-t border-gray-200">
@@ -378,7 +382,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                   className="w-full flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 text-red-600 hover:bg-red-50 rounded-lg transition-all font-medium text-sm"
                 >
                   <LogOut className="w-5 h-5" />
-                  <span>Logout</span>
+                  <span>{t('logout')}</span>
                 </button>
               </div>
             </>
@@ -386,22 +390,27 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
         </div>
       </nav>
 
+      {/* Language */}
+      <div className="px-3 md:px-4 pt-3 md:pt-4 border-t border-gray-100">
+        <LanguageSwitcher variant="sidebar" />
+      </div>
+
       {/* Go To Public Area */}
-      <div className="p-3 md:p-4 border-t border-gray-100">
+      <div className="p-3 md:p-4">
         {userRole === 'company' ? (
           <div className="space-y-1.5 md:space-y-2">
             <Link
               href="/clubs"
               className="flex items-center justify-center gap-2 px-3 py-2.5 md:px-4 md:py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white hover:from-pink-700 hover:to-rose-700 rounded-lg transition-all shadow-sm group font-medium text-sm"
             >
-              <span>View Clubs Page</span>
+              <span>{t('viewClubsPage')}</span>
               <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Link>
             <Link
               href="/models-page"
               className="flex items-center justify-center gap-2 px-3 py-2.5 md:px-4 md:py-3 bg-gradient-to-r from-gray-700 to-gray-800 text-white hover:from-gray-800 hover:to-gray-900 rounded-lg transition-all shadow-sm group font-medium text-sm"
             >
-              <span>View Models Page</span>
+              <span>{t('viewModelsPage')}</span>
               <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
             </Link>
           </div>
@@ -410,7 +419,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
             href="/"
             className="flex items-center justify-center gap-2 px-3 py-2.5 md:px-4 md:py-3 bg-gradient-to-r from-gray-700 to-gray-800 text-white hover:from-gray-800 hover:to-gray-900 rounded-lg transition-all shadow-sm group font-medium text-sm"
           >
-            <span>Go To Public Area</span>
+            <span>{t('goToPublicArea')}</span>
             <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
           </Link>
         )}
@@ -431,7 +440,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
         <Link href="/" className="flex items-center">
           <Image
             src="/logo.webp"
-            alt="nicemodels.ch"
+            alt={tNav('logoAlt')}
             width={120}
             height={36}
             className="h-7 w-auto object-contain"

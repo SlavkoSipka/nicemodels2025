@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 
@@ -11,6 +12,7 @@ interface SimplifiedClubModelFormProps {
 
 export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelFormProps) {
   const router = useRouter()
+  const t = useTranslations('onboarding.simplifiedClubModel')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
@@ -40,7 +42,7 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
 
     // Basic validation
     if (!formData.stage_name) {
-      setError('Stage name is required')
+      setError(t('errStageName'))
       setLoading(false)
       return
     }
@@ -89,12 +91,12 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
       if (detailsError) throw detailsError
 
       // Success! Redirect back to models list
-      alert('Model profile created successfully! You can now edit it from the Manage Models page.')
+      alert(t('successAlert'))
       router.push('/dashboard/company/models')
       
     } catch (err: any) {
       console.error('Error creating model:', err)
-      setError(err.message || 'Failed to create model profile')
+      setError(err.message || t('errGeneric'))
       setLoading(false)
     }
   }
@@ -102,8 +104,8 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
   return (
     <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl p-8">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Add Model Profile</h1>
-        <p className="text-gray-600">Create a basic profile for your model</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('title')}</h1>
+        <p className="text-gray-600">{t('subtitle')}</p>
       </div>
 
       {error && (
@@ -114,26 +116,27 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
 
       <div className="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
         <p className="text-sm text-blue-800">
-          <span className="font-semibold">Note:</span> This creates a basic profile that you can manage from your agency dashboard.
-          You can edit and add more details later.
+          {t.rich('note', {
+            b: (chunks) => <span className="font-semibold">{chunks}</span>,
+          })}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('sectionBasic')}</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Stage Name <span className="text-red-500">*</span>
+                {t('stageName')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={formData.stage_name}
                 onChange={(e) => handleChange('stage_name', e.target.value)}
-                placeholder="e.g. Sophia"
+                placeholder={t('stageNamePlaceholder')}
                 required
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
               />
@@ -141,26 +144,26 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Phone Number
+                {t('phoneNumber')}
               </label>
               <input
                 type="tel"
                 value={formData.phone_number}
                 onChange={(e) => handleChange('phone_number', e.target.value)}
-                placeholder="+41 xx xxx xx xx"
+                placeholder={t('phonePlaceholder')}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
               />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Age
+                {t('age')}
               </label>
               <input
                 type="number"
                 value={formData.age}
                 onChange={(e) => handleChange('age', e.target.value)}
-                placeholder="25"
+                placeholder={t('agePlaceholder')}
                 min="18"
                 max="99"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
@@ -169,56 +172,56 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Gender
+                {t('gender')}
               </label>
               <select
                 value={formData.gender}
                 onChange={(e) => handleChange('gender', e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
               >
-                <option value="">Select gender</option>
-                <option value="female">Female</option>
-                <option value="male">Male</option>
-                <option value="trans">Trans</option>
-                <option value="other">Other</option>
+                <option value="">{t('genderSelect')}</option>
+                <option value="female">{t('genderFemale')}</option>
+                <option value="male">{t('genderMale')}</option>
+                <option value="trans">{t('genderTrans')}</option>
+                <option value="other">{t('genderOther')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Nationality
+                {t('nationality')}
               </label>
               <input
                 type="text"
                 value={formData.nationality}
                 onChange={(e) => handleChange('nationality', e.target.value)}
-                placeholder="e.g. Swiss, Brazilian"
+                placeholder={t('nationalityPlaceholder')}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
               />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                City
+                {t('city')}
               </label>
               <input
                 type="text"
                 value={formData.city}
                 onChange={(e) => handleChange('city', e.target.value)}
-                placeholder="e.g. Zurich"
+                placeholder={t('cityPlaceholder')}
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
               />
             </div>
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Height (cm)
+                {t('heightCm')}
               </label>
               <input
                 type="number"
                 value={formData.height_cm}
                 onChange={(e) => handleChange('height_cm', e.target.value)}
-                placeholder="170"
+                placeholder={t('heightPlaceholder')}
                 min="140"
                 max="250"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
@@ -227,13 +230,13 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1">
-                Weight (kg)
+                {t('weightKg')}
               </label>
               <input
                 type="number"
                 value={formData.weight_kg}
                 onChange={(e) => handleChange('weight_kg', e.target.value)}
-                placeholder="60"
+                placeholder={t('weightPlaceholder')}
                 min="40"
                 max="200"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
@@ -245,12 +248,12 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
         {/* About Me */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1">
-            About Me (Optional)
+            {t('aboutMeOptional')}
           </label>
           <RichTextEditor
             value={formData.about_me}
             onChange={(val) => handleChange('about_me', val)}
-            placeholder="Brief description about the model..."
+            placeholder={t('aboutPlaceholder')}
             height={200}
           />
         </div>
@@ -262,14 +265,14 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
             onClick={() => router.push('/dashboard/company/models')}
             className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-all"
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             type="submit"
             disabled={loading}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-bold hover:from-pink-700 hover:to-rose-700 transition-all shadow-lg disabled:opacity-50"
           >
-            {loading ? 'Creating...' : 'Create Profile'}
+            {loading ? t('creating') : t('createProfile')}
           </button>
         </div>
       </form>

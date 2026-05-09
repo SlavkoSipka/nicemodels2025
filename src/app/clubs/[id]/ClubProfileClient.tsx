@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { createClient } from '@/lib/supabase/client'
@@ -32,11 +33,12 @@ export default function ClubProfileClient({
   clubModels = [],
   viewCount = 0,
 }: ClubProfileClientProps) {
+  const t = useTranslations('clubs.profile')
   const [showContact, setShowContact] = useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [idCopied, setIdCopied] = useState(false)
 
-  const clubName = clubDetails?.display_name || clubDetails?.club_name || 'Club'
+  const clubName = clubDetails?.display_name || clubDetails?.club_name || t('fallbackName')
   const publicIdLabel = profile.public_id ? `#${profile.public_id}` : `#${profile.id.slice(0, 6)}`
   const handleCopyId = () => {
     navigator.clipboard.writeText(publicIdLabel)
@@ -79,13 +81,13 @@ export default function ClubProfileClient({
   }
 
   const days = [
-    { day: 'Monday',    open: workingHours?.monday_open,    close: workingHours?.monday_close },
-    { day: 'Tuesday',   open: workingHours?.tuesday_open,   close: workingHours?.tuesday_close },
-    { day: 'Wednesday', open: workingHours?.wednesday_open, close: workingHours?.wednesday_close },
-    { day: 'Thursday',  open: workingHours?.thursday_open,  close: workingHours?.thursday_close },
-    { day: 'Friday',    open: workingHours?.friday_open,    close: workingHours?.friday_close },
-    { day: 'Saturday',  open: workingHours?.saturday_open,  close: workingHours?.saturday_close },
-    { day: 'Sunday',    open: workingHours?.sunday_open,    close: workingHours?.sunday_close },
+    { day: t('monday'),    open: workingHours?.monday_open,    close: workingHours?.monday_close },
+    { day: t('tuesday'),   open: workingHours?.tuesday_open,   close: workingHours?.tuesday_close },
+    { day: t('wednesday'), open: workingHours?.wednesday_open, close: workingHours?.wednesday_close },
+    { day: t('thursday'),  open: workingHours?.thursday_open,  close: workingHours?.thursday_close },
+    { day: t('friday'),    open: workingHours?.friday_open,    close: workingHours?.friday_close },
+    { day: t('saturday'),  open: workingHours?.saturday_open,  close: workingHours?.saturday_close },
+    { day: t('sunday'),    open: workingHours?.sunday_open,    close: workingHours?.sunday_close },
   ]
 
   return (
@@ -161,7 +163,7 @@ export default function ClubProfileClient({
                       <h1 className="text-2xl font-bold text-gray-900 leading-tight">{clubName}</h1>
                       <button
                         onClick={handleCopyId}
-                        title="Copy ID"
+                        title={t('copyId')}
                         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-xs font-semibold transition-all cursor-pointer select-none"
                         style={{
                           background: idCopied ? 'rgba(16,185,129,0.1)' : 'rgba(0,0,0,0.05)',
@@ -169,23 +171,23 @@ export default function ClubProfileClient({
                           color: idCopied ? '#059669' : '#94a3b8',
                         }}
                       >
-                        {idCopied ? '✓ copied' : publicIdLabel}
+                        {idCopied ? t('copied') : publicIdLabel}
                       </button>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {viewCount > 0 && (
                         <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
                           <Eye className="w-3.5 h-3.5" />
-                          {viewCount.toLocaleString()} {viewCount === 1 ? 'view' : 'views'}
+                          {viewCount.toLocaleString()} {viewCount === 1 ? t('view') : t('views')}
                         </span>
                       )}
                       {profile.is_verified && (
                         <span className="inline-flex items-center gap-1 text-xs font-bold text-white bg-emerald-500 px-2.5 py-1 rounded-full shadow-sm">
-                          <CheckCircle className="w-3.5 h-3.5" /> Verified
+                          <CheckCircle className="w-3.5 h-3.5" /> {t('verified')}
                         </span>
                       )}
                       <span className="text-xs font-bold text-brand bg-brand/10 border border-brand/20 px-2.5 py-1 rounded-full">
-                        {isClub ? 'Club' : 'Agency'}
+                        {isClub ? t('tagClub') : t('tagAgency')}
                       </span>
                     </div>
                   </div>
@@ -207,7 +209,7 @@ export default function ClubProfileClient({
                     <div className="w-7 h-7 rounded-md bg-violet-100 flex items-center justify-center">
                       <Building2 className="w-4 h-4 text-violet-600" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">About Us</p>
+                    <p className="text-sm font-bold text-gray-800">{t('aboutUs')}</p>
                   </div>
                   <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{htmlToPlainText(clubDetails.about_description || '')}</p>
                 </div>
@@ -220,14 +222,14 @@ export default function ClubProfileClient({
                     <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                       <CheckCircle className="w-4 h-4 text-brand" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">Club Features</p>
+                    <p className="text-sm font-bold text-gray-800">{t('clubFeatures')}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     {clubDetails?.entrance_fee && clubDetails.entrance_fee !== 'na' && (
                       <div className="bg-gray-50 rounded-md p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <DollarSign className="w-4 h-4 text-emerald-600" />
-                          <span className="text-xs text-gray-400 font-medium">Entrance Fee</span>
+                          <span className="text-xs text-gray-400 font-medium">{t('entranceFee')}</span>
                         </div>
                         <p className="text-sm font-semibold text-gray-900 capitalize">{clubDetails.entrance_fee.replace('_', ' ')}</p>
                       </div>
@@ -236,7 +238,7 @@ export default function ClubProfileClient({
                       <div className="bg-gray-50 rounded-md p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <Waves className="w-4 h-4 text-blue-500" />
-                          <span className="text-xs text-gray-400 font-medium">Wellness</span>
+                          <span className="text-xs text-gray-400 font-medium">{t('wellness')}</span>
                         </div>
                         <p className="text-sm font-semibold text-gray-900 capitalize">{clubDetails.wellness}</p>
                       </div>
@@ -245,7 +247,7 @@ export default function ClubProfileClient({
                       <div className="bg-gray-50 rounded-md p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <Coffee className="w-4 h-4 text-amber-600" />
-                          <span className="text-xs text-gray-400 font-medium">Food & Drinks</span>
+                          <span className="text-xs text-gray-400 font-medium">{t('foodAndDrinks')}</span>
                         </div>
                         <p className="text-sm font-semibold text-gray-900 capitalize">{clubDetails.food_and_drinks}</p>
                       </div>
@@ -254,7 +256,7 @@ export default function ClubProfileClient({
                       <div className="bg-gray-50 rounded-md p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <Trees className="w-4 h-4 text-green-600" />
-                          <span className="text-xs text-gray-400 font-medium">Outdoor Area</span>
+                          <span className="text-xs text-gray-400 font-medium">{t('outdoorArea')}</span>
                         </div>
                         <p className="text-sm font-semibold text-gray-900 capitalize">{clubDetails.outdoor_area}</p>
                       </div>
@@ -270,7 +272,7 @@ export default function ClubProfileClient({
                     <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
                       <MapPin className="w-4 h-4 text-rose-600" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">Address</p>
+                    <p className="text-sm font-bold text-gray-800">{t('address')}</p>
                   </div>
                   <div className="space-y-1 text-sm text-gray-700">
                     {clubDetails.street && (
@@ -293,7 +295,7 @@ export default function ClubProfileClient({
                     <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
                       <Users className="w-4 h-4 text-brand" />
                     </div>
-                    <p className="text-sm font-bold text-gray-800">Our Models</p>
+                    <p className="text-sm font-bold text-gray-800">{t('ourModels')}</p>
                     <span className="ml-auto text-xs font-semibold text-gray-400">{clubModels.length}</span>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -329,7 +331,7 @@ export default function ClubProfileClient({
                           </p>
                           {(model.city || model.age) && (
                             <p className="text-xs text-gray-500 mt-0.5 truncate">
-                              {[model.age ? `${model.age} yrs` : '', model.city].filter(Boolean).join(' · ')}
+                              {[model.age ? `${model.age} ${t('yrs')}` : '', model.city].filter(Boolean).join(' · ')}
                             </p>
                           )}
                         </div>
@@ -347,7 +349,7 @@ export default function ClubProfileClient({
               {/* Contact card */}
               <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100">
                 <div className="bg-gradient-to-r from-brand to-rose-500 px-5 py-4">
-                  <p className="text-sm font-bold text-white">Contact</p>
+                  <p className="text-sm font-bold text-white">{t('contact')}</p>
                 </div>
                 <div className="p-5">
                   {!showContact ? (
@@ -355,7 +357,7 @@ export default function ClubProfileClient({
                       onClick={handleShowContact}
                       className="w-full py-2.5 bg-gradient-to-r from-brand to-rose-500 hover:from-brand-hover hover:to-rose-600 text-white font-bold rounded-md transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
                     >
-                      <Phone className="w-4 h-4" /> Show Contact Info
+                      <Phone className="w-4 h-4" /> {t('showContactInfo')}
                     </button>
                   ) : contactDetails && !contactDetails.hide_contact_info ? (
                     (() => {
@@ -486,20 +488,20 @@ export default function ClubProfileClient({
 
                           {contactDetails.no_withheld_numbers && (
                             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md px-2.5 py-1.5">
-                              No withheld / private numbers accepted
+                              {t('noWithheldNumbers')}
                             </p>
                           )}
 
                           {contactDetails.other_instructions && (
                             <div className="pt-2 border-t border-gray-100">
-                              <p className="text-xs text-gray-400 font-medium mb-1">Instructions</p>
+                              <p className="text-xs text-gray-400 font-medium mb-1">{t('instructions')}</p>
                               <p className="text-sm text-gray-500 italic">{contactDetails.other_instructions}</p>
                             </div>
                           )}
 
                           {noChannels && !email && !phone && (
                             <p className="text-sm text-gray-500 text-center py-2">
-                              The club has not set any contact details yet.
+                              {t('noContactSet')}
                             </p>
                           )}
                         </div>
@@ -507,10 +509,10 @@ export default function ClubProfileClient({
                     })()
                   ) : contactDetails?.hide_contact_info ? (
                     <p className="text-sm text-gray-500 text-center py-2">
-                      Contact info hidden — please use the in-app messaging.
+                      {t('contactHidden')}
                     </p>
                   ) : (
-                    <p className="text-sm text-gray-500 text-center py-2">Contact information not available</p>
+                    <p className="text-sm text-gray-500 text-center py-2">{t('contactNotAvailable')}</p>
                   )}
                 </div>
               </div>
@@ -521,12 +523,12 @@ export default function ClubProfileClient({
                   <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center">
                     <Clock className="w-4 h-4 text-amber-600" />
                   </div>
-                  <p className="text-sm font-bold text-gray-800">Working hours</p>
+                  <p className="text-sm font-bold text-gray-800">{t('workingHours')}</p>
                 </div>
                 {is24_7 ? (
                   <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-md">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                    <span className="text-sm font-bold text-emerald-700">Available 24 / 7</span>
+                    <span className="text-sm font-bold text-emerald-700">{t('available24_7')}</span>
                   </div>
                 ) : workingHours ? (
                   <div className="space-y-1.5">
@@ -534,13 +536,13 @@ export default function ClubProfileClient({
                       <div key={day} className="flex justify-between items-center py-1.5 border-b border-gray-100 last:border-0">
                         <span className="text-sm text-gray-600">{day}</span>
                         <span className="text-sm font-semibold text-gray-900">
-                          {open && close ? `${open} – ${close}` : 'Closed'}
+                          {open && close ? `${open} – ${close}` : t('closed')}
                         </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400">Working hours not specified</p>
+                  <p className="text-sm text-gray-400">{t('hoursNotSpecified')}</p>
                 )}
               </div>
 

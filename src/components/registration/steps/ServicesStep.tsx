@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import { RegistrationData } from '../ModelRegistrationWizard'
 import { useState } from 'react'
@@ -13,80 +14,172 @@ interface Props {
   totalSteps: number
 }
 
+function svcSlug(label: string) {
+  return label
+    .replace(/[^a-zA-Z0-9]+/g, '_')
+    .toLowerCase()
+    .replace(/^_+|_+$/g, '')
+}
+
+const mainServices = [
+  '69 Position',
+  'Anal Sex',
+  'Cum in Mouth',
+  'Cum on Face',
+  'Dildo Play/Toys',
+  'Girlfriend Experience (GFE)',
+  'Blowjob with Condom',
+  'Blowjob without Condom',
+  'Blowjob without Condom to Completion',
+  'Cumshot on body (COB)',
+  'Erotic massage',
+  'Kissing if good chemistry',
+  'Intimate massage',
+  'Handjob',
+  'French Kissing',
+  'Kissing',
+  'Sex in Different Positions',
+]
+
+const extraServices = [
+  'A-Level (Anal Sex)',
+  'Anal Finger',
+  'BDSM',
+  'Body to Body Massage',
+  'Couples',
+  'Deep Throat',
+  'Dirty Talk',
+  'Domination',
+  'Erotic Photos & Videos',
+  'Facesitting',
+  'Foot Fetish',
+  'Golden Shower (Give)',
+  'Golden Shower (Receive)',
+  'Lapdance',
+  'Lesbian Show',
+  'Lingam Massage',
+  'Mistress',
+  'Oral without Condom',
+  'Passionate Kissing',
+  'Photo & Video',
+  'Pornstar Experience (PSE)',
+  'Prostate Massage',
+  'Role Play',
+  'Sex Toys',
+  'Spanking',
+  'Squirting',
+  'Striptease',
+  'Submission',
+  'Swallow',
+  'Tantric Massage',
+  'Threesome',
+  'Uniforms',
+]
+
+const fetishServices = [
+  'Age Play',
+  'Ball Busting',
+  'Bondage',
+  'CBT',
+  'Chastity',
+  'Cross Dressing',
+  'Face Slapping',
+  'Feminization',
+  'Financial Domination',
+  'Foot Worship',
+  'Humiliation',
+  'Medical Play',
+  'Pet Play',
+  'Rimming (Giving)',
+  'Rimming (Receiving)',
+  'Strap-on',
+  'Trampling',
+  'Wax Play',
+  'Worship',
+]
+
+const virtualServices = [
+  'Cam2Cam',
+  'Phone Chat',
+  'Sexting',
+  'Video Call',
+  'Virtual Girlfriend',
+  'Custom Videos',
+  'Dick Rating',
+  'Feet Pics',
+  'Live Shows',
+  'Premium Snapchat',
+  'Selling Panties',
+  'Selling Photos',
+  'Selling Videos',
+  'Skype Shows',
+  'WhatsApp Services',
+  'OnlyFans',
+]
+
+const massageServices = [
+  'Classic Massage',
+  'Swedish Massage',
+  'Thai Massage',
+  'Hot Stone Massage',
+  'Aromatherapy',
+  'Sports Massage',
+  'Reflexology',
+  'Shiatsu',
+  'Nuru Massage',
+  'Body Scrub',
+]
+
+const audienceKeys = ['Men', 'Women', 'Couples', 'Trans', 'Gays', '2+'] as const
+
 export default function ServicesStep({ data, updateData, nextStep, prevStep, currentStep, totalSteps }: Props) {
+  const t = useTranslations('components.modelRegistration.services')
+  const tc = useTranslations('components.modelRegistration.common')
   const [mainServicesOpen, setMainServicesOpen] = useState(true)
   const [extraServicesOpen, setExtraServicesOpen] = useState(false)
   const [fetishOpen, setFetishOpen] = useState(false)
   const [virtualOpen, setVirtualOpen] = useState(false)
   const [massageOpen, setMassageOpen] = useState(false)
 
-  const mainServices = [
-    '69 Position', 'Anal Sex', 'Cum in Mouth', 'Cum on Face', 'Dildo Play/Toys',
-    'Girlfriend Experience (GFE)', 'Blowjob with Condom', 'Blowjob without Condom',
-    'Blowjob without Condom to Completion', 'Cumshot on body (COB)', 'Erotic massage',
-    'Kissing if good chemistry', 'Intimate massage', 'Handjob', 'French Kissing', 'Kissing',
-    'Sex in Different Positions'
-  ]
-
-  const extraServices = [
-    'A-Level (Anal Sex)', 'Anal Finger', 'BDSM', 'Body to Body Massage', 'Couples',
-    'Deep Throat', 'Dirty Talk', 'Domination', 'Erotic Photos & Videos', 'Facesitting',
-    'Foot Fetish', 'Golden Shower (Give)', 'Golden Shower (Receive)', 'Lapdance',
-    'Lesbian Show', 'Lingam Massage', 'Mistress', 'Oral without Condom',
-    'Passionate Kissing', 'Photo & Video', 'Pornstar Experience (PSE)', 'Prostate Massage',
-    'Role Play', 'Sex Toys', 'Spanking', 'Squirting', 'Striptease', 'Submission',
-    'Swallow', 'Tantric Massage', 'Threesome', 'Uniforms'
-  ]
-
-  const fetishServices = [
-    'Age Play', 'Ball Busting', 'Bondage', 'CBT', 'Chastity', 'Cross Dressing',
-    'Face Slapping', 'Feminization', 'Financial Domination', 'Foot Worship',
-    'Humiliation', 'Medical Play', 'Pet Play', 'Rimming (Giving)', 'Rimming (Receiving)',
-    'Strap-on', 'Trampling', 'Wax Play', 'Worship'
-  ]
-
-  const virtualServices = [
-    'Cam2Cam', 'Phone Chat', 'Sexting', 'Video Call', 'Virtual Girlfriend',
-    'Custom Videos', 'Dick Rating', 'Feet Pics', 'Live Shows', 'Premium Snapchat',
-    'Selling Panties', 'Selling Photos', 'Selling Videos', 'Skype Shows',
-    'WhatsApp Services', 'OnlyFans'
-  ]
-
-  const massageServices = [
-    'Classic Massage', 'Swedish Massage', 'Thai Massage', 'Hot Stone Massage',
-    'Aromatherapy', 'Sports Massage', 'Reflexology', 'Shiatsu', 'Nuru Massage',
-    'Body Scrub'
-  ]
+  const itemLabel = (cat: 'main' | 'extra' | 'fetish' | 'virtual' | 'massage', service: string) =>
+    t(`items.${cat}.${svcSlug(service)}` as any)
 
   const toggleService = (service: string, category: 'main' | 'extra' | 'fetish' | 'virtual' | 'massage') => {
-    const categoryKey = category === 'main' ? 'mainServices' :
-                        category === 'extra' ? 'extraServices' :
-                        category === 'fetish' ? 'fetishServices' :
-                        category === 'virtual' ? 'virtualServices' : 'massageServices'
-    
+    const categoryKey =
+      category === 'main'
+        ? 'mainServices'
+        : category === 'extra'
+          ? 'extraServices'
+          : category === 'fetish'
+            ? 'fetishServices'
+            : category === 'virtual'
+              ? 'virtualServices'
+              : 'massageServices'
+
     const currentServices = data[categoryKey]
     const updated = currentServices.includes(service)
-      ? currentServices.filter(s => s !== service)
+      ? currentServices.filter((s) => s !== service)
       : [...currentServices, service]
-    
+
     updateData({ [categoryKey]: updated })
   }
 
   const toggleServicesFor = (option: string) => {
     const updated = data.servicesFor.includes(option)
-      ? data.servicesFor.filter(o => o !== option)
+      ? data.servicesFor.filter((o) => o !== option)
       : [...data.servicesFor, option]
     updateData({ servicesFor: updated })
   }
 
+  const audienceLabel = (key: (typeof audienceKeys)[number]) => t(`audience.${key}` as any)
+
   return (
     <div>
-      {/* Pink Header */}
       <div className="bg-gradient-to-r from-pink-600 to-pink-500 text-white py-4 px-6">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <ChevronLeft className="w-6 h-6 cursor-pointer hover:opacity-80" onClick={prevStep} />
-            <h1 className="text-2xl font-bold">Services</h1>
+            <h1 className="text-2xl font-bold">{t('title')}</h1>
           </div>
           <div className="bg-white text-pink-600 rounded-full w-12 h-12 flex items-center justify-center font-bold">
             {currentStep}/{totalSteps}
@@ -94,29 +187,27 @@ export default function ServicesStep({ data, updateData, nextStep, prevStep, cur
         </div>
       </div>
 
-      {/* Content */}
       <div className="container mx-auto px-6 py-8 max-w-4xl">
-        {/* Sexual Orientation */}
-        <h3 className="font-semibold mb-3">Sexual Orientation</h3>
+        <h3 className="font-semibold mb-3">{t('sexualOrientation')}</h3>
         <div className="mb-6">
           <select
             value={data.sexualOrientation}
             onChange={(e) => updateData({ sexualOrientation: e.target.value })}
             className="w-full md:w-1/3 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
           >
-            <option value="">Sexual Orientation</option>
-            <option value="heterosexual">Heterosexual</option>
-            <option value="bisexual">Bisexual</option>
-            <option value="lesbian">Lesbian</option>
-            <option value="gay">Gay</option>
+            <option value="">{t('orientationPlaceholder')}</option>
+            <option value="heterosexual">{t('orientations.heterosexual')}</option>
+            <option value="bisexual">{t('orientations.bisexual')}</option>
+            <option value="lesbian">{t('orientations.lesbian')}</option>
+            <option value="gay">{t('orientations.gay')}</option>
           </select>
         </div>
 
-        {/* Services Offered For */}
-        <h3 className="font-semibold mb-3">Services Offered For</h3>
+        <h3 className="font-semibold mb-3">{t('offeredFor')}</h3>
         <div className="flex flex-wrap gap-3 mb-8">
-          {['Men', 'Women', 'Couples', 'Trans', 'Gays', '2+'].map((option) => (
+          {audienceKeys.map((option) => (
             <button
+              type="button"
               key={option}
               onClick={() => toggleServicesFor(option)}
               className={`px-6 py-2 rounded-full border transition ${
@@ -125,22 +216,22 @@ export default function ServicesStep({ data, updateData, nextStep, prevStep, cur
                   : 'bg-white border-gray-300 text-gray-700 hover:border-pink-300'
               }`}
             >
-              {option}
+              {audienceLabel(option)}
             </button>
           ))}
         </div>
 
-        {/* Services */}
-        <h3 className="font-semibold mb-4">Services</h3>
+        <h3 className="font-semibold mb-4">{t('servicesHeading')}</h3>
 
-        {/* Main Services */}
         <div className="mb-4">
           <button
+            type="button"
             onClick={() => setMainServicesOpen(!mainServicesOpen)}
             className="w-full flex items-center justify-between bg-gray-50 p-4 rounded hover:bg-gray-100 transition"
           >
             <span className="font-semibold text-pink-600">
-              Main Services {data.mainServices.length > 0 && `(${data.mainServices.length}/17)`}
+              {t('mainServices')}{' '}
+              {data.mainServices.length > 0 && t('countInSection', { count: data.mainServices.length, total: 17 })}
             </span>
             {mainServicesOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
@@ -154,21 +245,22 @@ export default function ServicesStep({ data, updateData, nextStep, prevStep, cur
                     onChange={() => toggleService(service, 'main')}
                     className="w-5 h-5 text-pink-600"
                   />
-                  <span className="text-sm">{service}</span>
+                  <span className="text-sm">{itemLabel('main', service)}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
 
-        {/* Extra Services */}
         <div className="mb-4">
           <button
+            type="button"
             onClick={() => setExtraServicesOpen(!extraServicesOpen)}
             className="w-full flex items-center justify-between bg-gray-50 p-4 rounded hover:bg-gray-100 transition"
           >
             <span className="font-semibold text-pink-600">
-              Extra Services {data.extraServices.length > 0 && `(${data.extraServices.length}/32)`}
+              {t('extraServices')}{' '}
+              {data.extraServices.length > 0 && t('countInSection', { count: data.extraServices.length, total: 32 })}
             </span>
             {extraServicesOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
@@ -182,21 +274,22 @@ export default function ServicesStep({ data, updateData, nextStep, prevStep, cur
                     onChange={() => toggleService(service, 'extra')}
                     className="w-5 h-5 text-pink-600"
                   />
-                  <span className="text-sm">{service}</span>
+                  <span className="text-sm">{itemLabel('extra', service)}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
 
-        {/* Fetish / Bizarre */}
         <div className="mb-4">
           <button
+            type="button"
             onClick={() => setFetishOpen(!fetishOpen)}
             className="w-full flex items-center justify-between bg-gray-50 p-4 rounded hover:bg-gray-100 transition"
           >
             <span className="font-semibold text-pink-600">
-              Fetish / Bizarre {data.fetishServices.length > 0 && `(${data.fetishServices.length}/19)`}
+              {t('fetishServices')}{' '}
+              {data.fetishServices.length > 0 && t('countInSection', { count: data.fetishServices.length, total: 19 })}
             </span>
             {fetishOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
@@ -210,21 +303,22 @@ export default function ServicesStep({ data, updateData, nextStep, prevStep, cur
                     onChange={() => toggleService(service, 'fetish')}
                     className="w-5 h-5 text-pink-600"
                   />
-                  <span className="text-sm">{service}</span>
+                  <span className="text-sm">{itemLabel('fetish', service)}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
 
-        {/* Virtual Services */}
         <div className="mb-4">
           <button
+            type="button"
             onClick={() => setVirtualOpen(!virtualOpen)}
             className="w-full flex items-center justify-between bg-gray-50 p-4 rounded hover:bg-gray-100 transition"
           >
             <span className="font-semibold text-pink-600">
-              Virtual Services {data.virtualServices.length > 0 && `(${data.virtualServices.length}/16)`}
+              {t('virtualServices')}{' '}
+              {data.virtualServices.length > 0 && t('countInSection', { count: data.virtualServices.length, total: 16 })}
             </span>
             {virtualOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
@@ -238,21 +332,23 @@ export default function ServicesStep({ data, updateData, nextStep, prevStep, cur
                     onChange={() => toggleService(service, 'virtual')}
                     className="w-5 h-5 text-pink-600"
                   />
-                  <span className="text-sm">{service}</span>
+                  <span className="text-sm">{itemLabel('virtual', service)}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
 
-        {/* Massage services without sex! */}
         <div className="mb-6">
           <button
+            type="button"
             onClick={() => setMassageOpen(!massageOpen)}
             className="w-full flex items-center justify-between bg-gray-50 p-4 rounded hover:bg-gray-100 transition"
           >
             <span className="font-semibold text-pink-600">
-              Massage services without sex! {data.massageServices.length > 0 && `(${data.massageServices.length}/10)`}
+              {t('massageServices')}{' '}
+              {data.massageServices.length > 0 &&
+                t('countInSection', { count: data.massageServices.length, total: 10 })}
             </span>
             {massageOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
           </button>
@@ -266,22 +362,21 @@ export default function ServicesStep({ data, updateData, nextStep, prevStep, cur
                     onChange={() => toggleService(service, 'massage')}
                     className="w-5 h-5 text-pink-600"
                   />
-                  <span className="text-sm">{service}</span>
+                  <span className="text-sm">{itemLabel('massage', service)}</span>
                 </label>
               ))}
             </div>
           )}
         </div>
 
-        {/* Next Step Button */}
         <button
+          type="button"
           onClick={nextStep}
           className="bg-gradient-to-r from-pink-600 to-pink-500 text-white px-8 py-3 rounded font-semibold hover:from-pink-700 hover:to-pink-600 transition"
         >
-          NEXT STEP
+          {tc('nextStep')}
         </button>
       </div>
     </div>
   )
 }
-

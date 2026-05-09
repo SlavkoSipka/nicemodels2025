@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 
 export default function ForgotPasswordForm() {
+  const t = useTranslations('auth.forgotPassword')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -26,7 +28,7 @@ export default function ForgotPasswordForm() {
 
       setSuccess(true)
     } catch (err: any) {
-      setError(err.message || 'Failed to send reset email. Please try again.')
+      setError(err.message || t('errorFailed'))
     } finally {
       setLoading(false)
     }
@@ -40,19 +42,15 @@ export default function ForgotPasswordForm() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Check your email!</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          We've sent a password reset link to:
-        </p>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('successTitle')}</h2>
+        <p className="text-sm text-gray-600 mb-4">{t('successWeSent')}</p>
         <p className="text-sm font-semibold text-pink-600 mb-6">{email}</p>
-        <p className="text-xs text-gray-500 mb-6">
-          Click the link in the email to reset your password.
-        </p>
+        <p className="text-xs text-gray-500 mb-6">{t('successInstruction')}</p>
         <Link
           href="/login"
           className="inline-block px-6 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all"
         >
-          Back to Login
+          {t('backToLogin')}
         </Link>
       </div>
     )
@@ -69,7 +67,7 @@ export default function ForgotPasswordForm() {
       {/* Email */}
       <div>
         <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-2">
-          Email address
+          {t('emailLabel')}
         </label>
         <input
           id="email"
@@ -77,7 +75,7 @@ export default function ForgotPasswordForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          placeholder="name@domain.com"
+          placeholder={t('emailPlaceholder')}
           className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
         />
       </div>
@@ -94,20 +92,19 @@ export default function ForgotPasswordForm() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            Sending...
+            {t('submitting')}
           </span>
         ) : (
-          'Send Reset Link'
+          t('submit')
         )}
       </button>
 
       {/* Back to Login */}
       <div className="text-center pt-2">
         <Link href="/login" className="text-sm text-gray-600 hover:text-pink-600 font-semibold">
-          Remember your password? Sign in
+          {t('rememberPassword')}
         </Link>
       </div>
     </form>
   )
 }
-

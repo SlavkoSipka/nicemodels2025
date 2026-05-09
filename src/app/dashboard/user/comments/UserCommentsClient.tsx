@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { MessageSquare, Edit, Clock, CheckCircle, XCircle, Star, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -19,6 +20,7 @@ interface Comment {
 }
 
 export default function UserCommentsClient({ comments: initialComments }: { comments: Comment[] }) {
+  const t = useTranslations('dashboard.user.comments')
   const [comments, setComments] = useState(initialComments)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -27,7 +29,7 @@ export default function UserCommentsClient({ comments: initialComments }: { comm
   const rejected = comments.filter(c => c.status === 'rejected')
 
   const handleDelete = async (commentId: string) => {
-    if (!confirm('Delete this comment? This will allow you to submit a new review.')) return
+    if (!confirm(t('deleteConfirm'))) return
     setDeletingId(commentId)
     const supabase = createClient()
     const { error } = await supabase.from('model_comments').delete().eq('id', commentId)
@@ -46,8 +48,8 @@ export default function UserCommentsClient({ comments: initialComments }: { comm
               <MessageSquare className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">My Comments</h1>
-              <p className="text-xs text-gray-500">Reviews and feedback you've shared</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
 
@@ -56,14 +58,14 @@ export default function UserCommentsClient({ comments: initialComments }: { comm
               <div className="w-12 h-12 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-3">
                 <MessageSquare className="w-6 h-6 text-brand" />
               </div>
-              <h2 className="text-base font-bold text-gray-900 mb-1">No Comments Yet</h2>
+              <h2 className="text-base font-bold text-gray-900 mb-1">{t('noTitle')}</h2>
               <p className="text-sm text-gray-500 mb-4 max-w-sm mx-auto">
-                You haven't left any reviews yet. Share your experiences to help other users.
+                {t('noBody')}
               </p>
               <Link href="/"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover">
                 <Edit className="w-4 h-4" />
-                Browse Models
+                {t('browseModels')}
               </Link>
             </div>
           ) : (
@@ -75,21 +77,21 @@ export default function UserCommentsClient({ comments: initialComments }: { comm
                     <Clock className="w-5 h-5 text-amber-500" />
                     <span className="text-2xl font-bold text-amber-600">{pending.length}</span>
                   </div>
-                  <p className="text-xs font-semibold text-gray-700">Pending Review</p>
+                  <p className="text-xs font-semibold text-gray-700">{t('pendingReview')}</p>
                 </div>
                 <div className="bg-white border border-emerald-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-1">
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
                     <span className="text-2xl font-bold text-emerald-600">{approved.length}</span>
                   </div>
-                  <p className="text-xs font-semibold text-gray-700">Approved</p>
+                  <p className="text-xs font-semibold text-gray-700">{t('approved')}</p>
                 </div>
                 <div className="bg-white border border-red-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-1">
                     <XCircle className="w-5 h-5 text-red-500" />
                     <span className="text-2xl font-bold text-red-600">{rejected.length}</span>
                   </div>
-                  <p className="text-xs font-semibold text-gray-700">Rejected</p>
+                  <p className="text-xs font-semibold text-gray-700">{t('rejected')}</p>
                 </div>
               </div>
 
@@ -111,8 +113,8 @@ export default function UserCommentsClient({ comments: initialComments }: { comm
                               comment.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
                               'bg-red-100 text-red-700'
                             }`}>
-                              {comment.status === 'pending' ? 'Pending' :
-                               comment.status === 'approved' ? '✓ Approved' : '✗ Rejected'}
+                              {comment.status === 'pending' ? t('statusPending') :
+                               comment.status === 'approved' ? t('statusApproved') : t('statusRejected')}
                             </span>
                             {comment.rating && (
                               <div className="flex items-center gap-0.5">
@@ -134,23 +136,23 @@ export default function UserCommentsClient({ comments: initialComments }: { comm
 
                       {comment.status === 'pending' && (
                         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded px-2.5 py-1.5 mt-2">
-                          Under review — will be published once approved by administrators.
+                          {t('underReview')}
                         </p>
                       )}
                       {comment.status === 'rejected' && (
                         <div className="mt-2 space-y-2">
                           <p className="text-xs text-red-700 bg-red-50 border border-red-100 rounded px-2.5 py-1.5">
-                            Not approved — this comment did not meet our community guidelines.
+                            {t('notApproved')}
                           </p>
                           <button onClick={() => handleDelete(comment.id)}
                             disabled={deletingId === comment.id}
                             className="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-1.5 disabled:opacity-50">
                             {deletingId === comment.id
-                              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Deleting...</>
-                              : <><Trash2 className="w-4 h-4" />Delete Comment</>}
+                              ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t('deletingComment')}</>
+                              : <><Trash2 className="w-4 h-4" />{t('deleteComment')}</>}
                           </button>
                           <p className="text-xs text-gray-400 text-center">
-                            Deleting allows you to submit a new review.
+                            {t('deletingHint')}
                           </p>
                         </div>
                       )}

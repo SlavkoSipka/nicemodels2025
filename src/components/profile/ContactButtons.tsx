@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Phone, MessageCircle, Send, Eye } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ContactDetails {
   phone_number?: string | null
@@ -22,6 +23,7 @@ interface ContactButtonsProps {
 
 export default function ContactButtons({ contactDetails, profileId }: ContactButtonsProps) {
   const [revealed, setRevealed] = useState(false)
+  const t = useTranslations('components.profile.contactButtons')
 
   const hasPhone = !!(contactDetails?.phone_number?.trim())
   const autoVisible = contactDetails?.show_phone_number === true
@@ -75,14 +77,14 @@ export default function ContactButtons({ contactDetails, profileId }: ContactBut
               style={{ background: 'linear-gradient(90deg, #ec4899, #f472b6)', boxShadow: 'rgba(236,72,153,0.2) 0px 2px 10px' }}
             >
               <Eye className="w-5 h-5" />
-              Show Contact
+              {t('showContact')}
             </button>
           )}
         </div>
       ) : (
         <div className="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold bg-gray-100 text-gray-400 cursor-not-allowed select-none">
           <Phone className="w-5 h-5" />
-          No phone number
+          {t('noPhone')}
         </div>
       )}
 
@@ -132,7 +134,7 @@ export default function ContactButtons({ contactDetails, profileId }: ContactBut
       )}
 
       {(autoVisible || revealed) && contactDetails?.no_withheld_numbers && (
-        <p className="text-xs text-gray-400 text-center">No withheld numbers please</p>
+        <p className="text-xs text-gray-400 text-center">{t('noWithheld')}</p>
       )}
     </div>
   )

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
@@ -75,6 +76,7 @@ export default async function BlogTopicPage({ params }: PageProps) {
 
   const authorIds = (posts || []).map(p => p.author_id)
   const labelMap = await resolveAuthorLabels(supabase, authorIds)
+  const tBlog = await getTranslations('publicPages.blog')
 
   const flatPosts: Omit<DiscussionPostNode, 'children'>[] = (posts || []).map(p => ({
     id: p.id,
@@ -84,7 +86,7 @@ export default async function BlogTopicPage({ params }: PageProps) {
     body: p.body,
     created_at: p.created_at,
     updated_at: p.updated_at,
-    author_label: labelMap.get(p.author_id) || 'Member',
+    author_label: labelMap.get(p.author_id) || tBlog('memberFallback'),
   }))
 
   return (

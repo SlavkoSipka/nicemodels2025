@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { X, Send, Minus, Check, CheckCheck, Flag, Upload, AlertTriangle } from 'lucide-react';
 
@@ -36,6 +37,8 @@ export default function MiniChatWindow({
   onMinimize,
   isMinimized,
 }: MiniChatWindowProps) {
+  const tc = useTranslations('publicPages.chat');
+  const tm = useTranslations('components.chat.mini');
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -302,7 +305,7 @@ export default function MiniChatWindow({
     if (error) {
       console.error('❌ Error sending message:', error);
       setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
-      alert('Failed to send message');
+      alert(tc('failedToSend'));
       setNewMessage(messageToSend);
     } else {
       console.log('✅ Message sent successfully:', data);
@@ -343,7 +346,7 @@ export default function MiniChatWindow({
       const res = await fetch('/api/reports/submit', { method: 'POST', body: formData });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || 'Failed to submit report');
+        alert(data.error || tc('errSubmitFailed'));
       } else {
         setReportSuccess(true);
         setTimeout(() => {
@@ -355,7 +358,7 @@ export default function MiniChatWindow({
         }, 2000);
       }
     } catch {
-      alert('Failed to submit report');
+      alert(tc('errSubmitFailed'));
     }
     setReportSubmitting(false);
   }
@@ -382,7 +385,7 @@ export default function MiniChatWindow({
           <button
             onClick={() => setShowReportModal(true)}
             className="p-1 hover:bg-white/20 rounded transition-colors"
-            title="Report user"
+            title={tm('reportTitleAttr')}
           >
             <Flag className="w-4 h-4" />
           </button>
@@ -407,7 +410,7 @@ export default function MiniChatWindow({
           <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50 min-h-0">
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 text-sm py-8">
-                Start the conversation!
+                {tm('emptyState')}
               </div>
             ) : (
               messages.map((message) => {
@@ -476,7 +479,7 @@ export default function MiniChatWindow({
                   setNewMessage(e.target.value);
                   handleTyping();
                 }}
-                placeholder="Type a message..."
+                placeholder={tc('typeMessage')}
                 disabled={sending}
                 className="flex-1 px-3 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:bg-gray-100"
               />
@@ -502,8 +505,8 @@ export default function MiniChatWindow({
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Check className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900">Report Submitted</h3>
-                  <p className="text-sm text-gray-500 mt-1">Admin will review your report.</p>
+                  <h3 className="text-lg font-bold text-gray-900">{tc('reportSubmitted')}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{tc('reportSubmittedHint')}</p>
                 </div>
               ) : (
                 <>
@@ -513,8 +516,8 @@ export default function MiniChatWindow({
                         <AlertTriangle className="w-5 h-5 text-red-600" />
                       </div>
                       <div>
-                        <h3 className="font-bold text-gray-900">Report User</h3>
-                        <p className="text-xs text-gray-500">Report {otherUser.username}</p>
+                        <h3 className="font-bold text-gray-900">{tc('reportTitle')}</h3>
+                        <p className="text-xs text-gray-500">{tm('reportTarget', { username: otherUser.username })}</p>
                       </div>
                     </div>
                     <button
@@ -532,18 +535,18 @@ export default function MiniChatWindow({
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{tc('reportReason')}</label>
                       <textarea
                         value={reportReason}
                         onChange={(e) => setReportReason(e.target.value)}
-                        placeholder="Describe why you are reporting this user..."
+                        placeholder={tm('reasonPlaceholder')}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Screenshot (optional)</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">{tm('screenshotOptional')}</label>
                       <input
                         ref={screenshotRef}
                         type="file"
@@ -553,7 +556,7 @@ export default function MiniChatWindow({
                       />
                       {reportPreview ? (
                         <div className="relative">
-                          <img src={reportPreview} alt="Screenshot" className="w-full rounded-lg border border-gray-200 max-h-40 object-contain" />
+                          <img src={reportPreview} alt={tm('screenshotAlt')} className="w-full rounded-lg border border-gray-200 max-h-40 object-contain" />
                           <button
                             onClick={() => { setReportScreenshot(null); setReportPreview(null); }}
                             className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5"
@@ -567,7 +570,7 @@ export default function MiniChatWindow({
                           className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-pink-400 hover:text-pink-600 transition-colors"
                         >
                           <Upload className="w-4 h-4" />
-                          Upload Screenshot
+                          {tm('uploadScreenshot')}
                         </button>
                       )}
                     </div>
@@ -577,7 +580,7 @@ export default function MiniChatWindow({
                       disabled={!reportReason.trim() || reportSubmitting}
                       className="w-full py-2.5 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {reportSubmitting ? 'Submitting...' : 'Submit Report'}
+                      {reportSubmitting ? tc('submitting') : tc('submitReport')}
                     </button>
                   </div>
                 </>

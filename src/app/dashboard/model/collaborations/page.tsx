@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Search, UserPlus, AlertCircle, CheckCircle, X, Check, Users, MapPin, Send, Inbox, Handshake } from 'lucide-react'
 
@@ -31,6 +32,7 @@ type TabType = 'incoming' | 'sent' | 'collaborations' | 'invite'
 
 export default function ModelCollaborationsPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.collaborations')
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [activeTab, setActiveTab] = useState<TabType>('collaborations')
@@ -302,9 +304,7 @@ export default function ModelCollaborationsPage() {
         .maybeSingle()
 
       if (existing) {
-        setError(existing.status === 'pending'
-          ? 'There is already a pending collaboration request with this model.'
-          : 'You already have an active collaboration with this model.')
+        setError(existing.status === 'pending' ? t('errorPending') : t('errorActive'))
         setSending(false)
         return
       }
@@ -316,12 +316,12 @@ export default function ModelCollaborationsPage() {
       ])
 
       if (senderCount >= 2) {
-        setError('You already have 2 collaborations. Remove one first to add a new one.')
+        setError(t('errorYouLimit'))
         setSending(false)
         return
       }
       if (receiverCount >= 2) {
-        setError('This model already has 2 collaborations and cannot accept more at this time.')
+        setError(t('errorOtherLimit'))
         setSending(false)
         return
       }
@@ -337,7 +337,7 @@ export default function ModelCollaborationsPage() {
 
       if (insertError) throw insertError
 
-      setSuccess('Collaboration request sent!')
+      setSuccess(t('successSent'))
       setSelectedModel(null)
       setInviteMessage('')
       setSearchQuery('')
@@ -351,7 +351,7 @@ export default function ModelCollaborationsPage() {
 
       setTimeout(() => setSuccess(''), 4000)
     } catch (err: any) {
-      setError(err.message || 'Failed to send request.')
+      setError(err.message || t('sendFailed'))
     } finally { setSending(false) }
   }
 
@@ -371,12 +371,12 @@ export default function ModelCollaborationsPage() {
             countAcceptedCollabs(supabase, invite.sender_id),
           ])
           if (receiverCount >= 2) {
-            setError('You already have 2 collaborations. Remove one first to accept this request.')
+            setError(t('errorYouAcceptLimit'))
             setResponding(null)
             return
           }
           if (senderCount >= 2) {
-            setError('The model who sent this request already has 2 collaborations.')
+            setError(t('errorSenderLimit'))
             setResponding(null)
             return
           }
@@ -395,7 +395,7 @@ export default function ModelCollaborationsPage() {
 
       await supabase.from('notifications').delete().eq('user_id', user.id).eq('related_entity_id', inviteId)
 
-      setSuccess(action === 'accept' ? 'Collaboration accepted!' : 'Request declined.')
+      setSuccess(action === 'accept' ? t('successAccepted') : t('successDeclined'))
       await Promise.all([
         loadIncoming(user.id),
         loadCollaborations(user.id),
@@ -404,12 +404,12 @@ export default function ModelCollaborationsPage() {
       await loadAllModels(user.id)
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to respond.')
+      setError(err.message || t('respondFailed'))
     } finally { setResponding(null) }
   }
 
   const handleCancelSent = async (inviteId: string) => {
-    if (!user || !confirm('Cancel this collaboration request?')) return
+    if (!user || !confirm(t('confirmCancel'))) return
     setError('')
 
     try {
@@ -421,7 +421,7 @@ export default function ModelCollaborationsPage() {
 
       if (e) throw e
 
-      setSuccess('Request cancelled.')
+      setSuccess(t('successCancelled'))
       await Promise.all([
         loadSent(user.id),
         loadExcluded(user.id),
@@ -429,12 +429,12 @@ export default function ModelCollaborationsPage() {
       await loadAllModels(user.id)
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to cancel.')
+      setError(err.message || t('cancelFailed'))
     }
   }
 
   const handleRemoveCollab = async (collabId: string) => {
-    if (!user || !confirm('Remove this collaboration? Both profiles will no longer show each other.')) return
+    if (!user || !confirm(t('confirmRemove'))) return
     setError('')
 
     try {
@@ -446,7 +446,7 @@ export default function ModelCollaborationsPage() {
 
       if (e) throw e
 
-      setSuccess('Collaboration removed.')
+      setSuccess(t('successRemoved'))
       await Promise.all([
         loadCollaborations(user.id),
         loadExcluded(user.id),
@@ -454,7 +454,7 @@ export default function ModelCollaborationsPage() {
       await loadAllModels(user.id)
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to remove.')
+      setError(err.message || t('removeFailed'))
     }
   }
 
@@ -467,10 +467,10 @@ export default function ModelCollaborationsPage() {
           active ? 'border-brand text-brand' : 'border-transparent text-gray-500 hover:text-gray-700'
         }`}
       >
-        {tab === 'collaborations' && 'My Collaborations'}
-        {tab === 'incoming' && 'Incoming'}
-        {tab === 'sent' && 'Sent'}
-        {tab === 'invite' && 'Invite Model'}
+        {tab === 'collaborations' && t('tabMy')}
+        {tab === 'incoming' && t('tabIncoming')}
+        {tab === 'sent' && t('tabSent')}
+        {tab === 'invite' && t('tabInvite')}
         {count !== undefined && count > 0 && (
           <span className={`ml-1.5 px-1.5 py-0.5 text-[10px] rounded-full ${
             active ? 'bg-brand/10 text-brand' : 'bg-gray-100 text-gray-600'
@@ -527,8 +527,8 @@ export default function ModelCollaborationsPage() {
             <Handshake className="w-4 h-4 text-brand" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Collaborations</h1>
-            <p className="text-xs text-gray-500">Manage your model collaborations and partnership requests</p>
+            <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
@@ -558,10 +558,10 @@ export default function ModelCollaborationsPage() {
           collaborations.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
               <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-600 mb-1">No collaborations yet</p>
-              <p className="text-xs text-gray-400 mb-4">Send a collaboration request to another model to get started</p>
+              <p className="text-sm font-semibold text-gray-600 mb-1">{t('noCollabs')}</p>
+              <p className="text-xs text-gray-400 mb-4">{t('noCollabsHint')}</p>
               <button onClick={() => setActiveTab('invite')} className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover transition-colors">
-                <UserPlus className="w-4 h-4" /> Invite a Model
+                <UserPlus className="w-4 h-4" /> {t('inviteModel')}
               </button>
             </div>
           ) : (
@@ -573,7 +573,7 @@ export default function ModelCollaborationsPage() {
                     <button
                       onClick={() => handleRemoveCollab(collab.id)}
                       className="text-gray-400 hover:text-red-500 transition-colors p-1 shrink-0"
-                      title="Remove collaboration"
+                      title={t('removeCollab')}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -589,8 +589,8 @@ export default function ModelCollaborationsPage() {
           incomingInvites.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
               <Inbox className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-600 mb-1">No incoming requests</p>
-              <p className="text-xs text-gray-400">You don't have any pending collaboration requests</p>
+              <p className="text-sm font-semibold text-gray-600 mb-1">{t('noIncoming')}</p>
+              <p className="text-xs text-gray-400">{t('noIncomingHint')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -600,11 +600,11 @@ export default function ModelCollaborationsPage() {
                     <ModelCard model={invite.model} />
                   </div>
                   <p className="text-xs text-gray-400 mb-2">
-                    Received {new Date(invite.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    {t('receivedAt', { date: new Date(invite.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) })}
                   </p>
                   {invite.message && (
                     <div className="mb-3 p-3 bg-brand/5 border border-brand/20 rounded-lg">
-                      <p className="text-xs font-bold text-brand mb-0.5">Personal message:</p>
+                      <p className="text-xs font-bold text-brand mb-0.5">{t('personalMessage')}</p>
                       <p className="text-xs text-gray-700">{invite.message}</p>
                     </div>
                   )}
@@ -614,14 +614,14 @@ export default function ModelCollaborationsPage() {
                       disabled={responding === invite.id}
                       className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      <Check className="w-4 h-4" />{responding === invite.id ? 'Processing...' : 'Accept'}
+                      <Check className="w-4 h-4" />{responding === invite.id ? t('processing') : t('accept')}
                     </button>
                     <button
                       onClick={() => handleRespond(invite.id, 'reject')}
                       disabled={responding === invite.id}
                       className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 disabled:opacity-50"
                     >
-                      <X className="w-4 h-4" />Decline
+                      <X className="w-4 h-4" />{t('decline')}
                     </button>
                   </div>
                 </div>
@@ -635,10 +635,10 @@ export default function ModelCollaborationsPage() {
           sentInvites.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg p-10 text-center">
               <Send className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-gray-600 mb-1">No pending sent requests</p>
-              <p className="text-xs text-gray-400 mb-4">All your sent requests have been responded to</p>
+              <p className="text-sm font-semibold text-gray-600 mb-1">{t('noSent')}</p>
+              <p className="text-xs text-gray-400 mb-4">{t('noSentHint')}</p>
               <button onClick={() => setActiveTab('invite')} className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover transition-colors">
-                <UserPlus className="w-4 h-4" /> Invite a Model
+                <UserPlus className="w-4 h-4" /> {t('inviteModel')}
               </button>
             </div>
           ) : (
@@ -648,14 +648,14 @@ export default function ModelCollaborationsPage() {
                   <div className="flex-1">
                     <ModelCard model={invite.model} />
                     <p className="text-xs text-gray-400 mt-1 ml-14">
-                      Sent {new Date(invite.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {t('sentAt', { date: new Date(invite.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) })}
                     </p>
                   </div>
                   <button
                     onClick={() => handleCancelSent(invite.id)}
                     className="text-xs font-semibold text-red-500 hover:text-red-700 px-3 py-1.5 bg-red-50 hover:bg-red-100 rounded-lg transition-colors shrink-0"
                   >
-                    Cancel
+                    {t('cancel')}
                   </button>
                 </div>
               ))}
@@ -674,14 +674,14 @@ export default function ModelCollaborationsPage() {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search models by name or city..."
+                  placeholder={t('searchPlaceholder')}
                   className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
                 />
               </div>
               <p className="text-xs text-gray-400 mt-2">
                 {searchQuery.trim()
-                  ? `${filteredModels.length} model${filteredModels.length !== 1 ? 's' : ''} found`
-                  : `${getAvailableModels().length} model${getAvailableModels().length !== 1 ? 's' : ''} available`
+                  ? (filteredModels.length === 1 ? t('modelsFound', { count: filteredModels.length }) : t('modelsFoundPlural', { count: filteredModels.length }))
+                  : (getAvailableModels().length === 1 ? t('modelsAvailable', { count: getAvailableModels().length }) : t('modelsAvailablePlural', { count: getAvailableModels().length }))
                 }
               </p>
             </div>
@@ -689,7 +689,7 @@ export default function ModelCollaborationsPage() {
             {/* Selected model - send panel */}
             {selectedModel && (
               <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
-                <p className="text-sm font-bold text-gray-800">Send Collaboration Request</p>
+                <p className="text-sm font-bold text-gray-800">{t('sendRequest')}</p>
                 <div className="flex items-center justify-between p-3 bg-brand/5 border border-brand/20 rounded-lg">
                   <ModelCard model={selectedModel} />
                   <button onClick={() => { setSelectedModel(null); setInviteMessage('') }} className="text-gray-400 hover:text-red-500 transition-colors">
@@ -699,13 +699,13 @@ export default function ModelCollaborationsPage() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-800 mb-1">
-                    Personal Message <span className="font-normal text-gray-400">(optional)</span>
+                    {t('personalMessageOptional')} <span className="font-normal text-gray-400">{t('optional')}</span>
                   </label>
                   <textarea
                     value={inviteMessage}
                     onChange={(e) => setInviteMessage(e.target.value)}
                     rows={3}
-                    placeholder="Add a message to your collaboration request..."
+                    placeholder={t('messagePlaceholder')}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent resize-none"
                     maxLength={500}
                   />
@@ -713,17 +713,17 @@ export default function ModelCollaborationsPage() {
                 </div>
 
                 <div className="bg-gray-50 border border-gray-100 rounded-lg p-3">
-                  <p className="text-xs font-semibold text-gray-700 mb-1">What happens next?</p>
+                  <p className="text-xs font-semibold text-gray-700 mb-1">{t('whatHappensNext')}</p>
                   <ul className="text-xs text-gray-500 space-y-0.5">
-                    <li>· The model will receive a notification</li>
-                    <li>· They can accept or decline your request</li>
-                    <li>· If accepted, you'll appear on each other's profiles</li>
+                    <li>{t('happens1')}</li>
+                    <li>{t('happens2')}</li>
+                    <li>{t('happens3')}</li>
                   </ul>
                 </div>
 
                 <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                   <button onClick={() => { setSelectedModel(null); setInviteMessage('') }} className="text-sm font-semibold text-gray-600 hover:text-gray-900">
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button
                     onClick={handleSendInvite}
@@ -731,7 +731,7 @@ export default function ModelCollaborationsPage() {
                     className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <UserPlus className="w-4 h-4" />
-                    {sending ? 'Sending...' : 'Send Request'}
+                    {sending ? t('sending') : t('send')}
                   </button>
                 </div>
               </div>
@@ -741,14 +741,14 @@ export default function ModelCollaborationsPage() {
             {!selectedModel && (
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <p className="text-sm font-bold text-gray-800 mb-3">
-                  {searchQuery.trim() ? 'Search Results' : 'Available Models'}
+                  {searchQuery.trim() ? t('searchResults') : t('availableModels')}
                 </p>
                 {(() => {
                   const modelsToShow = searchQuery.trim() ? filteredModels : getAvailableModels()
                   if (modelsToShow.length === 0) return (
                     <div className="text-center py-8 border border-dashed border-gray-200 rounded-lg">
                       <p className="text-sm text-gray-500">
-                        {searchQuery.trim() ? `No models found matching "${searchQuery}"` : 'No models available'}
+                        {searchQuery.trim() ? t('noResults', { query: searchQuery }) : t('noModelsAvailable')}
                       </p>
                     </div>
                   )
@@ -762,7 +762,7 @@ export default function ModelCollaborationsPage() {
                         >
                           <ModelCard model={model} />
                           <span className="text-xs font-semibold text-brand bg-brand/10 px-2.5 py-1 rounded-lg shrink-0 ml-2">
-                            Select
+                            {t('select')}
                           </span>
                         </div>
                       ))}

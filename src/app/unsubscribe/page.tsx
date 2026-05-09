@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyUnsubscribeSignature } from '@/lib/email/unsubscribe'
 
@@ -14,18 +15,17 @@ const VALID_CATEGORIES = new Set([
   'fav_digest','saved_search_alerts','reports','all',
 ])
 
-const CATEGORY_LABEL: Record<string, string> = {
-  admin_actions: 'Admin actions',
-  verification: 'Verification updates',
-  purchase: 'Payment & advertising',
-  engagement: 'Messages, comments and invites',
-  fav_digest: 'Favorite updates digest',
-  saved_search_alerts: 'Saved search alerts',
-  reports: 'Reports updates',
-  all: 'All optional emails',
+const CATEGORY_KEY: Record<string, string> = {
+  admin_actions: 'catAdminActions',
+  verification: 'catVerification',
+  purchase: 'catPurchase',
+  engagement: 'catEngagement',
+  fav_digest: 'catFavDigest',
+  saved_search_alerts: 'catSavedSearchAlerts',
+  reports: 'catReports',
+  all: 'catAll',
 }
 
-// 30 days validity for an unsubscribe link
 const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000
 
 export const dynamic = 'force-dynamic'
@@ -37,27 +37,28 @@ export default async function UnsubscribePage({
 }) {
   const params = await searchParams
   const { u, c, t, sig } = params
+  const tr = await getTranslations('publicPages.unsubscribe')
 
   if (!u || !c || !t || !sig) {
-    return <Layout heading="Invalid link">The unsubscribe link is incomplete.</Layout>
+    return <Layout heading={tr('invalidLink')}>{tr('incompleteLink')}</Layout>
   }
 
   if (!VALID_CATEGORIES.has(c)) {
-    return <Layout heading="Invalid link">Unknown email category.</Layout>
+    return <Layout heading={tr('invalidLink')}>{tr('unknownCategory')}</Layout>
   }
 
   const issuedAt = Number(t)
   if (!Number.isFinite(issuedAt) || Date.now() - issuedAt > MAX_AGE_MS) {
     return (
-      <Layout heading="Link expired">
-        This unsubscribe link has expired. Manage email preferences from your dashboard or contact us.
+      <Layout heading={tr('linkExpired')}>
+        {tr('linkExpiredDesc')}
       </Layout>
     )
   }
 
   const valid = verifyUnsubscribeSignature({ u, c, t, sig })
   if (!valid) {
-    return <Layout heading="Invalid link">The unsubscribe link could not be verified.</Layout>
+    return <Layout heading={tr('invalidLink')}>{tr('couldNotVerify')}</Layout>
   }
 
   const admin = createAdminClient()
@@ -69,27 +70,32 @@ export default async function UnsubscribePage({
     )
 
   return (
-    <Layout heading="You are unsubscribed">
+    <Layout heading={tr('youAreUnsubscribed')}>
       <p>
-        We will no longer send you the <strong>{CATEGORY_LABEL[c]}</strong> emails. Mandatory account-status
-        notices (such as block / unblock / delete) will still be delivered.
+        {tr.rich('noLongerSend', {
+          category: tr(CATEGORY_KEY[c] as any),
+          bold: (chunks) => <strong>{chunks}</strong>,
+        })}
       </p>
       <p style={{ marginTop: 16 }}>
-        Changed your mind? <Link href="/login" style={{ color: '#ec4899' }}>Sign in</Link> and
-        re-enable from your dashboard, or write to <a href="mailto:info@nicemodels.ch" style={{ color: '#ec4899' }}>info@nicemodels.ch</a>.
+        {tr.rich('changedMind', {
+          signin: (chunks) => <Link href="/login" style={{ color: '#ec4899' }}>{chunks}</Link>,
+          email: (chunks) => <a href="mailto:info@nicemodels.ch" style={{ color: '#ec4899' }}>{chunks}</a>,
+        })}
       </p>
     </Layout>
   )
 }
 
-function Layout({ heading, children }: { heading: string; children: React.ReactNode }) {
+async function Layout({ heading, children }: { heading: string; children: React.ReactNode }) {
+  const tr = await getTranslations('publicPages.unsubscribe')
   return (
     <div style={{ minHeight: '100vh', background: '#fce9f3', padding: '48px 16px', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ maxWidth: 520, margin: '0 auto', background: '#fff', borderRadius: 14, padding: 32, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
         <h1 style={{ margin: '0 0 14px', fontSize: 22, color: '#1a1a2e' }}>{heading}</h1>
         <div style={{ fontSize: 14, lineHeight: 1.6, color: '#475569' }}>{children}</div>
         <p style={{ marginTop: 24, fontSize: 12, color: '#94a3b8' }}>
-          <Link href="/" style={{ color: '#94a3b8' }}>← Back to NiceModels.ch</Link>
+          <Link href="/" style={{ color: '#94a3b8' }}>{tr('backToHome')}</Link>
         </p>
       </div>
     </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 
 export interface ChatModel {
@@ -14,6 +15,7 @@ export interface ChatModel {
 
 export default function AvailableForChat({ models }: { models: ChatModel[] }) {
   const router = useRouter()
+  const t = useTranslations('components.home.availableForChat')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set())
 
@@ -73,7 +75,7 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
       <div className="px-4 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <p className="text-sm font-semibold" style={{ color: '#1a1a2e' }}>Available for 1:1 Chat</p>
+          <p className="text-sm font-semibold" style={{ color: '#1a1a2e' }}>{t('title')}</p>
         </div>
       </div>
 
@@ -123,7 +125,7 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
           className="w-full py-2 rounded-lg text-center text-xs font-bold transition-all text-white hover:brightness-110"
           style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)' }}
         >
-          View All Chats
+          {t('viewAll')}
         </button>
       </div>
     </div>

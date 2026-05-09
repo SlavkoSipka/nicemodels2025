@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Phone, Save, CheckCircle, AlertCircle } from 'lucide-react'
 
@@ -22,6 +23,7 @@ const COUNTRY_CODES = [
 
 export default function ContactDetailsPage() {
   const router = useRouter()
+  const t = useTranslations('dashboard.model.contact')
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -59,7 +61,7 @@ export default function ContactDetailsPage() {
           setOtherInstructions(data.other_instructions || '')
         }
       } catch (err: any) {
-        setError('Failed to load contact details')
+        setError(t('loadFailed'))
       } finally { setLoading(false) }
     }
     load()
@@ -81,7 +83,7 @@ export default function ContactDetailsPage() {
       setSuccess(true)
       setTimeout(() => setSuccess(false), 3000)
     } catch (err: any) {
-      setError(err.message || 'Failed to save contact details')
+      setError(err.message || t('saveFailed'))
     } finally { setSaving(false) }
   }
 
@@ -103,11 +105,11 @@ export default function ContactDetailsPage() {
               <Phone className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Contact Details</h1>
-              <p className="text-xs text-gray-500">Manage your contact information and preferences</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
         </div>
 
         {error && (
@@ -119,7 +121,7 @@ export default function ContactDetailsPage() {
         {success && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-emerald-800">Contact details saved successfully!</p>
+            <p className="text-sm text-emerald-800">{t('savedSuccess')}</p>
           </div>
         )}
 
@@ -128,7 +130,7 @@ export default function ContactDetailsPage() {
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={showPhoneNumber} onChange={e => setShowPhoneNumber(e.target.checked)}
               className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand" />
-            <span className="text-sm font-semibold text-gray-900">Show phone number on profile</span>
+            <span className="text-sm font-semibold text-gray-900">{t('showOnProfile')}</span>
           </label>
 
           {/* Show phone on listing card toggle */}
@@ -136,29 +138,29 @@ export default function ContactDetailsPage() {
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={showPhoneOnCard} onChange={e => setShowPhoneOnCard(e.target.checked)}
                 className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand" />
-              <span className="text-sm font-semibold text-gray-900">Show phone number on listing card</span>
+              <span className="text-sm font-semibold text-gray-900">{t('showOnCard')}</span>
             </label>
-            <p className="text-xs text-gray-500 mt-0.5 ml-6">Your number will be visible directly on your card in the model directory, without needing to open your profile.</p>
+            <p className="text-xs text-gray-500 mt-0.5 ml-6">{t('showOnCardHint')}</p>
           </div>
 
           {/* Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">Country Code <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('countryCode')} <span className="text-red-500">*</span></label>
               <select value={countryCode} onChange={e => setCountryCode(e.target.value)} className={inputCls}>
                 {COUNTRY_CODES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">Phone Number <span className="text-red-500">*</span></label>
+              <label className="block text-xs font-bold text-gray-800 mb-1">{t('phoneNumber')} <span className="text-red-500">*</span></label>
               <input type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)}
-                placeholder="Enter phone number" className={inputCls} />
+                placeholder={t('phonePlaceholder')} className={inputCls} />
             </div>
           </div>
 
           {/* Messaging apps */}
           <div>
-            <p className="text-xs font-bold text-gray-800 mb-2">Available on</p>
+            <p className="text-xs font-bold text-gray-800 mb-2">{t('availableOn')}</p>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => setHasViber(!hasViber)}
                 className={toggleBtn(hasViber, 'border-purple-400 bg-purple-50 text-purple-700')}>
@@ -177,12 +179,12 @@ export default function ContactDetailsPage() {
 
           {/* Instructions */}
           <div>
-            <p className="text-xs font-bold text-gray-800 mb-2">Contact Preference</p>
+            <p className="text-xs font-bold text-gray-800 mb-2">{t('contactPreference')}</p>
             <div className="flex flex-wrap gap-2">
               {[
-                { value: 'sms_and_call', label: 'SMS & Call' },
-                { value: 'sms_only', label: 'SMS Only' },
-                { value: 'no_sms', label: 'No SMS' }
+                { value: 'sms_and_call', label: t('smsAndCall') },
+                { value: 'sms_only', label: t('smsOnly') },
+                { value: 'no_sms', label: t('noSms') }
               ].map(opt => (
                 <button key={opt.value} type="button"
                   onClick={() => setContactInstruction(opt.value as any)}
@@ -197,24 +199,24 @@ export default function ContactDetailsPage() {
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={noWithheldNumbers} onChange={e => setNoWithheldNumbers(e.target.checked)}
               className="w-4 h-4 text-brand border-gray-300 rounded focus:ring-brand" />
-            <span className="text-sm font-semibold text-gray-900">No withheld numbers</span>
+            <span className="text-sm font-semibold text-gray-900">{t('noWithheld')}</span>
           </label>
 
           {/* Other instructions */}
           <div>
-            <label className="block text-xs font-bold text-gray-800 mb-1">Other instructions</label>
+            <label className="block text-xs font-bold text-gray-800 mb-1">{t('otherInstructions')}</label>
             <textarea value={otherInstructions} onChange={e => setOtherInstructions(e.target.value)}
-              placeholder="Additional instructions..." rows={3}
+              placeholder={t('otherPlaceholder')} rows={3}
               className={inputCls + ' resize-none'} />
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Cancel</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('cancel')}</button>
           <button onClick={handleSave} disabled={saving}
             className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed">
             <Save className="w-4 h-4" />
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('saving') : t('save')}
           </button>
         </div>
       </div>

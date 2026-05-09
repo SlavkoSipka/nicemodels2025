@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/layout/Navbar'
 import { Building2, Search, ChevronDown, MapPin } from 'lucide-react'
@@ -30,6 +31,7 @@ interface Club {
 }
 
 export default function ClubsPageClient() {
+  const t = useTranslations('clubs.list')
   const [loading, setLoading] = useState(true)
   const [clubs, setClubs] = useState<Club[]>([])
   const [selectedArea, setSelectedArea] = useState<string>('all')
@@ -164,15 +166,15 @@ export default function ClubsPageClient() {
 
           {/* Breadcrumb */}
           <div className="text-sm text-gray-400 mb-4 flex items-center gap-1">
-            <Link href="/" className="hover:text-gray-700 transition-colors">Home</Link>
+            <Link href="/" className="hover:text-gray-700 transition-colors">{t('breadcrumbHome')}</Link>
             <span>›</span>
-            <span className="text-gray-600 font-medium">Clubs</span>
+            <span className="text-gray-600 font-medium">{t('breadcrumbClubs')}</span>
           </div>
 
           {/* Title */}
           <h1 className="text-3xl font-bold text-slate-900 mb-5 flex items-center gap-2">
             <Building2 className="w-8 h-8 text-gray-400" />
-            Clubs
+            {t('title')}
           </h1>
           <hr className="border-gray-200 mb-6" />
 
@@ -182,7 +184,7 @@ export default function ClubsPageClient() {
               onClick={() => setSelectedArea('all')}
               className={`text-left py-0.5 ${selectedArea === 'all' ? 'text-slate-900 font-semibold' : 'text-gray-400 hover:text-gray-700'}`}
             >
-              All areas ({clubs.length})
+              {t('allAreasCount', { count: clubs.length })}
             </button>
             {allAreas.map((area) => (
               <button
@@ -207,7 +209,7 @@ export default function ClubsPageClient() {
                 className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:border-gray-400 transition-colors min-w-[140px]"
               >
                 <MapPin className="w-4 h-4 text-brand" />
-                <span>{selectedArea === 'all' ? 'All areas' : selectedArea}</span>
+                <span>{selectedArea === 'all' ? t('allAreas') : selectedArea}</span>
                 <ChevronDown className="w-4 h-4 ml-auto text-gray-400" />
               </button>
               {areaOpen && (
@@ -216,7 +218,7 @@ export default function ClubsPageClient() {
                     onClick={() => { setSelectedArea('all'); setAreaOpen(false) }}
                     className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                   >
-                    All areas ({clubs.length})
+                    {t('allAreasCount', { count: clubs.length })}
                   </button>
                   {allAreas.map((area) => (
                     <button
@@ -236,7 +238,7 @@ export default function ClubsPageClient() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by Name"
+                placeholder={t('searchByName')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand/30 transition-all"
@@ -254,9 +256,9 @@ export default function ClubsPageClient() {
             <div className="ml-auto flex items-baseline gap-2">
               <span className="text-lg font-bold text-slate-900">{filtered.length.toLocaleString()}</span>
               <span className="text-sm text-slate-600 font-medium">
-                {filtered.length === 1 ? 'club' : 'clubs'}
+                {filtered.length === 1 ? t('club') : t('clubs')}
                 {filtered.length !== clubs.length && (
-                  <span className="text-slate-400"> of {clubs.length.toLocaleString()}</span>
+                  <span className="text-slate-400"> {t('ofTotal', { total: clubs.length.toLocaleString() })}</span>
                 )}
               </span>
             </div>
@@ -266,8 +268,8 @@ export default function ClubsPageClient() {
           {filtered.length === 0 ? (
             <div className="py-20 text-center">
               <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-gray-700 mb-1">No clubs found</h3>
-              <p className="text-gray-500 text-sm">Try adjusting your filters.</p>
+              <h3 className="text-xl font-bold text-gray-700 mb-1">{t('noClubsFound')}</h3>
+              <p className="text-gray-500 text-sm">{t('tryAdjustingFilters')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -313,14 +315,14 @@ export default function ClubsPageClient() {
                       </p>
                     ) : (
                       <p className="text-gray-500 text-sm leading-relaxed line-clamp-3 mb-3">
-                        Professional {club.is_club ? 'club' : 'escort agency'} in Switzerland.
+                        {club.is_club ? t('professionalDescClub') : t('professionalDescAgency')}
                       </p>
                     )}
                     {/* Tags: category + location in blue */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                       <span className="flex items-center gap-1.5 text-blue-600 font-medium">
                         <Building2 className="w-4 h-4 shrink-0" />
-                        {club.is_club ? 'Club' : 'Agency'}
+                        {club.is_club ? t('tagClub') : t('tagAgency')}
                       </span>
                       {(club.area || club.city) && (
                         <span className="flex items-center gap-1.5 text-blue-600 font-medium">

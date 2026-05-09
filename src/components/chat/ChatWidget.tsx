@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { MessageCircle, X, Search, Circle } from 'lucide-react';
 import MiniChatWindow from './MiniChatWindow';
@@ -36,6 +37,8 @@ interface OpenChat {
 }
 
 export default function ChatWidget() {
+  const tw = useTranslations('components.chat.widget');
+  const tc = useTranslations('publicPages.chat');
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'conversations' | 'online'>('conversations');
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -79,7 +82,7 @@ export default function ChatWidget() {
 
         const otherUser: OnlineUser = {
           id: modelId,
-          username: modelName || 'Model',
+          username: modelName || tw('modelFallback'),
           role: 'model',
           photo_url: modelPhoto || null,
         };
@@ -110,7 +113,7 @@ export default function ChatWidget() {
       window.removeEventListener('open-chat-with-model', handleOpenWithModel);
       window.removeEventListener('chat-available-changed', handleChatAvailableChanged);
     };
-  }, [currentUserId]);
+  }, [currentUserId, supabase, tw]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -487,7 +490,7 @@ export default function ChatWidget() {
     if (days === 0) {
       return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } else if (days === 1) {
-      return 'Yesterday';
+      return tw('yesterday');
     } else if (days < 7) {
       return date.toLocaleDateString('en-US', { weekday: 'short' });
     } else {
@@ -530,7 +533,7 @@ export default function ChatWidget() {
           <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-white p-4 rounded-t-2xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MessageCircle className="w-5 h-5" />
-              <span className="font-bold">Chat</span>
+              <span className="font-bold">{tw('title')}</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
@@ -550,7 +553,7 @@ export default function ChatWidget() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Conversations ({conversations.length})
+              {tw('conversations', { count: conversations.length })}
             </button>
             <button
               onClick={() => setActiveTab('online')}
@@ -560,7 +563,7 @@ export default function ChatWidget() {
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Online Now ({onlineCount})
+              {tw('onlineNow', { count: onlineCount })}
             </button>
           </div>
 
@@ -570,7 +573,7 @@ export default function ChatWidget() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder={tw('searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 text-sm"
@@ -581,12 +584,12 @@ export default function ChatWidget() {
           {/* Content List */}
           <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="p-8 text-center text-gray-500">Loading...</div>
+              <div className="p-8 text-center text-gray-500">{tw('loading')}</div>
             ) : activeTab === 'conversations' ? (
               // Conversations Tab
               filteredConversations.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  {searchQuery ? 'No conversations found' : 'No conversations yet'}
+                  {searchQuery ? tw('noConversationsFound') : tw('noConversationsYet')}
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -630,14 +633,14 @@ export default function ChatWidget() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">
-                              {conversation.other_user.role === 'model' ? '💎 Model' : 
-                               conversation.other_user.role === 'company' ? '🏢 Agency' : 
-                               conversation.other_user.role === 'admin' ? '⚙️ Admin' : 
-                               '👤 User'}
+                              {conversation.other_user.role === 'model' ? tw('roleModel') :
+                               conversation.other_user.role === 'company' ? tw('roleAgency') :
+                               conversation.other_user.role === 'admin' ? tw('roleAdmin') :
+                               tw('roleUser')}
                             </span>
                           </div>
                           <p className="text-sm text-gray-600 truncate mt-1">
-                            {conversation.last_message_text || 'Start a conversation'}
+                            {conversation.last_message_text || tw('startConversation')}
                           </p>
                         </div>
 
@@ -656,7 +659,7 @@ export default function ChatWidget() {
               // Online Now Tab
               filteredOnlineUsers.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  {searchQuery ? 'No online users found' : 'No users online right now'}
+                  {searchQuery ? tw('noOnlineFound') : tw('noOnlineNow')}
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100">
@@ -690,14 +693,14 @@ export default function ChatWidget() {
                         </div>
                         <div className="text-xs text-green-600 flex items-center gap-1">
                           <Circle className="w-2 h-2 fill-green-600" />
-                          Online
+                          {tc('online')}
                         </div>
                       </div>
 
                       {/* Role Badge */}
                       <div className="flex-shrink-0">
                         <span className="text-xs px-2 py-1 bg-pink-100 text-pink-700 rounded-full font-medium">
-                          {user.role === 'model' ? '💎 Model' : user.role === 'company' ? '🏢 Club' : user.role}
+                          {user.role === 'model' ? tw('roleModel') : user.role === 'company' ? tw('roleClub') : user.role}
                         </span>
                       </div>
                     </button>
@@ -711,7 +714,7 @@ export default function ChatWidget() {
           <div className="p-3 border-t border-gray-200 text-center">
             <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
               <Circle className="w-2 h-2 fill-green-500 text-green-500" />
-              <span>You are available to chat</span>
+              <span>{tw('availableToChat')}</span>
             </div>
           </div>
         </div>

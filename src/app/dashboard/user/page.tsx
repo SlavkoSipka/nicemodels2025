@@ -1,11 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { LayoutDashboard, Heart, MessageSquare, Home, Search as SearchIcon, XCircle, Mail } from 'lucide-react'
 import Link from 'next/link'
 import InYourAreaSection from '@/components/dashboard/InYourAreaSection'
 
 export default async function UserDashboard() {
   const supabase = await createClient()
+  const t = await getTranslations('dashboard.user.home')
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -30,9 +32,9 @@ export default async function UserDashboard() {
               <div className="flex items-start gap-2.5 md:gap-3">
                 <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-red-800 mb-1">Account suspended</p>
+                  <p className="text-sm font-bold text-red-800 mb-1">{t('accountSuspended')}</p>
                   <p className="text-xs md:text-sm text-red-700">
-                    Your account has been suspended by our administration team.
+                    {t('suspendedMessage')}
                     {profile?.blocked_reason && <span className="block mt-1 font-medium">{profile.blocked_reason}</span>}
                   </p>
                   {profile?.blocked_at && (
@@ -41,15 +43,15 @@ export default async function UserDashboard() {
                     </p>
                   )}
                   <div className="mt-2 md:mt-3 text-[11px] md:text-xs text-red-700 space-y-0.5">
-                    <p>· You cannot post comments or reviews</p>
-                    <p>· You cannot send messages</p>
-                    <p>· Your favorites and saved searches are paused</p>
+                    <p>{t('suspendedNoComments')}</p>
+                    <p>{t('suspendedNoMessages')}</p>
+                    <p>{t('suspendedFavoritesPaused')}</p>
                   </div>
                   <a
                     href="mailto:info@nicemodels.ch?subject=Account Blocked - Appeal Request"
                     className="inline-flex items-center gap-1.5 mt-2.5 md:mt-3 text-[11px] md:text-xs font-semibold text-red-700 hover:text-red-900 underline underline-offset-2"
                   >
-                    <Mail className="w-3.5 h-3.5" /> Contact support to appeal
+                    <Mail className="w-3.5 h-3.5" /> {t('contactSupport')}
                   </a>
                 </div>
               </div>
@@ -63,9 +65,9 @@ export default async function UserDashboard() {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-base md:text-xl font-bold text-gray-900 truncate">
-                Welcome back, <span className="text-brand">{profile.username || 'User'}</span>
+                {t('welcomeBack')}<span className="text-brand">{profile.username || t('welcomeFallback')}</span>
               </h1>
-              <p className="text-[11px] md:text-xs text-gray-500 truncate">Here's what's happening with your account</p>
+              <p className="text-[11px] md:text-xs text-gray-500 truncate">{t('welcomeSubtitle')}</p>
             </div>
           </div>
 
@@ -81,8 +83,8 @@ export default async function UserDashboard() {
                 </div>
                 <span className="text-xl md:text-2xl font-bold text-gray-900">{favoritesCount || 0}</span>
               </div>
-              <p className="text-xs font-semibold text-gray-700">Favorites</p>
-              <p className="text-[11px] md:text-xs text-gray-400 truncate">Saved models & clubs</p>
+              <p className="text-xs font-semibold text-gray-700">{t('favorites')}</p>
+              <p className="text-[11px] md:text-xs text-gray-400 truncate">{t('favoritesHint')}</p>
             </Link>
 
             <Link
@@ -95,8 +97,8 @@ export default async function UserDashboard() {
                 </div>
                 <span className="text-xl md:text-2xl font-bold text-gray-900">{commentsCount || 0}</span>
               </div>
-              <p className="text-xs font-semibold text-gray-700">Comments</p>
-              <p className="text-[11px] md:text-xs text-gray-400 truncate">Your reviews</p>
+              <p className="text-xs font-semibold text-gray-700">{t('comments')}</p>
+              <p className="text-[11px] md:text-xs text-gray-400 truncate">{t('commentsHint')}</p>
             </Link>
 
             <Link
@@ -109,8 +111,8 @@ export default async function UserDashboard() {
                 </div>
                 <span className="text-xl md:text-2xl font-bold text-gray-900">{savedSearchCount || 0}</span>
               </div>
-              <p className="text-xs font-semibold text-gray-700">Saved searches</p>
-              <p className="text-[11px] md:text-xs text-gray-400 truncate">Alerts on matches</p>
+              <p className="text-xs font-semibold text-gray-700">{t('savedSearches')}</p>
+              <p className="text-[11px] md:text-xs text-gray-400 truncate">{t('savedSearchesHint')}</p>
             </Link>
 
             <Link
@@ -123,8 +125,8 @@ export default async function UserDashboard() {
                 </div>
                 <span className="text-xl md:text-2xl font-bold text-gray-900">{unreadCount || 0}</span>
               </div>
-              <p className="text-xs font-semibold text-gray-700">Inbox</p>
-              <p className="text-[11px] md:text-xs text-gray-400 truncate">Unread notifications</p>
+              <p className="text-xs font-semibold text-gray-700">{t('inbox')}</p>
+              <p className="text-[11px] md:text-xs text-gray-400 truncate">{t('inboxHint')}</p>
             </Link>
           </div>
 
@@ -133,7 +135,7 @@ export default async function UserDashboard() {
 
           {/* Quick Actions */}
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-            <p className="text-sm font-bold text-gray-800 mb-2.5 md:mb-3">Quick Actions</p>
+            <p className="text-sm font-bold text-gray-800 mb-2.5 md:mb-3">{t('quickActions')}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
               <Link href="/"
                 className="flex items-center gap-3 p-2.5 md:p-3 border border-gray-200 rounded-lg hover:border-brand hover:bg-brand/5 active:bg-brand/10 transition-colors group">
@@ -141,8 +143,8 @@ export default async function UserDashboard() {
                   <Home className="w-4 h-4 text-brand" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">Browse Models</p>
-                  <p className="text-[11px] md:text-xs text-gray-500 truncate">Discover new profiles</p>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">{t('browseModels')}</p>
+                  <p className="text-[11px] md:text-xs text-gray-500 truncate">{t('browseModelsHint')}</p>
                 </div>
               </Link>
 
@@ -152,8 +154,8 @@ export default async function UserDashboard() {
                   <Heart className="w-4 h-4 text-brand" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">View Favorites</p>
-                  <p className="text-[11px] md:text-xs text-gray-500 truncate">See your saved profiles</p>
+                  <p className="text-sm font-semibold text-gray-900 group-hover:text-brand">{t('viewFavorites')}</p>
+                  <p className="text-[11px] md:text-xs text-gray-500 truncate">{t('viewFavoritesHint')}</p>
                 </div>
               </Link>
             </div>
@@ -164,9 +166,9 @@ export default async function UserDashboard() {
             <div className="flex items-start gap-2.5 md:gap-3">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mt-1.5 shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-bold text-gray-900 mb-0.5">Account Status: <span className="text-emerald-600">Active</span></p>
+                <p className="text-sm font-bold text-gray-900 mb-0.5">{t('accountStatus')} <span className="text-emerald-600">{t('accountActive')}</span></p>
                 <p className="text-[11px] md:text-xs text-gray-500">
-                  Your account is ready to use. Browse models, save favorites, and leave reviews to help other users.
+                  {t('accountReady')}
                 </p>
               </div>
             </div>

@@ -1,0 +1,202 @@
+{
+  "en": {
+    "components": {
+      "richTextEditor": {
+        "defaultPlaceholder": "Start writing..."
+      },
+      "citySearch": {
+        "defaultPlaceholder": "Search city or postal code...",
+        "noResults": "No cities found"
+      },
+      "termsAcceptance": {
+        "accept": "I accept the <terms>terms and conditions (AGB)</terms> and the <privacy>privacy policy</privacy>."
+      }
+    },
+    "onboarding": {
+      "simplifiedClubModel": {
+        "title": "Add Model Profile",
+        "subtitle": "Create a basic profile for your model",
+        "note": "<b>Note:</b> This creates a basic profile that you can manage from your agency dashboard. You can edit and add more details later.",
+        "sectionBasic": "Basic Information",
+        "stageName": "Stage Name",
+        "stageNamePlaceholder": "e.g. Sophia",
+        "phoneNumber": "Phone Number",
+        "phonePlaceholder": "+41 xx xxx xx xx",
+        "age": "Age",
+        "agePlaceholder": "25",
+        "gender": "Gender",
+        "genderSelect": "Select gender",
+        "genderFemale": "Female",
+        "genderMale": "Male",
+        "genderTrans": "Trans",
+        "genderOther": "Other",
+        "nationality": "Nationality",
+        "nationalityPlaceholder": "e.g. Swiss, Brazilian",
+        "city": "City",
+        "cityPlaceholder": "e.g. Zurich",
+        "heightCm": "Height (cm)",
+        "heightPlaceholder": "170",
+        "weightKg": "Weight (kg)",
+        "weightPlaceholder": "60",
+        "aboutMeOptional": "About Me (Optional)",
+        "aboutPlaceholder": "Brief description about the model...",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "createProfile": "Create Profile",
+        "errStageName": "Stage name is required",
+        "errGeneric": "Failed to create model profile",
+        "successAlert": "Model profile created successfully! You can now edit it from the Manage Models page."
+      }
+    }
+  },
+  "de": {
+    "components": {
+      "richTextEditor": {
+        "defaultPlaceholder": "Beginnen Sie zu schreiben …"
+      },
+      "citySearch": {
+        "defaultPlaceholder": "Stadt oder PLZ suchen …",
+        "noResults": "Keine Städte gefunden"
+      },
+      "termsAcceptance": {
+        "accept": "Ich akzeptiere die <terms>AGB / Nutzungsbedingungen</terms> und die <privacy>Datenschutzerklärung</privacy>."
+      }
+    },
+    "onboarding": {
+      "simplifiedClubModel": {
+        "title": "Modelprofil hinzufügen",
+        "subtitle": "Legen Sie ein Basisprofil für Ihr Model an",
+        "note": "<b>Hinweis:</b> Es wird ein Basisprofil erstellt, das Sie im Agentur-Dashboard verwalten können. Weitere Details können Sie später ergänzen.",
+        "sectionBasic": "Grunddaten",
+        "stageName": "Künstlername",
+        "stageNamePlaceholder": "z. B. Sophia",
+        "phoneNumber": "Telefonnummer",
+        "phonePlaceholder": "+41 xx xxx xx xx",
+        "age": "Alter",
+        "agePlaceholder": "25",
+        "gender": "Geschlecht",
+        "genderSelect": "Geschlecht wählen",
+        "genderFemale": "Weiblich",
+        "genderMale": "Männlich",
+        "genderTrans": "Trans",
+        "genderOther": "Andere",
+        "nationality": "Nationalität",
+        "nationalityPlaceholder": "z. B. Schweiz, Brasilianisch",
+        "city": "Stadt",
+        "cityPlaceholder": "z. B. Zürich",
+        "heightCm": "Grösse (cm)",
+        "heightPlaceholder": "170",
+        "weightKg": "Gewicht (kg)",
+        "weightPlaceholder": "60",
+        "aboutMeOptional": "Über mich (optional)",
+        "aboutPlaceholder": "Kurze Beschreibung des Models …",
+        "cancel": "Abbrechen",
+        "creating": "Wird erstellt …",
+        "createProfile": "Profil erstellen",
+        "errStageName": "Künstlername ist erforderlich",
+        "errGeneric": "Modelprofil konnte nicht erstellt werden",
+        "successAlert": "Modelprofil wurde erstellt! Sie können es unter „Models verwalten“ bearbeiten."
+      }
+    }
+  },
+  "fr": {
+    "components": {
+      "richTextEditor": {
+        "defaultPlaceholder": "Commencez à écrire…"
+      },
+      "citySearch": {
+        "defaultPlaceholder": "Rechercher ville ou code postal…",
+        "noResults": "Aucune ville trouvée"
+      },
+      "termsAcceptance": {
+        "accept": "J’accepte les <terms>conditions générales (CGU)</terms> et la <privacy>politique de confidentialité</privacy>."
+      }
+    },
+    "onboarding": {
+      "simplifiedClubModel": {
+        "title": "Ajouter un profil mannequin",
+        "subtitle": "Créez un profil de base pour votre mannequin",
+        "note": "<b>Remarque :</b> un profil de base est créé, que vous pourrez gérer depuis le tableau de bord agence. Vous pourrez ajouter des détails plus tard.",
+        "sectionBasic": "Informations de base",
+        "stageName": "Nom de scène",
+        "stageNamePlaceholder": "ex. Sophia",
+        "phoneNumber": "Téléphone",
+        "phonePlaceholder": "+41 xx xxx xx xx",
+        "age": "Âge",
+        "agePlaceholder": "25",
+        "gender": "Genre",
+        "genderSelect": "Choisir le genre",
+        "genderFemale": "Femme",
+        "genderMale": "Homme",
+        "genderTrans": "Trans",
+        "genderOther": "Autre",
+        "nationality": "Nationalité",
+        "nationalityPlaceholder": "ex. Suisse, Brésilienne",
+        "city": "Ville",
+        "cityPlaceholder": "ex. Zurich",
+        "heightCm": "Taille (cm)",
+        "heightPlaceholder": "170",
+        "weightKg": "Poids (kg)",
+        "weightPlaceholder": "60",
+        "aboutMeOptional": "À propos (facultatif)",
+        "aboutPlaceholder": "Brève description du mannequin…",
+        "cancel": "Annuler",
+        "creating": "Création en cours…",
+        "createProfile": "Créer le profil",
+        "errStageName": "Le nom de scène est obligatoire",
+        "errGeneric": "Impossible de créer le profil",
+        "successAlert": "Profil créé ! Vous pouvez le modifier depuis la page Gérer les mannequins."
+      }
+    }
+  },
+  "es": {
+    "components": {
+      "richTextEditor": {
+        "defaultPlaceholder": "Empieza a escribir…"
+      },
+      "citySearch": {
+        "defaultPlaceholder": "Buscar ciudad o código postal…",
+        "noResults": "No se encontraron ciudades"
+      },
+      "termsAcceptance": {
+        "accept": "Acepto los <terms>términos y condiciones (AGB)</terms> y la <privacy>política de privacidad</privacy>."
+      }
+    },
+    "onboarding": {
+      "simplifiedClubModel": {
+        "title": "Añadir perfil de modelo",
+        "subtitle": "Crea un perfil básico para tu modelo",
+        "note": "<b>Nota:</b> Se crea un perfil básico que podrás gestionar desde el panel de la agencia. Podrás añadir más datos después.",
+        "sectionBasic": "Información básica",
+        "stageName": "Nombre artístico",
+        "stageNamePlaceholder": "p. ej. Sophia",
+        "phoneNumber": "Teléfono",
+        "phonePlaceholder": "+41 xx xxx xx xx",
+        "age": "Edad",
+        "agePlaceholder": "25",
+        "gender": "Género",
+        "genderSelect": "Seleccionar género",
+        "genderFemale": "Mujer",
+        "genderMale": "Hombre",
+        "genderTrans": "Trans",
+        "genderOther": "Otro",
+        "nationality": "Nacionalidad",
+        "nationalityPlaceholder": "p. ej. Suiza, brasileña",
+        "city": "Ciudad",
+        "cityPlaceholder": "p. ej. Zurich",
+        "heightCm": "Altura (cm)",
+        "heightPlaceholder": "170",
+        "weightKg": "Peso (kg)",
+        "weightPlaceholder": "60",
+        "aboutMeOptional": "Sobre mí (opcional)",
+        "aboutPlaceholder": "Breve descripción del modelo…",
+        "cancel": "Cancelar",
+        "creating": "Creando…",
+        "createProfile": "Crear perfil",
+        "errStageName": "El nombre artístico es obligatorio",
+        "errGeneric": "No se pudo crear el perfil",
+        "successAlert": "¡Perfil creado! Puedes editarlo en la página Gestionar modelos."
+      }
+    }
+  }
+}

@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Upload, X, Loader2, Clock, Trash2, Camera, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function UploadStoryPage() {
+  const t = useTranslations('dashboard.model.story');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [duration, setDuration] = useState(5);
@@ -35,7 +37,7 @@ export default function UploadStoryPage() {
   }
 
   async function deleteStory(story: any) {
-    if (!confirm('Delete this story?')) return;
+    if (!confirm(t('deleteConfirm'))) return;
     setDeletingId(story.id);
     try {
       await supabase.from('model_stories').delete().eq('id', story.id);
@@ -47,10 +49,10 @@ export default function UploadStoryPage() {
 
   function timeLeft(expiresAt: string) {
     const diff = new Date(expiresAt).getTime() - Date.now();
-    if (diff <= 0) return 'Expired';
+    if (diff <= 0) return t('expired');
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
-    return h > 0 ? `${h}h ${m}m left` : `${m}m left`;
+    return h > 0 ? t('hLeft', { h, m }) : t('mLeft', { m });
   }
 
   function storyMediaUrl(path: string) {
@@ -60,8 +62,8 @@ export default function UploadStoryPage() {
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) { setError('Please select an image or video file'); return; }
-    if (file.size > 50 * 1024 * 1024) { setError('File size must be less than 50MB'); return; }
+    if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) { setError(t('selectImageOrVideo')); return; }
+    if (file.size > 50 * 1024 * 1024) { setError(t('fileTooLarge')); return; }
     setSelectedFile(file); setError('');
     setPreviewUrl(URL.createObjectURL(file));
   }
@@ -75,27 +77,27 @@ export default function UploadStoryPage() {
     setUploading(true); setError(''); setSuccess('');
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setError('You must be logged in'); return; }
+      if (!user) { setError(t('mustBeLoggedIn')); return; }
       const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-      if (profile?.role !== 'model') { setError('Only models can upload stories'); return; }
+      if (profile?.role !== 'model') { setError(t('onlyModels')); return; }
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       const mediaType = selectedFile.type.startsWith('image/') ? 'image' : 'video';
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('model-stories').upload(fileName, selectedFile, { cacheControl: '3600', upsert: false });
-      if (uploadError) { setError('Failed to upload file: ' + uploadError.message); return; }
+      if (uploadError) { setError(t('uploadFailed') + uploadError.message); return; }
       const { error: dbError } = await supabase.from('model_stories').insert({
         model_id: user.id, media_type: mediaType, media_url: uploadData.path,
         duration: mediaType === 'image' ? duration : null,
       });
       if (dbError) {
         await supabase.storage.from('model-stories').remove([fileName]);
-        setError('Failed to create story: ' + dbError.message); return;
+        setError(t('createFailed') + dbError.message); return;
       }
       clearSelection(); await loadActiveStories();
-      setSuccess('Story uploaded successfully!');
+      setSuccess(t('uploadSuccess'));
       setTimeout(() => setSuccess(''), 3000);
-    } catch { setError('An unexpected error occurred'); }
+    } catch { setError(t('unexpectedError')); }
     finally { setUploading(false); }
   }
 
@@ -111,11 +113,11 @@ export default function UploadStoryPage() {
               <Camera className="w-4 h-4 text-brand" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Upload Story</h1>
-              <p className="text-xs text-gray-500">Share a photo or video visible for 24 hours</p>
+              <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
+              <p className="text-xs text-gray-500">{t('subtitle')}</p>
             </div>
           </div>
-          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">Back</button>
+          <button onClick={() => router.back()} className="text-sm font-semibold text-gray-600 hover:text-gray-900">{t('back')}</button>
         </div>
 
         {error && (
@@ -137,8 +139,8 @@ export default function UploadStoryPage() {
             <label className="block cursor-pointer">
               <div className="border-2 border-dashed border-gray-200 rounded-lg p-10 text-center hover:border-brand hover:bg-brand/5 transition-colors">
                 <Upload className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm font-semibold text-gray-700 mb-1">Click to upload</p>
-                <p className="text-xs text-gray-400">Image or Video (max 50MB)</p>
+                <p className="text-sm font-semibold text-gray-700 mb-1">{t('clickToUpload')}</p>
+                <p className="text-xs text-gray-400">{t('imageOrVideo')}</p>
               </div>
               <input type="file" accept="image/*,video/*" onChange={handleFileSelect} className="hidden" />
             </label>
@@ -156,21 +158,21 @@ export default function UploadStoryPage() {
               </div>
               {fileType === 'image' && (
                 <div>
-                  <label className="block text-xs font-bold text-gray-800 mb-1">Display Duration</label>
+                  <label className="block text-xs font-bold text-gray-800 mb-1">{t('displayDuration')}</label>
                   <select value={duration} onChange={e => setDuration(Number(e.target.value))}
                     className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand">
-                    <option value={3}>3 seconds</option>
-                    <option value={5}>5 seconds</option>
-                    <option value={7}>7 seconds</option>
-                    <option value={10}>10 seconds</option>
+                    <option value={3}>{t('seconds', { n: 3 })}</option>
+                    <option value={5}>{t('seconds', { n: 5 })}</option>
+                    <option value={7}>{t('seconds', { n: 7 })}</option>
+                    <option value={10}>{t('seconds', { n: 10 })}</option>
                   </select>
                 </div>
               )}
               <button onClick={handleUpload} disabled={uploading}
                 className="w-full py-2.5 bg-brand text-white rounded-lg font-bold text-sm hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                {uploading ? <><Loader2 className="w-4 h-4 animate-spin" />Uploading...</> : <><Upload className="w-4 h-4" />Post Story</>}
+                {uploading ? <><Loader2 className="w-4 h-4 animate-spin" />{t('uploading')}</> : <><Upload className="w-4 h-4" />{t('postStory')}</>}
               </button>
-              <p className="text-xs text-gray-400 text-center">Visible for 24 hours</p>
+              <p className="text-xs text-gray-400 text-center">{t('visibleFor24h')}</p>
             </div>
           )}
         </div>
@@ -179,15 +181,15 @@ export default function UploadStoryPage() {
         <div className="bg-white border border-gray-200 rounded-lg p-5">
           <div className="flex items-center gap-2 mb-3">
             <Clock className="w-4 h-4 text-brand" />
-            <p className="text-sm font-bold text-gray-800">Active stories</p>
+            <p className="text-sm font-bold text-gray-800">{t('activeStories')}</p>
             {!loadingStories && (
-              <span className="ml-auto text-xs text-gray-400">{activeStories.length} active</span>
+              <span className="ml-auto text-xs text-gray-400">{t('activeCount', { count: activeStories.length })}</span>
             )}
           </div>
           {loadingStories ? (
             <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-gray-300" /></div>
           ) : activeStories.length === 0 ? (
-            <p className="text-center text-xs text-gray-400 py-6">No active stories. Upload one above!</p>
+            <p className="text-center text-xs text-gray-400 py-6">{t('noActive')}</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {activeStories.map(story => (
@@ -202,7 +204,7 @@ export default function UploadStoryPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                   <div className="absolute top-2 left-2">
                     <span className="text-[10px] font-bold text-white bg-black/40 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
-                      {story.media_type === 'video' ? 'Video' : 'Photo'}
+                      {story.media_type === 'video' ? t('video') : t('photo')}
                     </span>
                   </div>
                   <button onClick={() => deleteStory(story)} disabled={deletingId === story.id}
