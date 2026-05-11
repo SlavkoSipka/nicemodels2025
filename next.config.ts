@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  compress: true,
+  reactStrictMode: true,
+  poweredByHeader: false,
+  // Tree-shake huge icon/chart libs so only the icons actually used end up in the bundle.
+  experimental: {
+    optimizePackageImports: [
+      'lucide-react',
+      'recharts',
+      '@supabase/ssr',
+      '@supabase/supabase-js',
+    ],
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200],
@@ -45,6 +57,19 @@ const nextConfig: NextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+      // Aggressive cache for static assets and Next image output.
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/_next/image(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' },
         ],
       },
     ]

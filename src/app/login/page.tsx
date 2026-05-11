@@ -32,13 +32,35 @@ function LoginFormInner() {
     setLoading(true)
     setError('')
 
+    const withTimeout = async (p: any, ms = 15000, label = 'request') => {
+      let timer: ReturnType<typeof setTimeout> | undefined
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+      })
+      try {
+        return await Promise.race([p, timeout])
+      } finally {
+        if (timer) clearTimeout(timer)
+      }
+    }
+
     try {
       const supabase = createClient()
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      // Clear any stale session (e.g. half-finished signup from another tab)
+      // so signInWithPassword starts from a clean state and won't hang on
+      // a broken token refresh.
+      try {
+        await withTimeout(supabase.auth.signOut({ scope: 'local' } as any), 5000, 'signOut')
+      } catch {
+        // non-fatal
+      }
+
+      const { data, error: authError } = (await withTimeout(
+        supabase.auth.signInWithPassword({ email, password }),
+        20000,
+        'signIn',
+      )) as Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>
 
       if (authError) {
         if (!authError.message.includes('Refresh Token Not Found')) {
@@ -46,14 +68,27 @@ function LoginFormInner() {
         }
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_completed, role')
-        .eq('id', data.user?.id)
-        .single()
+      const userId = data?.user?.id
+      if (!userId) {
+        setError(t('errorFailed'))
+        return
+      }
+
+      const { data: profile } = (await withTimeout(
+        supabase
+          .from('profiles')
+          .select('onboarding_completed, role')
+          .eq('id', userId)
+          .maybeSingle(),
+        15000,
+        'profile',
+      )) as { data: { onboarding_completed: boolean; role: string } | null }
 
       if (!profile) {
-        setError(t('errorProfileNotFound'))
+        // Profile row might not be ready yet right after first verification —
+        // send the user to onboarding which will recover on next page load.
+        router.push('/onboarding')
+        router.refresh()
         return
       }
 
@@ -61,18 +96,19 @@ function LoginFormInner() {
 
       if (profile.role === 'user') {
         try {
-          const { data: modelDetails } = await supabase
-            .from('model_details')
-            .select('model_id')
-            .eq('model_id', data.user?.id)
-            .maybeSingle()
+          const { data: modelDetails } = (await withTimeout(
+            supabase
+              .from('model_details')
+              .select('model_id')
+              .eq('model_id', userId)
+              .maybeSingle(),
+            10000,
+            'modelDetails',
+          )) as { data: { model_id: string } | null }
 
           if (modelDetails) {
             effectiveRole = 'model'
-            await supabase
-              .from('profiles')
-              .update({ role: 'model' })
-              .eq('id', data.user?.id)
+            await supabase.from('profiles').update({ role: 'model' }).eq('id', userId)
           }
         } catch (checkError) {
           console.error('Error checking model_details for role fix:', checkError)
@@ -96,8 +132,9 @@ function LoginFormInner() {
       }
       router.refresh()
     } catch (err: any) {
-      if (!err.message?.includes('Refresh Token Not Found')) {
-        setError(err.message || t('errorFailed'))
+      console.error('Login error:', err)
+      if (!err?.message?.includes('Refresh Token Not Found')) {
+        setError(err?.message || t('errorFailed'))
       }
     } finally {
       setLoading(false)

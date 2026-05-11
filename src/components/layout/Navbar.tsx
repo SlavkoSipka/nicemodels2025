@@ -7,8 +7,15 @@ import { Menu, X, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
-import ChatWidget from '@/components/chat/ChatWidget'
+import dynamic from 'next/dynamic'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+
+// Heavy widget: keep it out of the main bundle and only load after hydration
+// when the user is actually logged in.
+const ChatWidget = dynamic(() => import('@/components/chat/ChatWidget'), {
+  ssr: false,
+  loading: () => null,
+})
 
 export default function Navbar() {
   const router = useRouter()

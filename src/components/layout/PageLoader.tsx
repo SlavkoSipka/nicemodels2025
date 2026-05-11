@@ -15,9 +15,12 @@ interface LoaderCtx { show: () => void }
 const Ctx = createContext<LoaderCtx>({ show: () => {} })
 export function usePageLoader() { return useContext(Ctx) }
 
-const MIN_MS  = 420
-const MAX_MS  = 1400
-const FADE_MS = 280
+// Only show the loader if navigation is slow enough to be perceived.
+// Fast nav (under DELAY_MS) shows nothing -> feels instant.
+const DELAY_MS = 220
+const MIN_MS   = 220
+const MAX_MS   = 1200
+const FADE_MS  = 180
 
 export default function PageLoader({ children }: { children: React.ReactNode }) {
   const [visible,  setVisible]  = useState(false)
@@ -28,11 +31,13 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
   const startTime   = useRef(0)
   const maxTimer    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const minTimer    = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const showTimer   = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const pendingDismiss = useRef(false)
 
   const dismiss = useCallback(() => {
     clearTimeout(maxTimer.current)
     clearTimeout(minTimer.current)
+    clearTimeout(showTimer.current)
     setFadingOut(true)
     setTimeout(() => {
       setVisible(false)
@@ -44,16 +49,23 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
   const show = useCallback(() => {
     clearTimeout(maxTimer.current)
     clearTimeout(minTimer.current)
+    clearTimeout(showTimer.current)
     pendingDismiss.current = false
     startTime.current = Date.now()
-    setFadingOut(false)
-    setVisible(true)
-    maxTimer.current = setTimeout(dismiss, MAX_MS)
+    // Defer showing the overlay so fast navigations don't flash a loader at all.
+    showTimer.current = setTimeout(() => {
+      setFadingOut(false)
+      setVisible(true)
+      maxTimer.current = setTimeout(dismiss, MAX_MS)
+    }, DELAY_MS)
   }, [dismiss])
 
   useEffect(() => {
     if (pathname === prevPath.current) return
     prevPath.current = pathname
+
+    // Navigation finished. If overlay never got to show (fast page), cancel.
+    clearTimeout(showTimer.current)
     if (!visible) return
 
     const elapsed   = Date.now() - startTime.current

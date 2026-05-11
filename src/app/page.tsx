@@ -12,7 +12,8 @@ export default async function HomePage() {
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const now = new Date().toISOString()
 
-  // ── 1. Models with active ads ──
+  // Run every section in parallel instead of waiting for each phase sequentially.
+  const buildModels = async () => {
   const { data: modelsRaw } = await supabase.rpc('models_with_active_ads')
   const modelsData: any[] = modelsRaw ?? []
   const modelIds: string[] = modelsData.map((m: any) => m.id)
@@ -109,8 +110,10 @@ export default async function HomePage() {
       view_count: modelViewCountMap.get(m.id) ?? 0,
     }))
   }
+  return models
+  }
 
-  // ── 2. Clubs with active ads ──
+  const buildClubs = async () => {
   const { data: clubsRaw } = await supabase.rpc('clubs_with_active_ads')
   let clubs: any[] = []
   if (clubsRaw?.length) {
@@ -172,8 +175,10 @@ export default async function HomePage() {
     const clubViewCountMap = await fetchViewCounts(admin, 'club', clubIds2)
     clubs = clubs.map((c: any) => ({ ...c, view_count: clubViewCountMap.get(c.id) ?? 0 }))
   }
+  return clubs
+  }
 
-  // ── 3. Banners ──
+  const buildBanners = async () => {
   const { data: bannersRaw } = await supabase.from('banners').select('*')
     .eq('status', 'active')
     .or(`starts_at.is.null,starts_at.lte.${now}`)
@@ -202,8 +207,10 @@ export default async function HomePage() {
       placement: b.placement,
       target_cantons: b.target_cantons ?? null,
     }))
+  return banners
+  }
 
-  // ── 4. Job/Rent listings (active, not blocked, not expired) ──
+  const buildListings = async () => {
   const { data: listingsRaw } = await supabase.from('job_listings')
     .select('id, listing_type, title, location, club_id, created_at, description, country_code, phone_number, has_whatsapp, has_viber, has_telegram, email, website')
     .eq('status', 'active')
@@ -249,8 +256,10 @@ export default async function HomePage() {
       club_name: lProfileMap.get(l.club_id) || '',
     }))
   }
+  return listings
+  }
 
-  // ── 5. Status messages ──
+  const buildStatusMessages = async () => {
   const { data: statusRaw } = await admin.from('model_status_messages')
     .select('id, model_id, message, created_at')
     .eq('is_active', true).gt('expires_at', now)
@@ -275,8 +284,10 @@ export default async function HomePage() {
       model_photo: phMap.get(s.model_id) || null,
     }))
   }
+  return statusMessages
+  }
 
-  // ── 6. Chat models ──
+  const buildChatModels = async () => {
   const { data: chatRaw } = await admin.from('model_details')
     .select('model_id, showname, city').eq('chat_available', true).limit(10)
 
@@ -296,6 +307,17 @@ export default async function HomePage() {
       city: m.city || null, model_photo: cphMap.get(m.model_id) || null,
     }))
   }
+  return chatModels
+  }
+
+  const [models, clubs, banners, listings, statusMessages, chatModels] = await Promise.all([
+    buildModels(),
+    buildClubs(),
+    buildBanners(),
+    buildListings(),
+    buildStatusMessages(),
+    buildChatModels(),
+  ])
 
   return (
     <MixedHomeClient
