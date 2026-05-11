@@ -797,8 +797,8 @@ export default function ModelOnboardingForm() {
   const totalSteps = 1
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <form onSubmit={handleSubmit}>
+    <div className="max-w-3xl mx-auto w-full min-w-0 overflow-x-hidden">
+      <form onSubmit={handleSubmit} className="pb-2">
         {error && (
           <div className="bg-red-50 border-l-4 border-red-500 p-2.5 rounded-lg mb-4">
             <p className="text-sm text-red-700 font-medium">{error}</p>
@@ -850,11 +850,11 @@ export default function ModelOnboardingForm() {
               <label className="block text-xs font-bold text-gray-700 mb-1">
                 {t('s1.phone')} <span className="text-pink-600">*</span>
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch max-w-full">
                 <select
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-40 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 flex-shrink-0"
+                  className="w-full sm:w-36 md:w-40 min-w-0 px-2 sm:px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 sm:flex-shrink-0"
                 >
                   <option value="+41">🇨🇭 +41</option>
                   <option value="+49">🇩🇪 +49</option>
@@ -882,7 +882,7 @@ export default function ModelOnboardingForm() {
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder={t('s1.phonePh')}
-                  className="flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+                  className="w-full min-w-0 flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
                   required
                 />
               </div>
@@ -2206,7 +2206,7 @@ export default function ModelOnboardingForm() {
         )}
 
         {/* Navigation Buttons */}
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+        <div className="flex items-center justify-between gap-3 mt-6 pt-4 border-t border-gray-200">
           {currentStep > 1 ? (
             <button
               type="button"
