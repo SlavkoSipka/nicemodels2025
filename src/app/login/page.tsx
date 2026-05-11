@@ -47,15 +47,6 @@ function LoginFormInner() {
     try {
       const supabase = createClient()
 
-      // Clear any stale session (e.g. half-finished signup from another tab)
-      // so signInWithPassword starts from a clean state and won't hang on
-      // a broken token refresh.
-      try {
-        await withTimeout(supabase.auth.signOut({ scope: 'local' } as any), 5000, 'signOut')
-      } catch {
-        // non-fatal
-      }
-
       const { data, error: authError } = (await withTimeout(
         supabase.auth.signInWithPassword({ email, password }),
         20000,
