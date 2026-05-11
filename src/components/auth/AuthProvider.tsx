@@ -115,19 +115,29 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     let cancelled = false
     const supabase = createClient()
 
-    // Initial session read — local cookie/storage only, no network call.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (cancelled) return
-      const u = session?.user ?? null
-      setUser(u)
-      setIsLoading(false)
-      if (u && fetchedFor.current !== u.id) {
-        fetchedFor.current = u.id
-        loadProfile(u.id).catch(() => {})
-      }
-    })
+    // Hard failsafe: if getSession() never resolves (e.g. token refresh hangs
+    // on a flaky mobile network), force isLoading=false after 5s so consumers
+    // can move on instead of spinning forever.
+    const failsafe = setTimeout(() => {
+      if (!cancelled) setIsLoading(false)
+    }, 5000)
 
-    // Single source of truth for auth changes across the whole app.
+    // Initial session read — wraps in timeout so the failsafe is rarely needed.
+    withTimeout(supabase.auth.getSession(), 5000, 'getSession')
+      .then(({ data: { session } }) => {
+        if (cancelled) return
+        const u = session?.user ?? null
+        setUser(u)
+        setIsLoading(false)
+        if (u && fetchedFor.current !== u.id) {
+          fetchedFor.current = u.id
+          loadProfile(u.id).catch(() => {})
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null
       setUser(u)
@@ -147,6 +157,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     return () => {
       cancelled = true
+      clearTimeout(failsafe)
       subscription.unsubscribe()
     }
   }, [loadProfile])

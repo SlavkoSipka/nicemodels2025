@@ -40,12 +40,13 @@ export default function OnboardingPage() {
     setUserRole(profile.role || 'user')
   }, [authLoading, user, profile, router])
 
-  // If we have a user but no profile after 10s, mark stuck so the user can retry.
+  // If the page hasn't resolved (no role, no redirect) after 10s, surface
+  // the retry UI. Covers all stuck states: auth hanging, profile missing, etc.
   useEffect(() => {
-    if (authLoading || !user || profile) return
+    if (userRole) return
     const id = setTimeout(() => setStuckTooLong(true), 10000)
     return () => clearTimeout(id)
-  }, [authLoading, user, profile])
+  }, [userRole])
 
   const handleRetry = () => {
     setStuckTooLong(false)
