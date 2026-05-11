@@ -74,69 +74,17 @@ function LoginFormInner() {
         return
       }
 
-      const { data: profile } = (await withTimeout(
-        supabase
-          .from('profiles')
-          .select('onboarding_completed, role')
-          .eq('id', userId)
-          .maybeSingle(),
-        15000,
-        'profile',
-      )) as { data: { onboarding_completed: boolean; role: string } | null }
-
-      if (!profile) {
-        // Profile row might not be ready yet right after first verification —
-        // send the user to onboarding which will recover on next page load.
-        router.push('/onboarding')
-        router.refresh()
-        return
-      }
-
-      let effectiveRole = profile.role
-
-      if (profile.role === 'user') {
-        try {
-          const { data: modelDetails } = (await withTimeout(
-            supabase
-              .from('model_details')
-              .select('model_id')
-              .eq('model_id', userId)
-              .maybeSingle(),
-            10000,
-            'modelDetails',
-          )) as { data: { model_id: string } | null }
-
-          if (modelDetails) {
-            effectiveRole = 'model'
-            await supabase.from('profiles').update({ role: 'model' }).eq('id', userId)
-          }
-        } catch (checkError) {
-          console.error('Error checking model_details for role fix:', checkError)
-        }
-      }
-
-      const redirectUrl = searchParams.get('redirect')
-
-      if (redirectUrl) {
-        router.push(redirectUrl)
-      } else if (effectiveRole === 'admin') {
-        router.push('/dashboard/admin')
-      } else if (!profile?.onboarding_completed) {
-        router.push('/onboarding')
-      } else if (effectiveRole === 'model') {
-        router.push('/dashboard/model')
-      } else if (effectiveRole === 'company') {
-        router.push('/dashboard/company')
-      } else {
-        router.push('/dashboard')
-      }
-      router.refresh()
+      // Hard navigation guarantees the freshly-set auth cookies are sent to
+      // the server on the next request, and avoids any slow client-side
+      // profile fetch on mobile networks. /dashboard is a server component
+      // that redirects to the correct dashboard based on role/onboarding.
+      const redirectUrl = searchParams.get('redirect') || '/dashboard'
+      window.location.href = redirectUrl
     } catch (err: any) {
       console.error('Login error:', err)
       if (!err?.message?.includes('Refresh Token Not Found')) {
         setError(err?.message || t('errorFailed'))
       }
-    } finally {
       setLoading(false)
     }
   }
