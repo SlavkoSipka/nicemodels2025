@@ -79,8 +79,7 @@ export default function OnboardingPage() {
     <>
       <Navbar />
       <div className="h-dvh overflow-hidden bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 flex flex-col">
-        {/* Large pb (~100dvh + safe-area) so scroll can bring FINISH above fixed footer on phones */}
-        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[calc(100dvh+env(safe-area-inset-bottom,0px))] md:pb-40 flex justify-center min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[env(safe-area-inset-bottom,0px)] flex justify-center min-h-0">
           <div className="max-w-5xl w-full">
             <div className="text-center mb-3">
               <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 tracking-tight">
@@ -99,6 +98,9 @@ export default function OnboardingPage() {
               {userRole === 'company' && <CompanyOnboardingForm />}
               {userRole === 'user' && <UserOnboardingForm />}
             </div>
+
+            {/* Spacer so the bottom of the form (Finish button) can always scroll above the fixed footer on mobile */}
+            <div aria-hidden="true" className="h-[80dvh] md:h-40" />
           </div>
         </div>
         <OnboardingFooter />
