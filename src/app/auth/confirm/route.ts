@@ -34,16 +34,15 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/login?error=verification_failed`)
     }
 
-    // For signup we sign the user out immediately so they explicitly log in once
-    // (preserves the prior behavior). For recovery / email_change we keep the
-    // session so the user can update password / continue.
-    if (type === 'signup' || type === 'email') {
-      await supabase.auth.signOut()
-      const target = type === 'signup' ? '/login?verified=true' : '/login?email_changed=true'
-      return NextResponse.redirect(`${origin}${target}`)
+    // Keep the session active so the user continues in whichever browser
+    // opened the email link (important on mobile where Samsung/in-app
+    // browsers can't share session state with Chrome). The server route at
+    // /dashboard routes them to onboarding or to their role-specific
+    // dashboard, so we don't need to know the role here.
+    if (type === 'signup') {
+      return NextResponse.redirect(`${origin}/dashboard`)
     }
 
-    // recovery, magiclink, email_change — keep session and continue.
     const safeNext = next.startsWith('/') ? next : '/login'
     return NextResponse.redirect(`${origin}${safeNext}`)
   } catch (err) {

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
 import Navbar from '@/components/layout/Navbar'
 import ModelOnboardingForm from '@/components/onboarding/ModelOnboardingForm'
 import CompanyOnboardingForm from '@/components/onboarding/CompanyOnboardingForm'
@@ -13,50 +14,43 @@ import OnboardingFooter from '@/components/onboarding/OnboardingFooter'
 export default function OnboardingPage() {
   const router = useRouter()
   const t = useTranslations('onboarding')
+  const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [userRole, setUserRole] = useState<string | null>(null)
 
   useEffect(() => {
-    const checkUser = async () => {
+    if (authLoading) return
+    if (!user) { router.push('/login'); return }
+
+    let cancelled = false
+    const run = async () => {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-
-      if (!user) {
-        router.push('/login')
-        return
-      }
-
-      // Get user profile
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, onboarding_completed')
         .eq('id', user.id)
         .single()
 
-      // Regular users don't need onboarding, redirect to user dashboard
+      if (cancelled) return
+
       if (profile?.role === 'user') {
         router.push('/dashboard/user')
         return
       }
 
       if (profile?.onboarding_completed) {
-        // Already completed onboarding, redirect to dashboard
-        if (profile.role === 'model') {
-          router.push('/dashboard/model')
-        } else if (profile.role === 'company') {
-          router.push('/dashboard/company')
-        } else {
-          router.push('/dashboard')
-        }
+        if (profile.role === 'model') router.push('/dashboard/model')
+        else if (profile.role === 'company') router.push('/dashboard/company')
+        else router.push('/dashboard')
         return
       }
 
       setUserRole(profile?.role || 'user')
       setLoading(false)
     }
-
-    checkUser()
-  }, [router])
+    run()
+    return () => { cancelled = true }
+  }, [authLoading, user, router])
 
   if (loading) {
     return (
