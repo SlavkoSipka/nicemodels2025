@@ -24,6 +24,7 @@ interface AuthContextValue {
   user: User | null
   profile: AuthProfile | null
   isLoading: boolean
+  profileError: boolean
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -32,6 +33,7 @@ const AuthContext = createContext<AuthContextValue>({
   user: null,
   profile: null,
   isLoading: true,
+  profileError: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 })
@@ -40,25 +42,50 @@ export function useAuth() {
   return useContext(AuthContext)
 }
 
+function withTimeout<T>(p: Promise<T>, ms: number, label = 'request'): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<T>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+  })
+  return Promise.race([p, timeout]).finally(() => {
+    if (timer) clearTimeout(timer)
+  })
+}
+
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<AuthProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [profileError, setProfileError] = useState(false)
   const fetchedFor = useRef<string | null>(null)
 
   const loadProfile = useCallback(async (uid: string) => {
     const supabase = createClient()
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, username, role, avatar_url, onboarding_completed')
-      .eq('id', uid)
-      .maybeSingle()
-    if (data) setProfile(data as AuthProfile)
+    try {
+      const { data } = await withTimeout(
+        supabase
+          .from('profiles')
+          .select('id, username, role, avatar_url, onboarding_completed')
+          .eq('id', uid)
+          .maybeSingle(),
+        8000,
+        'loadProfile',
+      )
+      if (data) {
+        setProfile(data as AuthProfile)
+        setProfileError(false)
+      } else {
+        setProfileError(true)
+      }
+    } catch {
+      setProfileError(true)
+    }
   }, [])
 
   const refreshProfile = useCallback(async () => {
     if (!user?.id) return
     fetchedFor.current = null
+    setProfileError(false)
     await loadProfile(user.id)
     fetchedFor.current = user.id
   }, [user?.id, loadProfile])
@@ -72,6 +99,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }
     setUser(null)
     setProfile(null)
+    setProfileError(false)
     fetchedFor.current = null
     if (typeof window !== 'undefined') {
       try {
@@ -124,8 +152,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, [loadProfile])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, profile, isLoading, signOut, refreshProfile }),
-    [user, profile, isLoading, signOut, refreshProfile],
+    () => ({ user, profile, isLoading, profileError, signOut, refreshProfile }),
+    [user, profile, isLoading, profileError, signOut, refreshProfile],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
