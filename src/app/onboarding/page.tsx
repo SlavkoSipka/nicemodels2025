@@ -62,8 +62,8 @@ export default function OnboardingPage() {
     return (
       <>
         <Navbar />
-        <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50">
-          <div className="flex-1 flex items-center justify-center px-4 py-6 pb-[calc(70dvh+env(safe-area-inset-bottom,0px))] md:pb-40">
+        <div className="h-dvh overflow-hidden flex flex-col bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50">
+          <div className="flex-1 flex items-center justify-center px-4 py-6 pb-[calc(100dvh+env(safe-area-inset-bottom,0px))] md:pb-40">
             <div className="text-center bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl px-8 py-10 max-w-md w-full">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-pink-600 mx-auto"></div>
               <p className="mt-4 text-sm text-gray-600">{t('preparing')}</p>
@@ -78,9 +78,9 @@ export default function OnboardingPage() {
   return (
     <>
       <Navbar />
-      <div className="h-screen overflow-hidden bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 flex flex-col">
-        {/* Large pb (~70dvh + safe-area) so scroll can bring FINISH above fixed footer on phones */}
-        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[calc(70dvh+env(safe-area-inset-bottom,0px))] md:pb-40 flex justify-center min-h-0">
+      <div className="h-dvh overflow-hidden bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 flex flex-col">
+        {/* Large pb (~100dvh + safe-area) so scroll can bring FINISH above fixed footer on phones */}
+        <div className="flex-1 overflow-y-auto px-4 pt-4 pb-[calc(100dvh+env(safe-area-inset-bottom,0px))] md:pb-40 flex justify-center min-h-0">
           <div className="max-w-5xl w-full">
             <div className="text-center mb-3">
               <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 tracking-tight">
