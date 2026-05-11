@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Loader2, MapPin, X, Radar } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 
 const CANTON_NAMES: Record<string, string> = {
@@ -36,6 +37,7 @@ interface NearbyFilterProps {
 const RADII = [20, 50, 100] as const
 
 export default function NearbyFilter({ value, onChange, matchCount, className = '', compact }: NearbyFilterProps) {
+  const t = useTranslations('components.nearbyFilter')
   const [query, setQuery] = useState(value.originCity || '')
   const [results, setResults] = useState<CityResult[]>([])
   const [open, setOpen] = useState(false)
@@ -102,7 +104,7 @@ export default function NearbyFilter({ value, onChange, matchCount, className = 
     <div ref={wrapRef} className={`flex flex-wrap items-center gap-2 ${className}`}>
       <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-500">
         <Radar className="w-3.5 h-3.5 text-violet-500" />
-        {compact ? 'Nearby' : 'Nearby search'}
+        {compact ? t('labelShort') : t('label')}
       </div>
 
       {/* Origin picker */}
@@ -113,7 +115,7 @@ export default function NearbyFilter({ value, onChange, matchCount, className = 
           value={query}
           onChange={e => handleInput(e.target.value)}
           onFocus={() => setOpen(true)}
-          placeholder="City or postal code"
+          placeholder={t('placeholder')}
           className={`pl-8 pr-7 py-1.5 text-xs rounded-lg border outline-none w-[180px] sm:w-[200px] transition-colors ${
             active ? 'border-violet-400 bg-violet-50 text-violet-800 font-semibold' : 'border-slate-200 bg-white text-slate-700'
           }`}
@@ -140,7 +142,7 @@ export default function NearbyFilter({ value, onChange, matchCount, className = 
               </button>
             ))}
             {!loading && results.length === 0 && query.length >= 1 && (
-              <div className="px-3 py-2 text-xs text-slate-400">No cities match “{query}”</div>
+              <div className="px-3 py-2 text-xs text-slate-400">{t('noMatches', { query })}</div>
             )}
           </div>
         )}
@@ -172,7 +174,7 @@ export default function NearbyFilter({ value, onChange, matchCount, className = 
 
       {active && matchCount !== null && matchCount !== undefined && (
         <span className="text-[11px] text-slate-500 font-medium">
-          {matchCount} in {value.radiusKm}km
+          {t('matchCount', { count: matchCount, radius: value.radiusKm ?? 0 })}
         </span>
       )}
     </div>

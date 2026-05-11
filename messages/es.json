@@ -3476,6 +3476,13 @@
     }
   },
   "components": {
+    "nearbyFilter": {
+      "label": "Búsqueda cercana",
+      "labelShort": "Cerca",
+      "placeholder": "Ciudad o código postal",
+      "noMatches": "Ninguna ciudad coincide con “{query}”",
+      "matchCount": "{count} en {radius} km"
+    },
     "modelRegistration": {
       "wizard": {
         "completeNotice": "¡Registro completado! (Integración con backend pendiente)"

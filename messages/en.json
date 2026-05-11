@@ -3476,6 +3476,13 @@
     }
   },
   "components": {
+    "nearbyFilter": {
+      "label": "Nearby search",
+      "labelShort": "Nearby",
+      "placeholder": "City or postal code",
+      "noMatches": "No cities match “{query}”",
+      "matchCount": "{count} in {radius}km"
+    },
     "modelRegistration": {
       "wizard": {
         "completeNotice": "Registration completed! (Backend integration pending)"
