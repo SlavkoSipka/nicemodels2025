@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 // Heavy widget: keep it out of the main bundle and only load after hydration
 // when the user is actually logged in.
@@ -22,45 +22,10 @@ export default function Navbar() {
   const pathname = usePathname()
   const t = useTranslations('nav')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        setUser(user)
-        
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('username, role, avatar_url')
-          .eq('id', user.id)
-          .single()
-        
-        setProfile(profileData)
-      }
-    }
-    
-    checkUser()
-  }, [])
+  const { user, profile, signOut } = useAuth()
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.clear()
-        window.sessionStorage.clear()
-      } catch (e) {
-        console.error('Error clearing storage on logout:', e)
-      }
-    }
-
-    setUser(null)
-    setProfile(null)
+    await signOut()
     router.push('/')
     router.refresh()
   }

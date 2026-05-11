@@ -4,6 +4,7 @@ import "./globals.css";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import PageLoader from "@/components/layout/PageLoader";
 import PageTracker from "@/components/analytics/PageTracker";
+import AuthProvider from "@/components/auth/AuthProvider";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -130,13 +131,15 @@ export default async function RootLayout({
       </head>
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <PageLoader>
-            <ScrollToTop />
-            <Suspense fallback={null}>
-              <PageTracker />
-            </Suspense>
-            {children}
-          </PageLoader>
+          <AuthProvider>
+            <PageLoader>
+              <ScrollToTop />
+              <Suspense fallback={null}>
+                <PageTracker />
+              </Suspense>
+              {children}
+            </PageLoader>
+          </AuthProvider>
         </NextIntlClientProvider>
       </body>
     </html>

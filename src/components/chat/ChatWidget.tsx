@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { MessageCircle, X, Search, Circle } from 'lucide-react';
 import MiniChatWindow from './MiniChatWindow';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface Conversation {
   id: string;
@@ -43,7 +44,8 @@ export default function ChatWidget() {
   const [activeTab, setActiveTab] = useState<'conversations' | 'online'>('conversations');
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.id ?? null;
   const [shouldTrackPresence, setShouldTrackPresence] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -53,12 +55,17 @@ export default function ChatWidget() {
   const supabase = createClient();
 
   useEffect(() => {
+    if (!currentUserId) {
+      setLoading(false);
+      return;
+    }
     const init = async () => {
-      await loadUser();
-      await loadConversations();
+      await loadUser(currentUserId);
+      await loadConversations(currentUserId);
     };
     init();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId]);
 
   // Listen for external events (from AvailableForChat sidebar widget)
   useEffect(() => {
@@ -169,17 +176,11 @@ export default function ChatWidget() {
     };
   }, [currentUserId, shouldTrackPresence]);
 
-  async function loadUser() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    setCurrentUserId(user.id);
-
-    // Check role and chat_available flag for models
+  async function loadUser(userId: string) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', user.id)
+      .eq('id', userId)
       .single();
 
     let trackable = true;
@@ -187,7 +188,7 @@ export default function ChatWidget() {
       const { data: details } = await supabase
         .from('model_details')
         .select('chat_available')
-        .eq('model_id', user.id)
+        .eq('model_id', userId)
         .single();
       trackable = details?.chat_available === true;
     }
@@ -197,7 +198,7 @@ export default function ChatWidget() {
     await supabase
       .from('online_status')
       .upsert({
-        user_id: user.id,
+        user_id: userId,
         is_online: trackable,
         is_available_for_chat: trackable,
         last_seen_at: new Date().toISOString(),
@@ -287,10 +288,7 @@ export default function ChatWidget() {
     setOnlineUsers(usersWithPhotos);
   }
 
-  async function loadConversations() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
+  async function loadConversations(userId: string) {
     const { data, error } = await supabase
       .from('conversations')
       .select(`
@@ -302,7 +300,7 @@ export default function ChatWidget() {
         participant1_unread_count,
         participant2_unread_count
       `)
-      .or(`participant1_id.eq.${user.id},participant2_id.eq.${user.id}`)
+      .or(`participant1_id.eq.${userId},participant2_id.eq.${userId}`)
       .order('last_message_at', { ascending: false, nullsFirst: false });
 
     if (error) {
@@ -313,7 +311,7 @@ export default function ChatWidget() {
 
     // Collect all other user IDs at once
     const otherUserIds = (data || []).map(conv =>
-      conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id
+      conv.participant1_id === userId ? conv.participant2_id : conv.participant1_id
     );
 
     const SUPA = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -357,7 +355,7 @@ export default function ChatWidget() {
     const onlineMap = new Map((onlineStatuses || []).map(s => [s.user_id, s.is_online]));
 
     const conversationsWithUsers = (data || []).map(conv => {
-      const otherUserId = conv.participant1_id === user.id ? conv.participant2_id : conv.participant1_id;
+      const otherUserId = conv.participant1_id === userId ? conv.participant2_id : conv.participant1_id;
       const profile = profileMap.get(otherUserId);
       const resolvedPhoto = profile
         ? (photoMap.get(otherUserId) || profile.avatar_url || null)

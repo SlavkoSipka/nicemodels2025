@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Bell, X, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 interface Notification {
   id: string
@@ -31,22 +32,25 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
 
   useEffect(() => {
-    loadNotifications()
-  }, [])
+    if (!user?.id) {
+      setLoading(false)
+      return
+    }
+    loadNotifications(user.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id])
 
-  const loadNotifications = async () => {
+  const loadNotifications = async (userId: string) => {
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) return
 
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(10)
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
   Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
@@ -13,8 +14,8 @@ import {
 export default function ModelDashboardPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.model.home')
+  const { user, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [modelDetails, setModelDetails] = useState<any>(null)
   const [pendingInvites, setPendingInvites] = useState<any[]>([])
@@ -37,88 +38,123 @@ export default function ModelDashboardPage() {
   const [liveToggling, setLiveToggling] = useState(false)
 
   useEffect(() => {
-    const checkUser = async () => {
+    if (authLoading) return
+    if (!user) { router.push('/login'); return }
+
+    let cancelled = false
+    const run = async () => {
       try {
         const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { router.push('/login'); return }
+        const uid = user.id
+        const nowIso = new Date().toISOString()
 
-        const { data: profileData } = await supabase
-          .from('profiles').select('*').eq('id', user.id).single()
+        const [
+          profileRes,
+          modelDetailsRes,
+          invitesRes,
+          collabInvitesRes,
+          acceptedInvitesRes,
+          statsRes,
+          photosCountRes,
+          verificationRes,
+          orderItemsRes,
+          statusMsgsRes,
+          unrepliedRes,
+        ] = await Promise.all([
+          supabase.from('profiles').select('*').eq('id', uid).single(),
+          supabase.from('model_details').select('*').eq('model_id', uid).single(),
+          supabase.from('club_invites')
+            .select('id, club_id, message, invited_at')
+            .eq('invited_model_id', uid)
+            .eq('status', 'pending')
+            .order('invited_at', { ascending: false })
+            .limit(3),
+          supabase.from('model_collaborations')
+            .select('id, sender_id, message, created_at')
+            .eq('receiver_id', uid)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false })
+            .limit(3),
+          supabase.from('club_invites').select('club_id')
+            .eq('invited_model_id', uid).eq('status', 'accepted'),
+          supabase.from('model_statistics_summary')
+            .select('total_profile_views, total_contact_views, total_favorites, total_shares')
+            .eq('model_id', uid)
+            .single(),
+          supabase.from('model_photos')
+            .select('id', { count: 'exact', head: true })
+            .eq('model_id', uid),
+          supabase.from('verifications').select('status').eq('user_id', uid).single(),
+          supabase.from('order_items')
+            .select(`id, activation_date, orders!inner(user_id, status, created_at), products!inner(product_type, duration_days, duration_hours)`)
+            .eq('orders.user_id', uid)
+            .eq('orders.status', 'paid')
+            .eq('products.product_type', 'ad_package'),
+          supabase.from('model_status_messages')
+            .select('id, message, created_at, expires_at')
+            .eq('model_id', uid)
+            .eq('is_active', true)
+            .gt('expires_at', nowIso)
+            .order('created_at', { ascending: false })
+            .limit(1),
+          supabase.from('model_comments')
+            .select('id', { count: 'exact', head: true })
+            .eq('model_id', uid)
+            .eq('status', 'approved')
+            .is('reply_text', null),
+        ])
 
+        if (cancelled) return
+
+        const profileData = profileRes.data
         if (!profileData?.onboarding_completed) { router.push('/onboarding'); return }
 
-        const { data: modelDetailsData } = await supabase
-          .from('model_details').select('*').eq('model_id', user.id).single()
+        const modelDetailsData = modelDetailsRes.data
+        const invitesData = invitesRes.data
+        const collabInvitesData = collabInvitesRes.data
+        const acceptedInvites = acceptedInvitesRes.data
+        const statsData = statsRes.data
+        const photosCount = photosCountRes.count
+        const verificationData = verificationRes.data
+        const orderItemsData = orderItemsRes.data
+        const statusMsgs = statusMsgsRes.data
+        const unrepliedCount = unrepliedRes.count
 
-        const { data: invitesData } = await supabase
-          .from('club_invites')
-          .select('id, club_id, message, invited_at')
-          .eq('invited_model_id', user.id)
-          .eq('status', 'pending')
-          .order('invited_at', { ascending: false })
-          .limit(3)
+        // Enrichment queries (depend on the results above) — parallelized.
+        const inviteClubIds = invitesData?.map(i => i.club_id) || []
+        const senderIds = collabInvitesData?.map(c => c.sender_id) || []
 
-        let enrichedInvites: any[] = []
-        if (invitesData?.length) {
-          const { data: inviteClubsData } = await supabase
-            .from('club_details')
-            .select('club_id, club_name, display_name')
-            .in('club_id', invitesData.map(i => i.club_id))
-          const clubsMap = new Map(inviteClubsData?.map(c => [c.club_id, c]) || [])
-          enrichedInvites = invitesData.map(inv => ({ ...inv, club_details: clubsMap.get(inv.club_id) }))
-        }
+        const [inviteClubsRes, senderProfilesRes, senderDetailsRes] = await Promise.all([
+          inviteClubIds.length
+            ? supabase.from('club_details')
+                .select('club_id, club_name, display_name')
+                .in('club_id', inviteClubIds)
+            : Promise.resolve({ data: [] as any[] }),
+          senderIds.length
+            ? supabase.from('profiles').select('id, username').in('id', senderIds)
+            : Promise.resolve({ data: [] as any[] }),
+          senderIds.length
+            ? supabase.from('model_details').select('model_id, showname').in('model_id', senderIds)
+            : Promise.resolve({ data: [] as any[] }),
+        ])
 
-        const { data: collabInvitesData } = await supabase
-          .from('model_collaborations')
-          .select('id, sender_id, message, created_at')
-          .eq('receiver_id', user.id)
-          .eq('status', 'pending')
-          .order('created_at', { ascending: false })
-          .limit(3)
+        if (cancelled) return
 
-        let enrichedCollabs: any[] = []
-        if (collabInvitesData?.length) {
-          const senderIds = collabInvitesData.map(c => c.sender_id)
-          const [{ data: senderProfiles }, { data: senderDetails }] = await Promise.all([
-            supabase.from('profiles').select('id, username').in('id', senderIds),
-            supabase.from('model_details').select('model_id, showname').in('model_id', senderIds),
-          ])
-          const profMap = new Map(senderProfiles?.map(p => [p.id, p]) || [])
-          const detMap = new Map(senderDetails?.map(d => [d.model_id, d]) || [])
-          enrichedCollabs = collabInvitesData.map(c => ({
-            ...c,
-            sender_name: detMap.get(c.sender_id)?.showname || profMap.get(c.sender_id)?.username || t('fallbackInviteCollab'),
-          }))
-        }
+        const clubsMap = new Map((inviteClubsRes.data || []).map(c => [c.club_id, c]))
+        const enrichedInvites = (invitesData || []).map(inv => ({
+          ...inv,
+          club_details: clubsMap.get(inv.club_id),
+        }))
 
-        const { data: acceptedInvites } = await supabase
-          .from('club_invites').select('club_id')
-          .eq('invited_model_id', user.id).eq('status', 'accepted')
-
-        const { data: statsData } = await supabase
-          .from('model_statistics_summary')
-          .select('total_profile_views, total_contact_views, total_favorites, total_shares')
-          .eq('model_id', user.id)
-          .single()
-
-        const { count: photosCount } = await supabase
-          .from('model_photos')
-          .select('id', { count: 'exact', head: true })
-          .eq('model_id', user.id)
-
-        const { data: verificationData } = await supabase
-          .from('verifications')
-          .select('status')
-          .eq('user_id', user.id)
-          .single()
-
-        const { data: orderItemsData } = await supabase
-          .from('order_items')
-          .select(`id, activation_date, orders!inner(user_id, status, created_at), products!inner(product_type, duration_days, duration_hours)`)
-          .eq('orders.user_id', user.id)
-          .eq('orders.status', 'paid')
-          .eq('products.product_type', 'ad_package')
+        const profMap = new Map((senderProfilesRes.data || []).map((p: any) => [p.id, p]))
+        const detMap = new Map((senderDetailsRes.data || []).map((d: any) => [d.model_id, d]))
+        const enrichedCollabs = (collabInvitesData || []).map(c => ({
+          ...c,
+          sender_name:
+            (detMap.get(c.sender_id) as any)?.showname
+            || (profMap.get(c.sender_id) as any)?.username
+            || t('fallbackInviteCollab'),
+        }))
 
         let adActive = false
         if (orderItemsData?.length) {
@@ -133,16 +169,6 @@ export default function ModelDashboardPage() {
           }
         }
 
-        const { data: statusMsgs } = await supabase
-          .from('model_status_messages')
-          .select('id, message, created_at, expires_at')
-          .eq('model_id', user.id)
-          .eq('is_active', true)
-          .gt('expires_at', new Date().toISOString())
-          .order('created_at', { ascending: false })
-          .limit(1)
-
-        setUser(user)
         setProfile(profileData)
         setModelDetails(modelDetailsData)
         setClubInfo({ count: acceptedInvites?.length || 0 })
@@ -151,13 +177,6 @@ export default function ModelDashboardPage() {
         setModelStats(statsData || null)
         setPhotoCount(photosCount ?? 0)
         setIsVerified(verificationData?.status === 'approved')
-        const { count: unrepliedCount } = await supabase
-          .from('model_comments')
-          .select('id', { count: 'exact', head: true })
-          .eq('model_id', user.id)
-          .eq('status', 'approved')
-          .is('reply_text', null)
-
         setHasActiveAd(adActive)
         setChatAvailable(modelDetailsData?.chat_available ?? false)
         setShareLiveLocation(modelDetailsData?.share_live_location ?? false)
@@ -167,11 +186,13 @@ export default function ModelDashboardPage() {
         setUnrepliedComments(unrepliedCount ?? 0)
         setLoading(false)
       } catch {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
-    checkUser()
-  }, [router])
+    run()
+    return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id, router])
 
   async function toggleChatAvailable() {
     if (!user || !hasActiveAd) return
