@@ -93,11 +93,12 @@ export default function RegisterForm() {
     try {
       const supabase = createClient()
       
+      const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${siteOrigin}/auth/callback`,
           data: {
             username: formData.username,
             role: formData.userType === 'model' ? 'model' : formData.userType === 'company' ? 'company' : 'user',
