@@ -33,21 +33,16 @@ export async function updateSession(request: NextRequest) {
 
   const {
     data: { user: userFromJwt },
-    error: authError,
   } = await supabase.auth.getUser()
 
-  // Stale cookies: refresh token missing/revoked on server (logout elsewhere, DB reset, expired).
-  // Clear session so the next request stops spamming AuthApiError in the terminal.
-  let user = userFromJwt
-  if (
-    authError &&
-    (authError.code === 'refresh_token_not_found' ||
-      authError.code === 'invalid_grant' ||
-      (typeof authError.message === 'string' && authError.message.includes('Refresh Token')))
-  ) {
-    await supabase.auth.signOut()
-    user = null
-  }
+  // NOTE: we used to call `supabase.auth.signOut()` here whenever getUser()
+  // returned a refresh-token error. That fires spuriously on mobile right
+  // after sign-in (the freshly-set cookies aren't visible on the very next
+  // request yet) and wipes a perfectly good session, leaving the user
+  // appearing logged-out on dashboard/navbar. Now we just treat the user as
+  // null for this request without destroying cookies — a real stale token
+  // will resolve itself on the next request or on manual re-login.
+  const user = userFromJwt
 
   // Protected routes
   const protectedRoutes = ['/dashboard', '/onboarding']
