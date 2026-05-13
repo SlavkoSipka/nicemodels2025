@@ -116,6 +116,10 @@ body {
   0%, 100% { transform: translateY(0px); }
   50%       { transform: translateY(-6px); }
 }
+@keyframes banner-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
 
 /* Page loader animations */
 @keyframes loader-bg-in {

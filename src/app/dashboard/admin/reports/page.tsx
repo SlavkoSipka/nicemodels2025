@@ -122,8 +122,81 @@ export default function AdminReportsPage() {
             ))}
           </div>
 
-          {/* Table */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          {/* Mobile card list */}
+          <div className="md:hidden space-y-2.5">
+            {filtered.map(report => {
+              const s = STATUS_STYLES[report.status]
+              const statusLabel = report.status === 'pending' ? t('statusPending') : report.status === 'reviewed' ? t('statusReviewed') : t('statusDismissed')
+              return (
+                <div key={report.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${s.color}`}>
+                      {s.icon} {statusLabel}
+                    </span>
+                    <span className="text-[11px] text-gray-500">
+                      {new Date(report.created_at).toLocaleDateString()} {new Date(report.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs mb-2">
+                    <div className="min-w-0">
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-0.5">{t('colReportedBy')}</p>
+                      <p className="font-semibold text-gray-900 truncate">
+                        @{report.reporter?.username || 'N/A'}
+                        {report.reporter?.public_id && <span className="ml-1 text-[10px] font-mono text-gray-400">#{report.reporter.public_id}</span>}
+                      </p>
+                      <p className="text-[10px] text-gray-400 capitalize">{report.reporter?.role}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-gray-400 text-[10px] uppercase font-bold mb-0.5">{t('colReportedUser')}</p>
+                      <p className="font-semibold text-red-700 truncate">
+                        @{report.reported?.username || 'N/A'}
+                        {report.reported?.public_id && <span className="ml-1 text-[10px] font-mono text-red-400">#{report.reported.public_id}</span>}
+                      </p>
+                      <p className="text-[10px] text-gray-400 capitalize">{report.reported?.role}</p>
+                    </div>
+                  </div>
+                  {report.reason && (
+                    <p className="text-xs text-gray-700 mb-2 break-words">{report.reason}</p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {report.screenshotUrl && (
+                      <button onClick={() => setPreviewUrl(report.screenshotUrl!)}
+                        className="px-2.5 py-1.5 text-xs font-semibold rounded-md bg-blue-50 text-blue-700 inline-flex items-center gap-1">
+                        <Eye className="w-3 h-3" /> {t('view')}
+                      </button>
+                    )}
+                    {report.status === 'pending' && (
+                      <>
+                        <button onClick={() => updateStatus(report.id, 'reviewed')} disabled={updating === report.id}
+                          className="px-2.5 py-1.5 text-xs font-semibold rounded-md bg-emerald-50 text-emerald-700 disabled:opacity-50">
+                          {t('reviewed')}
+                        </button>
+                        <button onClick={() => updateStatus(report.id, 'dismissed')} disabled={updating === report.id}
+                          className="px-2.5 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-600 disabled:opacity-50">
+                          {t('dismiss')}
+                        </button>
+                        {report.reported && (
+                          <Link href={`/dashboard/admin/${report.reported.role === 'model' ? 'models' : report.reported.role === 'company' ? 'clubs' : 'users'}${report.reported.role !== 'user' ? `/${report.reported.id}` : ''}`}
+                            className="px-2.5 py-1.5 text-xs font-semibold rounded-md bg-red-50 text-red-700">
+                            {t('viewProfile')}
+                          </Link>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            {filtered.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg text-center py-8">
+                <Flag className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">{t('noReportsFound')}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -235,7 +308,7 @@ export default function AdminReportsPage() {
               </table>
             </div>
             {filtered.length === 0 && (
-              <div className="text-center py-12">
+              <div className="hidden md:block text-center py-12">
                 <Flag className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">{t('noReportsFound')}</p>
               </div>
@@ -247,13 +320,13 @@ export default function AdminReportsPage() {
 
       {/* Screenshot preview modal */}
       {previewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70" onClick={() => setPreviewUrl(null)}>
-          <div className="relative max-w-3xl w-full" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/70" onClick={() => setPreviewUrl(null)}>
+          <div className="relative w-full sm:max-w-3xl" onClick={e => e.stopPropagation()}>
             <button onClick={() => setPreviewUrl(null)}
-              className="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center z-10">
+              className="absolute top-2 right-2 sm:-top-3 sm:-right-3 w-9 h-9 sm:w-8 sm:h-8 bg-white rounded-full shadow-lg flex items-center justify-center z-10">
               <X className="w-4 h-4 text-gray-700" />
             </button>
-            <Image src={previewUrl} alt={t('screenshotAlt')} width={900} height={600} className="w-full rounded-xl object-contain max-h-[80vh]" />
+            <Image src={previewUrl} alt={t('screenshotAlt')} width={900} height={600} className="w-full rounded-xl object-contain max-h-[88vh]" />
           </div>
         </div>
       )}

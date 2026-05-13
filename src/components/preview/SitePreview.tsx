@@ -16,6 +16,7 @@ interface SitePreviewProps {
   previewUrl?: string | null
   listingTitle?: string
   listingLocation?: string
+  compact?: boolean
 }
 
 export default function SitePreview({
@@ -25,6 +26,7 @@ export default function SitePreview({
   previewUrl,
   listingTitle,
   listingLocation,
+  compact = false,
 }: SitePreviewProps) {
   const t = useTranslations('components.sitePreview')
   const [mode, setMode] = useState<PreviewMode>('desktop')
@@ -43,11 +45,11 @@ export default function SitePreview({
         listingLocation={listingLocation}
       />
     ) : (
-      <HomeFeedMock mode={mode} highlight={highlight} previewUrl={previewUrl ?? undefined} />
+      <HomeFeedMock mode={mode} highlight={highlight} previewUrl={previewUrl ?? undefined} compact={compact} />
     )
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/40 to-violet-50/30 p-4 md:p-6 space-y-4 shadow-[0_2px_16px_rgba(15,23,42,0.04)]">
+    <div className={`rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/40 to-violet-50/30 space-y-4 shadow-[0_2px_16px_rgba(15,23,42,0.04)] ${compact ? 'p-3 md:p-4' : 'p-4 md:p-6'}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-700">
@@ -89,11 +91,11 @@ export default function SitePreview({
         </div>
       </div>
 
-      <div className="relative rounded-xl bg-gradient-to-b from-slate-100 to-slate-50 p-3 md:p-4 border border-slate-200/70 flex items-center justify-center">
+      <div className={`relative rounded-xl bg-gradient-to-b from-slate-100 to-slate-50 border border-slate-200/70 flex items-center justify-center ${compact ? 'p-2 md:p-2.5' : 'p-3 md:p-4'}`}>
         {mode === 'desktop' ? (
-          <DesktopFrame url={urlForPage}>{content}</DesktopFrame>
+          <DesktopFrame url={urlForPage} compact={compact}>{content}</DesktopFrame>
         ) : (
-          <PhoneFrame>{content}</PhoneFrame>
+          <PhoneFrame compact={compact}>{content}</PhoneFrame>
         )}
       </div>
 

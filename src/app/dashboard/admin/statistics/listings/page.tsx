@@ -97,7 +97,39 @@ export default function ListingsStatsPage() {
             {data.topListings.length === 0 ? (
               <p className="text-sm text-gray-400 py-8 text-center">{tc('noData')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+                <div className="md:hidden space-y-2">
+                  {data.topListings.map((l, i) => {
+                    const ctr = l.views ? Math.round((l.clicks / l.views) * 100) : 0
+                    return (
+                      <div key={l.id} className="border border-gray-100 rounded-lg p-3">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="flex items-start gap-2 min-w-0">
+                            <span className="text-xs font-bold text-gray-400 pt-0.5">#{i + 1}</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-gray-800 truncate">{l.title}</p>
+                              <div className="mt-0.5 flex flex-wrap gap-1">
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${l.type === 'rent' ? 'bg-amber-100 text-amber-700' : 'bg-purple-100 text-purple-700'}`}>
+                                  {l.type.toUpperCase()}
+                                </span>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${l.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'}`}>
+                                  {l.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Link href={`/dashboard/admin/jobs-rents/${l.id}`} className="text-xs font-semibold text-brand shrink-0">{t('manage')}</Link>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1.5 text-center">
+                          <div><p className="text-[10px] text-gray-400 uppercase">{t('colViews')}</p><p className="text-xs font-bold tabular-nums">{l.views.toLocaleString()}</p></div>
+                          <div><p className="text-[10px] text-gray-400 uppercase">{t('colClicks')}</p><p className="text-xs font-bold tabular-nums text-emerald-700">{l.clicks.toLocaleString()}</p></div>
+                          <div><p className="text-[10px] text-gray-400 uppercase">{t('colCtr')}</p><p className="text-xs font-bold tabular-nums">{ctr}%</p></div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
@@ -141,7 +173,8 @@ export default function ListingsStatsPage() {
                     })}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </ChartCard>
         </>

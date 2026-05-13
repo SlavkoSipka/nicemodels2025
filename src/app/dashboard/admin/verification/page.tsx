@@ -148,8 +148,54 @@ export default function AdminVerificationPage() {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          {/* Mobile card list */}
+          <div className="md:hidden space-y-2.5">
+            {filtered.length === 0 ? (
+              <div className="bg-white border border-gray-200 rounded-lg py-8 text-center">
+                <ShieldCheck className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">{t('noRequests')}</p>
+              </div>
+            ) : filtered.map(v => (
+              <div key={v.id} className="bg-white border border-gray-200 rounded-lg p-3" onClick={() => setSelected(v)}>
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${v.profile?.role === 'model' ? 'bg-brand/10' : v.profile?.role === 'company' ? 'bg-blue-50' : 'bg-purple-50'}`}>
+                    {v.profile?.role === 'model' ? <User className="w-5 h-5 text-brand" /> : v.profile?.role === 'company' ? <Building2 className="w-5 h-5 text-blue-600" /> : <User className="w-5 h-5 text-purple-600" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {v.profile?.model_details?.showname || v.profile?.club_details?.club_name || v.profile?.username || 'N/A'}
+                          {v.profile?.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{v.profile.public_id}</span>}
+                        </p>
+                        <a href={`mailto:${v.profile?.email}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 truncate hover:text-brand block">{v.profile?.email}</a>
+                      </div>
+                      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
+                        v.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : v.status === 'rejected' ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'
+                      }`}>
+                        {v.status === 'approved' ? <CheckCircle className="w-2.5 h-2.5" /> : v.status === 'rejected' ? <XCircle className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
+                        {v.status === 'approved' ? tc('approved') : v.status === 'rejected' ? tc('rejected') : tc('pending')}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                      <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium ${v.profile?.role === 'model' ? 'bg-brand/10 text-brand' : v.profile?.role === 'company' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700'}`}>
+                        {v.profile?.role === 'model' ? t('typeModel') : v.profile?.role === 'company' ? t('typeClub') : v.profile?.role === 'user' ? t('typeVisitor') : v.profile?.role || '—'}
+                      </span>
+                      <span className="text-[11px] text-gray-500 truncate">{v.first_name} {v.surname}</span>
+                      <span className="text-[11px] text-gray-400 ml-auto">{new Date(v.submitted_at).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+                <button onClick={e => { e.stopPropagation(); setSelected(v) }}
+                  className="mt-2.5 pt-2.5 border-t border-gray-100 w-full text-xs font-semibold text-brand">
+                  {t('review')}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden">
             {filtered.length === 0 ? (
               <div className="py-12 text-center">
                 <ShieldCheck className="w-8 h-8 text-gray-300 mx-auto mb-2" />
@@ -213,8 +259,8 @@ export default function AdminVerificationPage() {
 
       {/* Review Modal */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4" onClick={() => { setSelected(null); setRejectionReason('') }}>
-          <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 flex items-stretch sm:items-center justify-center z-50 sm:p-4" onClick={() => { setSelected(null); setRejectionReason('') }}>
+          <div className="bg-white w-full h-full sm:h-auto sm:rounded-lg shadow-lg sm:max-w-3xl sm:max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-200 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-brand" />

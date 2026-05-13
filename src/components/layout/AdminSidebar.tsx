@@ -10,8 +10,32 @@ import {
   LayoutDashboard, BarChart3, Globe, Users, Building2, Briefcase,
   Megaphone, DollarSign, UserCircle, Image as ImageIcon, ShieldCheck,
   Flag, UserX, MessageSquare, Activity, Home, LogOut, ChevronLeft,
-  ChevronDown, ChevronRight, Trash2,
+  Trash2, Menu, X,
 } from 'lucide-react'
+
+// Maps an admin pathname to a label key inside `admin.sidebar`.
+// Used by the mobile top bar to show the active page name.
+const PATH_TO_LABEL: Array<{ match: (p: string) => boolean; key: string }> = [
+  { match: p => p === '/dashboard/admin', key: 'dashboard' },
+  { match: p => p.startsWith('/dashboard/admin/statistics/traffic'), key: 'siteTraffic' },
+  { match: p => p.startsWith('/dashboard/admin/statistics/models'), key: 'models' },
+  { match: p => p.startsWith('/dashboard/admin/statistics/clubs'), key: 'clubs' },
+  { match: p => p.startsWith('/dashboard/admin/statistics/listings'), key: 'listings' },
+  { match: p => p.startsWith('/dashboard/admin/statistics/banners'), key: 'banners' },
+  { match: p => p.startsWith('/dashboard/admin/statistics/revenue'), key: 'revenue' },
+  { match: p => p.startsWith('/dashboard/admin/models'), key: 'models' },
+  { match: p => p.startsWith('/dashboard/admin/clubs'), key: 'clubs' },
+  { match: p => p.startsWith('/dashboard/admin/users'), key: 'visitors' },
+  { match: p => p.startsWith('/dashboard/admin/jobs-rents'), key: 'jobsRents' },
+  { match: p => p.startsWith('/dashboard/admin/comments'), key: 'comments' },
+  { match: p => p.startsWith('/dashboard/admin/banners'), key: 'banners' },
+  { match: p => p.startsWith('/dashboard/admin/verification'), key: 'verification' },
+  { match: p => p.startsWith('/dashboard/admin/review-media'), key: 'mediaReview' },
+  { match: p => p.startsWith('/dashboard/admin/reports'), key: 'reports' },
+  { match: p => p.startsWith('/dashboard/admin/blocked'), key: 'blocked' },
+  { match: p => p.startsWith('/dashboard/admin/deleted'), key: 'deleted' },
+  { match: p => p.startsWith('/dashboard/admin/discussions'), key: 'comments' },
+]
 
 export interface AdminSidebarCounts {
   verifications?: number
@@ -100,6 +124,9 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
   const t = useTranslations('admin.sidebar')
   const [collapsed, setCollapsed] = useState(false)
   const [openMobile, setOpenMobile] = useState(false)
+
+  const activeLabelKey = PATH_TO_LABEL.find(m => m.match(pathname))?.key ?? 'title'
+  const activeLabel = t(activeLabelKey)
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -207,20 +234,26 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
 
   return (
     <>
-      {/* Mobile header trigger */}
-      <div className="md:hidden sticky top-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
-            <LayoutDashboard className="w-3.5 h-3.5 text-brand" />
-          </div>
-          <span className="text-sm font-bold text-gray-900">{t('title')}</span>
-        </div>
+      {/* Mobile header trigger – fixed full-width so it does not depend on the
+          parent flex layout for sizing. */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-30 bg-white border-b border-gray-200 flex items-center justify-between px-3 h-12">
         <button
           onClick={() => setOpenMobile(v => !v)}
-          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 rounded-md"
+          className="inline-flex items-center justify-center w-10 h-10 -ml-2 rounded-md text-gray-700 hover:bg-gray-100"
+          aria-label={openMobile ? t('collapse') : t('menu')}
         >
-          {t('menu')} {openMobile ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          {openMobile ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
+        <div className="flex items-center gap-2 flex-1 justify-center px-2 min-w-0">
+          <span className="text-sm font-bold text-gray-900 truncate">{activeLabel}</span>
+        </div>
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center w-10 h-10 -mr-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+          aria-label={t('home')}
+        >
+          <Home className="w-5 h-5" />
+        </Link>
       </div>
 
       {/* Desktop sidebar */}
@@ -237,8 +270,19 @@ export default function AdminSidebar({ counts }: { counts?: AdminSidebarCounts }
             className="md:hidden fixed inset-0 bg-black/40 z-40"
             onClick={() => setOpenMobile(false)}
           />
-          <aside className="md:hidden fixed inset-y-0 left-0 z-50 w-[260px] bg-white border-r border-gray-200 flex flex-col">
-            {Inner}
+          <aside className="md:hidden fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] bg-white border-r border-gray-200 flex flex-col">
+            <div className="flex items-center justify-end px-2 py-2 border-b border-gray-100">
+              <button
+                onClick={() => setOpenMobile(false)}
+                className="inline-flex items-center justify-center w-9 h-9 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                aria-label={t('collapse')}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 flex flex-col min-h-0" onClick={() => setOpenMobile(false)}>
+              {Inner}
+            </div>
           </aside>
         </>
       )}

@@ -76,7 +76,29 @@ export default function ClubsStatsPage() {
             {data.topClubs.length === 0 ? (
               <p className="text-sm text-gray-400 py-8 text-center">{tc('noData')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+                <div className="md:hidden space-y-2">
+                  {data.topClubs.map((c, i) => {
+                    const conv = c.views ? Math.round((c.contacts / c.views) * 100) : 0
+                    return (
+                      <div key={c.id} className="border border-gray-100 rounded-lg p-3">
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-xs font-bold text-gray-400">#{i + 1}</span>
+                            <span className="text-sm font-semibold text-gray-800 truncate">{c.name}</span>
+                          </div>
+                          <Link href={`/dashboard/admin/clubs/${c.id}`} className="text-xs font-semibold text-brand shrink-0">{t('manage')}</Link>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1.5 text-center">
+                          <div><p className="text-[10px] text-gray-400 uppercase">{t('colViews')}</p><p className="text-xs font-bold tabular-nums">{c.views.toLocaleString()}</p></div>
+                          <div><p className="text-[10px] text-gray-400 uppercase">{t('colContacts')}</p><p className="text-xs font-bold tabular-nums text-emerald-700">{c.contacts.toLocaleString()}</p></div>
+                          <div><p className="text-[10px] text-gray-400 uppercase">{t('colConv')}</p><p className="text-xs font-bold tabular-nums">{conv}%</p></div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
@@ -108,7 +130,8 @@ export default function ClubsStatsPage() {
                     })}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </ChartCard>
         </>

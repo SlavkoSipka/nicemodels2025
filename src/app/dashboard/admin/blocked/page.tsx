@@ -9,6 +9,7 @@ interface BlockedUser {
   id: string
   email: string
   username: string
+  public_id?: number | null
   role: string
   created_at: string
   blocked_at: string | null
@@ -117,8 +118,52 @@ export default function AdminBlockedPage() {
             </div>
           )}
 
-          {/* Table */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          {/* Mobile card list */}
+          <div className="md:hidden space-y-2.5">
+            {blockedUsers.map(user => (
+              <div key={user.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                    user.role === 'model' ? 'bg-brand/10' : user.role === 'company' ? 'bg-blue-50' : user.role === 'admin' ? 'bg-violet-50' : 'bg-slate-100'
+                  }`}>
+                    {roleIcon(user.role)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {displayName(user)}
+                          {user.public_id != null && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{user.public_id}</span>}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate">@{user.username || t('noUsername')}</p>
+                        <a href={`mailto:${user.email}`} className="text-xs text-gray-500 hover:text-brand truncate block">{user.email}</a>
+                      </div>
+                      <span className={`inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium capitalize shrink-0 ${roleBadgeClass(user.role)}`}>
+                        {user.role === 'company' ? 'club' : user.role}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                      {user.blocked_at && <span>{new Date(user.blocked_at).toLocaleDateString()}</span>}
+                      {user.blocked_reason && <span className="truncate">{user.blocked_reason}</span>}
+                    </div>
+                  </div>
+                </div>
+                <button onClick={() => handleUnblock(user.id)}
+                  className="mt-2.5 pt-2.5 border-t border-gray-100 w-full px-2.5 py-1.5 text-xs font-semibold rounded-md bg-emerald-50 text-emerald-700 inline-flex items-center justify-center gap-1">
+                  <UserCheck className="w-3 h-3" /> {tc('unblock')}
+                </button>
+              </div>
+            ))}
+            {blockedUsers.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg text-center py-8">
+                <UserCheck className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">{t('noBlockedUsers')}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -169,7 +214,7 @@ export default function AdminBlockedPage() {
               </table>
             </div>
             {blockedUsers.length === 0 && (
-              <div className="text-center py-12">
+              <div className="hidden md:block text-center py-12">
                 <UserCheck className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">{t('noBlockedUsers')}</p>
               </div>

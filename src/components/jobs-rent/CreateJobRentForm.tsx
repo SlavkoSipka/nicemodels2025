@@ -164,15 +164,16 @@ export default function CreateJobRentForm({
         .order('display_order')
 
       if (pkgData) {
-        const seen = new Set<string>()
+        const seen = new Set<number>()
         // Keep canonical 5/14/30 durations only and hide rows where price
         // hasn't been seeded yet (price_chf = 0) so we never render
-        // "CHF 0.-" on the duration cards.
+        // "CHF 0.-" on the duration cards. Dedupe by duration_days so legacy
+        // duplicate rows ("14 Days" vs "14 days") collapse to one card.
         const filtered = pkgData.filter(p => {
           if (Number(p.price_chf) <= 0) return false
           if (![5, 14, 30].includes(p.duration_days)) return false
-          if (seen.has(p.name)) return false
-          seen.add(p.name)
+          if (seen.has(p.duration_days)) return false
+          seen.add(p.duration_days)
           return true
         })
         setPackages(filtered)
@@ -651,7 +652,7 @@ export default function CreateJobRentForm({
           <p className="text-xs text-gray-500 -mt-1">
             {t('contactHint')}
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-3">
+          <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[120px_1fr] gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">{t('codeLabel')}</label>
               <input type="text" value={countryCode} onChange={e => setCountryCode(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand" />

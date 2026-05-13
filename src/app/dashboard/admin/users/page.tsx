@@ -283,8 +283,74 @@ export default function AdminUsersPage() {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Table */}
-            <div className={`bg-white border border-gray-200 rounded-lg overflow-hidden ${editingVisitor ? 'flex-1 min-w-0' : 'w-full'}`}>
+            {/* Mobile card list */}
+            <div className={`md:hidden space-y-2.5 ${editingVisitor ? 'flex-1 min-w-0' : 'w-full'}`}>
+              {sorted.map(visitor => (
+                <div key={visitor.id}
+                  className={`bg-white border border-gray-200 rounded-lg p-3 ${editingVisitor?.id === visitor.id ? 'border-violet-400 ring-1 ring-violet-200' : ''}`}
+                  onClick={() => openEdit(visitor)}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center shrink-0 overflow-hidden">
+                      {visitor.avatar_url ? (
+                        <img src={visitor.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <UserCircle className="w-5 h-5 text-violet-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">
+                            {visitor.username || 'N/A'}
+                            {visitor.public_id && <span className="ml-1.5 text-[10px] font-mono text-gray-400">#{visitor.public_id}</span>}
+                          </p>
+                          <a href={`mailto:${visitor.email}`} onClick={e => e.stopPropagation()} className="text-xs text-gray-500 hover:text-brand truncate block">{visitor.email}</a>
+                        </div>
+                        {visitor.is_blocked ? (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-700 shrink-0">
+                            <Ban className="w-2.5 h-2.5" /> {tc('blocked')}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 shrink-0">
+                            <CheckCircle className="w-2.5 h-2.5" /> {tc('active')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                        {visitor.phone && <span>{visitor.phone}</span>}
+                        {visitor.city && <span>{visitor.city}</span>}
+                        <span>{new Date(visitor.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-2.5 pt-2.5 border-t border-gray-100 flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                    <button onClick={() => openEdit(visitor)}
+                      className="flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-violet-50 text-violet-700 inline-flex items-center justify-center gap-1">
+                      <Pencil className="w-3 h-3" /> {tc('edit')}
+                    </button>
+                    <button onClick={() => handleBlock(visitor.id, visitor.is_blocked)}
+                      className={`flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md ${
+                        visitor.is_blocked ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                      }`}>
+                      {visitor.is_blocked ? tc('unblock') : tc('block')}
+                    </button>
+                    <button onClick={() => handleDelete(visitor)}
+                      className="px-2.5 py-1.5 text-xs font-semibold rounded-md bg-red-50 text-red-700 inline-flex items-center gap-1"
+                      title={tc('delete')}>
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {sorted.length === 0 && (
+                <div className="bg-white border border-gray-200 rounded-lg text-center py-8">
+                  <p className="text-sm text-gray-400">{t('noVisitorsFound')}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop table */}
+            <div className={`hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden ${editingVisitor ? 'flex-1 min-w-0' : 'w-full'}`}>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>

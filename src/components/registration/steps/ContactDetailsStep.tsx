@@ -64,7 +64,7 @@ export default function ContactDetailsStep({ data, updateData, nextStep, prevSte
           </label>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-[110px_1fr] md:grid-cols-2 gap-3 md:gap-4 mb-4">
           <div>
             <label className="block text-sm mb-2">{t('countryCode')}</label>
             <select

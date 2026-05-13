@@ -54,7 +54,7 @@ export default async function AdminDashboardLayout({
   return (
     <div className="min-h-screen flex bg-gray-50">
       <AdminSidebar counts={counts} />
-      <main className="flex-1 min-w-0 overflow-x-hidden">{children}</main>
+      <main className="flex-1 min-w-0 overflow-x-hidden pt-12 md:pt-0">{children}</main>
     </div>
   )
 }

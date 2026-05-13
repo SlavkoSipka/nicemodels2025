@@ -565,7 +565,7 @@ export default function EditJobRentPage() {
             <p className="text-sm font-bold text-gray-800">{t('sectionContact')}</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-3">
+          <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[120px_1fr] gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">{t('code')}</label>
               <input

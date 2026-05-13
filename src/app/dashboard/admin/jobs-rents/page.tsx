@@ -162,8 +162,76 @@ export default function AdminJobsRentsPage() {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          {/* Mobile card list */}
+          <div className="md:hidden space-y-2.5">
+            {filtered.map(listing => (
+              <div key={listing.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                <div className="flex items-start gap-3">
+                  {listing.photoUrl ? (
+                    <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-gray-100">
+                      <Image src={listing.photoUrl} alt={listing.title || t('colListing')} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                      <Briefcase className="w-5 h-5 text-purple-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold text-gray-900 truncate flex-1">
+                        {listing.title || <span className="text-gray-400 font-normal italic">{t('noTitle')}</span>}
+                      </p>
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
+                        listing.listing_type === 'job' ? 'bg-purple-50 text-purple-700' : 'bg-amber-50 text-amber-700'
+                      }`}>
+                        {listing.listing_type === 'job' ? t('typeJob') : t('typeRent')}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                      <span className="inline-flex items-center gap-1"><Building2 className="w-3 h-3 text-gray-400" />{listing.clubName}</span>
+                      {listing.location && <span className="inline-flex items-center gap-1"><MapPin className="w-3 h-3 text-gray-400" />{listing.location}</span>}
+                      <span>{new Date(listing.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${statusColors[listing.status] || 'bg-gray-100 text-gray-500'}`}>
+                        {listing.status === 'active' ? t('statusActive') : listing.status === 'expired' ? t('statusExpired') : listing.status === 'deleted' ? t('statusDeleted') : listing.status.charAt(0).toUpperCase() + listing.status.slice(1)}
+                      </span>
+                      {listing.is_blocked && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-red-50 text-red-700">
+                          <Ban className="w-2.5 h-2.5" /> {tc('blocked')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2.5 pt-2.5 border-t border-gray-100 flex items-center gap-2">
+                  <Link href={`/dashboard/admin/jobs-rents/${listing.id}`}
+                    className="flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-purple-50 text-purple-700 inline-flex items-center justify-center gap-1">
+                    <Pencil className="w-3 h-3" /> {tc('edit')}
+                  </Link>
+                  <Link href={`/jobs-rents/${listing.id}`} target="_blank"
+                    className="flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 inline-flex items-center justify-center">
+                    {t('viewListing')}
+                  </Link>
+                  <button onClick={() => handleBlock(listing.id, listing.is_blocked)}
+                    className={`flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md ${
+                      listing.is_blocked ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                    }`}>
+                    {listing.is_blocked ? tc('unblock') : tc('block')}
+                  </button>
+                </div>
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg text-center py-8">
+                <Briefcase className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">{t('noListingsFound')}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -271,7 +339,7 @@ export default function AdminJobsRentsPage() {
               </table>
             </div>
             {filtered.length === 0 && (
-              <div className="text-center py-12">
+              <div className="hidden md:block text-center py-12">
                 <Briefcase className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">{t('noListingsFound')}</p>
               </div>

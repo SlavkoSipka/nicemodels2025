@@ -197,7 +197,7 @@ export default function ClubOnboardingForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('phoneNumber')} <span className="text-pink-600">*</span>
               </label>
-              <div className="grid grid-cols-[140px_1fr] gap-3">
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[140px_1fr] gap-3">
                 <div className="relative">
                   <select
                     value={formData.country_code}

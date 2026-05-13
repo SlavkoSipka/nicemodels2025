@@ -144,8 +144,8 @@ export default function ContactDetailsPage() {
           </div>
 
           {/* Phone */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
+          <div className="grid grid-cols-[110px_1fr] md:grid-cols-2 gap-3">
+            <div className="min-w-0">
               <label className="block text-xs font-bold text-gray-800 mb-1">{t('countryCode')} <span className="text-red-500">*</span></label>
               <select value={countryCode} onChange={e => setCountryCode(e.target.value)} className={inputCls}>
                 {COUNTRY_CODES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}

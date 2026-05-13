@@ -440,7 +440,7 @@ export default function AdminListingEditClient({
             <p className="text-sm font-bold text-gray-800">{t('sectionContact')}</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-3">
+          <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[120px_1fr] gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">{t('code')}</label>
               <input type="text" value={countryCode} onChange={e => setCountryCode(e.target.value)}
@@ -530,8 +530,8 @@ export default function AdminListingEditClient({
           )}
         </div>
 
-        {/* Submit */}
-        <div className="flex items-center justify-between gap-3 pt-2 pb-8 flex-wrap">
+        {/* Submit (desktop only) */}
+        <div className="hidden sm:flex items-center justify-between gap-3 pt-2 pb-8 flex-wrap">
           <Link href="/dashboard/admin/jobs-rents"
             className="text-sm font-semibold text-gray-600 hover:text-gray-900">
             {tc('cancel')}
@@ -546,6 +546,19 @@ export default function AdminListingEditClient({
           </button>
         </div>
 
+        <div className="sm:hidden h-16" />
+
+      </div>
+
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 px-3 py-2 flex items-center gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <Link href="/dashboard/admin/jobs-rents" className="flex-1 text-center px-3 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg">{tc('cancel')}</Link>
+        <button
+          onClick={handleSubmit}
+          disabled={submitting || !title.trim() || !location.trim() || !description.trim()}
+          className="flex-[2] flex items-center justify-center gap-1.5 px-3 py-2.5 bg-purple-600 text-white rounded-lg text-sm font-bold disabled:opacity-50">
+          <Save className="w-4 h-4" />
+          {submitting ? tc('saving') : t('saveChanges')}
+        </button>
       </div>
     </div>
   )

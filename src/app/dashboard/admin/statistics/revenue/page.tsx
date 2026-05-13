@@ -114,7 +114,27 @@ export default function RevenueStatsPage() {
             {data.topProducts.length === 0 ? (
               <p className="text-sm text-gray-400 py-8 text-center">{t('noSales')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+                <div className="md:hidden space-y-2">
+                  {data.topProducts.map((p, i) => (
+                    <div key={`${p.name}-${i}`} className="border border-gray-100 rounded-lg p-3">
+                      <div className="flex items-start gap-2 mb-1.5">
+                        <span className="text-xs font-bold text-gray-400 pt-0.5">#{i + 1}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-gray-800 truncate">{p.name}</p>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full capitalize" style={{ background: `${TYPE_COLORS[p.type] || '#cbd5e1'}22`, color: TYPE_COLORS[p.type] || '#475569' }}>
+                            {p.type.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5 text-center">
+                        <div><p className="text-[10px] text-gray-400 uppercase">{t('colUnits')}</p><p className="text-xs font-bold tabular-nums">{p.count.toLocaleString()}</p></div>
+                        <div><p className="text-[10px] text-gray-400 uppercase">{t('colRevenue')}</p><p className="text-xs font-bold tabular-nums text-emerald-700">{money(p.revenue)}</p></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
@@ -141,7 +161,8 @@ export default function RevenueStatsPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </ChartCard>
 
@@ -149,7 +170,29 @@ export default function RevenueStatsPage() {
             {data.recentOrders.length === 0 ? (
               <p className="text-sm text-gray-400 py-8 text-center">{t('noOrders')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+                <div className="md:hidden space-y-2">
+                  {data.recentOrders.map(o => (
+                    <div key={o.id} className="border border-gray-100 rounded-lg p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-mono text-xs text-gray-600">{o.id.slice(0, 8)}</p>
+                          <p className="text-[11px] text-gray-500">{new Date(o.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                        </div>
+                        <p className="text-sm font-bold tabular-nums">{money(o.total)}</p>
+                      </div>
+                      <div className="mt-1.5 flex items-center gap-1.5">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full capitalize ${
+                          o.status === 'paid' ? 'bg-emerald-100 text-emerald-700'
+                          : o.status === 'pending' ? 'bg-amber-100 text-amber-700'
+                          : 'bg-rose-100 text-rose-700'
+                        }`}>{o.status}</span>
+                        <span className="text-[10px] text-gray-500 capitalize">{o.method}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
@@ -178,7 +221,8 @@ export default function RevenueStatsPage() {
                     ))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </ChartCard>
         </>

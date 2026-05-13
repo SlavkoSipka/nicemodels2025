@@ -9,6 +9,7 @@ import ClubCard, { type ClubCardData } from './ClubCard'
 import BannerCard, { type BannerData } from './BannerCard'
 import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
+import MobileBannerPopup from './MobileBannerPopup'
 import ListingBannerCard, { type ListingBannerData } from './ListingBannerCard'
 import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
 import { useVisitorCanton } from '@/lib/useVisitorCanton'
@@ -88,6 +89,7 @@ function buildInitialCards(
       ...listings.map(l => ({ type: 'listing' as const, data: l })),
     ] as CardItem[],
     sidebarRail: sidebarLeft.slice(0, 1),
+    mobileSidebarRail: sidebarLeft,
   }
 }
 
@@ -116,6 +118,7 @@ export default function MixedHomeClient({
   const [cards, setCards] = useState<CardItem[]>(initial.cards)
   const [wideSlots, setWideSlots] = useState<CardItem[]>(initial.wideSlots)
   const [sidebarRail, setSidebarRail] = useState<BannerData[]>(initial.sidebarRail)
+  const [mobileSidebarRail, setMobileSidebarRail] = useState<BannerData[]>(initial.mobileSidebarRail)
   const [page, setPage] = useState(0)
   const shouldScrollTop = useRef(false)
   const [selectedCity, setSelectedCity] = useState('all')
@@ -347,6 +350,10 @@ export default function MixedHomeClient({
       ? fresh.sidebarRail
       : randomShuffle([...fresh.sidebarRail])
     setSidebarRail(side.slice(0, 1))
+    const mobileSide = fresh.mobileSidebarRail.length <= 1
+      ? fresh.mobileSidebarRail
+      : randomShuffle([...fresh.mobileSidebarRail])
+    setMobileSidebarRail(mobileSide)
   }, [visibleBanners, models, clubs, listings])
 
   const activeCards = useMemo(() => {
@@ -682,6 +689,7 @@ export default function MixedHomeClient({
           </div>
         </div>
       </div>
+      <MobileBannerPopup banners={mobileSidebarRail} />
       <Footer />
     </>
   )

@@ -481,7 +481,7 @@ const deUi = {
       Women: 'Frauen',
       Couples: 'Paare',
       Trans: 'Trans',
-      Gays: 'Schwule',
+      Gays: 'Homosexuelle',
       '2+': '2+',
     },
     servicesHeading: 'Leistungen',

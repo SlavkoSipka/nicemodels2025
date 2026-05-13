@@ -396,8 +396,8 @@ export default function AdminModelEditClient({
             </div>
           )}
 
-          {/* Tabs — horizontally scrollable on mobile */}
-          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap pb-1 sm:pb-0">
+          {/* Tabs — horizontally scrollable on mobile, sticky under header */}
+          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap pb-1 sm:pb-0 sticky top-12 md:top-0 z-20 bg-gray-50 py-2 -my-2">
             {[
               { id: 'bio', label: t('tabBio'), icon: User },
               { id: 'area', label: t('tabArea'), icon: MapPin },
@@ -609,8 +609,8 @@ export default function AdminModelEditClient({
                   className="w-4 h-4 text-brand rounded" />
                 <span className="text-sm font-semibold text-gray-900">{t('showPhoneNumber')}</span>
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-2 gap-3">
+                <div className="min-w-0">
                   <label className={labelCls}>{t('countryCode')}</label>
                   <select value={contact.country_code} onChange={e => setContact(p => ({ ...p, country_code: e.target.value }))} className={inputCls}>
                     {COUNTRY_CODES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -958,8 +958,8 @@ export default function AdminModelEditClient({
             </div>
           )}
 
-          {/* Bottom save */}
-          <div className="flex items-center justify-end gap-3 pb-6">
+          {/* Bottom save (desktop only — mobile uses sticky bar below) */}
+          <div className="hidden sm:flex items-center justify-end gap-3 pb-6">
             <Link href="/dashboard/admin/models" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{tc('cancel')}</Link>
             <button onClick={handleSave} disabled={saving}
               className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
@@ -968,7 +968,20 @@ export default function AdminModelEditClient({
             </button>
           </div>
 
+          {/* Padding so sticky bar doesn't cover content */}
+          <div className="sm:hidden h-16" />
+
         </div>
+      </div>
+
+      {/* Sticky save bar on mobile */}
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 px-3 py-2 flex items-center gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <Link href="/dashboard/admin/models" className="flex-1 text-center px-3 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg">{tc('cancel')}</Link>
+        <button onClick={handleSave} disabled={saving}
+          className="flex-[2] flex items-center justify-center gap-1.5 px-3 py-2.5 bg-brand text-white rounded-lg text-sm font-bold disabled:opacity-50">
+          <Save className="w-4 h-4" />
+          {saving ? tc('savingDots') : tc('save')}
+        </button>
       </div>
     </div>
   )

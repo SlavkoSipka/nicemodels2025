@@ -7,6 +7,7 @@ interface HomeFeedMockProps {
   mode: PreviewMode
   highlight: PreviewHighlight
   previewUrl?: string
+  compact?: boolean
 }
 
 const FAKE_MODELS = [
@@ -234,33 +235,40 @@ function Filters({ compact = false }: { compact?: boolean }) {
   )
 }
 
-export default function HomeFeedMock({ mode, highlight, previewUrl }: HomeFeedMockProps) {
-  const compact = mode === 'mobile'
-  const showSidebar = !compact && highlight === 'banner-sidebar'
+export default function HomeFeedMock({ mode, highlight, previewUrl, compact: compactProp = false }: HomeFeedMockProps) {
+  const mobile = mode === 'mobile'
+  const compact = compactProp
+  const showSidebar = !mobile && highlight === 'banner-sidebar'
+
+  // In compact mode show only the bare minimum to keep the preview short.
+  // ad-card / banner-card layouts already include 2 fixed cards (a neighbour
+  // and the highlighted slot), so cardSlice = 0 collapses the grid to 1 row.
+  const cardSlice = compact ? 0 : 2
+  const plainSlice = compact ? 2 : mobile ? 6 : 4
 
   return (
     <div className="bg-slate-50 w-full">
-      <SiteHeader compact={compact} />
-      <Filters compact={compact} />
+      <SiteHeader compact={mobile} />
+      <Filters compact={mobile} />
 
-      <div className="p-2 flex gap-2">
+      <div className={`flex gap-2 ${compact ? 'p-1.5' : 'p-2'}`}>
         {showSidebar && (
           <div className="w-[90px] shrink-0">
             <BannerSlotSidebar previewUrl={previewUrl} />
           </div>
         )}
 
-        <div className="flex-1 min-w-0 space-y-2">
+        <div className={`flex-1 min-w-0 ${compact ? 'space-y-1.5' : 'space-y-2'}`}>
           {highlight === 'banner-wide' && (
             <BannerSlotWide previewUrl={previewUrl} />
           )}
 
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className={`grid grid-cols-2 ${compact ? 'gap-1' : 'gap-1.5'}`}>
             {highlight === 'banner-card' ? (
               <>
                 <ModelCardMock model={FAKE_MODELS[0]} />
                 <BannerSlotCard previewUrl={previewUrl} />
-                {FAKE_MODELS.slice(1, compact ? 5 : 3).map(m => (
+                {FAKE_MODELS.slice(1, cardSlice + 1).map(m => (
                   <ModelCardMock key={m.name} model={m} />
                 ))}
               </>
@@ -272,18 +280,18 @@ export default function HomeFeedMock({ mode, highlight, previewUrl }: HomeFeedMo
                   highlighted
                   label="YOUR CARD"
                 />
-                {FAKE_MODELS.slice(1, compact ? 3 : 3).map(m => (
+                {FAKE_MODELS.slice(1, cardSlice + 1).map(m => (
                   <ModelCardMock key={m.name} model={m} />
                 ))}
               </>
             ) : (
-              FAKE_MODELS.slice(0, compact ? 6 : 4).map(m => (
+              FAKE_MODELS.slice(0, plainSlice).map(m => (
                 <ModelCardMock key={m.name} model={m} />
               ))
             )}
           </div>
 
-          {highlight === 'banner-wide' && (
+          {highlight === 'banner-wide' && !compact && (
             <div className="text-center">
               <p className="text-[8px] text-slate-400 font-semibold italic">
                 ... another wide banner repeats every 6 cards

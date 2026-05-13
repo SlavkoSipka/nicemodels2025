@@ -205,9 +205,7 @@ export default function BasicInfoPage() {
         : hasSms  ? 'sms_only'
         : 'sms_and_call'
 
-      const { error: contactErr } = await supabase
-        .from('club_contact_details')
-        .upsert({
+      const contactPayload = {
           club_id: user.id,
           country_code: formData.country_code,
           phone_number: formData.phone_number,
@@ -222,7 +220,16 @@ export default function BasicInfoPage() {
           website: formData.website,
           hide_contact_info: formData.hide_contact_info,
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'club_id' })
+        }
+      // #region agent log
+      fetch('http://127.0.0.1:7457/ingest/26dc86b0-b20c-4321-a2ef-f9e42b276fa5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58d6ee'},body:JSON.stringify({sessionId:'58d6ee',hypothesisId:'A,B,C,D',location:'basic-info/page.tsx:contact-upsert-pre',message:'Pre upsert club_contact_details',data:{supabaseUrl:process.env.NEXT_PUBLIC_SUPABASE_URL,payloadKeys:Object.keys(contactPayload),hasContactMethodsKey:'contact_methods' in contactPayload,contactMethodsValue:contactPayload.contact_methods,contactMethodsType:Array.isArray(contactPayload.contact_methods)?'array':typeof contactPayload.contact_methods},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      const { error: contactErr } = await supabase
+        .from('club_contact_details')
+        .upsert(contactPayload, { onConflict: 'club_id' })
+      // #region agent log
+      fetch('http://127.0.0.1:7457/ingest/26dc86b0-b20c-4321-a2ef-f9e42b276fa5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'58d6ee'},body:JSON.stringify({sessionId:'58d6ee',hypothesisId:'A,B,C,D',location:'basic-info/page.tsx:contact-upsert-post',message:'Post upsert club_contact_details',data:{hasError:!!contactErr,errorCode:(contactErr as any)?.code,errorMessage:contactErr?.message,errorDetails:(contactErr as any)?.details,errorHint:(contactErr as any)?.hint},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (contactErr) throw contactErr
 
       setSuccess(t('successUpdated'))
@@ -377,7 +384,7 @@ export default function BasicInfoPage() {
           {/* Phone */}
           <div>
             <p className="text-xs font-bold text-gray-700 mb-2">{t('phoneNumber')}</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-[110px_1fr] md:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">{t('countryCode')}</label>
                 <input

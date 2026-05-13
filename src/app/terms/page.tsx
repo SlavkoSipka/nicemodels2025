@@ -32,7 +32,7 @@ export default function TermsPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
                 Allgemeine Geschäftsbedingungen (AGB)
               </h1>
-              <p className="text-sm text-gray-600">Stand: 18. März 2026</p>
+              <p className="text-sm text-gray-600">Stand: 20. April 2026</p>
             </header>
 
             <NicemodelsAgbDe />

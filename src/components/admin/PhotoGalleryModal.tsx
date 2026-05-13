@@ -178,26 +178,26 @@ export default function PhotoGalleryModal({
   const allMedia = [...photos, ...videos]
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl max-w-7xl w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-stretch sm:items-center justify-center sm:p-4">
+      <div className="bg-white w-full h-full sm:h-auto sm:rounded-xl sm:max-w-7xl sm:max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{profileName} - {t('media')}</h2>
-            <p className="text-gray-600 mt-1">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{profileName} - {t('media')}</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
               {t('photoVideoCount', { photos: photos.length, videos: videos.length })}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
           >
             <X className="w-6 h-6 text-gray-600" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {loading ? (
             <div className="flex items-center justify-center h-64">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
@@ -270,17 +270,17 @@ export default function PhotoGalleryModal({
       {/* Full view modal */}
       {selectedMedia && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black bg-opacity-90 z-[60] flex items-center justify-center p-2 sm:p-4"
           onClick={() => setSelectedMedia(null)}
         >
           <button
             onClick={() => setSelectedMedia(null)}
-            className="absolute top-4 right-4 p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-2 bg-white rounded-full hover:bg-gray-100 transition-colors z-10"
           >
             <X className="w-6 h-6 text-gray-900" />
           </button>
 
-          <div className="max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-4xl max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
             {selectedMedia.type === 'photo' ? (
               <img
                 src={mediaUrls.get(selectedMedia.id)}
@@ -297,10 +297,10 @@ export default function PhotoGalleryModal({
             )}
 
             {/* Actions */}
-            <div className="mt-4 flex gap-4 justify-center">
+            <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-center">
               <button
                 onClick={() => handleToggleApproval(selectedMedia)}
-                className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 ${
+                className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 ${
                   selectedMedia.is_approved
                     ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
                     : 'bg-green-600 hover:bg-green-700 text-white'
@@ -320,7 +320,7 @@ export default function PhotoGalleryModal({
               </button>
               <button
                 onClick={() => handleDeleteMedia(selectedMedia)}
-                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold flex items-center gap-2"
+                className="px-4 sm:px-6 py-2.5 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold flex items-center justify-center gap-2"
               >
                 <Trash2 className="w-5 h-5" />
                 {t('deleteForever')}

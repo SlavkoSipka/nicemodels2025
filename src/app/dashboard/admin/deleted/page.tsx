@@ -59,7 +59,43 @@ export default function AdminDeletedPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          {/* Mobile card list */}
+          <div className="md:hidden space-y-2.5">
+            {rows.map(row => (
+              <div key={row.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+                    {roleIcon(row.role)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">@{row.username || '—'}</p>
+                        <p className="text-xs text-gray-500 truncate">{row.email}</p>
+                      </div>
+                      <span className="inline-flex px-1.5 py-0.5 rounded-full text-[10px] font-medium capitalize bg-gray-100 text-gray-700 shrink-0">
+                        {row.role === 'company' ? 'club' : (row.role || '—')}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 space-y-0.5 text-[11px] text-gray-500">
+                      <p>{new Date(row.deleted_at).toLocaleString()}</p>
+                      <p>{t('colDeletedBy')}: {row.deleted_by === 'self' ? <span className="font-semibold text-gray-700">{t('self')}</span> : <span className="font-mono">{row.deleted_by.slice(0, 8)}…</span>}</p>
+                      {row.reason && <p className="break-words">{row.reason}</p>}
+                      <p className="text-[10px] font-mono text-gray-400 truncate">{row.original_user_id}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {rows.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg text-center py-8">
+                <Trash2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">{t('noAccounts')}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="hidden md:block bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
@@ -100,7 +136,7 @@ export default function AdminDeletedPage() {
               </table>
             </div>
             {rows.length === 0 && (
-              <div className="text-center py-12">
+              <div className="hidden md:block text-center py-12">
                 <Trash2 className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">{t('noAccounts')}</p>
               </div>

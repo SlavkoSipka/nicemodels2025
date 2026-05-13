@@ -286,8 +286,8 @@ export default function AdminClubEditClient({
             </div>
           )}
 
-          {/* Tabs — horizontally scrollable on mobile */}
-          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap pb-1 sm:pb-0">
+          {/* Tabs — horizontally scrollable on mobile, sticky under header */}
+          <div className="flex gap-1.5 overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:flex-wrap pb-1 sm:pb-0 sticky top-12 md:top-0 z-20 bg-gray-50 py-2 -my-2">
             {[
               { id: 'basic', label: t('tabBasic'), icon: Building2 },
               { id: 'address', label: t('tabAddress'), icon: MapPin },
@@ -389,12 +389,12 @@ export default function AdminClubEditClient({
             <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
               <div>
                 <p className="text-sm font-bold text-gray-800 mb-3">{t('phone')}</p>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
+                <div className="grid grid-cols-[110px_1fr] sm:grid-cols-3 gap-3">
+                  <div className="min-w-0">
                     <label className={labelCls}>{t('countryCode')}</label>
                     <input value={contact.country_code} onChange={e => setContact(p => ({ ...p, country_code: e.target.value }))} className={inputCls} />
                   </div>
-                  <div className="col-span-2">
+                  <div className="sm:col-span-2 min-w-0">
                     <label className={labelCls}>{t('phoneNumber')}</label>
                     <input value={contact.phone_number} onChange={e => setContact(p => ({ ...p, phone_number: e.target.value }))} className={inputCls} />
                   </div>
@@ -600,8 +600,8 @@ export default function AdminClubEditClient({
             </div>
           )}
 
-          {/* Bottom save */}
-          <div className="flex items-center justify-end gap-3 pb-6">
+          {/* Bottom save (desktop only) */}
+          <div className="hidden sm:flex items-center justify-end gap-3 pb-6">
             <Link href="/dashboard/admin/clubs" className="text-sm font-semibold text-gray-600 hover:text-gray-900">{tc('cancel')}</Link>
             <button onClick={handleSave} disabled={saving}
               className="flex items-center gap-1.5 px-4 sm:px-5 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors">
@@ -610,7 +610,18 @@ export default function AdminClubEditClient({
             </button>
           </div>
 
+          <div className="sm:hidden h-16" />
+
         </div>
+      </div>
+
+      <div className="sm:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-gray-200 px-3 py-2 flex items-center gap-2 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+        <Link href="/dashboard/admin/clubs" className="flex-1 text-center px-3 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 rounded-lg">{tc('cancel')}</Link>
+        <button onClick={handleSave} disabled={saving}
+          className="flex-[2] flex items-center justify-center gap-1.5 px-3 py-2.5 bg-brand text-white rounded-lg text-sm font-bold disabled:opacity-50">
+          <Save className="w-4 h-4" />
+          {saving ? tc('savingDots') : tc('save')}
+        </button>
       </div>
     </div>
   )

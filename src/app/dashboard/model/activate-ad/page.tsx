@@ -300,6 +300,7 @@ export default function ActivateAdPage() {
           page="home"
           highlight="ad-card"
           title={t('previewTitle')}
+          compact
         />
 
         {checkoutError && (

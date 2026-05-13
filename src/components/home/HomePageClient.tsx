@@ -9,6 +9,7 @@ import ModelCard from './ModelCard'
 import BannerCard, { BannerData } from './BannerCard'
 import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
+import MobileBannerPopup from './MobileBannerPopup'
 import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
 import { useVisitorCanton } from '@/lib/useVisitorCanton'
 import CitySelector from './CitySelector'
@@ -89,6 +90,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
   const [widePool, setWidePool] = useState<BannerData[]>([])
   const [cardPool, setCardPool] = useState<BannerData[]>([])
   const [sidebarPool, setSidebarPool] = useState<BannerData[]>([])
+  const [mobileSidebarPool, setMobileSidebarPool] = useState<BannerData[]>([])
 
   useEffect(() => {
     const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(visibleBanners)
@@ -97,6 +99,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     // Left rail: only one banner visible; which advertiser wins is random each load/refresh.
     const sideShuffled = sidebarLeft.length <= 1 ? sidebarLeft : randomShuffle([...sidebarLeft])
     setSidebarPool(sideShuffled.length ? [sideShuffled[0]] : [])
+    setMobileSidebarPool(sideShuffled)
   }, [visibleBanners])
 
   const filteredModels = useMemo(() => {
@@ -262,6 +265,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
           </div>
         </div>
       </div>
+      <MobileBannerPopup banners={mobileSidebarPool} />
       <Footer />
     </>
   )

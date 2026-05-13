@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { CheckCircle, Receipt, ArrowRight, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { dashboardRootForRole } from '@/lib/dashboard/path'
 
 interface PageProps {
   searchParams: Promise<{ session_id?: string }>
@@ -14,7 +15,6 @@ export const dynamic = 'force-dynamic'
 export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   const params = await searchParams
   const sessionId = params.session_id
-  if (!sessionId) redirect('/dashboard/model')
 
   const t = await getTranslations('publicPages.checkout')
   const supabase = await createClient()
@@ -24,6 +24,20 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   // Read with the service role so we can see freshly-paid (or still-pending)
   // orders without depending on RLS recency.
   const admin = createAdminClient()
+
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const role = profile?.role as string | null | undefined
+  const dashboardRoot = dashboardRootForRole(role)
+  const isModel = role === 'model'
+  const ctaHref = isModel ? '/dashboard/model/purchase-history' : dashboardRoot
+  const ctaLabel = isModel ? t('purchaseHistory') : t('backToDashboard')
+
+  if (!sessionId) redirect(dashboardRoot)
+
   const { data: order } = await admin
     .from('orders')
     .select(`
@@ -41,10 +55,10 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
           <h1 className="text-xl font-bold text-gray-900 mb-2">{t('orderNotFound')}</h1>
           <p className="text-sm text-gray-600 mb-6">{t('orderNotFoundDesc')}</p>
           <Link
-            href="/dashboard/model/purchase-history"
+            href={ctaHref}
             className="inline-flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
           >
-            {t('viewPurchaseHistory')}
+            {isModel ? t('viewPurchaseHistory') : t('backToDashboard')}
           </Link>
         </div>
       </div>
@@ -119,10 +133,10 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
                 </a>
               )}
               <Link
-                href="/dashboard/model/purchase-history"
+                href={ctaHref}
                 className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover"
               >
-                {t('purchaseHistory')} <ArrowRight className="w-4 h-4" />
+                {ctaLabel} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>

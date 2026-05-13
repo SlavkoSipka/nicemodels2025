@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { XCircle, RotateCcw, ArrowLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { dashboardRootForRole } from '@/lib/dashboard/path'
 
 interface PageProps {
   searchParams: Promise<{ session_id?: string }>
@@ -20,10 +21,17 @@ export default async function CheckoutCancelPage({ searchParams }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  let returnPath = '/dashboard/model'
+  const admin = createAdminClient()
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  const dashboardRoot = dashboardRootForRole(profile?.role as string | null | undefined)
+
+  let returnPath = dashboardRoot
 
   if (sessionId) {
-    const admin = createAdminClient()
     const { data: order } = await admin
       .from('orders')
       .select('id, status, metadata')
@@ -56,7 +64,7 @@ export default async function CheckoutCancelPage({ searchParams }: PageProps) {
               <RotateCcw className="w-4 h-4" /> {t('tryAgain')}
             </Link>
             <Link
-              href="/dashboard/model"
+              href={dashboardRoot}
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-100 text-gray-800 rounded-lg text-sm font-semibold hover:bg-gray-200"
             >
               <ArrowLeft className="w-4 h-4" /> {t('backToDashboard')}
