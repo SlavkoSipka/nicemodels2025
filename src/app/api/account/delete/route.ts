@@ -97,12 +97,29 @@ export async function POST(request: NextRequest) {
       snapshot,
     })
 
-    // Pokušaj #1: standardni Supabase admin API.
-    // Ako neki FK nema ON DELETE CASCADE, ovo će puknuti – fallback ispod
-    // koristi `admin_delete_user` RPC koji defanzivno čisti zavisnike.
+    // #region agent log
+    const dbg = (msg: string, data: any) => fetch('http://127.0.0.1:7457/ingest/26dc86b0-b20c-4321-a2ef-f9e42b276fa5', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '5f2b96' },
+      body: JSON.stringify({ sessionId: '5f2b96', location: 'api/account/delete/route.ts', message: msg, data, timestamp: Date.now() }),
+    }).catch(() => {})
+    // #endregion
+    // #region agent log
+    await dbg('attempt:deleteUser', { userIdToDelete, role })
+    // #endregion
     const { error: deleteError } = await admin.auth.admin.deleteUser(userIdToDelete)
+    // #region agent log
+    await dbg('result:deleteUser', { error: deleteError?.message ?? null, name: (deleteError as any)?.name, status: (deleteError as any)?.status })
+    // #endregion
     if (deleteError) {
+      // #region agent log
+      const { data: diagBefore } = await admin.rpc('_debug_delete_diagnostics', { target_id: userIdToDelete })
+      await dbg('diagnostics:before_rpc', diagBefore)
+      // #endregion
       const { error: rpcError } = await admin.rpc('admin_delete_user', { target_id: userIdToDelete })
+      // #region agent log
+      await dbg('result:admin_delete_user_rpc', { error: rpcError?.message ?? null, code: (rpcError as any)?.code, details: (rpcError as any)?.details, hint: (rpcError as any)?.hint })
+      // #endregion
       if (rpcError) {
         return NextResponse.json(
           { error: `${deleteError.message} (fallback: ${rpcError.message})` },

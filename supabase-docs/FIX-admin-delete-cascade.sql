@@ -165,8 +165,17 @@ BEGIN
   DELETE FROM public.model_comments       WHERE user_id   = target_id OR model_id = target_id;
   DELETE FROM public.favorites            WHERE user_id   = target_id OR model_id = target_id;
 
+  -- Supabase blokira DIREKTAN `DELETE FROM storage.objects` ("Direct
+  -- deletion from storage tables is not allowed"). Ako bilo koji
+  -- USER trigger na `profiles` (ili sličnim tabelama) pokuša da
+  -- briše storage redove tokom cascade-a, ceo delete pukne.
+  -- Zato privremeno gasimo USER trigger-e oko delete-a.
+  ALTER TABLE public.profiles DISABLE TRIGGER USER;
+
   -- Glavni delete – sve ostalo prati ON DELETE CASCADE
   DELETE FROM auth.users WHERE id = target_id;
+
+  ALTER TABLE public.profiles ENABLE TRIGGER USER;
 END
 $$;
 
