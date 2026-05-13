@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import { Bell, Check, X, Trash2 } from 'lucide-react'
 
 interface Notification {
@@ -167,9 +166,7 @@ export default function ModelNotificationsPage() {
   if (loading) return null
 
   return (
-    <>
-      <DashboardSidebar userRole="model" />
-      <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-6">
@@ -306,6 +303,5 @@ export default function ModelNotificationsPage() {
           )}
         </div>
       </div>
-    </>
   )
 }

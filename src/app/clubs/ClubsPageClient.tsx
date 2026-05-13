@@ -1,123 +1,25 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/layout/Navbar'
 import { Building2, Search, ChevronDown, MapPin } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
 import ViewCount from '@/components/ui/ViewCount'
-import { fetchViewCounts } from '@/lib/viewCounts'
 import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
 import { useNearbyIds } from '@/lib/useNearbyIds'
+import type { Club } from './types'
 
-interface Club {
-  id: string
-  username: string
-  club_name: string
-  display_name: string
-  area: string
-  city: string
-  is_club: boolean
-  description: string
-  address: string
-  phone: string
-  website: string
-  photoUrl: string | null
-  extraPhotos: string[]
-  view_count?: number
-}
-
-export default function ClubsPageClient() {
+export default function ClubsPageClient({ initialClubs }: { initialClubs: Club[] }) {
   const t = useTranslations('clubs.list')
-  const [loading, setLoading] = useState(true)
-  const [clubs, setClubs] = useState<Club[]>([])
+  const clubs = initialClubs
   const [selectedArea, setSelectedArea] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [areaOpen, setAreaOpen] = useState(false)
   const [nearby, setNearby] = useState<NearbyValue>({ originCity: null, radiusKm: null })
   const { ids: nearbyClubIds } = useNearbyIds('club', nearby.originCity, nearby.radiusKm)
-
-  useEffect(() => {
-    loadClubs()
-  }, [])
-
-  const loadClubs = async () => {
-    try {
-      const supabase = createClient()
-
-      const { data: clubsData, error } = await supabase.rpc('clubs_with_active_ads')
-      if (error || !clubsData?.length) {
-        setClubs([])
-        return
-      }
-
-      const result = await Promise.all(
-        clubsData.map(async (club: any) => {
-          // Slike
-          const { data: photos } = await supabase
-            .from('club_photos')
-            .select('file_path')
-            .eq('club_id', club.id)
-            .eq('is_approved', true)
-            .order('uploaded_at', { ascending: true })
-            .limit(3)
-
-          const urls = (photos || []).map((p: any) => {
-            const { data: u } = supabase.storage.from('club-photos').getPublicUrl(p.file_path)
-            return u.publicUrl
-          })
-
-          // Kontakt
-          const { data: contact } = await supabase
-            .from('club_contact_details')
-            .select('phone_number, website, address, city')
-            .eq('club_id', club.id)
-            .maybeSingle()
-
-          // Detalji (opis iz about_description)
-          const { data: details } = await supabase
-            .from('club_details')
-            .select('about_description, display_name, club_name, is_club, area')
-            .eq('club_id', club.id)
-            .maybeSingle()
-
-          return {
-            id: club.id,
-            username: club.username,
-            club_name: details?.club_name || club.club_name || '',
-            display_name: details?.display_name || club.display_name || club.club_name || '',
-            area: details?.area || club.area || '',
-            city: contact?.city || '',
-            is_club: details?.is_club ?? club.is_club ?? true,
-            description: details?.about_description?.trim() || '',
-            address: contact?.address || '',
-            phone: contact?.phone_number || '',
-            website: contact?.website || '',
-            photoUrl: urls[0] || null,
-            extraPhotos: urls.slice(1),
-          }
-        })
-      )
-
-      // Random shuffle — equal visibility for all clubs
-      const shuffled = [...result]
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-      }
-
-      const viewCountMap = await fetchViewCounts(supabase, 'club', shuffled.map((c) => c.id))
-      const withCounts = shuffled.map((c) => ({ ...c, view_count: viewCountMap.get(c.id) ?? 0 }))
-      setClubs(withCounts)
-    } catch (e) {
-      console.error('Error loading clubs:', e)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const allAreas = useMemo(
     () => Array.from(new Set(clubs.map((c) => c.area).filter(Boolean))).sort(),
@@ -146,17 +48,6 @@ export default function ClubsPageClient() {
       return true
     })
   }, [clubs, selectedArea, search, nearbyClubIds])
-
-  if (loading) {
-    return (
-      <>
-        <Navbar />
-        <div className="flex items-center justify-center min-h-screen" style={{ background: '#fce9f3' }}>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand" />
-        </div>
-      </>
-    )
-  }
 
   return (
     <>

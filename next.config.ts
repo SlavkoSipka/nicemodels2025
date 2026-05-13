@@ -9,7 +9,11 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 const tinymceSrc = path.join(process.cwd(), 'node_modules/tinymce')
 const tinymceDest = path.join(process.cwd(), 'public/tinymce')
 if (fs.existsSync(tinymceSrc)) {
-  fs.cpSync(tinymceSrc, tinymceDest, { recursive: true, force: false, errorOnExist: false })
+  try {
+    fs.cpSync(tinymceSrc, tinymceDest, { recursive: true, force: false, errorOnExist: false })
+  } catch {
+    // non-fatal: skip self-host copy if disk/permissions fail
+  }
 }
 
 const nextConfig: NextConfig = {

@@ -1,15 +1,17 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import { Globe, Eye, Users, Lock } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
 import DateRangePicker, { RangeKey } from '@/components/admin/charts/DateRangePicker'
-import StatsAreaChart from '@/components/admin/charts/StatsAreaChart'
-import StatsBarChart from '@/components/admin/charts/StatsBarChart'
-import StatsDonutChart from '@/components/admin/charts/StatsDonutChart'
 import ChartCard from '@/components/admin/charts/ChartCard'
 import { shortDate } from '@/lib/adminUtils'
+
+const StatsAreaChart = dynamic(() => import('@/components/admin/charts/StatsAreaChart'), { ssr: false })
+const StatsBarChart = dynamic(() => import('@/components/admin/charts/StatsBarChart'), { ssr: false })
+const StatsDonutChart = dynamic(() => import('@/components/admin/charts/StatsDonutChart'), { ssr: false })
 
 interface TrafficResp {
   range: RangeKey

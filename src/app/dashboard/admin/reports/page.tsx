@@ -46,22 +46,29 @@ export default function AdminReportsPage() {
       screenshotUrl: null,
     }))
 
-    // Generate signed URLs for screenshots via API
-    const withUrls = await Promise.all(
-      mapped.map(async (r) => {
-        if (!r.screenshot_path) return r
-        const res = await fetch('/api/reports/screenshot-url', {
+    const pathsNeeding = [...new Set(mapped.map((r) => r.screenshot_path).filter(Boolean))] as string[]
+
+    let urlByPath: Record<string, string> = {}
+    if (pathsNeeding.length > 0) {
+      try {
+        const batchRes = await fetch('/api/admin/reports/screenshot-urls', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: r.screenshot_path }),
+          body: JSON.stringify({ paths: pathsNeeding }),
         })
-        if (res.ok) {
-          const { url } = await res.json()
-          return { ...r, screenshotUrl: url }
+        if (batchRes.ok) {
+          const j = await batchRes.json()
+          urlByPath = (j.urls as Record<string, string>) || {}
         }
-        return r
-      })
-    )
+      } catch {
+        urlByPath = {}
+      }
+    }
+
+    const withUrls = mapped.map((r) => ({
+      ...r,
+      screenshotUrl: r.screenshot_path ? urlByPath[r.screenshot_path] ?? null : null,
+    }))
 
     setReports(withUrls)
     setLoading(false)

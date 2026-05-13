@@ -11,6 +11,8 @@ function excerptFromHtml(html: string, n = 180): string {
   return t.length > n ? `${t.slice(0, n)}...` : t
 }
 
+export const revalidate = 60
+
 function timeAgo(dateStr: string, t: (k: string, vars?: any) => string) {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
   if (seconds < 60) return t('justNow')

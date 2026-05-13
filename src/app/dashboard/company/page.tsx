@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, Users,
   Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Bell, Megaphone,
@@ -99,9 +100,8 @@ async function loadViewBreakdown(
 export default function CompanyDashboardPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.company.home')
+  const { user, profile } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
   const [clubDetails, setClubDetails] = useState<any>(null)
   const [modelCount, setModelCount] = useState<number>(0)
   const [photoCount, setPhotoCount] = useState<number>(0)
@@ -109,56 +109,63 @@ export default function CompanyDashboardPage() {
   const [views, setViews] = useState<ViewBreakdown>({ total: 0, club: 0, sedcards: 0, listings: 0, banners: 0 })
 
   useEffect(() => {
-    const checkUser = async () => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    if (!profile?.onboarding_completed) {
+      router.push('/onboarding')
+      return
+    }
+
+    let cancelled = false
+    const uid = user.id
+
+    const load = async () => {
       try {
         const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) { router.push('/login'); return }
 
-        const { data: profileData } = await supabase
-          .from('profiles').select('*').eq('id', user.id).single()
+        const [clubDetailsRes, modelsRes, photosRes, notifRes] = await Promise.all([
+          supabase.from('club_details').select('*').eq('club_id', uid).maybeSingle(),
+          supabase
+            .from('club_invites')
+            .select('id', { count: 'exact', head: true })
+            .eq('club_id', uid)
+            .eq('status', 'accepted'),
+          supabase
+            .from('club_photos')
+            .select('id', { count: 'exact', head: true })
+            .eq('club_id', uid),
+          supabase
+            .from('notifications')
+            .select(
+              'id, type, title, message, is_read, related_entity_type, related_entity_id, action_url, created_at, read_at',
+            )
+            .eq('user_id', uid)
+            .eq('is_read', false)
+            .order('created_at', { ascending: false })
+            .limit(5),
+        ])
 
-        if (!profileData?.onboarding_completed) { router.push('/onboarding'); return }
+        if (cancelled) return
 
-        const { data: clubData } = await supabase
-          .from('club_details').select('*').eq('club_id', user.id).single()
-
-        const { count: models } = await supabase
-          .from('club_invites')
-          .select('id', { count: 'exact', head: true })
-          .eq('club_id', user.id)
-          .eq('status', 'accepted')
-
-        const { count: photos } = await supabase
-          .from('club_photos')
-          .select('id', { count: 'exact', head: true })
-          .eq('club_id', user.id)
-
-        const { data: notifData } = await supabase
-          .from('notifications')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('is_read', false)
-          .order('created_at', { ascending: false })
-          .limit(5)
-
-        setUser(user)
-        setProfile(profileData)
-        setClubDetails(clubData)
-        setModelCount(models ?? 0)
-        setPhotoCount(photos ?? 0)
-        setNotifications(notifData || [])
+        setClubDetails(clubDetailsRes.data ?? null)
+        setModelCount(modelsRes.count ?? 0)
+        setPhotoCount(photosRes.count ?? 0)
+        setNotifications(notifRes.data || [])
         setLoading(false)
 
-        // View aggregation runs after the page is rendered so the dashboard
-        // appears instantly even if the analytics queries are slow.
-        loadViewBreakdown(supabase, user.id).then(setViews).catch(() => {})
+        loadViewBreakdown(supabase, uid).then(setViews).catch(() => {})
       } catch {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
-    checkUser()
-  }, [router])
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [user, profile?.onboarding_completed, router])
 
   if (loading) return null
 

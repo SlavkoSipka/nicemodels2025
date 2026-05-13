@@ -4,13 +4,19 @@ import "./globals.css";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import PageLoader from "@/components/layout/PageLoader";
 import PageTracker from "@/components/analytics/PageTracker";
-import AuthProvider from "@/components/auth/AuthProvider";
+import AuthProvider, { type AuthProfile } from "@/components/auth/AuthProvider";
+import QueryProvider from "@/lib/query/QueryProvider";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { createClient } from "@/lib/supabase/server";
 
-const inter = Inter({ subsets: ["latin"] });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
+const inter = Inter({ subsets: ["latin"], display: "swap" });
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+});
 
 const SITE_URL = "https://www.nicemodels.ch";
 const SITE_NAME = "NiceModels.ch";
@@ -93,8 +99,30 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const locale = await getLocale();
-  const messages = await getMessages();
+  const [locale, messages] = await Promise.all([
+    getLocale(),
+    getMessages(),
+  ]);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let initialProfile: AuthProfile | null = null;
+  if (user) {
+    const { data: profileRow } = await supabase
+      .from("profiles")
+      .select(
+        "id, username, role, avatar_url, onboarding_completed, is_blocked, blocked_reason, blocked_at",
+      )
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profileRow) {
+      initialProfile = profileRow as AuthProfile;
+    }
+  }
+
   return (
     <html lang={locale} className={playfair.variable}>
       <head>
@@ -131,14 +159,16 @@ export default async function RootLayout({
       </head>
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <AuthProvider>
-            <PageLoader>
+          <AuthProvider initialUser={user} initialProfile={initialProfile}>
+            <QueryProvider>
+              <PageLoader>
               <ScrollToTop />
               <Suspense fallback={null}>
                 <PageTracker />
               </Suspense>
               {children}
-            </PageLoader>
+              </PageLoader>
+            </QueryProvider>
           </AuthProvider>
         </NextIntlClientProvider>
       </body>

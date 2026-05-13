@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest) {
   const [
     modelsC, clubsC, visitorsC, listingsC, activeBannersC, pendingMediaP, pendingMediaV,
     verificationsC, reportsC, commentsC, ordersSum, revenue30, pageViewsSince, signupsSince,
-    signupsByRole, siteActions, topModelsStats,
+    roleDistribution, siteActions, topModelsStats,
   ] = await Promise.all([
     admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model'),
     admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'company'),
@@ -34,10 +34,30 @@ export async function GET(_req: NextRequest) {
     admin.from('orders').select('total_amount').eq('status', 'paid').gte('created_at', sinceIso),
     admin.from('page_views').select('created_at').gte('created_at', sinceIso),
     admin.from('profiles').select('created_at,role').gte('created_at', sinceIso),
-    admin.from('profiles').select('role'),
-    admin.from('site_actions').select('*').order('created_at', { ascending: false }).limit(15),
+    admin.rpc('get_role_distribution_v1'),
+    admin.from('site_actions').select('id, action_type, title, description, created_at').order('created_at', { ascending: false }).limit(15),
     admin.from('model_statistics').select('model_id').eq('action_type', 'profile_view'),
   ])
+
+  let roleCounts: Record<string, number> = { model: 0, company: 0, user: 0, admin: 0 }
+  const rpcRoles = roleDistribution.data as { role: string | null; count: number | string | null }[] | null
+  const rpcRolesErr = roleDistribution.error != null || !rpcRoles
+  if (rpcRolesErr) {
+    const { data: allRolesRows } = await admin.from('profiles').select('role')
+    const roleBuckets: Record<string, number> = { model: 0, company: 0, user: 0, admin: 0 }
+    for (const r of allRolesRows ?? []) {
+      const rr = ((r as { role?: string | null }).role) || ''
+      if (roleBuckets[rr] !== undefined) roleBuckets[rr] += 1
+    }
+    roleCounts = roleBuckets
+  } else {
+    for (const row of rpcRoles) {
+      if (!row?.role) continue
+      if (roleCounts[row.role] !== undefined) {
+        roleCounts[row.role] = Number(row.count ?? 0)
+      }
+    }
+  }
 
   // top models by profile_view count
   const modelViewCounts = new Map<string, number>()
@@ -84,20 +104,13 @@ export async function GET(_req: NextRequest) {
     views: d.count,
   }))
 
-  // Role distribution donut
-  const roleCounts: Record<string, number> = { model: 0, company: 0, user: 0, admin: 0 }
-  for (const r of signupsByRole.data || []) {
-    const role = (r as any).role as string
-    if (roleCounts[role] !== undefined) roleCounts[role]++
-  }
-
   // Revenue totals
   const revTotal = (ordersSum.data || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0)
   const rev30 = (revenue30.data || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0)
 
   const pendingMedia = (pendingMediaP.count ?? 0) + (pendingMediaV.count ?? 0)
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     kpis: {
       totalModels: modelsC.count ?? 0,
       totalClubs: clubsC.count ?? 0,
@@ -120,4 +133,8 @@ export async function GET(_req: NextRequest) {
     topModels,
     siteActions: siteActions.data || [],
   })
+
+  res.headers.set('Cache-Control', 'private, max-age=30')
+
+  return res
 }

@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import { Plus, Search as SearchIcon, Pencil, Bell, BellOff, Trash2, Users, Building2, Briefcase } from 'lucide-react'
 
 interface SavedSearch {
@@ -78,9 +77,7 @@ export default function SavedSearchesPage() {
   if (loading) return null
 
   return (
-    <>
-      <DashboardSidebar userRole="user" />
-      <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div className="flex items-center gap-3">
@@ -175,6 +172,5 @@ export default function SavedSearchesPage() {
           )}
         </div>
       </div>
-    </>
   )
 }

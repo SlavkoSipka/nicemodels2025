@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { hitRateLimit, clientIpFromHeaders } from '@/lib/rateLimit'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -24,6 +25,11 @@ function getIp(req: NextRequest): string | null {
 
 export async function POST(request: NextRequest) {
   try {
+    const rip = clientIpFromHeaders(request.headers)
+    if (hitRateLimit(`track:${rip}`, { windowMs: 60_000, maxRequests: 120 })) {
+      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 })
+    }
+
     const { event_type, payload = {} } = (await request.json()) as EventBody
     if (!event_type) {
       return NextResponse.json({ error: 'event_type is required' }, { status: 400 })

@@ -14,9 +14,8 @@ import {
 export default function ModelDashboardPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.model.home')
-  const { user, isLoading: authLoading } = useAuth()
+  const { user, profile, isLoading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [profile, setProfile] = useState<any>(null)
   const [modelDetails, setModelDetails] = useState<any>(null)
   const [pendingInvites, setPendingInvites] = useState<any[]>([])
   const [pendingCollabs, setPendingCollabs] = useState<any[]>([])
@@ -44,12 +43,13 @@ export default function ModelDashboardPage() {
     let cancelled = false
     const run = async () => {
       try {
+        if (!profile?.onboarding_completed) { router.push('/onboarding'); return }
+
         const supabase = createClient()
         const uid = user.id
         const nowIso = new Date().toISOString()
 
         const [
-          profileRes,
           modelDetailsRes,
           invitesRes,
           collabInvitesRes,
@@ -61,7 +61,6 @@ export default function ModelDashboardPage() {
           statusMsgsRes,
           unrepliedRes,
         ] = await Promise.all([
-          supabase.from('profiles').select('*').eq('id', uid).single(),
           supabase.from('model_details').select('*').eq('model_id', uid).single(),
           supabase.from('club_invites')
             .select('id, club_id, message, invited_at')
@@ -105,9 +104,6 @@ export default function ModelDashboardPage() {
         ])
 
         if (cancelled) return
-
-        const profileData = profileRes.data
-        if (!profileData?.onboarding_completed) { router.push('/onboarding'); return }
 
         const modelDetailsData = modelDetailsRes.data
         const invitesData = invitesRes.data
@@ -169,7 +165,6 @@ export default function ModelDashboardPage() {
           }
         }
 
-        setProfile(profileData)
         setModelDetails(modelDetailsData)
         setClubInfo({ count: acceptedInvites?.length || 0 })
         setPendingInvites(enrichedInvites)
@@ -192,7 +187,7 @@ export default function ModelDashboardPage() {
     run()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authLoading, user?.id, router])
+  }, [authLoading, user?.id, router, profile?.onboarding_completed, profile?.id])
 
   async function toggleChatAvailable() {
     if (!user || !hasActiveAd) return

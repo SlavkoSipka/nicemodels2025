@@ -1,3 +1,5 @@
+import DashboardRouteSkeleton from '@/components/layout/DashboardRouteSkeleton'
+
 export default function UserDashboardLoading() {
-  return null
+  return <DashboardRouteSkeleton />
 }

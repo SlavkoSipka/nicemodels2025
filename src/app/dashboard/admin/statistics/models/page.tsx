@@ -1,14 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Users, Eye, Heart, Share2, Phone } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
 import DateRangePicker, { RangeKey } from '@/components/admin/charts/DateRangePicker'
-import StatsLineChart from '@/components/admin/charts/StatsLineChart'
 import ChartCard from '@/components/admin/charts/ChartCard'
 import { shortDate } from '@/lib/adminUtils'
+
+const StatsLineChart = dynamic(() => import('@/components/admin/charts/StatsLineChart'), { ssr: false })
 
 interface Resp {
   range: RangeKey

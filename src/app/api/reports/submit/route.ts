@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendReportReceivedEmail } from '@/lib/email/templates'
+import { hitRateLimit } from '@/lib/rateLimit'
 import { SUPPORT_EMAIL } from '@/lib/email/client'
 
 export async function POST(request: NextRequest) {
@@ -11,6 +12,10 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    if (hitRateLimit(`reports:${user.id}`, { windowMs: 3600_000, maxRequests: 30 })) {
+      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 })
     }
 
     const formData = await request.formData()

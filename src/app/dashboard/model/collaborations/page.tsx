@@ -237,6 +237,7 @@ export default function ModelCollaborationsPage() {
       .select('id, username, is_verified')
       .eq('role', 'model')
       .order('username', { ascending: true })
+      .range(0, 239)
 
     if (!profiles?.length) { setAllModels([]); return }
 

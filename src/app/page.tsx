@@ -68,36 +68,40 @@ export default async function HomePage() {
       models.map((m: any) => m.model_details?.city).filter(Boolean),
     )] as string[]
 
-    const cityCantonMap = new Map<string, string>()
-    if (modelCityNames.length > 0) {
-      const { data: cityCantonsData } = await supabase
-        .from('cities')
-        .select('name, canton')
-        .in('name', modelCityNames)
-        .eq('is_active', true)
-
-      for (const c of cityCantonsData || []) {
-        if (c.name && c.canton && !cityCantonMap.has(c.name)) {
-          cityCantonMap.set(c.name, c.canton)
-        }
-      }
-    }
-
     const liveCityNames = [...new Set(
       models.map((m: any) => m.model_details?.live_location_city).filter(Boolean),
     )] as string[]
 
-    let liveCityRows: { name: string; postal_code: string | null; canton: string | null }[] = []
-    if (liveCityNames.length > 0) {
-      const { data: liveRows } = await supabase
-        .from('cities')
-        .select('name, postal_code, canton')
-        .in('name', liveCityNames)
-        .eq('is_active', true)
-      liveCityRows = liveRows || []
-    }
+    const uniqCityNames = [...new Set([...modelCityNames, ...liveCityNames])]
+    const liveSet = new Set(liveCityNames)
+    const profileCitySet = new Set(modelCityNames)
 
-    const modelViewCountMap = await fetchViewCounts(admin, 'model', modelIds)
+    const [{ data: cityRowsUnified }, modelViewCountMap] = await Promise.all([
+      uniqCityNames.length > 0
+        ? supabase
+            .from('cities')
+            .select('name, postal_code, canton')
+            .in('name', uniqCityNames)
+            .eq('is_active', true)
+        : Promise.resolve({ data: [] as { name: string; postal_code: string | null; canton: string | null }[] }),
+      fetchViewCounts(admin, 'model', modelIds),
+    ])
+
+    const cityCantonMap = new Map<string, string>()
+    const liveCityRows: { name: string; postal_code: string | null; canton: string | null }[] = []
+    for (const c of cityRowsUnified || []) {
+      if (!c.name) continue
+      if (profileCitySet.has(c.name) && c.canton && !cityCantonMap.has(c.name)) {
+        cityCantonMap.set(c.name, c.canton)
+      }
+      if (liveSet.has(c.name)) {
+        liveCityRows.push({
+          name: c.name,
+          postal_code: c.postal_code,
+          canton: c.canton,
+        })
+      }
+    }
 
     models = models.map((m: any) => ({
       ...m,

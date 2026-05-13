@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import {
@@ -8,11 +9,12 @@ import {
   DollarSign, TrendingUp, AlertCircle, Eye, MessageSquare,
 } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
-import StatsAreaChart from '@/components/admin/charts/StatsAreaChart'
-import StatsBarChart from '@/components/admin/charts/StatsBarChart'
-import StatsDonutChart from '@/components/admin/charts/StatsDonutChart'
 import ChartCard from '@/components/admin/charts/ChartCard'
 import { shortDate } from '@/lib/adminUtils'
+
+const StatsAreaChart = dynamic(() => import('@/components/admin/charts/StatsAreaChart'), { ssr: false })
+const StatsBarChart = dynamic(() => import('@/components/admin/charts/StatsBarChart'), { ssr: false })
+const StatsDonutChart = dynamic(() => import('@/components/admin/charts/StatsDonutChart'), { ssr: false })
 
 interface Overview {
   kpis: {

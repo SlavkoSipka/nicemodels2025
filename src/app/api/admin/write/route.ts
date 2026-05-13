@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { clientIpFromHeaders, hitRateLimit } from '@/lib/rateLimit'
 import { notifyAdminAction } from '@/lib/admin/notify'
 
 const ALLOWED_TABLES = new Set([
@@ -30,8 +31,19 @@ async function verifyAdmin(supabase: any) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    if (!(await verifyAdmin(supabase))) {
+    const adminUser = await verifyAdmin(supabase)
+    if (!adminUser) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const rip = clientIpFromHeaders(request.headers)
+    if (
+      hitRateLimit(`admin-write:${adminUser.id}:${rip}`, {
+        windowMs: 60_000,
+        maxRequests: 80,
+      })
+    ) {
+      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 })
     }
 
     const { operations, notify } = await request.json()

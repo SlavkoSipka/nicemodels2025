@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import SavedSearchForm, { type SavedSearchRow } from '@/components/saved-searches/SavedSearchForm'
 import { ChevronLeft } from 'lucide-react'
 
@@ -42,9 +41,7 @@ export default function EditSavedSearchPage() {
   if (loading || !item) return null
 
   return (
-    <>
-      <DashboardSidebar userRole="user" />
-      <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
         <div className="max-w-4xl mx-auto">
           <Link
             href="/dashboard/user/saved-searches"
@@ -58,7 +55,6 @@ export default function EditSavedSearchPage() {
           </div>
           <SavedSearchForm existing={item} />
         </div>
-      </div>
-    </>
+    </div>
   )
 }

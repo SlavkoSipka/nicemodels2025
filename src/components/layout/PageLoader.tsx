@@ -101,6 +101,12 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
     return () => document.removeEventListener('click', handle, true)
   }, [show, pathname])
 
+  useEffect(() => () => {
+    clearTimeout(showTimer.current)
+    clearTimeout(maxTimer.current)
+    clearTimeout(minTimer.current)
+  }, [])
+
   return (
     <Ctx.Provider value={{ show }}>
       {children}
@@ -154,10 +160,10 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
               <Image
                 src="/logo.webp"
                 alt="nicemodels.ch"
-                width={220}
-                height={55}
-                priority
-                style={{ height: 'auto', width: 220, filter: 'drop-shadow(0 0 20px rgba(236,72,153,0.15))' }}
+                width={132}
+                height={33}
+                sizes="132px"
+                style={{ height: 'auto', width: 132, filter: 'drop-shadow(0 0 20px rgba(236,72,153,0.15))' }}
               />
             </div>
           </div>

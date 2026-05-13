@@ -4,39 +4,84 @@ import { verifyAdmin, parseRange, rangeToDate, bucketByDay } from '@/lib/adminAp
 
 export const runtime = 'nodejs'
 
-const LIMIT_ROWS = 20000
+const FALLBACK_ROWS = 8000
 
-export async function GET(req: NextRequest) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+type AggJson = {
+  series?: unknown
+  topPaths?: unknown
+  topReferrers?: unknown
+  roleCounts?: unknown
+  kpis?: Record<string, unknown>
+}
+
+function parseDayKey(raw: unknown): string | null {
+  if (typeof raw === 'string' && raw.length >= 10) return raw.slice(0, 10)
+  if (typeof raw !== 'number' && raw != null) {
+    const dt = new Date(raw as Date)
+    const x = dt.getTime()
+    if (!Number.isFinite(x)) return null
+    return dt.toISOString().slice(0, 10)
+  }
+  return null
+}
+
+/** Match legacy bucket-by-day chart: zero-fill from `since` through today when `since` set. */
+function denseTrafficSeries(
+  pts: unknown,
+  since: Date | null,
+): { date: string; views: number }[] {
+  const rows = Array.isArray(pts)
+    ? (pts as { date?: unknown; views?: unknown }[])
+    : []
+  const viewsByDay = new Map<string, number>()
+  for (const p of rows) {
+    if (!p?.date) continue
+    const k = parseDayKey(p.date)
+    if (!k) continue
+    viewsByDay.set(k, Number(p.views ?? 0))
   }
 
-  const url = new URL(req.url)
-  const range = parseRange(url)
-  const since = rangeToDate(range)
-  const sinceIso = since ? since.toISOString() : null
+  let start: Date
+  if (since) {
+    start = new Date(since)
+    start.setHours(0, 0, 0, 0)
+  } else if (viewsByDay.size > 0) {
+    const times = [...viewsByDay.keys()].map(k => new Date(`${k}T00:00:00Z`).getTime())
+    start = new Date(Math.min(...times))
+    start.setHours(0, 0, 0, 0)
+  } else {
+    start = new Date()
+    start.setHours(0, 0, 0, 0)
+  }
 
-  const admin = createAdminClient()
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
-  let q = admin.from('page_views').select('created_at,path,viewer_id,viewer_role,session_id,referrer').limit(LIMIT_ROWS)
-  if (sinceIso) q = q.gte('created_at', sinceIso)
-  const { data: rows } = await q
+  const out: { date: string; views: number }[] = []
+  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10)
+    out.push({ date: key, views: viewsByDay.get(key) ?? 0 })
+  }
+  return out
+}
 
-  const list = (rows || []) as any[]
+function legacyTrafficFallback(
+  list: Record<string, unknown>[],
+  range: ReturnType<typeof parseRange>,
+  since: Date | null,
+) {
+  const series = bucketByDay(
+    list as { created_at: string }[],
+    since,
+  ).map(d => ({ date: d.date, views: d.count }))
 
-  // Time series
-  const series = bucketByDay(list, since).map(d => ({ date: d.date, views: d.count }))
-
-  // KPIs
   const total = list.length
-  const unique = new Set(list.map(r => r.session_id || r.viewer_id || '')).size
+  const unique = new Set(list.map(r => String(r.session_id || r.viewer_id || ''))).size
   const loggedIn = list.filter(r => !!r.viewer_id).length
-  const anon = total - loggedIn
 
-  // Top paths
   const pathCounts = new Map<string, number>()
   for (const r of list) {
-    const p = r.path || '/'
+    const p = typeof r.path === 'string' && r.path.trim() ? r.path : '/'
     pathCounts.set(p, (pathCounts.get(p) || 0) + 1)
   }
   const topPaths = [...pathCounts.entries()]
@@ -44,10 +89,11 @@ export async function GET(req: NextRequest) {
     .slice(0, 10)
     .map(([path, views]) => ({ path, views }))
 
-  // Referrers
   const refCounts = new Map<string, number>()
   for (const r of list) {
-    let ref: string = r.referrer || '(direct)'
+    let ref: string = typeof r.referrer === 'string' && r.referrer.trim()
+      ? r.referrer as string
+      : '(direct)'
     try {
       if (ref !== '(direct)') {
         const u = new URL(ref)
@@ -61,25 +107,110 @@ export async function GET(req: NextRequest) {
     .slice(0, 10)
     .map(([source, visits]) => ({ source, visits }))
 
-  // Role breakdown
-  const roleCounts: Record<string, number> = { anonymous: 0, user: 0, model: 0, company: 0, admin: 0 }
+  const roleCounts: Record<string, number> = {
+    anonymous: 0,
+    user: 0,
+    model: 0,
+    company: 0,
+    admin: 0,
+  }
   for (const r of list) {
-    const role = r.viewer_id ? (r.viewer_role || 'user') : 'anonymous'
+    const role = r.viewer_id ? (String(r.viewer_role || '') || 'user') : 'anonymous'
     roleCounts[role] = (roleCounts[role] || 0) + 1
   }
 
-  return NextResponse.json({
+  return {
     range,
     kpis: {
       totalViews: total,
       uniqueVisitors: unique,
       loggedIn,
-      anonymous: anon,
+      anonymous: total - loggedIn,
       topPath: topPaths[0]?.path || null,
     },
     series,
     topPaths,
     topReferrers,
     roleCounts,
+  }
+}
+
+export async function GET(req: NextRequest) {
+  if (!(await verifyAdmin())) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const url = new URL(req.url)
+  const range = parseRange(url)
+  const since = rangeToDate(range)
+  const sinceIso = since ? since.toISOString() : null
+
+  const admin = createAdminClient()
+
+  const { data: aggRaw, error: aggErr } = await admin.rpc('get_traffic_aggregates_v1', {
+    p_since: sinceIso,
   })
+
+  let body: Record<string, unknown>
+  let usedRpc = false
+
+  if (!aggErr && aggRaw != null && typeof aggRaw === 'object') {
+    const agg = aggRaw as AggJson
+    const k = (agg.kpis || {}) as Record<string, unknown>
+    const rpcRole = (agg.roleCounts && typeof agg.roleCounts === 'object')
+      ? (agg.roleCounts as Record<string, number>)
+      : {}
+    const roleCounts: Record<string, number> = {
+      anonymous: Number(rpcRole.anonymous ?? 0),
+      user: Number(rpcRole.user ?? 0),
+      model: Number(rpcRole.model ?? 0),
+      company: Number(rpcRole.company ?? 0),
+      admin: Number(rpcRole.admin ?? 0),
+    }
+    body = {
+      range,
+      kpis: {
+        totalViews: Number(k.total ?? 0),
+        uniqueVisitors: Number(k.uniqueVisitors ?? 0),
+        loggedIn: Number(k.loggedIn ?? 0),
+        anonymous: Number(k.anonymous ?? 0),
+        topPath: (k.topPath as string | null) ?? null,
+      },
+      series: denseTrafficSeries(agg.series, since),
+      topPaths: Array.isArray(agg.topPaths)
+        ? (agg.topPaths as { path: string; views: number }[])
+          .map(p => ({
+            path: String(p?.path ?? '/'),
+            views: Number((p as { views?: unknown })?.views ?? 0),
+          }))
+        : [],
+      topReferrers: Array.isArray(agg.topReferrers)
+        ? (agg.topReferrers as { source: string; visits: number }[])
+          .map(p => ({
+            source: String(p?.source ?? ''),
+            visits: Number((p as { visits?: unknown })?.visits ?? 0),
+          }))
+        : [],
+      roleCounts,
+    }
+    usedRpc = true
+  } else {
+    let q = admin
+      .from('page_views')
+      .select('created_at,path,viewer_id,viewer_role,session_id,referrer')
+      .limit(FALLBACK_ROWS)
+    if (sinceIso) q = q.gte('created_at', sinceIso)
+    const { data: rows } = await q
+
+    body = legacyTrafficFallback((rows || []) as Record<string, unknown>[], range, since)
+  }
+
+  const res = NextResponse.json(body)
+
+  const cacheCtl = process.env.NODE_ENV === 'production' && usedRpc
+    ? 'private, s-maxage=60, stale-while-revalidate=300'
+    : 'private, max-age=30'
+  res.headers.set('Cache-Control', cacheCtl)
+
+  return res
 }

@@ -1,5 +1,3 @@
-import * as XLSX from 'xlsx'
-
 type XlsxCell = string | number | boolean | null | undefined
 
 export interface XlsxColumn<T> {
@@ -11,25 +9,26 @@ export interface XlsxColumn<T> {
   width?: number
 }
 
-export function downloadXlsx<T>(
+export async function downloadXlsx<T>(
   filename: string,
   rows: T[],
   columns: XlsxColumn<T>[],
   sheetName = 'Sheet1',
-): void {
-  const aoa: any[][] = [columns.map(c => c.header)]
+): Promise<void> {
+  const XLSX = await import('xlsx')
+
+  const aoa: (string | number | boolean)[][] = [columns.map(c => c.header)]
   for (const row of rows) {
     aoa.push(columns.map(c => {
       const v = c.value(row)
       if (v === null || v === undefined) return ''
       if (c.text) return String(v)
-      return v
+      return v as string | number | boolean
     }))
   }
 
   const ws = XLSX.utils.aoa_to_sheet(aoa)
 
-  // Force text-typed cells (e.g. phone) so Excel doesn't reformat or strip leading "+".
   for (let colIdx = 0; colIdx < columns.length; colIdx++) {
     if (!columns[colIdx].text) continue
     for (let r = 1; r < aoa.length; r++) {

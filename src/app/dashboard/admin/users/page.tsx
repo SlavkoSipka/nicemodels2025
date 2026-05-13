@@ -223,8 +223,8 @@ export default function AdminUsersPage() {
       : <ArrowDown className="w-3 h-3 text-gray-700" />
   }
 
-  const handleDownloadXlsx = () => {
-    downloadXlsx('nicemodels-visitors', sorted, [
+  const handleDownloadXlsx = async () => {
+    await downloadXlsx('nicemodels-visitors', sorted, [
       { header: 'Public ID', value: v => v.public_id ?? '', width: 10 },
       { header: 'Username', value: v => v.username || '', width: 20 },
       { header: 'First Name', value: v => v.first_name || '', width: 18 },

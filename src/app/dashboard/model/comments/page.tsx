@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import { MessageSquare, Star, Send, Loader2, ChevronRight, Reply } from 'lucide-react'
 
 interface Comment {
@@ -87,12 +86,9 @@ export default function ModelCommentsPage() {
 
   if (loading) {
     return (
-      <>
-        <DashboardSidebar userRole="model" />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-0 md:ml-[280px]">
-          <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 ml-0 md:ml-[280px]">
+        <div className="w-8 h-8 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+      </div>
     )
   }
 
@@ -100,9 +96,7 @@ export default function ModelCommentsPage() {
   const replied = comments.filter(c => !!c.reply_text)
 
   return (
-    <>
-      <DashboardSidebar userRole="model" />
-      <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-4 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
         <div className="max-w-3xl mx-auto space-y-6">
 
           {/* Header */}
@@ -219,6 +213,5 @@ export default function ModelCommentsPage() {
           )}
         </div>
       </div>
-    </>
   )
 }

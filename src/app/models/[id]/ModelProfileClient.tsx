@@ -704,7 +704,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   return (
     <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
-      {!hasActiveAd && (
+      {!hasActiveAd && (currentUserId === profile.id || currentUserRole === 'admin') && (
         <div
           className="w-full px-4 py-3 text-center text-sm font-semibold border-b"
           style={{

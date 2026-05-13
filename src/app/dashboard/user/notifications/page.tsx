@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
-import DashboardSidebar from '@/components/layout/DashboardSidebar'
+import { useAuth } from '@/components/auth/AuthProvider'
 import {
   Bell,
   Check,
@@ -39,16 +40,6 @@ type TabId = 'all' | 'matches' | 'favorites' | 'system' | 'unread'
 
 const FAV_TYPES = new Set(['fav_new_photo', 'fav_new_story', 'fav_location_change', 'fav_back_online'])
 const MATCH_TYPES = new Set(['match_found'])
-const SYSTEM_TYPES = new Set([
-  'verification_approved',
-  'verification_rejected',
-  'new_comment',
-  'photo_like',
-  'system_message',
-  'club_invite',
-  'collaboration_invite',
-  'collaboration_accepted',
-])
 
 function categoryOf(type: string): 'matches' | 'favorites' | 'system' {
   if (MATCH_TYPES.has(type)) return 'matches'
@@ -87,12 +78,57 @@ function iconFor(type: string) {
   }
 }
 
+const NOTIFY_PAGE = 50
+const NOTIFY_COLUMNS =
+  'id,type,title,message,is_read,related_entity_type,related_entity_id,action_url,created_at,read_at'
+
 export default function UserNotificationsPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.user.notifications')
-  const [loading, setLoading] = useState(true)
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const queryClient = useQueryClient()
+  const { user, isLoading: authLoading } = useAuth()
   const [tab, setTab] = useState<TabId>('all')
+
+  const listNotifyKey = useMemo(
+    () => ['notifications-user-list', user?.id ?? '__none'] as const,
+    [user?.id],
+  )
+
+  const listQuery = useInfiniteQuery({
+    queryKey: listNotifyKey,
+    enabled: !!user?.id,
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const supabase = createClient()
+      const from = pageParam as number
+      const { data, error } = await supabase
+        .from('notifications')
+        .select(NOTIFY_COLUMNS)
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+        .range(from, from + NOTIFY_PAGE - 1)
+      if (error) throw error
+      return (data ?? []) as Notification[]
+    },
+    getNextPageParam: (lastPage, _pages, lastParam) =>
+      lastPage.length < NOTIFY_PAGE ? undefined : lastParam + NOTIFY_PAGE,
+  })
+
+  const notifications = useMemo(
+    () => listQuery.data?.pages.flat() ?? [],
+    [listQuery.data?.pages],
+  )
+
+  const invalidateBellQueries = () => {
+    const uid = user?.id
+    if (!uid) return
+    void queryClient.invalidateQueries({ queryKey: ['notifications-unread', uid] })
+    void queryClient.invalidateQueries({ queryKey: ['notifications-dropdown', uid] })
+  }
+
+  useEffect(() => {
+    if (!authLoading && !user) router.push('/login')
+  }, [authLoading, user, router])
 
   function formatWhen(iso: string): string {
     const date = new Date(iso)
@@ -107,62 +143,52 @@ export default function UserNotificationsPage() {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  useEffect(() => {
-    loadNotifications()
-  }, [])
-
-  const loadNotifications = async () => {
-    try {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login')
-        return
-      }
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-
-      if (error) console.error('Error loading notifications:', error)
-      else setNotifications(data || [])
-    } catch (err) {
-      console.error('Error:', err)
-    } finally {
-      setLoading(false)
-    }
+  const patchListCache = (fn: (n: Notification[]) => Notification[]) => {
+    const uid = user?.id
+    if (!uid) return
+    const key = ['notifications-user-list', uid] as const
+    queryClient.setQueryData(key, old => {
+      if (!old) return old
+      return { ...old, pages: old.pages.map(fn) }
+    })
   }
 
   const markAsRead = async (notificationId: string) => {
     const supabase = createClient()
+    const readAt = new Date().toISOString()
     const { error } = await supabase
       .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
+      .update({ is_read: true, read_at: readAt })
       .eq('id', notificationId)
     if (error) return
-    setNotifications(prev => prev.map(n => (n.id === notificationId ? { ...n, is_read: true } : n)))
+    patchListCache(page =>
+      page.map(n => (n.id === notificationId ? { ...n, is_read: true, read_at: readAt } : n)),
+    )
+    invalidateBellQueries()
   }
 
   const markAllAsRead = async () => {
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    const uid = user?.id
+    if (!uid) return
     const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id)
     if (unreadIds.length === 0) return
+    const readAt = new Date().toISOString()
     const { error } = await supabase
       .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
+      .update({ is_read: true, read_at: readAt })
       .in('id', unreadIds)
     if (error) return
-    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
+    patchListCache(page => page.map(n => (n.is_read ? n : { ...n, is_read: true, read_at: readAt })))
+    invalidateBellQueries()
   }
 
   const deleteNotification = async (notificationId: string) => {
     const supabase = createClient()
     const { error } = await supabase.from('notifications').delete().eq('id', notificationId)
     if (error) return
-    setNotifications(prev => prev.filter(n => n.id !== notificationId))
+    patchListCache(page => page.filter(n => n.id !== notificationId))
+    invalidateBellQueries()
   }
 
   const handleNotificationClick = async (n: Notification) => {
@@ -188,7 +214,18 @@ export default function UserNotificationsPage() {
     return notifications.filter(n => categoryOf(n.type) === tab)
   }, [notifications, tab])
 
-  if (loading) return null
+  if (authLoading || !user?.id || listQuery.isPending) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+        <div className="max-w-4xl mx-auto space-y-4 animate-pulse">
+          <div className="h-10 bg-gray-200 rounded-lg w-2/5" />
+          <div className="h-32 bg-gray-200 rounded-xl" />
+          <div className="h-32 bg-gray-200 rounded-xl" />
+          <div className="h-32 bg-gray-200 rounded-xl" />
+        </div>
+      </div>
+    )
+  }
 
   const TABS: { id: TabId; label: string; count: number }[] = [
     { id: 'all', label: t('tabAll'), count: counts.all },
@@ -199,9 +236,7 @@ export default function UserNotificationsPage() {
   ]
 
   return (
-    <>
-      <DashboardSidebar userRole="user" />
-      <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -326,10 +361,21 @@ export default function UserNotificationsPage() {
                   </div>
                 )
               })}
+              {listQuery.hasNextPage && (
+                <div className="pt-6 flex justify-center">
+                  <button
+                    type="button"
+                    disabled={listQuery.isFetchingNextPage}
+                    onClick={() => void listQuery.fetchNextPage()}
+                    className="px-4 py-2 rounded-lg text-sm font-semibold bg-white border border-gray-200 hover:border-pink-300 hover:text-pink-700 disabled:opacity-60"
+                  >
+                    {listQuery.isFetchingNextPage ? '…' : 'Load more'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       </div>
-    </>
   )
 }

@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import CommentsPageClient from './CommentsPageClient'
 
+export const revalidate = 60
+
 export const metadata: Metadata = {
   title: 'Bewertungen & Kommentare',
   description:

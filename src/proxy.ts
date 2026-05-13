@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 import { VALID_CANTONS } from '@/lib/cantons'
 
@@ -11,11 +11,22 @@ const CANTON_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
  * is missing/invalid or the visitor is outside CH/LI — we still set
  * the cookie so the client can distinguish "unknown" from "not yet set".
  */
+function decodeNfGeoBase64(base64: string): string {
+  if (typeof Buffer !== 'undefined') {
+    return Buffer.from(base64, 'base64').toString('utf-8')
+  }
+  try {
+    return atob(base64.replace(/-/g, '+').replace(/_/g, '/'))
+  } catch {
+    return ''
+  }
+}
+
 function detectVisitorCanton(request: NextRequest): string {
   const nfGeo = request.headers.get('x-nf-geo')
   if (!nfGeo) return ''
   try {
-    const decoded = JSON.parse(Buffer.from(nfGeo, 'base64').toString('utf-8'))
+    const decoded = JSON.parse(decodeNfGeoBase64(nfGeo))
     const sub = decoded?.subdivision?.code
     const country = decoded?.country?.code
     if (
@@ -32,6 +43,20 @@ function detectVisitorCanton(request: NextRequest): string {
 }
 
 export async function proxy(request: NextRequest) {
+  const p = request.nextUrl.pathname
+
+  const skipRefresh =
+    p.startsWith('/api/track')
+    || p.startsWith('/api/_debug')
+    || p.startsWith('/api/locale')
+    || p.startsWith('/api/cron')
+    || p.startsWith('/api/stripe/webhook')
+    || p.startsWith('/api/reports/screenshot-url')
+
+  if (skipRefresh) {
+    return NextResponse.next({ request })
+  }
+
   const response = await updateSession(request)
 
   // Set visitor canton cookie once per session (7 days). Used by the home

@@ -168,8 +168,8 @@ export default function AdminClubsPage() {
       : <ArrowDown className="w-3 h-3 text-gray-700" />
   }
 
-  const handleDownloadXlsx = () => {
-    downloadXlsx('nicemodels-clubs', sorted, [
+  const handleDownloadXlsx = async () => {
+    await downloadXlsx('nicemodels-clubs', sorted, [
       { header: 'Public ID', value: c => c.public_id ?? '', width: 10 },
       { header: 'Club Name', value: c => c.club_details?.club_name || '', width: 24 },
       { header: 'Display Name', value: c => c.club_details?.display_name || '', width: 22 },

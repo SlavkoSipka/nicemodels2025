@@ -29,17 +29,35 @@ export default function InYourAreaSection({ originCity }: InYourAreaProps) {
       setLoading(true)
       try {
         const supabase = createClient()
-        const [m, c, l] = await Promise.all([
-          supabase.rpc('entities_near_origin', { p_origin_city: originCity, p_radius_km: radius, p_entity: 'model' }),
-          supabase.rpc('entities_near_origin', { p_origin_city: originCity, p_radius_km: radius, p_entity: 'club' }),
-          supabase.rpc('entities_near_origin', { p_origin_city: originCity, p_radius_km: radius, p_entity: 'listing' }),
-        ])
-        if (cancelled) return
-        setCounts({
-          models: m.data?.length ?? 0,
-          clubs: c.data?.length ?? 0,
-          listings: l.data?.length ?? 0,
+        const { data, error } = await supabase.rpc('entities_near_origin_bundle', {
+          p_origin_city: originCity,
+          p_radius_km: radius,
         })
+        if (cancelled) return
+
+        let models = 0
+        let clubs = 0
+        let listings = 0
+
+        if (!error && data && typeof data === 'object' && !Array.isArray(data)) {
+          const j = data as Record<string, unknown>
+          models = Number(j.models ?? 0)
+          clubs = Number(j.clubs ?? 0)
+          listings = Number(j.listings ?? 0)
+        } else {
+          const [m, c, l] = await Promise.all([
+            supabase.rpc('entities_near_origin', { p_origin_city: originCity, p_radius_km: radius, p_entity: 'model' }),
+            supabase.rpc('entities_near_origin', { p_origin_city: originCity, p_radius_km: radius, p_entity: 'club' }),
+            supabase.rpc('entities_near_origin', { p_origin_city: originCity, p_radius_km: radius, p_entity: 'listing' }),
+          ])
+          if (cancelled) return
+          models = m.data?.length ?? 0
+          clubs = c.data?.length ?? 0
+          listings = l.data?.length ?? 0
+        }
+
+        if (cancelled) return
+        setCounts({ models, clubs, listings })
       } finally {
         if (!cancelled) setLoading(false)
       }

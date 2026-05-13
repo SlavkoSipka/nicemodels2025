@@ -2,6 +2,24 @@ import { type EmailOtpType } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+const ALLOW_NEXT_PATHS = new Set([
+  '/dashboard',
+  '/reset-password',
+  '/login',
+  '/onboarding',
+])
+
+function safeRelativeRedirect(raw: string, fallback = '/login'): string {
+  const t = typeof raw === 'string' ? raw.trim() : ''
+  const pathname = t.split('#')[0].split('?')[0]
+  if (!pathname.startsWith('/') || pathname.startsWith('//')) return fallback
+  if (/[\x00-\x1f\x7f]/.test(pathname)) return fallback
+  if (pathname.includes('\\')) return fallback
+  if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(pathname)) return fallback
+  if (!ALLOW_NEXT_PATHS.has(pathname)) return fallback
+  return t.startsWith('/') ? t : fallback
+}
+
 /**
  * Token-hash flow for email confirmations (signup, recovery, email change, magic link).
  *
@@ -43,7 +61,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/dashboard`)
     }
 
-    const safeNext = next.startsWith('/') ? next : '/login'
+    const safeNext = safeRelativeRedirect(next, '/login')
     return NextResponse.redirect(`${origin}${safeNext}`)
   } catch (err) {
     console.error('Confirm error:', err)

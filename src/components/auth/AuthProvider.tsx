@@ -18,6 +18,9 @@ export interface AuthProfile {
   role: string | null
   avatar_url: string | null
   onboarding_completed: boolean | null
+  is_blocked?: boolean | null
+  blocked_reason?: string | null
+  blocked_at?: string | null
 }
 
 interface AuthContextValue {
@@ -52,12 +55,22 @@ function withTimeout<T>(p: Promise<T>, ms: number, label = 'request'): Promise<T
   })
 }
 
-export default function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<AuthProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+type AuthProviderProps = {
+  children: React.ReactNode
+  initialUser: User | null
+  initialProfile: AuthProfile | null
+}
+
+export default function AuthProvider({
+  children,
+  initialUser,
+  initialProfile,
+}: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(initialUser)
+  const [profile, setProfile] = useState<AuthProfile | null>(initialProfile)
+  const [isLoading] = useState(false)
   const [profileError, setProfileError] = useState(false)
-  const fetchedFor = useRef<string | null>(null)
+  const fetchedFor = useRef<string | null>(initialUser?.id ?? null)
 
   const loadProfile = useCallback(async (uid: string) => {
     const supabase = createClient()
@@ -65,7 +78,9 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       const { data } = await withTimeout(
         supabase
           .from('profiles')
-          .select('id, username, role, avatar_url, onboarding_completed')
+          .select(
+            'id, username, role, avatar_url, onboarding_completed, is_blocked, blocked_reason, blocked_at',
+          )
           .eq('id', uid)
           .maybeSingle(),
         8000,
@@ -93,7 +108,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const signOut = useCallback(async () => {
     const supabase = createClient()
     try {
-      await supabase.auth.signOut()
+      await supabase.auth.signOut({ scope: 'local' })
     } catch {
       // ignore network errors during signout
     }
@@ -103,8 +118,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     fetchedFor.current = null
     if (typeof window !== 'undefined') {
       try {
-        window.localStorage.clear()
-        window.sessionStorage.clear()
+        for (const key of Object.keys(localStorage)) {
+          if (key.startsWith('sb-')) localStorage.removeItem(key)
+        }
+        for (const key of Object.keys(sessionStorage)) {
+          if (key.startsWith('sb-')) sessionStorage.removeItem(key)
+        }
       } catch {
         // ignore
       }
@@ -112,36 +131,16 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, [])
 
   useEffect(() => {
-    let cancelled = false
+    if (!initialUser?.id || initialProfile) return
+    fetchedFor.current = initialUser.id
+    loadProfile(initialUser.id).catch(() => {})
+  }, [initialUser?.id, initialProfile, loadProfile])
+
+  useEffect(() => {
     const supabase = createClient()
-
-    // Hard failsafe: if getSession() never resolves (e.g. token refresh hangs
-    // on a flaky mobile network), force isLoading=false after 5s so consumers
-    // can move on instead of spinning forever.
-    const failsafe = setTimeout(() => {
-      if (!cancelled) setIsLoading(false)
-    }, 5000)
-
-    // Initial session read — wraps in timeout so the failsafe is rarely needed.
-    withTimeout(supabase.auth.getSession(), 5000, 'getSession')
-      .then(({ data: { session } }) => {
-        if (cancelled) return
-        const u = session?.user ?? null
-        setUser(u)
-        setIsLoading(false)
-        if (u && fetchedFor.current !== u.id) {
-          fetchedFor.current = u.id
-          loadProfile(u.id).catch(() => {})
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setIsLoading(false)
-      })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null
       setUser(u)
-      setIsLoading(false)
 
       if (!u) {
         setProfile(null)
@@ -156,8 +155,6 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     })
 
     return () => {
-      cancelled = true
-      clearTimeout(failsafe)
       subscription.unsubscribe()
     }
   }, [loadProfile])

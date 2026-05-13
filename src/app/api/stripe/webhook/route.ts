@@ -168,20 +168,22 @@ async function handleCheckoutCancelled(session: Stripe.Checkout.Session) {
   const bannerIds = (items || []).map(i => i.banner_id).filter(Boolean) as string[]
   const listingIds = (items || []).map(i => i.listing_id).filter(Boolean) as string[]
 
-  if (bannerIds.length) {
-    await admin
-      .from('banners')
-      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .in('id', bannerIds)
-      .eq('status', 'pending_payment')
-  }
-  if (listingIds.length) {
-    await admin
-      .from('job_listings')
-      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-      .in('id', listingIds)
-      .eq('status', 'pending_payment')
-  }
+  await Promise.all([
+    bannerIds.length
+      ? admin
+          .from('banners')
+          .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+          .in('id', bannerIds)
+          .eq('status', 'pending_payment')
+      : Promise.resolve({ error: null }),
+    listingIds.length
+      ? admin
+          .from('job_listings')
+          .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+          .in('id', listingIds)
+          .eq('status', 'pending_payment')
+      : Promise.resolve({ error: null }),
+  ])
 }
 
 async function handlePaymentIntentFailed(pi: Stripe.PaymentIntent) {
@@ -213,40 +215,45 @@ async function activateOrderItems(admin: ReturnType<typeof createAdminClient>, o
 
   if (!items?.length) return
 
-  for (const item of items as any[]) {
-    const product = item.product
-    if (!product) continue
-    const durationMs =
-      Number(product.duration_days || 0) * 86400000 +
-      Number(product.duration_hours || 0) * 3600000
-
-    const startsAt = item.activation_date
-      ? new Date(item.activation_date)
-      : new Date()
-    const expiresAt = new Date(startsAt.getTime() + durationMs)
-
-    if (item.banner_id) {
-      await admin
-        .from('banners')
-        .update({
-          status: 'active',
-          starts_at: startsAt.toISOString(),
-          expires_at: expiresAt.toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', item.banner_id)
-    } else if (item.listing_id) {
-      await admin
-        .from('job_listings')
-        .update({
-          status: 'active',
-          starts_at: startsAt.toISOString(),
-          expires_at: expiresAt.toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', item.listing_id)
-    }
-    // ad_package items don't need a side-table flip — `checkActiveAd`
-    // derives status from the paid order alone.
+  type ActivateItem = {
+    banner_id?: string | null
+    listing_id?: string | null
+    activation_date?: string | null
+    product?: { duration_days?: number | null; duration_hours?: number | null } | null
   }
+
+  await Promise.all(
+    (items as ActivateItem[]).map(async (item) => {
+      const product = item.product
+      if (!product) return
+      const durationMs =
+        Number(product.duration_days || 0) * 86400000 +
+        Number(product.duration_hours || 0) * 3600000
+
+      const startsAt = item.activation_date ? new Date(item.activation_date) : new Date()
+      const expiresAt = new Date(startsAt.getTime() + durationMs)
+
+      if (item.banner_id) {
+        await admin
+          .from('banners')
+          .update({
+            status: 'active',
+            starts_at: startsAt.toISOString(),
+            expires_at: expiresAt.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', item.banner_id)
+      } else if (item.listing_id) {
+        await admin
+          .from('job_listings')
+          .update({
+            status: 'active',
+            starts_at: startsAt.toISOString(),
+            expires_at: expiresAt.toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', item.listing_id)
+      }
+    }),
+  )
 }

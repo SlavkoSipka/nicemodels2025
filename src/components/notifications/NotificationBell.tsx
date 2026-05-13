@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { Bell, X, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -28,55 +29,68 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('components.notificationBell')
-  const [notifications, setNotifications] = useState<Notification[]>([])
-  const [unreadCount, setUnreadCount] = useState(0)
+  const queryClient = useQueryClient()
   const [isOpen, setIsOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
   const { user } = useAuth()
 
-  useEffect(() => {
-    if (!user?.id) {
-      setLoading(false)
-      return
-    }
-    loadNotifications(user.id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id])
+  const unreadKey = ['notifications-unread', user?.id] as const
+  const listKey = ['notifications-dropdown', user?.id] as const
 
-  const loadNotifications = async (userId: string) => {
-    try {
+  const invalidateNotifs = () => {
+    if (!user?.id) return
+    void queryClient.invalidateQueries({ queryKey: ['notifications-unread', user.id] })
+    void queryClient.invalidateQueries({ queryKey: ['notifications-dropdown', user.id] })
+  }
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: unreadKey,
+    enabled: !!user?.id,
+    staleTime: 30_000,
+    queryFn: async (): Promise<number> => {
       const supabase = createClient()
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user!.id)
+        .eq('is_read', false)
 
+      if (error) throw error
+      return count ?? 0
+    },
+  })
+
+  const {
+    data: notifications = [],
+    isLoading: loading,
+  } = useQuery({
+    queryKey: listKey,
+    enabled: !!user?.id,
+    staleTime: 30_000,
+    queryFn: async (): Promise<Notification[]> => {
+      const supabase = createClient()
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
+        .select(
+          'id, type, title, message, is_read, related_entity_type, related_entity_id, action_url, created_at, read_at',
+        )
+        .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
         .limit(10)
 
-      if (error) {
-        console.error('Error loading notifications:', error)
-        return
-      }
-
-      setNotifications(data || [])
-      setUnreadCount(data?.filter(n => !n.is_read).length || 0)
-    } catch (err) {
-      console.error('Error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+      if (error) throw error
+      return (data as Notification[]) || []
+    },
+  })
 
   const markAsRead = async (notificationId: string) => {
     try {
       const supabase = createClient()
-      
+
       const { error } = await supabase
         .from('notifications')
-        .update({ 
+        .update({
           is_read: true,
-          read_at: new Date().toISOString()
+          read_at: new Date().toISOString(),
         })
         .eq('id', notificationId)
 
@@ -85,10 +99,7 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
         return
       }
 
-      setNotifications(prev =>
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
-      )
-      setUnreadCount(prev => Math.max(0, prev - 1))
+      invalidateNotifs()
     } catch (err) {
       console.error('Error:', err)
     }
@@ -97,7 +108,7 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
   const deleteNotification = async (notificationId: string) => {
     try {
       const supabase = createClient()
-      
+
       const { error } = await supabase
         .from('notifications')
         .delete()
@@ -108,12 +119,7 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
         return
       }
 
-      const wasUnread = notifications.find(n => n.id === notificationId)?.is_read === false
-      
-      setNotifications(prev => prev.filter(n => n.id !== notificationId))
-      if (wasUnread) {
-        setUnreadCount(prev => Math.max(0, prev - 1))
-      }
+      invalidateNotifs()
     } catch (err) {
       console.error('Error:', err)
     }
@@ -155,7 +161,6 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
 
   return (
     <div className="relative">
-      {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
@@ -168,18 +173,14 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
         )}
       </button>
 
-      {/* Dropdown */}
       {isOpen && (
         <>
-          {/* Overlay */}
-          <div 
-            className="fixed inset-0 z-30" 
+          <div
+            className="fixed inset-0 z-30"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Notification Panel */}
           <div className="absolute right-0 md:left-0 md:right-auto mt-2 w-[calc(100vw-1rem)] max-w-sm md:w-96 md:max-w-none bg-white rounded-xl shadow-2xl border border-gray-200 z-40 max-h-[80vh] md:max-h-[600px] flex flex-col">
-            {/* Header */}
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">{t('title')}</h3>
@@ -189,7 +190,6 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
               </div>
             </div>
 
-            {/* Notifications List */}
             <div className="flex-1 overflow-y-auto">
               {loading ? (
                 <div className="p-8 text-center text-gray-500">
@@ -213,17 +213,16 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
                       onClick={() => handleNotificationClick(notification)}
                     >
                       <div className="flex items-start gap-3">
-                        {/* Icon */}
                         <div className="text-2xl flex-shrink-0">
                           {getNotificationIcon(notification.type)}
                         </div>
 
-                        {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2">
                             <h4 className={`text-sm font-semibold ${
                               !notification.is_read ? 'text-gray-900' : 'text-gray-700'
-                            }`}>
+                            }`}
+                            >
                               {notification.title}
                             </h4>
                             {!notification.is_read && (
@@ -243,7 +242,6 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
                           </p>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
                           {!notification.is_read && (
                             <button
@@ -275,7 +273,6 @@ export default function NotificationBell({ userRole = 'model' }: NotificationBel
               )}
             </div>
 
-            {/* Footer */}
             {notifications.length > 0 && (
               <div className="p-3 border-t border-gray-200 bg-gray-50">
                 <button

@@ -2,16 +2,13 @@
 
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import SavedSearchForm from '@/components/saved-searches/SavedSearchForm'
 import { ChevronLeft } from 'lucide-react'
 
 export default function NewSavedSearchPage() {
   const t = useTranslations('dashboard.user.savedSearchesNew')
   return (
-    <>
-      <DashboardSidebar userRole="user" />
-      <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
+    <div className="min-h-screen bg-gray-50 py-6 md:py-8 px-4 md:px-6 ml-0 md:ml-[280px]">
         <div className="max-w-4xl mx-auto">
           <Link
             href="/dashboard/user/saved-searches"
@@ -26,6 +23,5 @@ export default function NewSavedSearchPage() {
           <SavedSearchForm />
         </div>
       </div>
-    </>
   )
 }

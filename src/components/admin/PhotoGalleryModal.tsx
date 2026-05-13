@@ -46,32 +46,24 @@ export default function PhotoGalleryModal({
 
   const loadMedia = async () => {
     setLoading(true)
-    console.log('PhotoGalleryModal - Loading media for:', { profileId, profileType, profileName })
-    
     const photosTable = profileType === 'model' ? 'model_photos' : 'club_photos'
     const videosTable = profileType === 'model' ? 'model_videos' : 'club_videos'
     const idColumn = profileType === 'model' ? 'model_id' : 'club_id'
 
-    // Load photos
-    const { data: photosData, error: photosError } = await supabase
-      .from(photosTable)
-      .select('*')
-      .eq(idColumn, profileId)
-      .order('uploaded_at', { ascending: false })
-
-    console.log('PhotoGalleryModal - Photos loaded:', { photosData, photosError, count: photosData?.length })
+    const [{ data: photosData }, { data: videosData }] = await Promise.all([
+      supabase
+        .from(photosTable)
+        .select('*')
+        .eq(idColumn, profileId)
+        .order('uploaded_at', { ascending: false }),
+      supabase
+        .from(videosTable)
+        .select('*')
+        .eq(idColumn, profileId)
+        .order('uploaded_at', { ascending: false }),
+    ])
 
     setPhotos(photosData?.map(p => ({ ...p, type: 'photo' as const })) || [])
-
-    // Load videos
-    const { data: videosData, error: videosError } = await supabase
-      .from(videosTable)
-      .select('*')
-      .eq(idColumn, profileId)
-      .order('uploaded_at', { ascending: false })
-
-    console.log('PhotoGalleryModal - Videos loaded:', { videosData, videosError, count: videosData?.length })
-
     setVideos(videosData?.map(v => ({ ...v, type: 'video' as const })) || [])
 
     setLoading(false)
@@ -91,7 +83,6 @@ export default function PhotoGalleryModal({
           .from(bucket)
           .getPublicUrl(item.file_path)
 
-        console.log('Loading media:', { bucket, file_path: item.file_path, url: data.publicUrl })
         if (data) urls.set(item.id, data.publicUrl)
       }
 

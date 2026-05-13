@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export interface ChatModel {
   id: string
@@ -20,30 +21,35 @@ export default function AvailableForChat({ models }: { models: ChatModel[] }) {
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    let channel: RealtimeChannel | undefined
     const supabase = createClient()
 
-    supabase.auth.getUser().then(({ data }) => setIsLoggedIn(!!data.user))
+    ;(async () => {
+      const { data } = await supabase.auth.getUser()
+      setIsLoggedIn(!!data.user)
+      if (!data.user) return
 
-    const channel = supabase.channel('online-users')
+      channel = supabase.channel('online-users')
 
-    function syncOnline(presenceState: Record<string, any[]>) {
-      const ids = new Set<string>(
-        Object.values(presenceState)
-          .flat()
-          .map((p: any) => p.user_id)
-          .filter(Boolean)
-      )
-      setOnlineIds(ids)
-    }
+      function syncOnline(presenceState: Record<string, unknown[]>) {
+        const ids = new Set<string>(
+          Object.values(presenceState)
+            .flat()
+            .map((p: unknown) => (p as { user_id?: string }).user_id)
+            .filter(Boolean) as string[],
+        )
+        setOnlineIds(ids)
+      }
 
-    channel
-      .on('presence', { event: 'sync' }, () => syncOnline(channel.presenceState()))
-      .on('presence', { event: 'join' }, () => syncOnline(channel.presenceState()))
-      .on('presence', { event: 'leave' }, () => syncOnline(channel.presenceState()))
-      .subscribe()
+      channel
+        .on('presence', { event: 'sync' }, () => syncOnline(channel!.presenceState()))
+        .on('presence', { event: 'join' }, () => syncOnline(channel!.presenceState()))
+        .on('presence', { event: 'leave' }, () => syncOnline(channel!.presenceState()))
+        .subscribe()
+    })()
 
     return () => {
-      supabase.removeChannel(channel)
+      if (channel) supabase.removeChannel(channel)
     }
   }, [])
 
