@@ -35,7 +35,9 @@ BEGIN
 
   IF p_entity_type = 'model' THEN
     SELECT md.city, NULL::text, md.ethnicity::text, md.nationality, md.gender::text,
-           md.hair_color::text, md.age, md.services_for, md.speaks_languages, md.live_location_city
+           md.hair_color::text, md.age, md.services_for,
+           (SELECT array_agg(ml.language) FROM model_languages ml WHERE ml.model_id = md.model_id),
+           md.live_location_city
       INTO v_city, v_region, v_ethnicity, v_nationality, v_gender,
            v_hair_color, v_age, v_services, v_languages, v_match_city
     FROM model_details md WHERE md.model_id = p_entity_id;
@@ -116,7 +118,7 @@ BEGIN
     END IF;
   END IF;
 
-  -- Languages (stored on model_details.speaks_languages text[])
+  -- Languages (stored in model_languages join table; aggregated into v_languages above)
   IF p_criteria ? 'languages' AND jsonb_array_length(p_criteria->'languages') > 0 THEN
     IF p_entity_type <> 'model' THEN RETURN false; END IF;
     IF NOT (
