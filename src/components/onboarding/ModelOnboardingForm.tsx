@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
 import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
@@ -141,6 +142,7 @@ function NewLanguageInput({
 
 export default function ModelOnboardingForm() {
   const router = useRouter()
+  const { refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
@@ -275,6 +277,37 @@ export default function ModelOnboardingForm() {
     }
     
     fetchData()
+  }, [])
+
+  useEffect(() => {
+    const loadExistingMedia = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const [photosRes, videosRes] = await Promise.all([
+        supabase
+          .from('model_photos')
+          .select('id, file_name, file_path')
+          .eq('model_id', user.id)
+          .order('created_at', { ascending: true }),
+        supabase
+          .from('model_videos')
+          .select('id, file_name, file_path')
+          .eq('model_id', user.id)
+          .order('created_at', { ascending: true }),
+      ])
+
+      const photos = photosRes.data
+      if (photos?.length) {
+        setUploadedPhotos(photos.map((p) => ({ id: p.id, file_name: p.file_name, file_path: p.file_path })))
+      }
+      const videos = videosRes.data
+      if (videos?.length) {
+        setUploadedVideos(videos.map((v) => ({ id: v.id, file_name: v.file_name, file_path: v.file_path })))
+      }
+    }
+    loadExistingMedia()
   }, [])
 
   const handleChange = (field: string, value: string | string[]) => {
@@ -779,11 +812,14 @@ export default function ModelOnboardingForm() {
         if (contactError) throw contactError
       }
 
-      await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ onboarding_completed: true })
         .eq('id', user.id)
 
+      if (profileError) throw profileError
+
+      await refreshProfile()
       router.push('/dashboard/model')
       router.refresh()
     } catch (err: any) {
