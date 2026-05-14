@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import NearbyFilter, { type NearbyValue } from '@/components/filters/NearbyFilter'
+import { MODEL_ETHNICITY_SLUGS } from '@/lib/modelEthnicitySlugs'
 import { Loader2, Save, Trash2 } from 'lucide-react'
 
 export type SavedEntity = 'model' | 'club' | 'listing'
@@ -37,7 +38,6 @@ interface FormCriteria {
   club_area?: string
 }
 
-const ETHNICITIES = ['asian', 'black', 'caucasian_white', 'latin', 'mixed', 'indian', 'arab', 'caucasian']
 const HAIR_COLORS = ['blond', 'light_brown', 'brunette', 'black', 'red', 'other']
 const GENDERS = ['female', 'male', 'trans']
 const LANGUAGES = ['English', 'German', 'French', 'Italian', 'Spanish', 'Portuguese', 'Russian', 'Romanian', 'Polish', 'Hungarian', 'Croatian', 'Serbian']
@@ -49,6 +49,7 @@ const cap = (s: string) => s.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperC
 export default function SavedSearchForm({ existing }: { existing?: SavedSearchRow }) {
   const router = useRouter()
   const ts = useTranslations('components.savedSearchForm')
+  const ethn = useTranslations('onboarding.model.eth')
   const [loading, setLoading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [previewCount, setPreviewCount] = useState<number | null>(null)
@@ -260,7 +261,9 @@ export default function SavedSearchForm({ existing }: { existing?: SavedSearchRo
                   onChange={e => setCriteria(c => ({ ...c, ethnicity: e.target.value || undefined }))}
                 >
                   <option value="">{ts('any')}</option>
-                  {ETHNICITIES.map(v => <option key={v} value={v}>{cap(v)}</option>)}
+                  {MODEL_ETHNICITY_SLUGS.map(v => (
+                    <option key={v} value={v}>{ethn(v)}</option>
+                  ))}
                 </select>
               </div>
               <div>

@@ -15,6 +15,7 @@ import {
   listingTelegramHref,
 } from '@/lib/listingContactLinks'
 import { trackModelAction, trackProfileView } from '@/lib/tracking'
+import { isModelEthnicitySlug } from '@/lib/modelEthnicitySlugs'
 import { usePageLoader } from '@/components/layout/PageLoader'
 import StartChatButton from '@/components/chat/StartChatButton'
 import {
@@ -86,6 +87,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   } = modelData
 
   const t = useTranslations('models.profile')
+  const te = useTranslations('onboarding.model.eth')
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const touchStartX = useRef<number | null>(null)
@@ -681,7 +683,10 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   }
 
   const formatEthnicity = (ethnicity: string) => {
-    return ethnicity?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Not specified'
+    if (!ethnicity) return '—'
+    const normalized = ethnicity.trim().toLowerCase().replace(/\s+/g, '_')
+    if (isModelEthnicitySlug(normalized)) return te(normalized)
+    return ethnicity.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
   const formatHairColor = (color: string) => {

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Search as SearchIcon, Pencil, Bell, BellOff, Trash2, Users, Building2, Briefcase } from 'lucide-react'
+import { isModelEthnicitySlug } from '@/lib/modelEthnicitySlugs'
 
 interface SavedSearch {
   id: string
@@ -21,6 +22,7 @@ export default function SavedSearchesPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.user.savedSearches')
   const tc = useTranslations('dashboard.user.common')
+  const ethn = useTranslations('onboarding.model.eth')
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<SavedSearch[]>([])
 
@@ -34,7 +36,10 @@ export default function SavedSearchesPage() {
     const parts: string[] = []
     if (c.city) parts.push(`${c.city}`)
     if (c.origin_city && c.radius_km) parts.push(t('criteriaRadius', { radius: String(c.radius_km), city: String(c.origin_city) }))
-    if (c.ethnicity) parts.push(String(c.ethnicity).replace(/_/g, ' '))
+    if (c.ethnicity) {
+      const e = String(c.ethnicity)
+      parts.push(isModelEthnicitySlug(e) ? ethn(e) : e.replace(/_/g, ' '))
+    }
     if (c.nationality) parts.push(String(c.nationality))
     if (c.gender) parts.push(String(c.gender))
     if (c.hair_color) parts.push(String(c.hair_color).replace(/_/g, ' '))

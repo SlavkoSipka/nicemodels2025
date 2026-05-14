@@ -12,6 +12,7 @@ import {
   ShieldCheck, Ban, ImageIcon, Film, DollarSign,
 } from 'lucide-react'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
+import { MODEL_ETHNICITY_SLUGS } from '@/lib/modelEthnicitySlugs'
 
 interface Props {
   modelId: string
@@ -78,6 +79,7 @@ export default function AdminModelEditClient({
   const supabase = createClient()
   const t = useTranslations('admin.modelEdit')
   const tc = useTranslations('admin.common')
+  const ethn = useTranslations('onboarding.model.eth')
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -443,8 +445,8 @@ export default function AdminModelEditClient({
                     <label className={labelCls}>{t('ethnicity')}</label>
                     <select value={bio.ethnicity} onChange={e => setBio(p => ({ ...p, ethnicity: e.target.value }))} className={inputCls}>
                       <option value="">{tc('select')}</option>
-                      {['asian','black','caucasian_white','latin','mixed','indian','arab','caucasian'].map(v => (
-                        <option key={v} value={v}>{v.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                      {MODEL_ETHNICITY_SLUGS.map(v => (
+                        <option key={v} value={v}>{ethn(v)}</option>
                       ))}
                     </select>
                   </div>

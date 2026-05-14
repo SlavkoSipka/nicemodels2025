@@ -10,6 +10,8 @@ export default function BiographyEditPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.model.biography')
   const tc = useTranslations('dashboard.model.common')
+  const ethn = useTranslations('onboarding.model.eth')
+  const tp = useTranslations('onboarding.model.s2')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -200,14 +202,14 @@ export default function BiographyEditPage() {
               <label className={labelCls}>{t('ethnicity')}</label>
               <select value={formData.ethnicity} onChange={e => handleChange('ethnicity', e.target.value)} className={inputCls}>
                 <option value="">{tc('select')}</option>
-                <option value="asian">Asian</option>
-                <option value="black">Black</option>
-                <option value="caucasian_white">Caucasian (white)</option>
-                <option value="latin">Latin</option>
-                <option value="mixed">Mixed</option>
-                <option value="indian">Indian</option>
-                <option value="arab">Arab</option>
-                <option value="caucasian">Caucasian</option>
+                <option value="asian">{ethn('asian')}</option>
+                <option value="black">{ethn('black')}</option>
+                <option value="caucasian_white">{ethn('caucasian_white')}</option>
+                <option value="latin">{ethn('latin')}</option>
+                <option value="mixed">{ethn('mixed')}</option>
+                <option value="indian">{ethn('indian')}</option>
+                <option value="arab">{ethn('arab')}</option>
+                <option value="caucasian">{ethn('caucasian')}</option>
               </select>
             </div>
             <div>
@@ -310,7 +312,7 @@ export default function BiographyEditPage() {
                 <option value="blond">Blond</option>
                 <option value="light_brown">Light brown</option>
                 <option value="brunette">Brunette</option>
-                <option value="black">Black</option>
+                <option value="black">{tp('hairBlack')}</option>
                 <option value="red">Red</option>
                 <option value="other">Other</option>
               </select>
@@ -319,8 +321,7 @@ export default function BiographyEditPage() {
               <label className={labelCls}>{t('eyeColor')}</label>
               <select value={formData.eye_color} onChange={e => handleChange('eye_color', e.target.value)} className={inputCls}>
                 <option value="">{tc('select')}</option>
-                <option value="black">Black</option>
-                <option value="brown">Brown</option>
+                <option value="black">{tp('eyeBlack')}</option>
                 <option value="green">Green</option>
                 <option value="blue">Blue</option>
                 <option value="gray">Gray</option>
