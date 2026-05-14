@@ -6,6 +6,8 @@ import { validateStripeEnv } from '@/lib/stripe/validate-env'
 import { findBannerPrice, fetchBannerRegionPricing } from '@/lib/bannerPricing'
 import { isValidCanton, MAX_BANNER_REGIONS } from '@/lib/cantons'
 import { normalizePlacement } from '@/lib/bannerPlacement'
+import { activateOrderItems } from '@/lib/orders/activateOrderItems'
+import { isModelSedcardFreePeriod } from '@/lib/modelSedcardFree'
 import type {
   CheckoutCartItem,
   CheckoutSessionRequestBody,
@@ -40,13 +42,6 @@ function siteUrl(): string {
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    validateStripeEnv()
-  } catch (e: any) {
-    console.error('[checkout/session]', e?.message)
-    return NextResponse.json({ error: e?.message || 'Stripe env invalid' }, { status: 500 })
-  }
-
   let body: CheckoutSessionRequestBody
   try {
     body = await req.json()
@@ -69,12 +64,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  // Use the service role to read pricing tables and write the order; we can't
-  // trust the client's RLS context for cross-table linkage, and the user's
-  // session already validated who they are.
   const admin = createAdminClient()
 
-  // Fetch all referenced products in one round-trip.
   const productIds = Array.from(new Set(body.items.map(i => i.productId)))
   const { data: products, error: prodErr } = await admin
     .from('products')
@@ -89,7 +80,6 @@ export async function POST(req: NextRequest) {
   }
   const productMap = new Map(products.map(p => [p.id, p]))
 
-  // Banner pricing matrix only needed if there's at least one banner item.
   const hasBanner = body.items.some(i => i.kind === 'banner')
   const bannerPricing = hasBanner
     ? await fetchBannerRegionPricing(admin)
@@ -102,8 +92,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e.message }, { status: 400 })
   }
 
-  // Sanity check that all owned drafts (banner_id, listing_id) actually
-  // belong to this user — protects against forged IDs in the request.
   const claimedBannerIds = resolved
     .filter(r => r.cartItem.kind === 'banner')
     .map(r => (r.cartItem as any).bannerId)
@@ -142,13 +130,37 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ---------- Insert pending order + items ----------------------------------
-  const totalChf = resolved.reduce((s, r) => s + r.amountChf, 0)
+  const { data: buyerProfile } = await admin
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const modelSedcardFree =
+    isModelSedcardFreePeriod() &&
+    buyerProfile?.role === 'model' &&
+    resolved.every(r => r.cartItem.kind === 'ad_package')
+
+  const charged = modelSedcardFree
+    ? resolved.map(r => ({ ...r, amountChf: 0 }))
+    : resolved
+
+  const totalChf = charged.reduce((s, r) => s + r.amountChf, 0)
   if (totalChf <= 0) {
-    return NextResponse.json(
-      { error: 'Total amount must be positive' },
-      { status: 400 },
-    )
+    if (!modelSedcardFree) {
+      return NextResponse.json(
+        { error: 'Total amount must be positive' },
+        { status: 400 },
+      )
+    }
+    return completeFreeModelSedcardOrder(admin, user, body, charged)
+  }
+
+  try {
+    validateStripeEnv()
+  } catch (e: any) {
+    console.error('[checkout/session]', e?.message)
+    return NextResponse.json({ error: e?.message || 'Stripe env invalid' }, { status: 500 })
   }
 
   const { data: order, error: orderErr } = await admin
@@ -162,7 +174,7 @@ export async function POST(req: NextRequest) {
       payment_method: 'card',
       metadata: {
         return_path: body.returnPath || null,
-        items_summary: resolved.map(r => ({
+        items_summary: charged.map(r => ({
           kind: r.cartItem.kind,
           name: r.productName,
           chf: r.amountChf,
@@ -179,7 +191,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const itemRows = resolved.map(r => {
+  const itemRows = charged.map(r => {
     const c = r.cartItem
     const base: Record<string, any> = {
       order_id: order.id,
@@ -213,7 +225,7 @@ export async function POST(req: NextRequest) {
 
   // ---------- Create Stripe Checkout Session --------------------------------
   const stripe = getStripe()
-  const lineItems = resolved.map(r => ({
+  const lineItems = charged.map(r => ({
     price_data: {
       currency: 'chf' as const,
       product_data: {
@@ -273,6 +285,81 @@ export async function POST(req: NextRequest) {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+async function completeFreeModelSedcardOrder(
+  admin: ReturnType<typeof createAdminClient>,
+  user: { id: string; email?: string | null },
+  body: CheckoutSessionRequestBody,
+  charged: ResolvedItem[],
+): Promise<NextResponse> {
+  const { data: order, error: orderErr } = await admin
+    .from('orders')
+    .insert({
+      user_id: user.id,
+      status: 'paid',
+      total_amount: 0,
+      payment_method: 'card',
+      paid_at: new Date().toISOString(),
+      metadata: {
+        return_path: body.returnPath || null,
+        free_model_sedcard: true,
+        items_summary: charged.map(r => ({
+          kind: r.cartItem.kind,
+          name: r.productName,
+          chf: r.amountChf,
+        })),
+      },
+    })
+    .select()
+    .single()
+
+  if (orderErr || !order) {
+    return NextResponse.json(
+      { error: orderErr?.message || 'Failed to create order' },
+      { status: 500 },
+    )
+  }
+
+  const itemRows = charged.map(r => {
+    const c = r.cartItem
+    const base: Record<string, any> = {
+      order_id: order.id,
+      product_id: r.productId,
+      price_chf: r.amountChf,
+      activation_type:
+        c.kind === 'banner' ? 'immediately' : (c as any).activationType ?? 'immediately',
+      activation_date:
+        c.kind !== 'banner' && (c as any).activationDate
+          ? new Date((c as any).activationDate).toISOString()
+          : null,
+    }
+    if (c.kind === 'banner') {
+      base.banner_id = (c as any).bannerId ?? null
+      base.banner_file_path = c.imagePath
+    } else if (c.kind === 'job_listing') {
+      base.listing_id = c.listingId
+    }
+    return base
+  })
+
+  const { error: itemsErr } = await admin.from('order_items').insert(itemRows)
+  if (itemsErr) {
+    await admin.from('orders').delete().eq('id', order.id)
+    return NextResponse.json(
+      { error: itemsErr.message || 'Failed to create order items' },
+      { status: 500 },
+    )
+  }
+
+  await activateOrderItems(admin, order.id)
+
+  const base = siteUrl()
+  const res: CheckoutSessionResponseBody = {
+    url: `${base}/dashboard/checkout/success?order_id=${order.id}`,
+    orderId: order.id,
+  }
+  return NextResponse.json(res)
+}
 
 function resolveItem(
   item: CheckoutCartItem,

@@ -7,7 +7,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { dashboardRootForRole } from '@/lib/dashboard/path'
 
 interface PageProps {
-  searchParams: Promise<{ session_id?: string }>
+  searchParams: Promise<{ session_id?: string; order_id?: string }>
 }
 
 export const dynamic = 'force-dynamic'
@@ -15,14 +15,13 @@ export const dynamic = 'force-dynamic'
 export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   const params = await searchParams
   const sessionId = params.session_id
+  const orderIdParam = params.order_id
 
   const t = await getTranslations('publicPages.checkout')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Read with the service role so we can see freshly-paid (or still-pending)
-  // orders without depending on RLS recency.
   const admin = createAdminClient()
 
   const { data: profile } = await admin
@@ -36,17 +35,31 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   const ctaHref = isModel ? '/dashboard/model/purchase-history' : dashboardRoot
   const ctaLabel = isModel ? t('purchaseHistory') : t('backToDashboard')
 
-  if (!sessionId) redirect(dashboardRoot)
+  if (!sessionId && !orderIdParam) redirect(dashboardRoot)
 
-  const { data: order } = await admin
-    .from('orders')
-    .select(`
+  const orderSelect = `
       id, status, total_amount, paid_at, payment_method, stripe_receipt_url,
       order_items(id, product:products(name, product_type, duration_days))
-    `)
-    .eq('stripe_session_id', sessionId)
-    .eq('user_id', user.id)
-    .single()
+    `
+
+  let order: any = null
+  if (sessionId) {
+    const { data } = await admin
+      .from('orders')
+      .select(orderSelect)
+      .eq('stripe_session_id', sessionId)
+      .eq('user_id', user.id)
+      .single()
+    order = data
+  } else if (orderIdParam) {
+    const { data } = await admin
+      .from('orders')
+      .select(orderSelect)
+      .eq('id', orderIdParam)
+      .eq('user_id', user.id)
+      .single()
+    order = data
+  }
 
   if (!order) {
     return (
@@ -66,8 +79,8 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   }
 
   const isPaid = order.status === 'paid'
-  // Stripe sometimes confirms via webhook a couple of seconds after redirect;
-  // we keep the page accurate by showing a "processing" state for non-paid.
+  const meta = order.metadata as Record<string, unknown> | null | undefined
+  const isFreeActivation = Boolean(meta?.free_model_sedcard) && isPaid
 
   return (
     <div className="min-h-screen bg-gray-50 ml-0 md:ml-[280px] py-6 md:py-12 px-4 md:px-6">
@@ -80,10 +93,14 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
                 : <Clock className="w-8 h-8 text-amber-600" />}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
-              {isPaid ? t('paymentSuccessful') : t('paymentProcessing')}
+              {isPaid
+                ? (isFreeActivation ? t('activationSuccessTitle') : t('paymentSuccessful'))
+                : t('paymentProcessing')}
             </h1>
             <p className="text-sm text-gray-700">
-              {isPaid ? t('paymentSuccessfulDesc') : t('paymentProcessingDesc')}
+              {isPaid
+                ? (isFreeActivation ? t('activationSuccessDesc') : t('paymentSuccessfulDesc'))
+                : t('paymentProcessingDesc')}
             </p>
           </div>
 
@@ -118,7 +135,9 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>{t('paymentMethod')}</span>
-              <span className="font-semibold text-gray-700 uppercase">{order.payment_method}</span>
+              <span className="font-semibold text-gray-700 uppercase">
+                {isFreeActivation ? t('paymentMethodFree') : order.payment_method}
+              </span>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 pt-2">

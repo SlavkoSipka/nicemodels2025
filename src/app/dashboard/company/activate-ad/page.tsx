@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { ShoppingCart, Zap, Clock, Calendar, CheckCircle, Building2, Info } from 'lucide-react'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
@@ -28,6 +28,8 @@ interface CartItem {
 export default function CompanyActivateAdPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.company.activateAd')
+  const locale = useLocale()
+  const dateLocaleTag = `${locale}-CH`
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
@@ -86,7 +88,7 @@ export default function CompanyActivateAdPage() {
 
         if (startDate <= now && expiryDate > now) {
           setHasActiveAd(true)
-          setActiveAdExpiry(expiryDate.toLocaleDateString('en-CH', fmt))
+          setActiveAdExpiry(expiryDate.toLocaleDateString(dateLocaleTag, fmt))
           return
         }
 
@@ -96,7 +98,7 @@ export default function CompanyActivateAdPage() {
       }
 
       if (latestExpiry) {
-        setLastExpiredAd(latestExpiry.toLocaleDateString('en-CH', fmt))
+        setLastExpiredAd(latestExpiry.toLocaleDateString(dateLocaleTag, fmt))
       }
     } catch (e) {
       console.error('Error checking active ad:', e)
@@ -212,6 +214,23 @@ export default function CompanyActivateAdPage() {
 
   if (loading) return null
 
+  const adPkgCopy = (p: Product) => {
+    const d = p.duration_days
+    if (d === 5) return { title: t('pkg5Title'), desc: t('pkg5Desc') }
+    if (d === 14) return { title: t('pkg14Title'), desc: t('pkg14Desc') }
+    if (d === 30) return { title: t('pkg30Title'), desc: t('pkg30Desc') }
+    return { title: p.name, desc: p.description }
+  }
+
+  const formatUserDate = (d: Date) =>
+    d.toLocaleDateString(dateLocaleTag, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
   return (
     <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-6xl mx-auto space-y-4">
@@ -300,6 +319,7 @@ export default function CompanyActivateAdPage() {
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
                 const isInCart = cart.some(item => item.product.id === pkg.id)
+                const { title: pkgTitle, desc: pkgDesc } = adPkgCopy(pkg)
 
                 return (
                   <div
@@ -319,8 +339,8 @@ export default function CompanyActivateAdPage() {
                       </div>
                     )}
                     <div className="p-3.5 md:p-5 text-center">
-                      <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
-                      <p className="text-xs text-gray-400">{pkg.description}</p>
+                      <p className="text-base font-bold text-gray-900 mb-1">{pkgTitle}</p>
+                      <p className="text-xs text-gray-400">{pkgDesc}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
                         <p className="text-base font-bold text-gray-900 leading-tight">
                           CHF {Number(pkg.price_chf).toFixed(0)}.-
@@ -405,11 +425,11 @@ export default function CompanyActivateAdPage() {
               {cart.map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{item.product.name}</p>
+                    <p className="text-sm font-semibold text-gray-900">{adPkgCopy(item.product).title}</p>
                     <p className="text-xs text-gray-500">
                       {item.activationType === 'immediately' ? t('actImmediatelyDesc')
                         : item.activationType === 'after_current' ? t('actAfterCurrentDesc')
-                        : t('actAtDateDesc', { date: item.activationDate ? new Date(item.activationDate).toLocaleDateString() : '' })}
+                        : t('actAtDateDesc', { date: item.activationDate ? formatUserDate(new Date(item.activationDate)) : '' })}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

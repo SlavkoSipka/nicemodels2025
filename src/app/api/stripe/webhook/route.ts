@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { activateOrderItems } from '@/lib/orders/activateOrderItems'
 import { getStripe } from '@/lib/stripe/server'
 import { validateStripeEnv } from '@/lib/stripe/validate-env'
 import type Stripe from 'stripe'
@@ -195,65 +196,4 @@ async function handlePaymentIntentFailed(pi: Stripe.PaymentIntent) {
     .update({ failed_at: new Date().toISOString() })
     .eq('id', orderId)
     .eq('status', 'pending')
-}
-
-/**
- * Flip every order_items row's side-table draft from pending_payment to
- * active and apply the proper starts_at / expires_at window.
- *
- * Uses the product's duration; activation_date overrides "now" if present
- * (scheduled activations).
- */
-async function activateOrderItems(admin: ReturnType<typeof createAdminClient>, orderId: string) {
-  const { data: items } = await admin
-    .from('order_items')
-    .select(`
-      id, banner_id, listing_id, activation_type, activation_date,
-      product:products(duration_days, duration_hours, product_type)
-    `)
-    .eq('order_id', orderId)
-
-  if (!items?.length) return
-
-  type ActivateItem = {
-    banner_id?: string | null
-    listing_id?: string | null
-    activation_date?: string | null
-    product?: { duration_days?: number | null; duration_hours?: number | null } | null
-  }
-
-  await Promise.all(
-    (items as ActivateItem[]).map(async (item) => {
-      const product = item.product
-      if (!product) return
-      const durationMs =
-        Number(product.duration_days || 0) * 86400000 +
-        Number(product.duration_hours || 0) * 3600000
-
-      const startsAt = item.activation_date ? new Date(item.activation_date) : new Date()
-      const expiresAt = new Date(startsAt.getTime() + durationMs)
-
-      if (item.banner_id) {
-        await admin
-          .from('banners')
-          .update({
-            status: 'active',
-            starts_at: startsAt.toISOString(),
-            expires_at: expiresAt.toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', item.banner_id)
-      } else if (item.listing_id) {
-        await admin
-          .from('job_listings')
-          .update({
-            status: 'active',
-            starts_at: startsAt.toISOString(),
-            expires_at: expiresAt.toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', item.listing_id)
-      }
-    }),
-  )
 }

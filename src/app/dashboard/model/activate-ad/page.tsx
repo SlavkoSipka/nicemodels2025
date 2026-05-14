@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { isModelSedcardFreePeriod } from '@/lib/modelSedcardFree'
 import { ShoppingCart, Calendar, Zap, Clock, CheckCircle, AlertTriangle, User, Camera, ChevronRight, Info } from 'lucide-react'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
 import SitePreview from '@/components/preview/SitePreview'
@@ -28,6 +29,9 @@ interface CartItem {
 export default function ActivateAdPage() {
   const router = useRouter()
   const t = useTranslations('dashboard.model.activateAd')
+  const locale = useLocale()
+  const dateLocaleTag = `${locale}-CH`
+  const sedcardFree = isModelSedcardFreePeriod()
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
@@ -86,7 +90,7 @@ export default function ActivateAdPage() {
 
         if (startDate <= now && expiryDate > now) {
           setHasActiveAd(true)
-          setActiveAdExpiry(expiryDate.toLocaleDateString('en-CH', fmt))
+          setActiveAdExpiry(expiryDate.toLocaleDateString(dateLocaleTag, fmt))
           return
         }
 
@@ -96,7 +100,7 @@ export default function ActivateAdPage() {
       }
 
       if (latestExpiry) {
-        setLastExpiredAd(latestExpiry.toLocaleDateString('en-CH', fmt))
+        setLastExpiredAd(latestExpiry.toLocaleDateString(dateLocaleTag, fmt))
       }
     } catch (e) {
       console.error('Error checking active ad:', e)
@@ -217,6 +221,23 @@ export default function ActivateAdPage() {
 
   if (loading) return null
 
+  const adPkgCopy = (p: Product) => {
+    const d = p.duration_days
+    if (d === 5) return { title: t('pkg5Title'), desc: t('pkg5Desc') }
+    if (d === 14) return { title: t('pkg14Title'), desc: t('pkg14Desc') }
+    if (d === 30) return { title: t('pkg30Title'), desc: t('pkg30Desc') }
+    return { title: p.name, desc: p.description }
+  }
+
+  const formatUserDate = (d: Date) =>
+    d.toLocaleDateString(dateLocaleTag, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+
   return (
     <div className="min-h-screen bg-gray-50 py-4 md:py-6 px-4 md:px-6 ml-0 md:ml-[280px]">
       <div className="max-w-6xl mx-auto space-y-4">
@@ -229,7 +250,7 @@ export default function ActivateAdPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
-              <p className="text-xs text-gray-500">{t('subtitle')}</p>
+              <p className="text-xs text-gray-500">{sedcardFree ? t('subtitleFree') : t('subtitle')}</p>
             </div>
           </div>
 
@@ -241,7 +262,7 @@ export default function ActivateAdPage() {
               <ShoppingCart className="w-4 h-4" />
               {t('cartItems', { count: cart.length })}
               <span className="ml-1 px-1.5 py-0.5 bg-white text-brand rounded text-xs font-bold">
-                CHF {cart.reduce((s, it) => s + Number(it.product.price_chf || 0), 0)}
+                {sedcardFree ? t('priceFree') : `CHF ${cart.reduce((s, it) => s + Number(it.product.price_chf || 0), 0)}`}
               </span>
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
                 {cart.length}
@@ -349,6 +370,7 @@ export default function ActivateAdPage() {
               {packages.map((pkg) => {
                 const isSelected = selectedPackage?.id === pkg.id
                 const isInCart = cart.some(item => item.product.id === pkg.id)
+                const { title: pkgTitle, desc: pkgDesc } = adPkgCopy(pkg)
 
                 return (
                   <div
@@ -368,13 +390,22 @@ export default function ActivateAdPage() {
                       </div>
                     )}
                     <div className="p-3.5 md:p-5 text-center">
-                      <p className="text-base font-bold text-gray-900 mb-1">{pkg.name}</p>
-                      <p className="text-xs text-gray-400">{pkg.description}</p>
+                      <p className="text-base font-bold text-gray-900 mb-1">{pkgTitle}</p>
+                      <p className="text-xs text-gray-400">{pkgDesc}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
-                        <p className="text-base font-bold text-gray-900 leading-tight">
-                          CHF {Number(pkg.price_chf).toFixed(0)}.-
-                        </p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">{t('oneTimePayment')}</p>
+                        {sedcardFree ? (
+                          <>
+                            <p className="text-base font-bold text-emerald-700 leading-tight">{t('priceFree')}</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">{t('noPaymentRequired')}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-base font-bold text-gray-900 leading-tight">
+                              CHF {Number(pkg.price_chf).toFixed(0)}.-
+                            </p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">{t('oneTimePayment')}</p>
+                          </>
+                        )}
                       </div>
                     </div>
                     {isInCart ? (
@@ -454,16 +485,16 @@ export default function ActivateAdPage() {
               {cart.map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{item.product.name}</p>
+                    <p className="text-sm font-semibold text-gray-900">{adPkgCopy(item.product).title}</p>
                     <p className="text-xs text-gray-500">
                       {item.activationType === 'immediately' ? t('actImmediatelyDesc')
                         : item.activationType === 'after_current' ? t('actAfterCurrentDesc')
-                        : t('actAtDateDesc', { date: item.activationDate ? new Date(item.activationDate).toLocaleDateString() : '' })}
+                        : t('actAtDateDesc', { date: item.activationDate ? formatUserDate(new Date(item.activationDate)) : '' })}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-bold text-gray-900">
-                      CHF {Number(item.product.price_chf).toFixed(0)}.-
+                      {sedcardFree ? t('priceFree') : `CHF ${Number(item.product.price_chf).toFixed(0)}.-`}
                     </span>
                     <button
                       onClick={() => removeFromCart(index)}
@@ -479,7 +510,7 @@ export default function ActivateAdPage() {
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
               <p className="text-sm font-bold text-gray-900">{t('total')}</p>
               <p className="text-base font-bold text-gray-900">
-                CHF {cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0).toFixed(2)}
+                {sedcardFree ? t('priceFree') : `CHF ${cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0).toFixed(2)}`}
               </p>
             </div>
 
@@ -494,7 +525,7 @@ export default function ActivateAdPage() {
               disabled={!termsAccepted}
               className="w-full mt-3 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('paySecurely')}
+              {sedcardFree ? t('confirmActivation') : t('paySecurely')}
             </button>
           </div>
         )}
