@@ -812,12 +812,11 @@ export default function ModelOnboardingForm() {
         if (contactError) throw contactError
       }
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id)
-
-      if (profileError) throw profileError
+      const completeRes = await fetch('/api/onboarding/complete', { method: 'POST' })
+      if (!completeRes.ok) {
+        const body = await completeRes.json().catch(() => ({}))
+        throw new Error((body as { error?: string }).error || 'Failed to complete onboarding')
+      }
 
       await refreshProfile()
       router.push('/dashboard/model')

@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
 
 export default function UserOnboardingForm() {
   const router = useRouter()
+  const { refreshProfile } = useAuth()
   const t = useTranslations('onboarding.user')
   const [loading, setLoading] = useState(false)
 
@@ -18,11 +20,13 @@ export default function UserOnboardingForm() {
 
       if (!user) throw new Error('Not authenticated')
 
-      await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id)
+      const completeRes = await fetch('/api/onboarding/complete', { method: 'POST' })
+      if (!completeRes.ok) {
+        const body = await completeRes.json().catch(() => ({}))
+        throw new Error((body as { error?: string }).error || 'Failed to complete onboarding')
+      }
 
+      await refreshProfile()
       router.push('/dashboard')
       router.refresh()
     } catch (err: any) {

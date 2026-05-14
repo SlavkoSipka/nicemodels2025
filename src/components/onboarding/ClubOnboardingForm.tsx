@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 interface ClubFormData {
@@ -21,6 +22,7 @@ interface ClubFormData {
 
 export default function ClubOnboardingForm() {
   const router = useRouter()
+  const { refreshProfile } = useAuth()
   const t = useTranslations('onboarding.club')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -67,16 +69,19 @@ export default function ClubOnboardingForm() {
 
       if (!user) throw new Error('Not authenticated')
 
-      const { error: insertError } = await supabase
+      const { error: detailsError } = await supabase
         .from('club_details')
-        .insert({
-          club_id: user.id,
-          club_name: formData.club_name,
-          display_name: formData.display_name || null,
-          area: formData.area || null,
-        })
+        .upsert(
+          {
+            club_id: user.id,
+            club_name: formData.club_name,
+            display_name: formData.display_name || null,
+            area: formData.area || null,
+          },
+          { onConflict: 'club_id' },
+        )
 
-      if (insertError) throw insertError
+      if (detailsError) throw detailsError
 
       const { error: contactError } = await supabase
         .from('club_contact_details')
@@ -94,11 +99,13 @@ export default function ClubOnboardingForm() {
 
       if (contactError) throw contactError
 
-      await supabase
-        .from('profiles')
-        .update({ onboarding_completed: true })
-        .eq('id', user.id)
+      const completeRes = await fetch('/api/onboarding/complete', { method: 'POST' })
+      if (!completeRes.ok) {
+        const body = await completeRes.json().catch(() => ({}))
+        throw new Error((body as { error?: string }).error || 'Failed to complete onboarding')
+      }
 
+      await refreshProfile()
       router.push('/dashboard/company')
       router.refresh()
     } catch (err: any) {
