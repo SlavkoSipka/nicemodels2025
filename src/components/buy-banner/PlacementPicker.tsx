@@ -1,39 +1,9 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
 import { LayoutGrid, PanelLeft, Square } from 'lucide-react'
 import PlacementMockup from './PlacementMockup'
-
-const OPTIONS: {
-  id: BannerPlacement
-  title: string
-  zone: string
-  desc: string
-  Icon: typeof LayoutGrid
-}[] = [
-  {
-    id: 'feed_wide',
-    title: 'Wide banner',
-    zone: 'Spans both columns',
-    desc: 'Full-width strip in the listing — repeats every 6 profile cards (4:1).',
-    Icon: LayoutGrid,
-  },
-  {
-    id: 'feed_card',
-    title: 'Card slot',
-    zone: 'Inside the grid',
-    desc: 'Same cell size as a profile card — appears every 4 cards (3:4).',
-    Icon: Square,
-  },
-  {
-    id: 'sidebar_left',
-    title: 'Left column',
-    zone: 'Beside the feed',
-    desc:
-      'One vertical slot next to the grid on desktop/laptop. Not shown on phones — on mobile, only wide and card placements appear in the feed. Random pick per page load on desktop.',
-    Icon: PanelLeft,
-  },
-]
 
 interface PlacementPickerProps {
   value: BannerPlacement | null
@@ -42,15 +12,31 @@ interface PlacementPickerProps {
   previewUrl?: string | null
 }
 
+const IDS: BannerPlacement[] = ['feed_wide', 'feed_card', 'sidebar_left']
+
 export default function PlacementPicker({
   value,
   onChange,
   disabledPlacements,
   previewUrl,
 }: PlacementPickerProps) {
+  const t = useTranslations('components.placementPicker')
+  const ICONS = {
+    feed_wide: LayoutGrid,
+    feed_card: Square,
+    sidebar_left: PanelLeft,
+  } as const
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
-      {OPTIONS.map(opt => {
+      {IDS.map(id => {
+        const opt = {
+          id,
+          title: t(`${id}.title`),
+          zone: t(`${id}.zone`),
+          desc: t(`${id}.desc`),
+          Icon: ICONS[id],
+        }
         const disabled = disabledPlacements?.has(opt.id)
         const selected = value === opt.id
         const Icon = opt.Icon
@@ -112,7 +98,7 @@ export default function PlacementPicker({
 
             {disabled && (
               <p className="text-[11px] font-semibold text-emerald-700 rounded-lg bg-emerald-50 px-2.5 py-1.5 border border-emerald-100">
-                Active in this slot
+                {t('activeInSlot')}
               </p>
             )}
           </div>

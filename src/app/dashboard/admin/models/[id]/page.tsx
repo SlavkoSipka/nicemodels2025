@@ -24,7 +24,7 @@ export default async function AdminModelEditPage({ params }: Props) {
   ] = await Promise.all([
     admin.from('profiles').select('*').eq('id', id).eq('role', 'model').single(),
     admin.from('model_details').select('*').eq('model_id', id).single(),
-    admin.from('model_photos').select('*').eq('model_id', id).order('uploaded_at', { ascending: false }),
+    admin.from('model_photos').select('*').eq('model_id', id).order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     admin.from('model_videos').select('*').eq('model_id', id).order('uploaded_at', { ascending: false }),
     admin.from('model_contact_details').select('*').eq('model_id', id).single(),
     admin.from('model_languages').select('*').eq('model_id', id),

@@ -46,7 +46,7 @@ export default async function LatestActionsPage() {
       admin.from('profiles').select('id, username, role, avatar_url').in('id', actorIds).eq('is_blocked', false),
       admin.from('model_details').select('model_id, showname').in('model_id', actorIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', actorIds)
-        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+        .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const detMap = new Map((details || []).map(d => [d.model_id, d]))

@@ -59,6 +59,8 @@ export default function AdminModelsPage() {
         .select('model_id, file_path')
         .in('model_id', modelIds)
         .eq('is_approved', true)
+        .order('model_id')
+        .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false }),
       fetch('/api/admin/contacts?role=model', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : { contacts: [] })

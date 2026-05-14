@@ -5,8 +5,9 @@ import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
-import { X, Plus, ChevronDown, ChevronUp } from 'lucide-react'
+import { X, Plus, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
+import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 
@@ -234,10 +235,11 @@ export default function ModelOnboardingForm() {
   const [otherInstructions, setOtherInstructions] = useState('')
 
   // Pictures/Video (Step 11)
-  const [uploadedPhotos, setUploadedPhotos] = useState<Array<{ id: string; file_name: string; file_path: string }>>([])
+  const [uploadedPhotos, setUploadedPhotos] = useState<Array<{ id: string; file_name: string; file_path: string; display_order?: number }>>([])
   const [uploadedVideos, setUploadedVideos] = useState<Array<{ id: string; file_name: string; file_path: string }>>([])
   const [uploadingPhotos, setUploadingPhotos] = useState(false)
   const [uploadingVideos, setUploadingVideos] = useState(false)
+  const [photoDragIndex, setPhotoDragIndex] = useState<number | null>(null)
 
   const t = useTranslations('onboarding.model')
 
@@ -288,9 +290,10 @@ export default function ModelOnboardingForm() {
       const [photosRes, videosRes] = await Promise.all([
         supabase
           .from('model_photos')
-          .select('id, file_name, file_path')
+          .select('id, file_name, file_path, display_order')
           .eq('model_id', user.id)
-          .order('created_at', { ascending: true }),
+          .order('display_order', { ascending: true })
+          .order('uploaded_at', { ascending: false }),
         supabase
           .from('model_videos')
           .select('id, file_name, file_path')
@@ -300,7 +303,7 @@ export default function ModelOnboardingForm() {
 
       const photos = photosRes.data
       if (photos?.length) {
-        setUploadedPhotos(photos.map((p) => ({ id: p.id, file_name: p.file_name, file_path: p.file_path })))
+        setUploadedPhotos(photos.map((p) => ({ id: p.id, file_name: p.file_name, file_path: p.file_path, display_order: p.display_order ?? undefined })))
       }
       const videos = videosRes.data
       if (videos?.length) {
@@ -559,6 +562,9 @@ export default function ModelOnboardingForm() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
+      const { data: ordRows } = await supabase.from('model_photos').select('display_order').eq('model_id', user.id)
+      let nextOrd = ordRows?.length ? Math.max(...ordRows.map((r: { display_order: number | null }) => r.display_order ?? 0)) + 1 : 0
+
       for (const rawFile of files) {
         // Validate file size (max 10MB)
         if (rawFile.size > 10 * 1024 * 1024) {
@@ -578,13 +584,15 @@ export default function ModelOnboardingForm() {
         if (uploadError) throw uploadError
 
         // Create metadata record
+        const display_order = nextOrd++
         const { data: photoData, error: dbError } = await supabase
           .from('model_photos')
           .insert({
             model_id: user.id,
             file_path: filePath,
             file_name: file.name,
-            is_approved: true
+            is_approved: true,
+            display_order,
           })
           .select()
           .single()
@@ -595,7 +603,8 @@ export default function ModelOnboardingForm() {
         setUploadedPhotos(prev => [...prev, { 
           id: photoData.id, 
           file_name: file.name, 
-          file_path: filePath
+          file_path: filePath,
+          display_order: photoData.display_order ?? display_order,
         }])
       }
     } catch (err: any) {
@@ -731,6 +740,27 @@ export default function ModelOnboardingForm() {
       console.error('Error deleting video:', err)
       alert(t('alert.deleteVideoFail'))
     }
+  }
+
+  const onModelPhotoDragStart = (index: number) => (e: React.DragEvent) => {
+    setPhotoDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const onModelPhotoDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const onModelPhotoDrop = (index: number) => async (e: React.DragEvent) => {
+    e.preventDefault()
+    const from = photoDragIndex
+    setPhotoDragIndex(null)
+    if (from === null || from === index) return
+    const next = reorderArray(uploadedPhotos, from, index)
+    setUploadedPhotos(next)
+    const supabase = createClient()
+    const ok = await persistPhotoDisplayOrder(supabase, 'model_photos', next.map(p => p.id))
+    if (!ok) alert(t('alert.uploadPhotosFail'))
   }
 
   const validateStep1 = () => {
@@ -1041,13 +1071,26 @@ export default function ModelOnboardingForm() {
 
               {/* Uploaded photos grid */}
               {uploadedPhotos.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                  {uploadedPhotos.map((photo) => (
-                    <div key={photo.id} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                <>
+                  <p className="text-xs text-gray-400 mb-2">{t('dragReorderPhotos')}</p>
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                  {uploadedPhotos.map((photo, photoIndex) => (
+                    <div
+                      key={photo.id}
+                      draggable
+                      onDragStart={onModelPhotoDragStart(photoIndex)}
+                      onDragOver={onModelPhotoDragOver}
+                      onDrop={onModelPhotoDrop(photoIndex)}
+                      onDragEnd={() => setPhotoDragIndex(null)}
+                      className={`relative group aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100 cursor-grab active:cursor-grabbing ${photoDragIndex === photoIndex ? 'opacity-60 ring-2 ring-pink-400/50' : ''}`}
+                    >
+                      <div className="absolute bottom-10 left-1 z-10 bg-black/55 text-white rounded p-0.5 pointer-events-none">
+                        <GripVertical className="w-3.5 h-3.5" />
+                      </div>
                       <img
                         src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${photo.file_path}`}
                         alt={photo.file_name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover pointer-events-none"
                       />
                       <button
                         type="button"
@@ -1061,7 +1104,8 @@ export default function ModelOnboardingForm() {
                       </button>
                     </div>
                   ))}
-                </div>
+                  </div>
+                </>
               )}
 
               {uploadedPhotos.length === 0 && (
@@ -2156,20 +2200,39 @@ export default function ModelOnboardingForm() {
               {uploadedPhotos.length === 0 ? (
                 <p className="text-sm text-gray-500 italic">{t('s11.galleryEmpty')}</p>
               ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {uploadedPhotos.map((photo) => (
-                    <div key={photo.id} className="relative bg-gray-100 rounded-lg p-3 border-2 border-gray-200">
-                      <p className="text-xs font-semibold text-gray-900 truncate mb-2">{photo.file_name}</p>
-                      <button
-                        type="button"
-                        onClick={() => deletePhoto(photo.id, photo.file_path)}
-                        className="w-full px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 font-semibold"
-                      >
-                        {t('delete')}
-                      </button>
+                <>
+                  <p className="text-xs text-gray-400 mb-2">{t('dragReorderPhotos')}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {uploadedPhotos.map((photo, photoIndex) => (
+                    <div
+                      key={photo.id}
+                      draggable
+                      onDragStart={onModelPhotoDragStart(photoIndex)}
+                      onDragOver={onModelPhotoDragOver}
+                      onDrop={onModelPhotoDrop(photoIndex)}
+                      onDragEnd={() => setPhotoDragIndex(null)}
+                      className={`relative bg-gray-100 rounded-lg p-3 border-2 border-gray-200 cursor-grab active:cursor-grabbing flex gap-3 ${photoDragIndex === photoIndex ? 'opacity-60 ring-2 ring-pink-400/50' : ''}`}
+                    >
+                      <GripVertical className="w-4 h-4 text-gray-400 shrink-0 mt-1" />
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${photo.file_path}`}
+                        alt=""
+                        className="w-16 h-16 rounded object-cover shrink-0 pointer-events-none"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate mb-2">{photo.file_name}</p>
+                        <button
+                          type="button"
+                          onClick={() => deletePhoto(photo.id, photo.file_path)}
+                          className="w-full px-2 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 font-semibold"
+                        >
+                          {t('delete')}
+                        </button>
+                      </div>
                     </div>
                   ))}
-                </div>
+                  </div>
+                </>
               )}
 
             </div>

@@ -221,7 +221,7 @@ export default function StatisticsPage() {
         ? supabase.from('model_details').select('model_id, showname, city').in('model_id', modelIds)
         : Promise.resolve({ data: [] as any[] }),
       modelIds.length
-        ? supabase.from('model_photos').select('model_id, file_path, uploaded_at').in('model_id', modelIds).eq('is_approved', true).order('uploaded_at', { ascending: false })
+        ? supabase.from('model_photos').select('model_id, file_path, uploaded_at').in('model_id', modelIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false })
         : Promise.resolve({ data: [] as any[] }),
     ])
 

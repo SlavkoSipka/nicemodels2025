@@ -44,7 +44,7 @@ BEGIN
         cd.display_name,
         cd.area,
         cd.is_club,
-        (SELECT cp.file_path FROM public.club_photos cp WHERE cp.club_id = p.id AND cp.is_approved = TRUE ORDER BY cp.uploaded_at DESC LIMIT 1) AS photo_file_path
+        (SELECT cp.file_path FROM public.club_photos cp WHERE cp.club_id = p.id AND cp.is_approved = TRUE ORDER BY cp.display_order ASC, cp.uploaded_at DESC LIMIT 1) AS photo_file_path
     FROM
         public.profiles p
     JOIN

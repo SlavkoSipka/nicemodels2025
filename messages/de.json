@@ -1606,7 +1606,8 @@
         "deleteConfirmPhoto": "Dieses Foto löschen?",
         "deleteConfirmVideo": "Dieses Video löschen?",
         "autoPublishLabel": "Automatische Veröffentlichung:",
-        "autoPublishHint": "Hochgeladene Inhalte erscheinen sofort in deinem Profil. Unser Team prüft die Einhaltung der Richtlinien."
+        "autoPublishHint": "Hochgeladene Inhalte erscheinen sofort in deinem Profil. Unser Team prüft die Einhaltung der Richtlinien.",
+        "dragReorderHint": "Ziehen Sie Fotos, um die Reihenfolge auf Ihrem Profil festzulegen."
       },
       "verification": {
         "title": "Konto-Verifizierung",
@@ -1785,7 +1786,7 @@
       "buyBanner": {
         "title": "Banner kaufen",
         "subtitle": "Ein aktives Banner pro Platzierung. Sicherer Checkout via Stripe.",
-        "infoBox": "Du kannst <bold>ein aktives Banner pro Platzierung</bold> haben (breit, Karte oder linke Spalte). <em>Linke Spalte</em> wird auf dem Handy nicht angezeigt — nur auf größeren Bildschirmen.",
+        "infoBox": "Du kannst <bold>ein aktives Banner pro Platzierung</bold> haben (breit, Karte oder linke Spalte). <em>Linke Spalte</em> sitzt am Desktop neben dem Feed; auf Mobilgeräten wechselt deine Grafik in den unteren Promo‑Streifen.",
         "tipTitle": "Tipp: kombiniere dein Banner mit einer aktiven Sedcard",
         "tipBody": "Du kannst das Banner sofort ohne aktive Anzeige kaufen. Für maximale Reichweite aktiviere zusätzlich deine Sedcard – Banner und ein aktives Profil wirken zusammen am besten.",
         "activateSedcard": "Sedcard aktivieren",
@@ -1918,6 +1919,7 @@
         "photosOptional": "(optional)",
         "addPhotos": "Fotos hinzufügen",
         "photoHint": "JPG, PNG oder WEBP – max. 10 MB pro Datei",
+        "dragReorderHint": "Ziehen Sie Fotos, um die Reihenfolge im Inserat festzulegen.",
         "newBadge": "NEU",
         "sectionContact": "Kontakt",
         "code": "Code",
@@ -2015,7 +2017,8 @@
         "errUpload": "Fotos konnten nicht hochgeladen werden. Bitte erneut versuchen.",
         "errDelete": "Foto konnte nicht gelöscht werden. Bitte erneut versuchen.",
         "successUpload": "Fotos erfolgreich hochgeladen!",
-        "successDelete": "Foto erfolgreich gelöscht!"
+        "successDelete": "Foto erfolgreich gelöscht!",
+        "dragReorderHint": "Ziehen Sie Fotos, um die Reihenfolge auf dem Clubprofil festzulegen."
       },
       "workingHours": {
         "title": "Arbeitszeiten",
@@ -2353,7 +2356,7 @@
       "buyBanner": {
         "title": "Banner kaufen",
         "subtitle": "Ein aktives Banner pro Platzierung. Sicherer Checkout via Stripe.",
-        "infoBox": "Du kannst <bold>ein aktives Banner pro Platzierung</bold> haben (breit, Karte oder linke Spalte). <em>Linke Spalte</em> wird auf dem Handy nicht angezeigt — nur auf größeren Bildschirmen.",
+        "infoBox": "Du kannst <bold>ein aktives Banner pro Platzierung</bold> haben (breit, Karte oder linke Spalte). <em>Linke Spalte</em> sitzt am Desktop neben dem Feed; auf Mobilgeräten wechselt deine Grafik in den unteren Promo‑Streifen.",
         "tipTitle": "Tipp: kombiniere dein Banner mit einer aktiven Club-Anzeige",
         "tipBody": "Du kannst das Banner sofort ohne aktive Anzeige kaufen. Für maximale Reichweite aktiviere zusätzlich deine Club-Anzeige – Banner und aktive Sedcard wirken zusammen am besten.",
         "activateClubAd": "Club-Anzeige aktivieren",
@@ -3035,6 +3038,7 @@
       "selectSize": "Grösse wählen",
       "selectLanguage": "Sprache wählen",
       "delete": "Löschen",
+      "dragReorderPhotos": "Ziehen Sie Fotos, um festzulegen, welches zuerst auf Ihrem Profil erscheint.",
       "remove": "Entfernen",
       "add": "HINZU",
       "chf": "CHF",
@@ -4073,6 +4077,7 @@
       "sectionPhotos": "Fotos",
       "choosePhotos": "Fotos wählen",
       "photosHint": "JPG, PNG oder WEBP – max. 10 MB pro Datei",
+      "dragReorderHint": "Ziehen Sie Fotos, um die Reihenfolge im Inserat festzulegen.",
       "sectionContact": "Kontakt",
       "contactRequiredBadge": "* Pflicht",
       "contactHint": "Mindestens Telefon oder E-Mail – ohne Kontaktdaten kann niemand Sie erreichen.",
@@ -4135,7 +4140,74 @@
       "desktop": "Desktop",
       "mobile": "Mobil",
       "defaultTitle": "Vorschau",
-      "sidebarNote": "Hinweis: Das Banner in der linken Spalte ist nur auf dem Desktop sichtbar und erscheint nicht auf Mobilgeräten."
+      "sidebarNote": "Auf Mobilgeräten erscheint dieselbe Grafik wie in der linken Spalte im unteren Sticky‑Streifen (wie auf der echten Homepage)."
+    },
+    "bannerPreviewMock": {
+      "navHome": "Start",
+      "navGirls": "Girls",
+      "navClubs": "Clubs",
+      "navJobsRent": "Jobs & Vermietung",
+      "navJobsShort": "Jobs",
+      "searchPlaceholder": "Suche",
+      "filterAll": "Alle",
+      "filterZurich": "Zürich",
+      "filterGeneva": "Genf",
+      "filterBasel": "Basel",
+      "filterVerified": "Verifiziert",
+      "verifiedShort": "VER",
+      "live": "live",
+      "yourCardBadge": "DEINE KARTE",
+      "serviceOutcall": "Hausbesuche",
+      "serviceMassage": "Massage",
+      "serviceMore": "+3",
+      "bannerWideLabel": "DEIN BREITES BANNER",
+      "bannerWideSubtitle": "Volle Breite · 4:1 · Oben im Feed",
+      "bannerCardLabel": "DEINE KARTE",
+      "bannerCardTitle": "BANNER KARTENFORMAT",
+      "bannerCardSubtitle": "Größe wie Profilkarte",
+      "bannerYourAd": "DEINE ANZEIGE",
+      "adBadge": "WERBUNG",
+      "bannerYoursLabel": "DEINS",
+      "bannerLeftTitle": "LINKE SPALTE",
+      "bannerLeftLine1": "DEINE LINKE",
+      "bannerLeftLine2": "SPALTE",
+      "bannerLeftDesktopHint": "Nur Desktop",
+      "leftColumnMobileCaption": "Dieselbe Platzierung — unten am Rand auf Mobilgeräten",
+      "wideBannerRepeat": "… weiteres breites Banner wiederholt sich alle 6 Karten",
+      "placeholderNameAge": "Name, 24",
+      "youProfileName": "Du",
+      "youProfileCity": "Deine Stadt"
+    },
+    "placementMock": {
+      "desktop": "Desktop",
+      "mobile": "Mobil"
+    },
+    "placementPicker": {
+      "activeInSlot": "In diesem Platz aktiv",
+      "feed_wide": {
+        "title": "Breites Banner",
+        "zone": "Über zwei Spalten",
+        "desc": "Volle Breite in der Liste — wiederholt sich alle 6 Profilkarten (4:1)."
+      },
+      "feed_card": {
+        "title": "Kartenplatz",
+        "zone": "Im Raster",
+        "desc": "Gleiche Zellengröße wie eine Profilkarte — erscheint alle 4 Karten (3:4)."
+      },
+      "sidebar_left": {
+        "title": "Linke Spalte",
+        "zone": "Neben dem Feed",
+        "desc": "Vertikal neben der Liste auf Desktop/Laptop. Auf dem Smartphone erscheint dieselbe Grafik unten als Promo‑Streifen. Reihenfolge zufällig pro Aufruf."
+      }
+    },
+    "bannerPlacementGuide": {
+      "title": "So funktionieren Platzierungen",
+      "badge": "Platzierungen",
+      "introModel": "Beim Kauf einen <type>Platzierungstyp</type> wählen: <wide>breit</wide> (ganze Zeile), <card>Karte</card> (eine Rasterzelle) oder <left>linke Spalte</left> (Schiene links am Feed auf Desktop — auf Mobilgeräten unten im Streifen). Graue Bereiche sind fremde Profile; die <violet>violette Fläche</violet> ist deine Werbung.",
+      "introClub": "Beim Kauf einen <type>Platzierungstyp</type> wählen: <wide>breit</wide> (ganze Zeile), <card>Karte</card> (eine Rasterzelle) oder <left>linke Spalte</left> (Schiene links am Feed auf Desktop — auf Mobilgeräten unten im Streifen). Graue Bereiche sind fremde Profile; die <violet>violette Fläche</violet> ist eure Werbung.",
+      "introPagesModel": "Deine Platzierungen können auf <home>Start</home>, <girls>Girls</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Clubs</clubs>, <jobs>Jobs & Vermietung</jobs> und ähnlichen Seiten erscheinen.",
+      "introPagesClub": "Die Platzierungen deines Clubs können auf <home>Start</home>, <girls>Girls</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Clubs</clubs>, <jobs>Jobs & Vermietung</jobs> und ähnlichen Seiten erscheinen.",
+      "fairRotationBody": "<semibold>Faire Rotation:</semibold> Bei <wideLabel>Breit</wideLabel>- und <cardLabel>Karten‑</cardLabel>Pools mit mehreren aktiven Bannern wird <emphasis>die Zuordnung jedes Laden zufällig neu gewählt,</emphasis> damit Reichweiten fair verteilt sind. Die <leftCol>linke&nbsp;Spalte</leftCol> zeigt einen rotierenden Schienen‑Slot auf Desktop; auf Mobilgeräten liegt das Inventar im unteren Streifen."
     },
     "viewCount": {
       "tooltip": "{formatted} {count, plural, one {Aufruf} other {Aufrufe}}"

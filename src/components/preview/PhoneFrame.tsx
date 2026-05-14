@@ -18,16 +18,17 @@ export default function PhoneFrame({ children, compact = false }: PhoneFrameProp
         </div>
 
         {/* Screen */}
-        <div className={`relative bg-white overflow-y-auto ${compact ? 'max-h-[320px]' : 'max-h-[520px]'}`}>
-          {/* Status bar */}
-          <div className="h-6 flex items-center justify-between px-5 text-[9px] font-semibold text-slate-900 pt-1">
+        <div
+          className={`relative bg-white flex flex-col overflow-hidden ${compact ? 'max-h-[320px]' : 'max-h-[520px]'}`}
+        >
+          <div className="h-6 flex items-center justify-between px-5 text-[9px] font-semibold text-slate-900 pt-1 shrink-0">
             <span>9:41</span>
             <span className="flex items-center gap-0.5">
               <span className="text-[8px]">●●●●</span>
               <span>100%</span>
             </span>
           </div>
-          {children}
+          <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">{children}</div>
         </div>
 
         {/* Home indicator */}

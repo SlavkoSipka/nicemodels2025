@@ -21,7 +21,7 @@ export default async function AdminClubEditPage({ params }: Props) {
     admin.from('profiles').select('*').eq('id', id).eq('role', 'company').single(),
     admin.from('club_details').select('*').eq('club_id', id).single(),
     admin.from('club_contact_details').select('*').eq('club_id', id).single(),
-    admin.from('club_photos').select('*').eq('club_id', id).order('uploaded_at', { ascending: false }),
+    admin.from('club_photos').select('*').eq('club_id', id).order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     admin.from('club_videos').select('*').eq('club_id', id).order('uploaded_at', { ascending: false }),
     admin.from('club_working_hours').select('*').eq('club_id', id).order('day_of_week', { ascending: true }),
   ])

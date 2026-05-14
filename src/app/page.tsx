@@ -31,6 +31,8 @@ export default async function HomePage() {
         .select('model_id, file_path')
         .in('model_id', modelIds)
         .eq('is_approved', true)
+        .order('model_id')
+        .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false }),
     ])
 
@@ -125,7 +127,7 @@ export default async function HomePage() {
     const [{ data: clubDetails }, { data: clubContacts }, { data: clubPhotos }] = await Promise.all([
       supabase.from('club_details').select('club_id, display_name, club_name, is_club, area, about_description').in('club_id', clubIds),
       supabase.from('club_contact_details').select('club_id, city').in('club_id', clubIds),
-      supabase.from('club_photos').select('club_id, file_path').in('club_id', clubIds).eq('is_approved', true).order('uploaded_at', { ascending: true }),
+      supabase.from('club_photos').select('club_id, file_path').in('club_id', clubIds).eq('is_approved', true).order('club_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const detMap = new Map((clubDetails || []).map(d => [d.club_id, d]))
@@ -276,7 +278,7 @@ export default async function HomePage() {
       admin.from('profiles').select('id, username').in('id', msgIds).eq('is_blocked', false),
       admin.from('model_details').select('model_id, showname').in('model_id', msgIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', msgIds)
-        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+        .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
     const pMap = new Map((p1 || []).map(x => [x.id, x]))
     const dMap = new Map((d1 || []).map(x => [x.model_id, x]))
@@ -301,7 +303,7 @@ export default async function HomePage() {
     const [{ data: cp }, { data: cph }] = await Promise.all([
       admin.from('profiles').select('id, username').in('id', cIds).eq('is_blocked', false),
       admin.from('model_photos').select('model_id, file_path').in('model_id', cIds)
-        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+        .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
     const cpMap = new Map((cp || []).map(x => [x.id, x]))
     const cphMap = new Map<string, string>()

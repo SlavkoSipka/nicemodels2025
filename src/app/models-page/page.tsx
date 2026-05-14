@@ -78,7 +78,7 @@ async function loadStatusMessages(admin: SupabaseClient, SUPA_URL: string, now: 
     admin.from('profiles').select('id, username').in('id', msgModelIds).eq('is_blocked', false),
     admin.from('model_details').select('model_id, showname').in('model_id', msgModelIds),
     admin.from('model_photos').select('model_id, file_path').in('model_id', msgModelIds)
-      .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+      .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
   ])
 
   const profMap = new Map((msgProfiles || []).map(p => [p.id, p]))
@@ -113,7 +113,7 @@ async function loadChatModels(admin: SupabaseClient, SUPA_URL: string) {
   const [{ data: chatProfiles }, { data: chatPhotos }] = await Promise.all([
     admin.from('profiles').select('id, username').in('id', chatModelIds).eq('is_blocked', false),
     admin.from('model_photos').select('model_id, file_path').in('model_id', chatModelIds)
-      .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+      .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
   ])
   const cpMap = new Map((chatProfiles || []).map(p => [p.id, p]))
   const photoMapChat = new Map<string, string>()
@@ -165,6 +165,8 @@ export default async function ModelsPage() {
         .select('model_id, file_path')
         .in('model_id', modelIds)
         .eq('is_approved', true)
+        .order('model_id')
+        .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false }),
     ])
 

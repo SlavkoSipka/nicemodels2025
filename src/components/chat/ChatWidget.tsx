@@ -237,11 +237,15 @@ export default function ChatWidget() {
       modelIds.length
         ? supabase.from('model_photos').select('model_id, file_path')
             .in('model_id', modelIds).eq('is_approved', true)
+            .order('model_id')
+            .order('display_order', { ascending: true })
             .order('uploaded_at', { ascending: false })
         : Promise.resolve({ data: [] }),
       clubIds.length
         ? supabase.from('club_photos').select('club_id, file_path')
             .in('club_id', clubIds).eq('is_approved', true)
+            .order('club_id')
+            .order('display_order', { ascending: true })
             .order('uploaded_at', { ascending: false })
         : Promise.resolve({ data: [] }),
     ]);
@@ -322,6 +326,8 @@ export default function ChatWidget() {
       supabase.from('online_status').select('user_id, is_online').in('user_id', otherUserIds),
       supabase.from('model_photos').select('model_id, file_path')
         .in('model_id', otherUserIds).eq('is_approved', true)
+        .order('model_id')
+        .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false }),
     ]);
 

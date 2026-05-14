@@ -100,6 +100,7 @@ export async function getFeaturedProfiles(limit: number = 4, client: SupabaseCli
       .select('*')
       .eq('model_id', profile.id)
       .eq('is_approved', true)
+      .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
       .limit(5)
 
@@ -193,6 +194,7 @@ export async function searchProfiles(filters: SearchFilters, page: number = 1, p
       .select('*')
       .eq('model_id', profile.id)
       .eq('is_approved', true)
+      .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
       .limit(5) // Limit to 5 photos for performance
 
@@ -269,6 +271,7 @@ export async function getProfileById(id: string, client: SupabaseClient) {
       .select('*')
       .eq('model_id', id)
       .eq('is_approved', true)  // Only show approved photos
+      .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
     
     // Generate public URLs for photos
@@ -364,6 +367,7 @@ export async function getSimilarProfiles(profileId: string, city: string, limit:
       .select('*')
       .eq('model_id', profile.id)
       .eq('is_approved', true)
+      .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
       .limit(5)
 

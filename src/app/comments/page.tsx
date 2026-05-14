@@ -59,6 +59,8 @@ export default async function CommentsPage() {
     .select('model_id, file_path')
     .in('model_id', modelIds)
     .eq('is_approved', true)
+    .order('model_id')
+    .order('display_order', { ascending: true })
     .order('uploaded_at', { ascending: false })
 
   // Create a map of model_id -> first photo

@@ -140,7 +140,7 @@ export default function ModelCollaborationsPage() {
     const [{ data: profiles }, { data: details }, { data: photos }] = await Promise.all([
       supabase.from('profiles').select('id, username, is_verified').in('id', modelIds),
       supabase.from('model_details').select('model_id, showname, city, age').in('model_id', modelIds),
-      supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('uploaded_at', { ascending: false }),
+      supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const detailsMap = new Map((details || []).map(d => [d.model_id, d]))
@@ -176,7 +176,7 @@ export default function ModelCollaborationsPage() {
     const [{ data: profiles }, { data: details }, { data: photos }] = await Promise.all([
       supabase.from('profiles').select('id, username, is_verified').in('id', partnerIds),
       supabase.from('model_details').select('model_id, showname, city, age').in('model_id', partnerIds),
-      supabase.from('model_photos').select('model_id, file_path').in('model_id', partnerIds).eq('is_approved', true).order('uploaded_at', { ascending: false }),
+      supabase.from('model_photos').select('model_id, file_path').in('model_id', partnerIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const detailsMap = new Map((details || []).map(d => [d.model_id, d]))
@@ -244,7 +244,7 @@ export default function ModelCollaborationsPage() {
     const modelIds = profiles.map(p => p.id)
     const [{ data: details }, { data: photos }] = await Promise.all([
       supabase.from('model_details').select('model_id, showname, city, age').in('model_id', modelIds),
-      supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('uploaded_at', { ascending: false }),
+      supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const detailsMap = new Map((details || []).map(d => [d.model_id, d]))

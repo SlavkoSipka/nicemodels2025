@@ -37,7 +37,7 @@ async function getModelData(id: string) {
     { data: comments },
   ] = await Promise.all([
     supabase.from('model_details').select('*').eq('model_id', id).single(),
-    supabase.from('model_photos').select('*').eq('model_id', id).eq('is_approved', true).order('uploaded_at', { ascending: false }),
+    supabase.from('model_photos').select('*').eq('model_id', id).eq('is_approved', true).order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     supabase.from('model_videos').select('*').eq('model_id', id).eq('is_approved', true).order('uploaded_at', { ascending: false }),
     supabase.from('model_rates').select('*').eq('model_id', id).order('rate_type', { ascending: true }),
     supabase.from('model_services').select('*, service:services(*)').eq('model_id', id),
@@ -97,7 +97,7 @@ async function getModelData(id: string) {
       admin.from('profiles').select('id, username, is_verified').in('id', partnerIds).eq('is_blocked', false),
       admin.from('model_details').select('model_id, showname, city, age').in('model_id', partnerIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', partnerIds)
-        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+        .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const dMap = new Map((partnerDetails ?? []).map((d: any) => [d.model_id, d]))

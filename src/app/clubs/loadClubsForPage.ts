@@ -16,7 +16,7 @@ export async function loadClubsForPage(): Promise<Club[]> {
   const [photosAll, contactsRes, detailsRes] = await Promise.all([
     supabase
       .from('club_photos')
-      .select('club_id, file_path, uploaded_at')
+      .select('club_id, file_path, uploaded_at, display_order')
       .in('club_id', ids)
       .eq('is_approved', true),
     supabase
@@ -29,14 +29,21 @@ export async function loadClubsForPage(): Promise<Club[]> {
       .in('club_id', ids),
   ])
 
-  const photosGrouped = new Map<string, { file_path: string; uploaded_at: string }[]>()
+  const photosGrouped = new Map<string, { file_path: string; uploaded_at: string; display_order: number }[]>()
   for (const row of photosAll.data || []) {
     const list = photosGrouped.get(row.club_id) || []
-    list.push({ file_path: row.file_path, uploaded_at: row.uploaded_at })
+    list.push({
+      file_path: row.file_path,
+      uploaded_at: row.uploaded_at,
+      display_order: row.display_order ?? 0,
+    })
     photosGrouped.set(row.club_id, list)
   }
   for (const list of photosGrouped.values()) {
-    list.sort((a, b) => new Date(a.uploaded_at).getTime() - new Date(b.uploaded_at).getTime())
+    list.sort((a, b) => {
+      if (a.display_order !== b.display_order) return a.display_order - b.display_order
+      return new Date(b.uploaded_at).getTime() - new Date(a.uploaded_at).getTime()
+    })
   }
 
   const contactByClub = new Map<

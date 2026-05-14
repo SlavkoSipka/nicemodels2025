@@ -9,10 +9,11 @@ import CitySearch, { CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import RegionsCheckboxList from '@/components/forms/RegionsCheckboxList'
 import { ALL_REGION_IDS, type RegionId } from '@/lib/regions'
+import { reorderArray } from '@/lib/reorderArray'
 import {
   Briefcase, ArrowLeft, MapPin, FileText, Upload, Phone,
   AlertCircle, CheckCircle, Trash2, ChevronDown, ChevronUp, Save,
-  Home, DollarSign, Globe
+  Home, DollarSign, Globe, GripVertical,
 } from 'lucide-react'
 
 interface ServiceItem {
@@ -21,16 +22,9 @@ interface ServiceItem {
   category: string
 }
 
-interface ExistingPhoto {
-  id: string
-  file_path: string
-  url: string
-}
-
-interface NewPhoto {
-  file: File
-  preview: string
-}
+type ListingPhotoSlot =
+  | { kind: 'existing'; id: string; file_path: string; url: string }
+  | { kind: 'new'; clientKey: string; file: File; preview: string }
 
 export default function EditJobRentPage() {
   const router = useRouter()
@@ -66,9 +60,9 @@ export default function EditJobRentPage() {
   const [rentTowels, setRentTowels] = useState(false)
 
   // Photos
-  const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([])
-  const [newPhotos, setNewPhotos] = useState<NewPhoto[]>([])
+  const [listingPhotoSlots, setListingPhotoSlots] = useState<ListingPhotoSlot[]>([])
   const [deletedPhotoIds, setDeletedPhotoIds] = useState<string[]>([])
+  const [photoDragIndex, setPhotoDragIndex] = useState<number | null>(null)
 
   // Contact
   const [countryCode, setCountryCode] = useState('+41')
@@ -142,7 +136,8 @@ export default function EditJobRentPage() {
         .order('display_order')
 
       if (photos) {
-        setExistingPhotos(photos.map(p => ({
+        setListingPhotoSlots(photos.map(p => ({
+          kind: 'existing',
           id: p.id,
           file_path: p.file_path,
           url: `${SUPA_URL}/storage/v1/object/public/job-listing-photos/${p.file_path}`,
@@ -175,22 +170,44 @@ export default function EditJobRentPage() {
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
-    const added = Array.from(e.target.files).map(file => ({
+    const added: ListingPhotoSlot[] = Array.from(e.target.files).map(file => ({
+      kind: 'new',
+      clientKey: crypto.randomUUID(),
       file,
       preview: URL.createObjectURL(file),
     }))
-    setNewPhotos(prev => [...prev, ...added])
+    setListingPhotoSlots(prev => [...prev, ...added])
     e.target.value = ''
   }
 
-  const removeExistingPhoto = (id: string) => {
-    setDeletedPhotoIds(prev => [...prev, id])
-    setExistingPhotos(prev => prev.filter(p => p.id !== id))
+  const removeListingPhotoSlot = (index: number) => {
+    setListingPhotoSlots(prev => {
+      const slot = prev[index]
+      if (!slot) return prev
+      if (slot.kind === 'existing') {
+        setDeletedPhotoIds(d => [...d, slot.id])
+      } else {
+        URL.revokeObjectURL(slot.preview)
+      }
+      return prev.filter((_, i) => i !== index)
+    })
   }
 
-  const removeNewPhoto = (index: number) => {
-    URL.revokeObjectURL(newPhotos[index].preview)
-    setNewPhotos(prev => prev.filter((_, i) => i !== index))
+  const onPhotoDragStart = (index: number) => (e: React.DragEvent) => {
+    setPhotoDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const onPhotoDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const onPhotoDrop = (index: number) => (e: React.DragEvent) => {
+    e.preventDefault()
+    const from = photoDragIndex
+    setPhotoDragIndex(null)
+    if (from === null || from === index) return
+    setListingPhotoSlots(prev => reorderArray(prev, from, index))
   }
 
   const toggleService = (id: string) => {
@@ -253,42 +270,51 @@ export default function EditJobRentPage() {
 
       // 2. Delete removed photos from storage + DB
       for (const photoId of deletedPhotoIds) {
-        const photo = existingPhotos.find(p => p.id === photoId) ||
-          (await supabase.from('job_listing_photos').select('file_path').eq('id', photoId).single()).data
-        if (photo?.file_path) {
-          await supabase.storage.from('job-listing-photos').remove([photo.file_path])
+        const row = (await supabase.from('job_listing_photos').select('file_path').eq('id', photoId).single()).data
+        if (row?.file_path) {
+          await supabase.storage.from('job-listing-photos').remove([row.file_path])
         }
         await supabase.from('job_listing_photos').delete().eq('id', photoId)
       }
 
-      // 3. Upload new photos
-      const currentCount = existingPhotos.length
-      for (let i = 0; i < newPhotos.length; i++) {
-        const raw = newPhotos[i].file
-        let processed: File
-        try {
-          processed = await processImage(raw)
-        } catch {
-          continue
+      // 3. Apply order: update existing rows + upload new photos
+      let displayOrder = 0
+      for (const slot of listingPhotoSlots) {
+        if (slot.kind === 'existing') {
+          await supabase
+            .from('job_listing_photos')
+            .update({ display_order: displayOrder })
+            .eq('id', slot.id)
+            .eq('listing_id', listingId)
+          displayOrder++
+        } else {
+          const raw = slot.file
+          let processed: File
+          try {
+            processed = await processImage(raw)
+          } catch {
+            continue
+          }
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
+          const filePath = `${user.id}/${listingId}/${fileName}`
+
+          const { error: upErr } = await supabase.storage
+            .from('job-listing-photos')
+            .upload(filePath, processed, { contentType: 'image/webp', cacheControl: '3600', upsert: false })
+
+          if (upErr) {
+            console.error('Photo upload error:', upErr)
+            continue
+          }
+
+          await supabase.from('job_listing_photos').insert({
+            listing_id: listingId,
+            file_path: filePath,
+            file_name: raw.name,
+            display_order: displayOrder,
+          })
+          displayOrder++
         }
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
-        const filePath = `${user.id}/${listingId}/${fileName}`
-
-        const { error: upErr } = await supabase.storage
-          .from('job-listing-photos')
-          .upload(filePath, processed, { contentType: 'image/webp', cacheControl: '3600', upsert: false })
-
-        if (upErr) {
-          console.error('Photo upload error:', upErr)
-          continue
-        }
-
-        await supabase.from('job_listing_photos').insert({
-          listing_id: listingId,
-          file_path: filePath,
-          file_name: raw.name,
-          display_order: currentCount + i,
-        })
       }
 
       // 4. Sync services: delete all then re-insert
@@ -525,27 +551,31 @@ export default function EditJobRentPage() {
               />
             </label>
             <p className="text-xs text-gray-500 mt-2">{t('photoHint')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('dragReorderHint')}</p>
           </div>
 
-          {(existingPhotos.length > 0 || newPhotos.length > 0) && (
+          {listingPhotoSlots.length > 0 && (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-              {existingPhotos.map(p => (
-                <div key={p.id} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                  <img src={p.url} alt="" className="w-full h-full object-cover" />
+              {listingPhotoSlots.map((slot, i) => (
+                <div
+                  key={slot.kind === 'existing' ? slot.id : slot.clientKey}
+                  draggable
+                  onDragStart={onPhotoDragStart(i)}
+                  onDragOver={onPhotoDragOver}
+                  onDrop={onPhotoDrop(i)}
+                  onDragEnd={() => setPhotoDragIndex(null)}
+                  className={`relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border ${slot.kind === 'new' ? 'border-2 border-dashed border-brand/30' : 'border-gray-200'} cursor-grab active:cursor-grabbing ${photoDragIndex === i ? 'opacity-60 ring-2 ring-brand/40' : ''}`}
+                >
+                  <div className="absolute bottom-8 left-1 z-10 bg-black/55 text-white rounded p-0.5 pointer-events-none">
+                    <GripVertical className="w-3 h-3" />
+                  </div>
+                  <img src={slot.kind === 'existing' ? slot.url : slot.preview} alt="" className="w-full h-full object-cover pointer-events-none" />
+                  {slot.kind === 'new' && (
+                    <span className="absolute top-1 left-1 text-[9px] font-bold bg-brand text-white px-1.5 py-0.5 rounded">{t('newBadge')}</span>
+                  )}
                   <button
-                    onClick={() => removeExistingPhoto(p.id)}
-                    className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-              {newPhotos.map((p, i) => (
-                <div key={`new-${i}`} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border-2 border-dashed border-brand/30">
-                  <img src={p.preview} alt="" className="w-full h-full object-cover" />
-                  <span className="absolute top-1 left-1 text-[9px] font-bold bg-brand text-white px-1.5 py-0.5 rounded">{t('newBadge')}</span>
-                  <button
-                    onClick={() => removeNewPhoto(i)}
+                    type="button"
+                    onClick={() => removeListingPhotoSlot(i)}
                     className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 className="w-3 h-3" />

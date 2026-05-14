@@ -260,6 +260,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
         .select('file_path')
         .eq('model_id', otherUserId)
         .eq('is_approved', true)
+        .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false })
         .limit(1)
         .single();

@@ -25,6 +25,7 @@ const getClubMeta = cache(async (id: string) => {
       .select('file_path')
       .eq('club_id', id)
       .eq('is_approved', true)
+      .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
       .limit(1)
       .single(),
@@ -82,7 +83,7 @@ export default async function ClubPage({ params }: PageProps) {
     supabase.from('club_details').select('*').eq('club_id', id).single(),
     supabase.from('club_contact_details').select('*').eq('club_id', id).maybeSingle(),
     supabase.from('club_working_hours').select('*').eq('club_id', id).maybeSingle(),
-    supabase.from('club_photos').select('*').eq('club_id', id).eq('is_approved', true).order('uploaded_at', { ascending: false }),
+    supabase.from('club_photos').select('*').eq('club_id', id).eq('is_approved', true).order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     admin.from('club_invites').select('invited_model_id').eq('club_id', id).eq('status', 'accepted'),
   ])
 
@@ -102,7 +103,7 @@ export default async function ClubPage({ params }: PageProps) {
       admin.from('profiles').select('id, username, is_verified').in('id', modelIds),
       admin.from('model_details').select('model_id, showname, city, age').in('model_id', modelIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', modelIds)
-        .eq('is_approved', true).order('uploaded_at', { ascending: false }),
+        .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const detailsMap = new Map((modelDetails ?? []).map((d: any) => [d.model_id, d]))

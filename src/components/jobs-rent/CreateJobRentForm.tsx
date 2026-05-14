@@ -12,10 +12,11 @@ import SitePreview from '@/components/preview/SitePreview'
 import RegionsCheckboxList from '@/components/forms/RegionsCheckboxList'
 import { ALL_REGION_IDS, type RegionId } from '@/lib/regions'
 import { checkActiveAd } from '@/lib/activeAd'
+import { reorderArray } from '@/lib/reorderArray'
 import {
   Briefcase, ArrowLeft, MapPin, FileText, Upload, Phone,
   AlertCircle, CheckCircle, Trash2, Zap, Calendar, ChevronDown, ChevronUp,
-  Home, DollarSign, Globe, Hash, Lock, ChevronRight,
+  Home, DollarSign, Globe, Hash, Lock, ChevronRight, GripVertical,
 } from 'lucide-react'
 
 interface Product {
@@ -34,6 +35,7 @@ interface ServiceItem {
 }
 
 interface UploadedPhoto {
+  id: string
   file: File
   preview: string
 }
@@ -82,6 +84,7 @@ export default function CreateJobRentForm({
   const [regions, setRegions] = useState<RegionId[]>([...ALL_REGION_IDS])
 
   const [photos, setPhotos] = useState<UploadedPhoto[]>([])
+  const [photoDragIndex, setPhotoDragIndex] = useState<number | null>(null)
 
   const [rentPriceDaily, setRentPriceDaily] = useState('')
   const [rentPriceWeekly, setRentPriceWeekly] = useState('')
@@ -188,6 +191,7 @@ export default function CreateJobRentForm({
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
     const newPhotos = Array.from(e.target.files).map(file => ({
+      id: crypto.randomUUID(),
       file,
       preview: URL.createObjectURL(file),
     }))
@@ -195,9 +199,28 @@ export default function CreateJobRentForm({
     e.target.value = ''
   }
 
-  const removePhoto = (index: number) => {
-    URL.revokeObjectURL(photos[index].preview)
-    setPhotos(prev => prev.filter((_, i) => i !== index))
+  const removePhoto = (photoId: string) => {
+    const idx = photos.findIndex((p) => p.id === photoId)
+    if (idx < 0) return
+    URL.revokeObjectURL(photos[idx].preview)
+    setPhotos(prev => prev.filter((p) => p.id !== photoId))
+  }
+
+  const onPhotoDragStart = (index: number) => (e: React.DragEvent) => {
+    setPhotoDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const onPhotoDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const onPhotoDrop = (index: number) => (e: React.DragEvent) => {
+    e.preventDefault()
+    const from = photoDragIndex
+    setPhotoDragIndex(null)
+    if (from === null || from === index) return
+    setPhotos(prev => reorderArray(prev, from, index))
   }
 
   const toggleService = (id: string) => {
@@ -625,13 +648,25 @@ export default function CreateJobRentForm({
               <input type="file" accept="image/*" multiple onChange={handlePhotoSelect} className="hidden" />
             </label>
             <p className="text-xs text-gray-500 mt-2">{t('photosHint')}</p>
+            <p className="text-xs text-gray-400 mt-1">{t('dragReorderHint')}</p>
           </div>
           {photos.length > 0 && (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
               {photos.map((p, i) => (
-                <div key={i} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                  <img src={p.preview} alt="" className="w-full h-full object-cover" />
-                  <button onClick={() => removePhoto(i)} className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                <div
+                  key={p.id}
+                  draggable
+                  onDragStart={onPhotoDragStart(i)}
+                  onDragOver={onPhotoDragOver}
+                  onDrop={onPhotoDrop(i)}
+                  onDragEnd={() => setPhotoDragIndex(null)}
+                  className={`relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 cursor-grab active:cursor-grabbing ${photoDragIndex === i ? 'opacity-60 ring-2 ring-brand/40' : ''}`}
+                >
+                  <div className="absolute bottom-8 left-1 z-10 bg-black/55 text-white rounded p-0.5 pointer-events-none">
+                    <GripVertical className="w-3 h-3" />
+                  </div>
+                  <img src={p.preview} alt="" className="w-full h-full object-cover pointer-events-none" />
+                  <button type="button" onClick={() => removePhoto(p.id)} className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>

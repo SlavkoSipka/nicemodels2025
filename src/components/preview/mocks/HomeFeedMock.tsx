@@ -1,6 +1,8 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Heart, Megaphone, Search, User, Menu, MapPin, Sparkles, Star } from 'lucide-react'
+import MobileLeftBannerBottomPreview from '../MobileLeftBannerBottomPreview'
 import type { PreviewHighlight, PreviewMode } from '../types'
 
 interface HomeFeedMockProps {
@@ -30,6 +32,7 @@ function ModelCardMock({
   highlighted?: boolean
   label?: string
 }) {
+  const t = useTranslations('components.bannerPreviewMock')
   return (
     <div
       className={`relative overflow-hidden rounded-lg bg-white flex flex-col transition-all ${
@@ -39,27 +42,22 @@ function ModelCardMock({
       }`}
     >
       <div className={`aspect-[3/4] bg-gradient-to-br ${model.tone} relative overflow-hidden`}>
-        {/* Mock silhouette */}
         <div className="absolute inset-0 flex items-end justify-center">
           <div className="w-[70%] h-[80%] bg-gradient-to-t from-white/10 to-white/40 rounded-t-[50%]" aria-hidden />
           <div className="absolute bottom-[35%] left-1/2 -translate-x-1/2 w-[25%] aspect-square bg-white/45 rounded-full" aria-hidden />
         </div>
 
-        {/* Gradient overlay bottom */}
         <div className="absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-black/60 via-black/20 to-transparent" aria-hidden />
 
-        {/* Verified badge */}
         <div className="absolute top-1 left-1 bg-blue-500 text-white px-1 py-0.5 rounded text-[7px] font-bold flex items-center gap-0.5 shadow">
           <Star className="w-2 h-2 fill-white" />
-          VER
+          {t('verifiedShort')}
         </div>
 
-        {/* Like */}
         <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow">
           <Heart className="w-2.5 h-2.5 text-rose-500" />
         </div>
 
-        {/* Name/location overlay (on image bottom) */}
         <div className="absolute bottom-0 left-0 right-0 p-1.5 text-white">
           <div className="flex items-center justify-between gap-1">
             <span className="font-extrabold text-[11px] leading-tight truncate drop-shadow">
@@ -67,7 +65,7 @@ function ModelCardMock({
             </span>
             <span className="inline-flex items-center gap-0.5 bg-emerald-500 rounded-full px-1 py-0.5 text-[6px] font-bold shadow">
               <span className="w-1 h-1 rounded-full bg-white" />
-              live
+              {t('live')}
             </span>
           </div>
           <div className="flex items-center gap-0.5 text-[8px] font-medium text-white/90 mt-0.5">
@@ -81,23 +79,23 @@ function ModelCardMock({
             <div className="absolute inset-0 bg-violet-600/25" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-violet-600 text-white px-2.5 py-1 rounded-lg text-[9px] font-extrabold flex items-center gap-1 shadow-lg whitespace-nowrap">
               <User className="w-2.5 h-2.5" />
-              {label ?? 'YOUR CARD'}
+              {label ?? t('yourCardBadge')}
             </div>
           </>
         )}
       </div>
 
-      {/* Service chips below image */}
       <div className="flex flex-wrap gap-0.5 px-1.5 py-1 bg-white">
-        <span className="text-[6px] font-semibold text-slate-600 bg-slate-100 rounded px-1 py-0.5">Outcall</span>
-        <span className="text-[6px] font-semibold text-slate-600 bg-slate-100 rounded px-1 py-0.5">Massage</span>
-        <span className="text-[6px] font-semibold text-violet-700 bg-violet-100 rounded px-1 py-0.5">+3</span>
+        <span className="text-[6px] font-semibold text-slate-600 bg-slate-100 rounded px-1 py-0.5">{t('serviceOutcall')}</span>
+        <span className="text-[6px] font-semibold text-slate-600 bg-slate-100 rounded px-1 py-0.5">{t('serviceMassage')}</span>
+        <span className="text-[6px] font-semibold text-violet-700 bg-violet-100 rounded px-1 py-0.5">{t('serviceMore')}</span>
       </div>
     </div>
   )
 }
 
 function BannerSlotWide({ previewUrl }: { previewUrl?: string }) {
+  const t = useTranslations('components.bannerPreviewMock')
   return (
     <div className="relative rounded-xl overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_4px_rgba(139,92,246,0.3),0_10px_28px_-8px_rgba(139,92,246,0.5)] z-10">
       {previewUrl ? (
@@ -106,7 +104,7 @@ function BannerSlotWide({ previewUrl }: { previewUrl?: string }) {
           <img src={previewUrl} alt="" className="w-full aspect-[4/1] object-cover" />
           <div className="absolute top-1.5 left-1.5 bg-violet-600 text-white px-2 py-0.5 rounded-md text-[8px] font-extrabold flex items-center gap-1 shadow-lg backdrop-blur">
             <Megaphone className="w-2.5 h-2.5" />
-            YOUR WIDE BANNER
+            {t('bannerWideLabel')}
           </div>
         </>
       ) : (
@@ -117,8 +115,8 @@ function BannerSlotWide({ previewUrl }: { previewUrl?: string }) {
               <Megaphone className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-[10px] font-extrabold tracking-wide leading-none">YOUR WIDE BANNER</p>
-              <p className="text-[8px] opacity-90 mt-0.5">Full-width · 4:1 · Top of feed</p>
+              <p className="text-[10px] font-extrabold tracking-wide leading-none">{t('bannerWideLabel')}</p>
+              <p className="text-[8px] opacity-90 mt-0.5">{t('bannerWideSubtitle')}</p>
             </div>
           </div>
         </div>
@@ -128,6 +126,7 @@ function BannerSlotWide({ previewUrl }: { previewUrl?: string }) {
 }
 
 function BannerSlotCard({ previewUrl }: { previewUrl?: string }) {
+  const t = useTranslations('components.bannerPreviewMock')
   return (
     <div className="relative rounded-lg overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.3),0_8px_24px_-6px_rgba(139,92,246,0.5)] aspect-[3/4] z-10">
       {previewUrl ? (
@@ -136,7 +135,7 @@ function BannerSlotCard({ previewUrl }: { previewUrl?: string }) {
           <img src={previewUrl} alt="" className="w-full h-full object-cover" />
           <div className="absolute top-1 left-1 bg-violet-600 text-white px-1.5 py-0.5 rounded text-[7px] font-extrabold flex items-center gap-0.5 shadow">
             <Megaphone className="w-2 h-2" />
-            YOUR CARD
+            {t('bannerCardLabel')}
           </div>
         </>
       ) : (
@@ -145,11 +144,11 @@ function BannerSlotCard({ previewUrl }: { previewUrl?: string }) {
           <div className="relative w-6 h-6 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center mb-1">
             <Megaphone className="w-3 h-3" />
           </div>
-          <p className="relative text-[9px] font-extrabold text-center leading-tight">YOUR CARD BANNER</p>
-          <p className="relative text-[7px] opacity-90 mt-0.5 text-center">Same size as profile</p>
+          <p className="relative text-[9px] font-extrabold text-center leading-tight">{t('bannerCardTitle')}</p>
+          <p className="relative text-[7px] opacity-90 mt-0.5 text-center">{t('bannerCardSubtitle')}</p>
           <div className="relative inline-flex items-center gap-0.5 mt-1 text-[6px] font-bold bg-white/20 rounded-full px-1.5 py-0.5">
             <Sparkles className="w-1.5 h-1.5" />
-            AD
+            {t('adBadge')}
           </div>
         </div>
       )}
@@ -158,6 +157,7 @@ function BannerSlotCard({ previewUrl }: { previewUrl?: string }) {
 }
 
 function BannerSlotSidebar({ previewUrl }: { previewUrl?: string }) {
+  const t = useTranslations('components.bannerPreviewMock')
   return (
     <div className="relative rounded-lg overflow-hidden ring-2 ring-violet-500 shadow-[0_0_0_3px_rgba(139,92,246,0.3),0_8px_24px_-6px_rgba(139,92,246,0.5)] h-full min-h-[200px] z-10">
       {previewUrl ? (
@@ -166,7 +166,7 @@ function BannerSlotSidebar({ previewUrl }: { previewUrl?: string }) {
           <img src={previewUrl} alt="" className="w-full h-full object-cover" />
           <div className="absolute top-1 left-1 right-1 bg-violet-600 text-white px-1 py-0.5 rounded text-[7px] font-extrabold flex items-center justify-center gap-0.5 shadow">
             <Megaphone className="w-2 h-2" />
-            YOURS
+            {t('bannerYoursLabel')}
           </div>
         </>
       ) : (
@@ -175,8 +175,8 @@ function BannerSlotSidebar({ previewUrl }: { previewUrl?: string }) {
           <div className="relative w-6 h-6 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center mb-1">
             <Megaphone className="w-3 h-3" />
           </div>
-          <p className="relative text-[8px] font-extrabold text-center leading-tight px-1">YOUR LEFT COLUMN</p>
-          <p className="relative text-[6px] opacity-90 mt-1 text-center">Desktop only</p>
+          <p className="relative text-[8px] font-extrabold text-center leading-tight px-1">{t('bannerLeftTitle')}</p>
+          <p className="relative text-[6px] opacity-90 mt-1 text-center">{t('bannerLeftDesktopHint')}</p>
         </div>
       )}
     </div>
@@ -184,9 +184,10 @@ function BannerSlotSidebar({ previewUrl }: { previewUrl?: string }) {
 }
 
 function SiteHeader({ compact = false }: { compact?: boolean }) {
+  const t = useTranslations('components.bannerPreviewMock')
   const h = compact ? 'h-8' : 'h-10'
   return (
-    <div className={`${h} bg-white border-b border-slate-200 flex items-center justify-between px-2.5 sticky top-0 z-10`}>
+    <div className={`${h} bg-white border-b border-slate-200 flex items-center justify-between px-2.5 shrink-0 sticky top-0 z-10`}>
       <div className="flex items-center gap-1.5">
         {compact && <Menu className="w-3.5 h-3.5 text-slate-700" />}
         <span className={`font-black tracking-tight bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent ${compact ? 'text-[11px]' : 'text-sm'}`}>
@@ -195,16 +196,16 @@ function SiteHeader({ compact = false }: { compact?: boolean }) {
       </div>
       {!compact && (
         <nav className="flex items-center gap-3 text-[9px] font-semibold text-slate-700">
-          <span className="text-rose-600">Home</span>
-          <span>Girls</span>
-          <span>Clubs</span>
-          <span>Jobs &amp; Rent</span>
+          <span className="text-rose-600">{t('navHome')}</span>
+          <span>{t('navGirls')}</span>
+          <span>{t('navClubs')}</span>
+          <span>{t('navJobsRent')}</span>
         </nav>
       )}
       <div className="flex items-center gap-1.5">
         <div className={`flex items-center gap-1 bg-slate-100 rounded-md px-1.5 py-1 ${compact ? 'w-16' : 'w-24'}`}>
           <Search className="w-2.5 h-2.5 text-slate-500 shrink-0" />
-          <span className="text-[7px] text-slate-400 truncate">Search</span>
+          <span className="text-[7px] text-slate-400 truncate">{t('searchPlaceholder')}</span>
         </div>
         {!compact && (
           <div className="w-5 h-5 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 shadow-sm" />
@@ -215,11 +216,14 @@ function SiteHeader({ compact = false }: { compact?: boolean }) {
 }
 
 function Filters({ compact = false }: { compact?: boolean }) {
+  const t = useTranslations('components.bannerPreviewMock')
+  const items = ['filterAll', 'filterZurich', 'filterGeneva', 'filterBasel', 'filterVerified'] as const
+
   return (
-    <div className="flex items-center gap-1 px-2.5 py-1.5 bg-white border-b border-slate-100 overflow-hidden">
-      {['All', 'Zurich', 'Geneva', 'Basel', 'Verified'].map((f, i) => (
+    <div className="flex items-center gap-1 px-2.5 py-1.5 bg-white border-b border-slate-100 overflow-hidden shrink-0">
+      {items.map((key, i) => (
         <span
-          key={f}
+          key={key}
           className={`shrink-0 rounded-full font-semibold border ${
             compact ? 'text-[7px] px-1.5 py-0.5' : 'text-[8px] px-2 py-0.5'
           } ${
@@ -228,7 +232,7 @@ function Filters({ compact = false }: { compact?: boolean }) {
               : 'bg-white text-slate-600 border-slate-200'
           }`}
         >
-          {f}
+          {t(key)}
         </span>
       ))}
     </div>
@@ -239,12 +243,27 @@ export default function HomeFeedMock({ mode, highlight, previewUrl, compact: com
   const mobile = mode === 'mobile'
   const compact = compactProp
   const showSidebar = !mobile && highlight === 'banner-sidebar'
+  const t = useTranslations('components.bannerPreviewMock')
 
-  // In compact mode show only the bare minimum to keep the preview short.
-  // ad-card / banner-card layouts already include 2 fixed cards (a neighbour
-  // and the highlighted slot), so cardSlice = 0 collapses the grid to 1 row.
   const cardSlice = compact ? 0 : 2
   const plainSlice = compact ? 2 : mobile ? 6 : 4
+
+  if (mobile && highlight === 'banner-sidebar') {
+    return (
+      <div className="flex flex-col h-full min-h-0 bg-slate-50 w-full">
+        <SiteHeader compact={mobile} />
+        <Filters compact={mobile} />
+        <div className={`flex-1 min-h-0 overflow-y-auto ${compact ? 'p-1.5' : 'p-2'}`}>
+          <div className={`grid grid-cols-2 ${compact ? 'gap-1' : 'gap-1.5'}`}>
+            {FAKE_MODELS.slice(0, plainSlice).map(m => (
+              <ModelCardMock key={m.name} model={m} />
+            ))}
+          </div>
+        </div>
+        <MobileLeftBannerBottomPreview previewUrl={previewUrl} size="md" />
+      </div>
+    )
+  }
 
   return (
     <div className="bg-slate-50 w-full">
@@ -276,9 +295,14 @@ export default function HomeFeedMock({ mode, highlight, previewUrl, compact: com
               <>
                 <ModelCardMock model={FAKE_MODELS[0]} />
                 <ModelCardMock
-                  model={{ name: 'You', city: 'Your city', tone: 'from-violet-400 via-fuchsia-400 to-pink-400', age: 24 }}
+                  model={{
+                    name: t('youProfileName'),
+                    city: t('youProfileCity'),
+                    tone: 'from-violet-400 via-fuchsia-400 to-pink-400',
+                    age: 24,
+                  }}
                   highlighted
-                  label="YOUR CARD"
+                  label={t('yourCardBadge')}
                 />
                 {FAKE_MODELS.slice(1, cardSlice + 1).map(m => (
                   <ModelCardMock key={m.name} model={m} />
@@ -294,7 +318,7 @@ export default function HomeFeedMock({ mode, highlight, previewUrl, compact: com
           {highlight === 'banner-wide' && !compact && (
             <div className="text-center">
               <p className="text-[8px] text-slate-400 font-semibold italic">
-                ... another wide banner repeats every 6 cards
+                {t('wideBannerRepeat')}
               </p>
             </div>
           )}

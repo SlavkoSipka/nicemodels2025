@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { Image as ImageIcon, Upload, Trash2, AlertCircle, CheckCircle } from 'lucide-react'
+import { Image as ImageIcon, Upload, Trash2, AlertCircle, CheckCircle, GripVertical } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
+import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 
 interface Photo {
   id: string
@@ -13,6 +14,7 @@ interface Photo {
   file_path: string
   is_approved: boolean
   uploaded_at: string
+  display_order?: number
 }
 
 export default function ClubPhotosPage() {
@@ -25,6 +27,7 @@ export default function ClubPhotosPage() {
   const [success, setSuccess] = useState('')
   const [user, setUser] = useState<any>(null)
   const [photos, setPhotos] = useState<Photo[]>([])
+  const [photoDragIndex, setPhotoDragIndex] = useState<number | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,6 +53,7 @@ export default function ClubPhotosPage() {
       .from('club_photos')
       .select('*')
       .eq('club_id', userId)
+      .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
 
     if (error) {
@@ -69,6 +73,9 @@ export default function ClubPhotosPage() {
 
     try {
       const supabase = createClient()
+
+      const { data: ordRows } = await supabase.from('club_photos').select('display_order').eq('club_id', user.id)
+      let nextOrd = ordRows?.length ? Math.max(...ordRows.map((r) => r.display_order ?? 0)) + 1 : 0
 
       for (const rawFile of files) {
         if (rawFile.size > 10 * 1024 * 1024) {
@@ -90,13 +97,15 @@ export default function ClubPhotosPage() {
 
         if (uploadError) throw uploadError
 
+        const display_order = nextOrd++
         const { error: dbError } = await supabase
           .from('club_photos')
           .insert({
             club_id: user.id,
             file_path: filePath,
             file_name: file.name,
-            is_approved: true
+            is_approved: true,
+            display_order,
           })
 
         if (dbError) throw dbError
@@ -137,6 +146,27 @@ export default function ClubPhotosPage() {
     } catch (err: any) {
       setError(err.message || t('errDelete'))
     }
+  }
+
+  const onPhotoDragStart = (index: number) => (e: React.DragEvent) => {
+    setPhotoDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const onPhotoDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const onPhotoDrop = (index: number) => async (e: React.DragEvent) => {
+    e.preventDefault()
+    const from = photoDragIndex
+    setPhotoDragIndex(null)
+    if (from === null || from === index) return
+    const next = reorderArray(photos, from, index)
+    setPhotos(next)
+    const supabase = createClient()
+    const ok = await persistPhotoDisplayOrder(supabase, 'club_photos', next.map((p) => p.id))
+    if (!ok) setError(t('errUpload'))
   }
 
   const getPhotoUrl = (filePath: string) => {
@@ -223,6 +253,7 @@ export default function ClubPhotosPage() {
 
         {/* Gallery */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <p className="text-xs text-gray-500 mb-2">{t('dragReorderHint')}</p>
           <p className="text-sm font-bold text-gray-800 mb-3">{t('yourPhotos', { count: photos.length })}</p>
 
           {photos.length === 0 ? (
@@ -233,15 +264,23 @@ export default function ClubPhotosPage() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {photos.map((photo) => (
+              {photos.map((photo, index) => (
                 <div
                   key={photo.id}
-                  className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors"
+                  draggable
+                  onDragStart={onPhotoDragStart(index)}
+                  onDragOver={onPhotoDragOver}
+                  onDrop={onPhotoDrop(index)}
+                  onDragEnd={() => setPhotoDragIndex(null)}
+                  className={`relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-gray-300 transition-colors cursor-grab active:cursor-grabbing ${photoDragIndex === index ? 'opacity-60 ring-2 ring-brand/40' : ''}`}
                 >
+                  <div className="absolute bottom-2 left-1.5 z-10 bg-black/55 text-white rounded p-0.5 pointer-events-none">
+                    <GripVertical className="w-3.5 h-3.5" />
+                  </div>
                   <img
                     src={getPhotoUrl(photo.file_path)}
                     alt={photo.file_name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                   />
                   {photo.is_approved ? (
                     <span className="absolute top-1.5 left-1.5 bg-emerald-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
@@ -253,6 +292,7 @@ export default function ClubPhotosPage() {
                     </span>
                   )}
                   <button
+                    type="button"
                     onClick={() => handleDeletePhoto(photo.id, photo.file_path)}
                     className="absolute top-1.5 right-1.5 bg-red-600 text-white p-1.5 rounded opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
                     aria-label={t('deleteBtn')}

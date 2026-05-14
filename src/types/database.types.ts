@@ -214,6 +214,7 @@ export interface Database {
           file_name: string
           is_verified: boolean
           uploaded_at: string
+          display_order: number
         }
         Insert: {
           id?: string
@@ -222,6 +223,7 @@ export interface Database {
           file_name: string
           is_verified?: boolean
           uploaded_at?: string
+          display_order?: number
         }
         Update: {
           id?: string
@@ -230,6 +232,7 @@ export interface Database {
           file_name?: string
           is_verified?: boolean
           uploaded_at?: string
+          display_order?: number
         }
       }
       club_working_hours: {

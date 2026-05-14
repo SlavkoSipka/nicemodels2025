@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { Camera, Upload, Trash2, AlertCircle, Film } from 'lucide-react'
+import { Camera, Upload, Trash2, AlertCircle, Film, GripVertical } from 'lucide-react'
 import { processImage } from '@/lib/imageProcessor'
+import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 
-interface Photo { id: string; file_name: string; file_path: string; is_verified: boolean }
+interface Photo { id: string; file_name: string; file_path: string; is_verified: boolean; display_order?: number }
 interface Video { id: string; file_name: string; file_path: string; is_verified: boolean }
 
 export default function PicturesVideoPage() {
@@ -20,6 +21,7 @@ export default function PicturesVideoPage() {
   const [uploadedPhotos, setUploadedPhotos] = useState<Photo[]>([])
   const [uploadedVideos, setUploadedVideos] = useState<Video[]>([])
   const [photoUrls, setPhotoUrls] = useState<Map<string, string>>(new Map())
+  const [photoDragIndex, setPhotoDragIndex] = useState<number | null>(null)
 
   useEffect(() => { loadMediaFiles() }, [])
 
@@ -29,7 +31,7 @@ export default function PicturesVideoPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/login'); return }
       const [{ data: photos, error: pe }, { data: videos, error: ve }] = await Promise.all([
-        supabase.from('model_photos').select('*').eq('model_id', user.id).order('uploaded_at', { ascending: false }),
+        supabase.from('model_photos').select('*').eq('model_id', user.id).order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
         supabase.from('model_videos').select('*').eq('model_id', user.id).order('uploaded_at', { ascending: false })
       ])
       if (pe) throw pe
@@ -55,15 +57,18 @@ export default function PicturesVideoPage() {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+      const { data: ordRows } = await supabase.from('model_photos').select('display_order').eq('model_id', user.id)
+      let nextOrd = ordRows?.length ? Math.max(...ordRows.map((r: { display_order: number | null }) => r.display_order ?? 0)) + 1 : 0
       for (const rawFile of files) {
         if (rawFile.size > 10 * 1024 * 1024) { setError(t('tooLarge', { name: rawFile.name })); continue }
         const file = await processImage(rawFile)
         const path = `${user.email}/photos/${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
         const { error: ue } = await supabase.storage.from('model-photos').upload(path, file)
         if (ue) throw ue
-        const { data: pd, error: de } = await supabase.from('model_photos').insert({ model_id: user.id, file_path: path, file_name: file.name, is_approved: true }).select().single()
+        const display_order = nextOrd++
+        const { data: pd, error: de } = await supabase.from('model_photos').insert({ model_id: user.id, file_path: path, file_name: file.name, is_approved: true, display_order }).select().single()
         if (de) throw de
-        setUploadedPhotos(prev => [pd, ...prev])
+        setUploadedPhotos(prev => [...prev, pd])
         const { data: ud } = supabase.storage.from('model-photos').getPublicUrl(pd.file_path)
         if (ud) setPhotoUrls(prev => new Map(prev).set(pd.id, ud.publicUrl))
       }
@@ -95,6 +100,27 @@ export default function PicturesVideoPage() {
     } catch (err: any) {
       setError(t('uploadVideoFailed'))
     } finally { setUploadingVideos(false); e.target.value = '' }
+  }
+
+  const onPhotoDragStart = (index: number) => (e: React.DragEvent) => {
+    setPhotoDragIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const onPhotoDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const onPhotoDrop = (index: number) => async (e: React.DragEvent) => {
+    e.preventDefault()
+    const from = photoDragIndex
+    setPhotoDragIndex(null)
+    if (from === null || from === index) return
+    const next = reorderArray(uploadedPhotos, from, index)
+    setUploadedPhotos(next)
+    const supabase = createClient()
+    const ok = await persistPhotoDisplayOrder(supabase, 'model_photos', next.map((p) => p.id))
+    if (!ok) setError(t('uploadPhotoFailed'))
   }
 
   const deletePhoto = async (photo: Photo) => {
@@ -145,6 +171,7 @@ export default function PicturesVideoPage() {
 
         {/* Photos */}
         <div className="bg-white border border-gray-200 rounded-lg p-5">
+          <p className="text-xs text-gray-500 mb-2">{t('dragReorderHint')}</p>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-bold text-gray-800">{t('photos')}</p>
             <label htmlFor="photo-upload" className="flex items-center gap-1.5 px-3 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover cursor-pointer">
@@ -164,11 +191,22 @@ export default function PicturesVideoPage() {
             <p className="text-xs text-gray-400 italic py-2">{t('noPhotos')}</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {uploadedPhotos.map(photo => (
-                <div key={photo.id} className="relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200 group">
+              {uploadedPhotos.map((photo, index) => (
+                <div
+                  key={photo.id}
+                  draggable
+                  onDragStart={onPhotoDragStart(index)}
+                  onDragOver={onPhotoDragOver}
+                  onDrop={onPhotoDrop(index)}
+                  onDragEnd={() => setPhotoDragIndex(null)}
+                  className={`relative bg-gray-50 rounded-lg overflow-hidden border border-gray-200 group cursor-grab active:cursor-grabbing ${photoDragIndex === index ? 'opacity-60 ring-2 ring-brand/40' : ''}`}
+                >
+                  <div className="absolute bottom-14 left-1 z-10 bg-black/55 text-white rounded p-0.5 pointer-events-none">
+                    <GripVertical className="w-3.5 h-3.5" />
+                  </div>
                   <div className="aspect-square bg-gray-100">
                     {photoUrls.get(photo.id) ? (
-                      <img src={photoUrls.get(photo.id)} alt={photo.file_name} className="w-full h-full object-cover" />
+                      <img src={photoUrls.get(photo.id)} alt={photo.file_name} className="w-full h-full object-cover pointer-events-none" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <p className="text-xs text-gray-400">{t('loadingItem')}</p>
@@ -177,7 +215,7 @@ export default function PicturesVideoPage() {
                   </div>
                   <div className="p-2">
                     <span className="inline-block px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded mb-1">{t('published')}</span>
-                    <button onClick={() => deletePhoto(photo)}
+                    <button type="button" onClick={() => deletePhoto(photo)}
                       className="w-full px-2 py-1 text-xs bg-red-50 text-red-600 rounded hover:bg-red-100 font-semibold flex items-center justify-center gap-1">
                       <Trash2 className="w-3 h-3" /> {t('delete')}
                     </button>

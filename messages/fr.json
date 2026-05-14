@@ -1606,7 +1606,8 @@
         "deleteConfirmPhoto": "Supprimer cette photo ?",
         "deleteConfirmVideo": "Supprimer cette vidéo ?",
         "autoPublishLabel": "Publication automatique :",
-        "autoPublishHint": "Le contenu téléchargé apparaît immédiatement sur votre profil. Notre équipe surveille le respect des règles."
+        "autoPublishHint": "Le contenu téléchargé apparaît immédiatement sur votre profil. Notre équipe surveille le respect des règles.",
+        "dragReorderHint": "Glissez les photos pour choisir celle qui s’affiche en premier sur votre profil."
       },
       "verification": {
         "title": "Vérification du compte",
@@ -1785,7 +1786,7 @@
       "buyBanner": {
         "title": "Acheter une bannière",
         "subtitle": "Une bannière active par emplacement. Paiement sécurisé via Stripe.",
-        "infoBox": "Vous pouvez avoir <bold>une bannière active par emplacement</bold> (large, carte ou colonne gauche). <em>Colonne gauche</em> n'est pas affichée sur mobile — uniquement sur grand écran.",
+        "infoBox": "Vous pouvez avoir <bold>une bannière active par emplacement</bold> (large, carte ou colonne gauche). <em>Colonne gauche</em> est au bord du fil sur ordinateur ; sur mobile la même créative passe dans la zone promo du bas.",
         "tipTitle": "Astuce : associez votre bannière à une sedcard active",
         "tipBody": "Vous pouvez acheter une bannière dès maintenant sans annonce active. Pour une portée maximale, activez aussi votre sedcard — les bannières et un profil actif fonctionnent mieux ensemble.",
         "activateSedcard": "Activer la sedcard",
@@ -1918,6 +1919,7 @@
         "photosOptional": "(facultatif)",
         "addPhotos": "Ajouter des photos",
         "photoHint": "JPG, PNG ou WEBP — 10 Mo max par fichier",
+        "dragReorderHint": "Glissez les photos pour définir l’ordre sur l’annonce.",
         "newBadge": "NOUVEAU",
         "sectionContact": "Contact",
         "code": "Indicatif",
@@ -2015,7 +2017,8 @@
         "errUpload": "Échec du téléversement. Veuillez réessayer.",
         "errDelete": "Échec de la suppression. Veuillez réessayer.",
         "successUpload": "Photos téléversées avec succès !",
-        "successDelete": "Photo supprimée avec succès !"
+        "successDelete": "Photo supprimée avec succès !",
+        "dragReorderHint": "Glissez les photos pour définir l’ordre sur la page club."
       },
       "workingHours": {
         "title": "Heures d'ouverture",
@@ -2353,7 +2356,7 @@
       "buyBanner": {
         "title": "Acheter une bannière",
         "subtitle": "Une bannière active par emplacement. Paiement sécurisé via Stripe.",
-        "infoBox": "Vous pouvez avoir <bold>une bannière active par emplacement</bold> (large, carte ou colonne gauche). <em>Colonne gauche</em> n'est pas affichée sur mobile — uniquement sur grand écran.",
+        "infoBox": "Vous pouvez avoir <bold>une bannière active par emplacement</bold> (large, carte ou colonne gauche). <em>Colonne gauche</em> est au bord du fil sur ordinateur ; sur mobile la même créative passe dans la zone promo du bas.",
         "tipTitle": "Astuce : associez votre bannière à une annonce de club active",
         "tipBody": "Vous pouvez acheter une bannière dès maintenant sans annonce active. Pour une portée maximale, activez aussi votre annonce de club — les bannières et une sedcard active fonctionnent mieux ensemble.",
         "activateClubAd": "Activer l'annonce club",
@@ -3035,6 +3038,7 @@
       "selectSize": "Choisir la taille",
       "selectLanguage": "Choisir la langue",
       "delete": "Supprimer",
+      "dragReorderPhotos": "Glissez les photos pour choisir celle qui s’affiche en premier sur votre profil.",
       "remove": "Retirar",
       "add": "AJOUTER",
       "chf": "CHF",
@@ -4073,6 +4077,7 @@
       "sectionPhotos": "Photos",
       "choosePhotos": "Choisir des photos",
       "photosHint": "JPG, PNG ou WEBP — max. 10 Mo par fichier",
+      "dragReorderHint": "Glissez les photos pour définir l’ordre sur l’annonce.",
       "sectionContact": "Contact",
       "contactRequiredBadge": "* obligatoire",
       "contactHint": "Au moins un téléphone ou un e-mail — sans coordonnées, personne ne peut vous joindre.",
@@ -4135,7 +4140,74 @@
       "desktop": "Bureau",
       "mobile": "Mobile",
       "defaultTitle": "Aperçu",
-      "sidebarNote": "Remarque : la bannière de la colonne de gauche est réservée au bureau et n’apparaît pas sur mobile."
+      "sidebarNote": "Sur mobile, la même créative que dans la colonne de gauche apparaît dans une bande fixe en bas de l’écran (comme sur la page d’accueil)."
+    },
+    "bannerPreviewMock": {
+      "navHome": "Accueil",
+      "navGirls": "Filles",
+      "navClubs": "Clubs",
+      "navJobsRent": "Emplois & Location",
+      "navJobsShort": "Emplois",
+      "searchPlaceholder": "Rechercher",
+      "filterAll": "Tout",
+      "filterZurich": "Zurich",
+      "filterGeneva": "Genève",
+      "filterBasel": "Bâle",
+      "filterVerified": "Vérifié",
+      "verifiedShort": "OK",
+      "live": "live",
+      "yourCardBadge": "VOTRE ANNONCE",
+      "serviceOutcall": "À domicile",
+      "serviceMassage": "Massage",
+      "serviceMore": "+3",
+      "bannerWideLabel": "VOTRE BANDEAU LARGE",
+      "bannerWideSubtitle": "Pleine largeur · 4:1 · Haut du fil",
+      "bannerCardLabel": "VOTRE ENCADRÉ",
+      "bannerCardTitle": "BANDEAU FORMAT CARTE",
+      "bannerCardSubtitle": "Même taille qu’un profil",
+      "bannerYourAd": "VOTRE PUBLICITÉ",
+      "adBadge": "PUB",
+      "bannerYoursLabel": "À VOUS",
+      "bannerLeftTitle": "COLONNE GAUCHE",
+      "bannerLeftLine1": "À GAUCHE",
+      "bannerLeftLine2": "(COLONNE)",
+      "bannerLeftDesktopHint": "Bureau uniquement",
+      "leftColumnMobileCaption": "Même emplacement — bande en bas sur mobile",
+      "wideBannerRepeat": "… un autre bandeau large se réaffiche toutes les 6 cartes",
+      "placeholderNameAge": "Nom, 24",
+      "youProfileName": "Vous",
+      "youProfileCity": "Votre ville"
+    },
+    "placementMock": {
+      "desktop": "Bureau",
+      "mobile": "Mobile"
+    },
+    "placementPicker": {
+      "activeInSlot": "Déjà actif sur cet emplacement",
+      "feed_wide": {
+        "title": "Bandeau large",
+        "zone": "Sur les deux colonnes",
+        "desc": "Bandeau pleine largeur dans le fil — se répète toutes les 6 cartes profil (4:1)."
+      },
+      "feed_card": {
+        "title": "Emplacement carte",
+        "zone": "Dans la grille",
+        "desc": "Même taille de cellule qu’une carte profil — revient toutes les 4 cartes (3:4)."
+      },
+      "sidebar_left": {
+        "title": "Colonne gauche",
+        "zone": "À côté du fil",
+        "desc": "Emplacement vertical à côté de la liste sur ordinateur ; sur téléphone la même créative s’affiche en bas (hors grille). Ordre aléatoire à chaque chargement."
+      }
+    },
+    "bannerPlacementGuide": {
+      "title": "Fonctionnement des emplacements",
+      "badge": "Emplacements",
+      "introModel": "Choisissez un <type>type d’emplacement</type> à l’achat : <wide>large</wide> (une rangée), <card>carte</card> (une case de la grille) ou <left>colonne gauche</left> (rail à côté du fil sur ordinateur — sur mobile elle apparaît en bas). Les blocs gris représentent d’autres profils ; la zone <violet>violette</violet> est votre annonce.",
+      "introClub": "Choisissez un <type>type d’emplacement</type> à l’achat : <wide>large</wide> (une rangée), <card>carte</card> (une case de la grille) ou <left>colonne gauche</left> (rail à côté du fil sur ordinateur — sur mobile elle apparaît en bas). Les blocs gris représentent d’autres profils ; la zone <violet>violette</violet> est votre annonce.",
+      "introPagesModel": "Vos emplacements peuvent apparaître sur <home>Accueil</home>, <girls>Filles</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Clubs</clubs>, <jobs>Emplois & Location</jobs> et d’autres pages de liste.",
+      "introPagesClub": "Les emplacements de votre club peuvent apparaître sur <home>Accueil</home>, <girls>Filles</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Clubs</clubs>, <jobs>Emplois & Location</jobs> et d’autres pages de liste.",
+      "fairRotationBody": "<semibold>Rotation équitable :</semibold> pour les emplacements <wideLabel>large</wideLabel> et <cardLabel>carte</cardLabel>, plusieurs bannières actives sont <emphasis>mélangées à chaque chargement pour une exposition équilibrée.</emphasis> L’emplacement en <leftCol>colonne gauche</leftCol> affiche un inventaire à rotation sur bureau ; sur mobile les mêmes bannières vont dans la bande du bas."
     },
     "viewCount": {
       "tooltip": "{formatted} {count, plural, one {vue} other {vues}}"

@@ -41,7 +41,7 @@ export default function UserFavorites() {
     const [{ data: profilesData }, { data: detailsData }, { data: photosData }] = await Promise.all([
       supabase.from('profiles').select('id, username, email').in('id', modelIds),
       supabase.from('model_details').select('model_id, showname, city, age').in('model_id', modelIds),
-      supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('uploaded_at', { ascending: false }),
+      supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const combined = favoritesData.map(fav => ({
