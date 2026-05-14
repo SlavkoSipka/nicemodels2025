@@ -1649,7 +1649,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       alt={modelDetails?.showname || profile.username}
                       fill
                       sizes="(max-width: 768px) 100vw, 550px"
-                      className="object-cover object-top cursor-zoom-in transition-opacity duration-300"
+                      className="object-contain object-center cursor-zoom-in transition-opacity duration-300"
                       priority
                       quality={82}
                       placeholder="blur"
