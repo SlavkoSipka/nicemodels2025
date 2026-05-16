@@ -2321,6 +2321,10 @@
       "activateAd": {
         "title": "Activar anuncio del club",
         "subtitle": "5 días CHF 19 · 14 días CHF 29 · 30 días CHF 39",
+        "subtitleFree": "La activación del anuncio del club es gratis ahora — elige una duración abajo.",
+        "priceFree": "Gratis",
+        "noPaymentRequired": "Sin pago",
+        "confirmActivation": "Activar ahora",
         "pkg5Title": "5 días",
         "pkg5Desc": "Tu club sigue visible en la búsqueda durante 5 días.",
         "pkg14Title": "14 días",

@@ -8,6 +8,7 @@ import { isValidCanton, MAX_BANNER_REGIONS } from '@/lib/cantons'
 import { normalizePlacement } from '@/lib/bannerPlacement'
 import { activateOrderItems } from '@/lib/orders/activateOrderItems'
 import { isModelSedcardFreePeriod } from '@/lib/modelSedcardFree'
+import { isClubAdFreePeriod } from '@/lib/clubAdFree'
 import type {
   CheckoutCartItem,
   CheckoutSessionRequestBody,
@@ -141,19 +142,26 @@ export async function POST(req: NextRequest) {
     buyerProfile?.role === 'model' &&
     resolved.every(r => r.cartItem.kind === 'ad_package')
 
-  const charged = modelSedcardFree
+  const clubAdFree =
+    isClubAdFreePeriod() &&
+    buyerProfile?.role === 'company' &&
+    resolved.every(r => r.cartItem.kind === 'ad_package')
+
+  const freeAdOrder = modelSedcardFree || clubAdFree
+
+  const charged = freeAdOrder
     ? resolved.map(r => ({ ...r, amountChf: 0 }))
     : resolved
 
   const totalChf = charged.reduce((s, r) => s + r.amountChf, 0)
   if (totalChf <= 0) {
-    if (!modelSedcardFree) {
+    if (!freeAdOrder) {
       return NextResponse.json(
         { error: 'Total amount must be positive' },
         { status: 400 },
       )
     }
-    return completeFreeModelSedcardOrder(admin, user, body, charged)
+    return completeFreeAdOrder(admin, user, body, charged, { clubAdFree })
   }
 
   try {
@@ -286,11 +294,12 @@ export async function POST(req: NextRequest) {
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function completeFreeModelSedcardOrder(
+async function completeFreeAdOrder(
   admin: ReturnType<typeof createAdminClient>,
   user: { id: string; email?: string | null },
   body: CheckoutSessionRequestBody,
   charged: ResolvedItem[],
+  flags: { clubAdFree?: boolean } = {},
 ): Promise<NextResponse> {
   const { data: order, error: orderErr } = await admin
     .from('orders')
@@ -302,7 +311,8 @@ async function completeFreeModelSedcardOrder(
       paid_at: new Date().toISOString(),
       metadata: {
         return_path: body.returnPath || null,
-        free_model_sedcard: true,
+        free_model_sedcard: !flags.clubAdFree,
+        free_club_ad: !!flags.clubAdFree,
         items_summary: charged.map(r => ({
           kind: r.cartItem.kind,
           name: r.productName,

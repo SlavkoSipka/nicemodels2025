@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { isClubAdFreePeriod } from '@/lib/clubAdFree'
 import { ShoppingCart, Zap, Clock, Calendar, CheckCircle, Building2, Info } from 'lucide-react'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
 import SitePreview from '@/components/preview/SitePreview'
@@ -30,6 +31,7 @@ export default function CompanyActivateAdPage() {
   const t = useTranslations('dashboard.company.activateAd')
   const locale = useLocale()
   const dateLocaleTag = `${locale}-CH`
+  const clubAdFree = isClubAdFreePeriod()
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
@@ -243,7 +245,7 @@ export default function CompanyActivateAdPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">{t('title')}</h1>
-              <p className="text-xs text-gray-500">{t('subtitle')}</p>
+              <p className="text-xs text-gray-500">{clubAdFree ? t('subtitleFree') : t('subtitle')}</p>
             </div>
           </div>
 
@@ -255,7 +257,7 @@ export default function CompanyActivateAdPage() {
               <ShoppingCart className="w-4 h-4" />
               {t('cartItems', { count: cart.length })}
               <span className="ml-1 px-1.5 py-0.5 bg-white text-brand rounded text-xs font-bold">
-                CHF {cart.reduce((s, it) => s + Number(it.product.price_chf || 0), 0)}
+                {clubAdFree ? t('priceFree') : `CHF ${cart.reduce((s, it) => s + Number(it.product.price_chf || 0), 0)}`}
               </span>
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold">
                 {cart.length}
@@ -342,10 +344,19 @@ export default function CompanyActivateAdPage() {
                       <p className="text-base font-bold text-gray-900 mb-1">{pkgTitle}</p>
                       <p className="text-xs text-gray-400">{pkgDesc}</p>
                       <div className="mt-4 pt-3 border-t border-gray-100">
-                        <p className="text-base font-bold text-gray-900 leading-tight">
-                          CHF {Number(pkg.price_chf).toFixed(0)}.-
-                        </p>
-                        <p className="text-[11px] text-gray-400 mt-0.5">{t('oneTimePayment')}</p>
+                        {clubAdFree ? (
+                          <>
+                            <p className="text-base font-bold text-emerald-700 leading-tight">{t('priceFree')}</p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">{t('noPaymentRequired')}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-base font-bold text-gray-900 leading-tight">
+                              CHF {Number(pkg.price_chf).toFixed(0)}.-
+                            </p>
+                            <p className="text-[11px] text-gray-400 mt-0.5">{t('oneTimePayment')}</p>
+                          </>
+                        )}
                       </div>
                     </div>
                     {isInCart ? (
@@ -434,7 +445,7 @@ export default function CompanyActivateAdPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-bold text-gray-900">
-                      CHF {Number(item.product.price_chf).toFixed(0)}.-
+                      {clubAdFree ? t('priceFree') : `CHF ${Number(item.product.price_chf).toFixed(0)}.-`}
                     </span>
                     <button
                       onClick={() => removeFromCart(index)}
@@ -450,7 +461,7 @@ export default function CompanyActivateAdPage() {
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
               <p className="text-sm font-bold text-gray-900">{t('total')}</p>
               <p className="text-base font-bold text-gray-900">
-                CHF {cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0).toFixed(2)}
+                {clubAdFree ? t('priceFree') : `CHF ${cart.reduce((acc, it) => acc + Number(it.product.price_chf || 0), 0).toFixed(2)}`}
               </p>
             </div>
 
@@ -465,7 +476,7 @@ export default function CompanyActivateAdPage() {
               disabled={!termsAccepted}
               className="w-full mt-3 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('paySecurely')}
+              {clubAdFree ? t('confirmActivation') : t('paySecurely')}
             </button>
           </div>
         )}

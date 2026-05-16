@@ -2321,6 +2321,10 @@
       "activateAd": {
         "title": "Club-Anzeige aktivieren",
         "subtitle": "5 Tage CHF 19 · 14 Tage CHF 29 · 30 Tage CHF 39",
+        "subtitleFree": "Die Club-Anzeige ist zurzeit kostenlos — wähle unten eine Laufzeit.",
+        "priceFree": "Kostenlos",
+        "noPaymentRequired": "Keine Zahlung nötig",
+        "confirmActivation": "Jetzt aktivieren",
         "pkg5Title": "5 Tage",
         "pkg5Desc": "Dein Club bleibt 5 Tage lang in der Suche sichtbar.",
         "pkg14Title": "14 Tage",
