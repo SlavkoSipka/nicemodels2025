@@ -863,7 +863,9 @@
     "dashboard": "Dashboard",
     "user": "Benutzer",
     "loggedInAs": "Angemeldet als {username}",
-    "logoAlt": "nicemodels.ch"
+    "logoAlt": "nicemodels.ch",
+    "home": "Startseite",
+    "search": "Suche"
   },
   "footer": {
     "tagline": "Das Premium-Portal für die Schweiz. Diskret, sicher und professionell.",
@@ -4133,6 +4135,19 @@
       "availableForChat": {
         "title": "Verfügbar für 1:1 Chat",
         "viewAll": "Alle Chats anzeigen"
+      },
+      "stories": {
+        "addStory": "Story hinzufügen"
+      },
+      "inYourArea": {
+        "title": "In deiner Umgebung",
+        "noCityHint": "Lege deine Stadt im Profil fest, um Models, Clubs und Inserate in deiner Nähe zu sehen.",
+        "setCity": "Stadt festlegen",
+        "around": "Rund um",
+        "updating": "wird aktualisiert…",
+        "modelsLabel": "Models",
+        "clubsLabel": "Clubs",
+        "listingsLabel": "Inserate"
       }
     },
     "sitePreview": {

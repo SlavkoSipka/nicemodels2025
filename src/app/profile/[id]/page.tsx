@@ -24,6 +24,7 @@ import SimilarProfiles from '@/components/profile/SimilarProfiles'
 import { htmlToPlainText } from '@/lib/plainText'
 import { getProfileById, getModelRating } from '@/lib/api/profiles'
 import { createClient } from '@/lib/supabase/server'
+import { getTranslations } from 'next-intl/server'
 
 interface ProfilePageProps {
   params: Promise<{ id: string }>
@@ -36,6 +37,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   // Create Supabase server client
   const supabase = await createClient()
+  const tNav = await getTranslations('nav')
 
   // Fetch profile from Supabase
   const profileData = await getProfileById(id, supabase)
@@ -106,9 +108,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       <div className="mx-auto px-4 max-w-full">
         {/* Breadcrumb */}
         <div className="mb-6 text-sm text-gray-600 bg-white/60 backdrop-blur-sm rounded-xl px-4 py-2 inline-block shadow-soft">
-          <Link href="/" className="hover:text-pink-600 font-medium transition-colors">Home</Link>
+          <Link href="/" className="hover:text-pink-600 font-medium transition-colors">{tNav('home')}</Link>
           <span className="mx-2 text-gray-400">/</span>
-          <Link href="/search" className="hover:text-pink-600 font-medium transition-colors">Search</Link>
+          <Link href="/search" className="hover:text-pink-600 font-medium transition-colors">{tNav('search')}</Link>
           <span className="mx-2 text-gray-400">/</span>
           <span className="text-gray-900 font-semibold">{profile.name}</span>
         </div>

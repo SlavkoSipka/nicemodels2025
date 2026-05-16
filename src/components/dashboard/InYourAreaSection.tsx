@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { MapPin, Users, Building2, Briefcase, ArrowRight } from 'lucide-react'
 
@@ -18,6 +19,7 @@ interface Counts {
 const RADII = [20, 50, 100] as const
 
 export default function InYourAreaSection({ originCity }: InYourAreaProps) {
+  const t = useTranslations('components.home.inYourArea')
   const [radius, setRadius] = useState<number>(50)
   const [counts, setCounts] = useState<Counts>({ models: 0, clubs: 0, listings: 0 })
   const [loading, setLoading] = useState(false)
@@ -74,14 +76,14 @@ export default function InYourAreaSection({ originCity }: InYourAreaProps) {
             <MapPin className="w-4 h-4 md:w-5 md:h-5 text-violet-600" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-bold text-gray-900">In your area</p>
-            <p className="text-[11px] md:text-xs text-gray-500">Set your city in profile to see nearby models, clubs and listings.</p>
+            <p className="text-sm font-bold text-gray-900">{t('title')}</p>
+            <p className="text-[11px] md:text-xs text-gray-500">{t('noCityHint')}</p>
           </div>
           <Link
             href="/dashboard/user/profile"
             className="shrink-0 inline-flex items-center gap-1 text-[11px] md:text-xs font-semibold text-violet-700 hover:text-violet-900"
           >
-            Set city <ArrowRight className="w-3 h-3" />
+            {t('setCity')} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       </div>
@@ -89,9 +91,9 @@ export default function InYourAreaSection({ originCity }: InYourAreaProps) {
   }
 
   const items = [
-    { label: 'Models', count: counts.models, Icon: Users, iconCls: 'text-pink-600', hoverCls: 'hover:border-pink-300 hover:bg-pink-50/40', href: `/?nearbyCity=${encodeURIComponent(originCity)}&nearbyRadius=${radius}` },
-    { label: 'Clubs', count: counts.clubs, Icon: Building2, iconCls: 'text-indigo-600', hoverCls: 'hover:border-indigo-300 hover:bg-indigo-50/40', href: `/clubs?nearbyCity=${encodeURIComponent(originCity)}&nearbyRadius=${radius}` },
-    { label: 'Listings', count: counts.listings, Icon: Briefcase, iconCls: 'text-amber-600', hoverCls: 'hover:border-amber-300 hover:bg-amber-50/40', href: `/jobs-rents?nearbyCity=${encodeURIComponent(originCity)}&nearbyRadius=${radius}` },
+    { label: t('modelsLabel'), count: counts.models, Icon: Users, iconCls: 'text-pink-600', hoverCls: 'hover:border-pink-300 hover:bg-pink-50/40', href: `/?nearbyCity=${encodeURIComponent(originCity)}&nearbyRadius=${radius}` },
+    { label: t('clubsLabel'), count: counts.clubs, Icon: Building2, iconCls: 'text-indigo-600', hoverCls: 'hover:border-indigo-300 hover:bg-indigo-50/40', href: `/clubs?nearbyCity=${encodeURIComponent(originCity)}&nearbyRadius=${radius}` },
+    { label: t('listingsLabel'), count: counts.listings, Icon: Briefcase, iconCls: 'text-amber-600', hoverCls: 'hover:border-amber-300 hover:bg-amber-50/40', href: `/jobs-rents?nearbyCity=${encodeURIComponent(originCity)}&nearbyRadius=${radius}` },
   ]
 
   return (
@@ -102,10 +104,10 @@ export default function InYourAreaSection({ originCity }: InYourAreaProps) {
           <MapPin className="w-4 h-4 md:w-5 md:h-5 text-violet-600" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-gray-900">In your area</p>
+          <p className="text-sm font-bold text-gray-900">{t('title')}</p>
           <p className="text-[11px] md:text-xs text-gray-500 truncate">
-            Around <span className="font-semibold text-gray-700">{originCity}</span>
-            {loading && <span className="ml-2 text-gray-400">updating…</span>}
+            {t('around')} <span className="font-semibold text-gray-700">{originCity}</span>
+            {loading && <span className="ml-2 text-gray-400">{t('updating')}</span>}
           </p>
         </div>
       </div>

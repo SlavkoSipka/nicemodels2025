@@ -1,33 +1,31 @@
-import { createClient } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MixedHomeClient from '@/components/home/MixedHomeClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
 
-export const revalidate = 300
+export const dynamic = 'force-dynamic'
 
-export default async function HomePage() {
-  const supabase = await createClient()
+const CACHE_TTL = 60
+
+const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+async function buildModels() {
   const admin = createAdminClient()
-  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-  const now = new Date().toISOString()
-
-  // Run every section in parallel instead of waiting for each phase sequentially.
-  const buildModels = async () => {
-  const { data: modelsRaw } = await supabase.rpc('models_with_active_ads')
+  const { data: modelsRaw } = await admin.rpc('models_with_active_ads')
   const modelsData: any[] = modelsRaw ?? []
   const modelIds: string[] = modelsData.map((m: any) => m.id)
 
   let models: any[] = []
   if (modelIds.length > 0) {
     const [{ data: allDetails }, { data: allServices }, { data: allPhotos }] = await Promise.all([
-      supabase.from('model_details')
+      admin.from('model_details')
         .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for, share_live_location, live_location_city, live_location_postal_code, live_location_updated_at')
         .in('model_id', modelIds),
-      supabase.from('model_services')
+      admin.from('model_services')
         .select('model_id, services(id, name)')
         .in('model_id', modelIds),
-      supabase.from('model_photos')
+      admin.from('model_photos')
         .select('model_id, file_path')
         .in('model_id', modelIds)
         .eq('is_approved', true)
@@ -80,7 +78,7 @@ export default async function HomePage() {
 
     const [{ data: cityRowsUnified }, modelViewCountMap] = await Promise.all([
       uniqCityNames.length > 0
-        ? supabase
+        ? admin
             .from('cities')
             .select('name, postal_code, canton')
             .in('name', uniqCityNames)
@@ -117,17 +115,18 @@ export default async function HomePage() {
     }))
   }
   return models
-  }
+}
 
-  const buildClubs = async () => {
-  const { data: clubsRaw } = await supabase.rpc('clubs_with_active_ads')
+async function buildClubs() {
+  const admin = createAdminClient()
+  const { data: clubsRaw } = await admin.rpc('clubs_with_active_ads')
   let clubs: any[] = []
   if (clubsRaw?.length) {
     const clubIds = clubsRaw.map((c: any) => c.id)
     const [{ data: clubDetails }, { data: clubContacts }, { data: clubPhotos }] = await Promise.all([
-      supabase.from('club_details').select('club_id, display_name, club_name, is_club, area, about_description').in('club_id', clubIds),
-      supabase.from('club_contact_details').select('club_id, city').in('club_id', clubIds),
-      supabase.from('club_photos').select('club_id, file_path').in('club_id', clubIds).eq('is_approved', true).order('club_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
+      admin.from('club_details').select('club_id, display_name, club_name, is_club, area, about_description').in('club_id', clubIds),
+      admin.from('club_contact_details').select('club_id, city').in('club_id', clubIds),
+      admin.from('club_photos').select('club_id, file_path').in('club_id', clubIds).eq('is_approved', true).order('club_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
     const detMap = new Map((clubDetails || []).map(d => [d.club_id, d]))
@@ -152,13 +151,12 @@ export default async function HomePage() {
       }
     })
 
-    // Look up canton for each club's city
     const clubCityNames = [...new Set(
       clubs.map((c: any) => c.city).filter(Boolean)
     )] as string[]
 
     if (clubCityNames.length > 0) {
-      const { data: clubCityCantonsData } = await supabase
+      const { data: clubCityCantonsData } = await admin
         .from('cities')
         .select('name, canton')
         .in('name', clubCityNames)
@@ -182,16 +180,17 @@ export default async function HomePage() {
     clubs = clubs.map((c: any) => ({ ...c, view_count: clubViewCountMap.get(c.id) ?? 0 }))
   }
   return clubs
-  }
+}
 
-  const buildBanners = async () => {
-  const { data: bannersRaw } = await supabase.from('banners').select('*')
+async function buildBanners() {
+  const admin = createAdminClient()
+  const now = new Date().toISOString()
+  const { data: bannersRaw } = await admin.from('banners').select('*')
     .eq('status', 'active')
     .or(`starts_at.is.null,starts_at.lte.${now}`)
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('display_order')
 
-  // Hide banners whose owner is blocked
   const bannerOwnerIds = [...new Set((bannersRaw ?? []).map((b: any) => b.owner_id).filter(Boolean))]
   let blockedOwnerIds = new Set<string>()
   if (bannerOwnerIds.length > 0) {
@@ -203,7 +202,7 @@ export default async function HomePage() {
   }
 
   const seenOwners = new Set<string>()
-  const banners = (bannersRaw ?? [])
+  return (bannersRaw ?? [])
     .filter((b: any) => !blockedOwnerIds.has(b.owner_id))
     .filter((b: any) => { if (seenOwners.has(b.owner_id)) return false; seenOwners.add(b.owner_id); return true })
     .map((b: any) => ({
@@ -213,11 +212,12 @@ export default async function HomePage() {
       placement: b.placement,
       target_cantons: b.target_cantons ?? null,
     }))
-  return banners
-  }
+}
 
-  const buildListings = async () => {
-  const { data: listingsRaw } = await supabase.from('job_listings')
+async function buildListings() {
+  const admin = createAdminClient()
+  const now = new Date().toISOString()
+  const { data: listingsRaw } = await admin.from('job_listings')
     .select('id, listing_type, title, location, club_id, created_at, description, country_code, phone_number, has_whatsapp, has_viber, has_telegram, email, website')
     .eq('status', 'active')
     .eq('is_blocked', false)
@@ -230,10 +230,10 @@ export default async function HomePage() {
     const listingClubIds = [...new Set(listingsRaw.map(l => l.club_id).filter(Boolean))]
 
     const [{ data: listingPhotos }, { data: listingProfiles }] = await Promise.all([
-      supabase.from('job_listing_photos').select('listing_id, file_path').in('listing_id', listingIds).order('display_order'),
+      admin.from('job_listing_photos').select('listing_id, file_path').in('listing_id', listingIds).order('display_order'),
       listingClubIds.length > 0
-        ? supabase.from('profiles').select('id, username').in('id', listingClubIds)
-        : Promise.resolve({ data: [] }),
+        ? admin.from('profiles').select('id, username').in('id', listingClubIds)
+        : Promise.resolve({ data: [] as { id: string; username: string }[] }),
     ])
 
     const lPhotoMap = new Map<string, string>()
@@ -263,9 +263,11 @@ export default async function HomePage() {
     }))
   }
   return listings
-  }
+}
 
-  const buildStatusMessages = async () => {
+async function buildStatusMessages() {
+  const admin = createAdminClient()
+  const now = new Date().toISOString()
   const { data: statusRaw } = await admin.from('model_status_messages')
     .select('id, model_id, message, created_at')
     .eq('is_active', true).gt('expires_at', now)
@@ -291,14 +293,16 @@ export default async function HomePage() {
     }))
   }
   return statusMessages
-  }
+}
 
-  const buildStories = async () => {
-    const { data } = await admin.rpc('get_active_model_stories')
-    return (data ?? []) as any[]
-  }
+async function buildStories() {
+  const admin = createAdminClient()
+  const { data } = await admin.rpc('get_active_model_stories')
+  return (data ?? []) as any[]
+}
 
-  const buildChatModels = async () => {
+async function buildChatModels() {
+  const admin = createAdminClient()
   const { data: chatRaw } = await admin.from('model_details')
     .select('model_id, showname, city').eq('chat_available', true).limit(10)
 
@@ -319,16 +323,25 @@ export default async function HomePage() {
     }))
   }
   return chatModels
-  }
+}
 
+const getModels = unstable_cache(buildModels, ['home-models-v1'], { revalidate: CACHE_TTL, tags: ['home-models'] })
+const getClubs = unstable_cache(buildClubs, ['home-clubs-v1'], { revalidate: CACHE_TTL, tags: ['home-clubs'] })
+const getBanners = unstable_cache(buildBanners, ['home-banners-v1'], { revalidate: CACHE_TTL, tags: ['home-banners'] })
+const getListings = unstable_cache(buildListings, ['home-listings-v1'], { revalidate: CACHE_TTL, tags: ['home-listings'] })
+const getStatusMessages = unstable_cache(buildStatusMessages, ['home-status-v1'], { revalidate: CACHE_TTL, tags: ['home-status'] })
+const getChatModels = unstable_cache(buildChatModels, ['home-chat-v1'], { revalidate: CACHE_TTL, tags: ['home-chat'] })
+const getStories = unstable_cache(buildStories, ['home-stories-v1'], { revalidate: CACHE_TTL, tags: ['home-stories'] })
+
+export default async function HomePage() {
   const [models, clubs, banners, listings, statusMessages, chatModels, stories] = await Promise.all([
-    buildModels(),
-    buildClubs(),
-    buildBanners(),
-    buildListings(),
-    buildStatusMessages(),
-    buildChatModels(),
-    buildStories(),
+    getModels(),
+    getClubs(),
+    getBanners(),
+    getListings(),
+    getStatusMessages(),
+    getChatModels(),
+    getStories(),
   ])
 
   return (

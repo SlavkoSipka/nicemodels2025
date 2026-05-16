@@ -5,7 +5,7 @@ import HomePageClient from '@/components/home/HomePageClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 async function loadBanners(
   supabase: SupabaseClient,

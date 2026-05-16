@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { Plus, User } from 'lucide-react';
 import Link from 'next/link';
@@ -33,6 +34,7 @@ interface StoriesSectionProps {
 }
 
 export default function StoriesSection({ initialStories }: StoriesSectionProps = {}) {
+  const t = useTranslations('components.home.stories');
   const [modelStories, setModelStories] = useState<ModelStory[]>(initialStories ?? []);
   const [loading, setLoading] = useState(initialStories === undefined);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -126,7 +128,7 @@ export default function StoriesSection({ initialStories }: StoriesSectionProps =
                     <Plus className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: '#ec4899' }} />
                   </div>
                 </div>
-                <p className="text-[10px] sm:text-[11px] font-medium mt-1 sm:mt-2 truncate w-14 sm:w-[72px]" style={{ color: '#94a3b8' }}>Add Story</p>
+                <p className="text-[10px] sm:text-[11px] font-medium mt-1 sm:mt-2 truncate w-14 sm:w-[72px]" style={{ color: '#94a3b8' }}>{t('addStory')}</p>
               </Link>
             )}
 

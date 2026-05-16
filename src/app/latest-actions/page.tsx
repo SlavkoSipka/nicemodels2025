@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.nicemodels.ch/latest-actions' },
 }
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export default async function LatestActionsPage() {
   const admin = createAdminClient()

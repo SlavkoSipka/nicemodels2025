@@ -2,7 +2,6 @@
 
 import { useState, useTransition, useEffect, useRef } from 'react'
 import { useLocale } from 'next-intl'
-import { useRouter } from 'next/navigation'
 import { ChevronDown } from 'lucide-react'
 
 const OPTIONS = [
@@ -16,7 +15,6 @@ type Variant = 'navbar' | 'sidebar' | 'sidebar-collapsed' | 'mobile'
 
 export default function LanguageSwitcher({ variant = 'navbar' }: { variant?: Variant }) {
   const locale = useLocale()
-  const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -40,7 +38,12 @@ export default function LanguageSwitcher({ variant = 'navbar' }: { variant?: Var
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ locale: code }),
       })
-      router.refresh()
+      // Hard reload bypasses every client/CDN cache layer and forces the
+      // server to render with the new NEXT_LOCALE cookie. router.refresh()
+      // can return cached HTML from CDN with the previous locale.
+      if (typeof window !== 'undefined') {
+        window.location.reload()
+      }
     })
   }
 

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import ClubsPageClient from './ClubsPageClient'
 import { loadClubsForPage } from './loadClubsForPage'
 
-export const revalidate = 120
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Clubs & Agenturen in der Schweiz',

@@ -5,7 +5,7 @@ import Navbar from '@/components/layout/Navbar'
 import JobsRentsPageClient from './JobsRentsPageClient'
 import { fetchViewCounts } from '@/lib/viewCounts'
 
-export const revalidate = 60
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Jobs & Miete – Stellenangebote und Mietangebote',
