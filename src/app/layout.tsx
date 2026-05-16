@@ -54,7 +54,7 @@ export const metadata: Metadata = {
       "Finde verifizierte Escort-Models, Clubs und Agenturen in der ganzen Schweiz.",
     images: [
       {
-        url: "/logo.webp",
+        url: `${SITE_URL}/logo.webp`,
         width: 512,
         height: 512,
         alt: "NiceModels.ch Logo",
@@ -67,7 +67,7 @@ export const metadata: Metadata = {
     title: "NiceModels.ch – Das Erotikportal der Schweiz",
     description:
       "Finde verifizierte Escort-Models, Clubs und Agenturen in der ganzen Schweiz.",
-    images: ["/logo.webp"],
+    images: [`${SITE_URL}/logo.webp`],
   },
 
   robots: {
@@ -87,11 +87,19 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/logo.webp",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/logo.webp", type: "image/webp" },
+    ],
     apple: "/logo.webp",
   },
 
-  verification: {},
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.BING_SITE_VERIFICATION }
+      : undefined,
+  },
 };
 
 export default async function RootLayout({
@@ -123,9 +131,23 @@ export default async function RootLayout({
     }
   }
 
+  const supabaseOrigin = (() => {
+    try {
+      return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || "").origin;
+    } catch {
+      return "";
+    }
+  })();
+
   return (
     <html lang={locale} className={playfair.variable}>
       <head>
+        {supabaseOrigin && (
+          <>
+            <link rel="preconnect" href={supabaseOrigin} crossOrigin="" />
+            <link rel="dns-prefetch" href={supabaseOrigin} />
+          </>
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

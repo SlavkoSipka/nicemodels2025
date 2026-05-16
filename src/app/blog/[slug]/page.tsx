@@ -17,18 +17,41 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const supabase = await createClient()
   const { data: topic } = await supabase
     .from('discussion_topics')
-    .select('title, status')
+    .select('title, body, cover_image, status, created_at, updated_at')
     .eq('slug', slug)
     .eq('status', 'active')
     .maybeSingle()
 
   if (!topic) {
-    return { title: 'Discussion | NiceModels' }
+    return { title: 'Discussion | NiceModels', robots: { index: false, follow: false } }
   }
+
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const desc =
+    (topic.body || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155)
+    || `Community discussion: ${topic.title}`
+  const ogImage = topic.cover_image
+    ? `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}`
+    : 'https://www.nicemodels.ch/logo.webp'
 
   return {
     title: `${topic.title} – Discussion | NiceModels`,
-    description: `Community discussion: ${topic.title}`,
+    description: desc,
+    openGraph: {
+      title: topic.title,
+      description: desc,
+      type: 'article',
+      url: `https://www.nicemodels.ch/blog/${slug}`,
+      images: [{ url: ogImage, alt: topic.title }],
+      ...(topic.created_at ? { publishedTime: topic.created_at } : {}),
+      ...(topic.updated_at ? { modifiedTime: topic.updated_at } : {}),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: topic.title,
+      description: desc,
+      images: [ogImage],
+    },
     alternates: { canonical: `https://www.nicemodels.ch/blog/${slug}` },
   }
 }
@@ -89,9 +112,37 @@ export default async function BlogTopicPage({ params }: PageProps) {
     author_label: labelMap.get(p.author_id) || tBlog('memberFallback'),
   }))
 
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'DiscussionForumPosting',
+    headline: topic.title,
+    url: `https://www.nicemodels.ch/blog/${slug}`,
+    datePublished: topic.created_at,
+    dateModified: topic.updated_at || topic.created_at,
+    ...(topic.cover_image
+      ? { image: `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}` }
+      : {}),
+    publisher: {
+      '@type': 'Organization',
+      name: 'NiceModels.ch',
+      url: 'https://www.nicemodels.ch',
+      logo: { '@type': 'ImageObject', url: 'https://www.nicemodels.ch/logo.webp' },
+    },
+    interactionStatistic: {
+      '@type': 'InteractionCounter',
+      interactionType: 'https://schema.org/CommentAction',
+      userInteractionCount: flatPosts.length,
+    },
+  }
+
   return (
     <>
       <Navbar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <BlogTopicClient topic={topic} flatPosts={flatPosts} isAdmin={isAdmin} />
       <Footer />
     </>

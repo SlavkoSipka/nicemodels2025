@@ -42,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('profiles')
     .select('id, updated_at')
     .eq('role', 'model')
+    .eq('is_blocked', false)
     .order('updated_at', { ascending: false })
     .limit(5000)
 
@@ -59,6 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('profiles')
     .select('id, updated_at')
     .eq('role', 'company')
+    .eq('is_blocked', false)
     .order('updated_at', { ascending: false })
     .limit(5000)
 
@@ -77,6 +79,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .from('job_listings')
     .select('id, created_at')
     .eq('status', 'active')
+    .eq('is_blocked', false)
     .or(`expires_at.is.null,expires_at.gt.${sitemapNowIso}`)
     .order('created_at', { ascending: false })
     .limit(2000)

@@ -112,6 +112,8 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
       {children}
 
       {visible && (
+        <>
+          <style>{LOADER_KEYFRAMES}</style>
         <div
           aria-hidden="true"
           style={{
@@ -197,7 +199,38 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
             }} />
           </div>
         </div>
+        </>
       )}
     </Ctx.Provider>
   )
 }
+
+const LOADER_KEYFRAMES = `
+@keyframes loader-bg-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes loader-bg-out { from { opacity: 1 } to { opacity: 0 } }
+@keyframes loader-logo-in {
+  0% { opacity: 0; transform: scale(0.82) translateY(10px) }
+  60% { opacity: 1; transform: scale(1.04) translateY(0) }
+  100% { opacity: 1; transform: scale(1) translateY(0) }
+}
+@keyframes loader-logo-pulse {
+  0%, 100% { opacity: 1; transform: scale(1) }
+  50% { opacity: 0.88; transform: scale(0.97) }
+}
+@keyframes loader-bar {
+  0% { width: 0% }
+  40% { width: 55% }
+  70% { width: 78% }
+  100% { width: 96% }
+}
+@keyframes loader-orb-1 {
+  0%, 100% { transform: translate(0, 0) scale(1) }
+  33% { transform: translate(30px, -20px) scale(1.15) }
+  66% { transform: translate(-20px, 15px) scale(0.9) }
+}
+@keyframes loader-orb-2 {
+  0%, 100% { transform: translate(0, 0) scale(1) }
+  33% { transform: translate(-25px, 20px) scale(0.88) }
+  66% { transform: translate(20px, -15px) scale(1.12) }
+}
+`.trim()

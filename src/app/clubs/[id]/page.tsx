@@ -124,15 +124,41 @@ export default async function ClubPage({ params }: PageProps) {
   const viewCountMap = await fetchViewCounts(admin, 'club', [id])
   const viewCount = viewCountMap.get(id) ?? 0
 
+  const clubName = clubDetails?.display_name || clubDetails?.club_name || profile.username || 'Club'
+  const clubImage = photosWithUrls[0]?.url || 'https://www.nicemodels.ch/logo.webp'
+  const clubJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: clubName,
+    url: `https://www.nicemodels.ch/clubs/${id}`,
+    image: clubImage,
+    ...(clubDetails?.about_description
+      ? { description: String(clubDetails.about_description).replace(/<[^>]*>/g, '').slice(0, 300) }
+      : {}),
+    address: {
+      '@type': 'PostalAddress',
+      ...(contactDetails?.city ? { addressLocality: contactDetails.city } : {}),
+      ...(contactDetails?.street ? { streetAddress: contactDetails.street } : {}),
+      addressCountry: 'CH',
+    },
+    ...(contactDetails?.phone_number ? { telephone: contactDetails.phone_number } : {}),
+  }
+
   return (
-    <ClubProfileClient
-      profile={profile}
-      clubDetails={clubDetails}
-      contactDetails={contactDetails}
-      workingHours={workingHours}
-      photos={photosWithUrls}
-      clubModels={clubModels}
-      viewCount={viewCount}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(clubJsonLd) }}
+      />
+      <ClubProfileClient
+        profile={profile}
+        clubDetails={clubDetails}
+        contactDetails={contactDetails}
+        workingHours={workingHours}
+        photos={photosWithUrls}
+        clubModels={clubModels}
+        viewCount={viewCount}
+      />
+    </>
   )
 }

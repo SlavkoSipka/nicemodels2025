@@ -27,7 +27,9 @@ export default function Footer() {
                 alt={tNav('logoAlt')}
                 width={160}
                 height={40}
+                sizes="(max-width: 640px) 128px, 160px"
                 className="h-8 sm:h-10 w-auto"
+                loading="lazy"
               />
             </Link>
             <p className="text-xs sm:text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.40)' }}>

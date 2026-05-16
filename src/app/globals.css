@@ -91,76 +91,13 @@ body {
   background: #c5cdd9;
 }
 
-/* Animations */
+/* Animations (only those actually referenced) */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes shimmer {
-  0%   { background-position: -1000px 0; }
-  100% { background-position:  1000px 0; }
-}
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(236,72,153,0.12); }
-  50%       { box-shadow: 0 0 30px rgba(236,72,153,0.25); }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-6px); }
-}
-@keyframes banner-marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
 
-/* Page loader animations */
-@keyframes loader-bg-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes loader-bg-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-@keyframes loader-logo-in {
-  0%   { opacity: 0; transform: scale(0.82) translateY(10px); }
-  60%  { opacity: 1; transform: scale(1.04) translateY(0); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-@keyframes loader-logo-pulse {
-  0%, 100% { opacity: 1;    transform: scale(1); }
-  50%       { opacity: 0.88; transform: scale(0.97); }
-}
-@keyframes loader-bar {
-  0%   { width: 0%; }
-  40%  { width: 55%; }
-  70%  { width: 78%; }
-  100% { width: 96%; }
-}
-@keyframes loader-orb-1 {
-  0%, 100% { transform: translate(0,    0)    scale(1); }
-  33%       { transform: translate(30px, -20px) scale(1.15); }
-  66%       { transform: translate(-20px, 15px) scale(0.9); }
-}
-@keyframes loader-orb-2 {
-  0%, 100% { transform: translate(0,    0)    scale(1); }
-  33%       { transform: translate(-25px, 20px) scale(0.88); }
-  66%       { transform: translate(20px, -15px) scale(1.12); }
-}
-
-.animate-fade-in    { animation: fadeIn 0.5s ease-in-out; }
-.animate-slide-in   { animation: slideIn 0.4s ease-out; }
-.animate-scale-in   { animation: scaleIn 0.3s ease-out; }
-.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
-.animate-float      { animation: float 3s ease-in-out infinite; }
+.animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
 
 /* Scrollbar hide */
 .scrollbar-hide                   { -ms-overflow-style: none; scrollbar-width: none; }
@@ -209,16 +146,6 @@ body {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
   border-color: rgba(236,72,153,0.15);
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(90deg, #ec4899, #f9a8d4, #89CFF0, #ec4899);
-  background-size: 300% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 4s linear infinite;
 }
 
 /* Badge */

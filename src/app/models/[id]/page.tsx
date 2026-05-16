@@ -1,3 +1,5 @@
+import type { Metadata } from 'next'
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
@@ -6,8 +8,77 @@ import Footer from '@/components/layout/Footer'
 import ModelProfileClient from './ModelProfileClient'
 import { fetchViewCounts } from '@/lib/viewCounts'
 
+const SITE_URL = 'https://www.nicemodels.ch'
+
 interface ModelPageProps {
   params: Promise<{ id: string }>
+}
+
+const getModelMeta = cache(async (id: string) => {
+  const admin = createAdminClient()
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('id, username, is_blocked, role, is_verified')
+    .eq('id', id)
+    .eq('role', 'model')
+    .eq('is_blocked', false)
+    .maybeSingle()
+
+  if (!profile) return null
+
+  const [{ data: details }, { data: photo }] = await Promise.all([
+    admin
+      .from('model_details')
+      .select('showname, city, age, ethnicity, hair_color, about_me')
+      .eq('model_id', id)
+      .maybeSingle(),
+    admin
+      .from('model_photos')
+      .select('file_path')
+      .eq('model_id', id)
+      .eq('is_approved', true)
+      .order('display_order', { ascending: true })
+      .order('uploaded_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ])
+
+  return { profile, details, photo, SUPA_URL }
+})
+
+export async function generateMetadata({ params }: ModelPageProps): Promise<Metadata> {
+  const { id } = await params
+  const meta = await getModelMeta(id)
+  if (!meta) return { title: 'Model nicht gefunden', robots: { index: false, follow: false } }
+
+  const { profile, details, photo, SUPA_URL } = meta
+  const name = details?.showname || profile.username || 'Model'
+  const city = details?.city || 'Schweiz'
+  const age = details?.age ? `, ${details.age}` : ''
+  const title = `${name}${age} – Escort in ${city}`
+  const desc =
+    details?.about_me?.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd()
+    || `${name} – verifiziertes Escort-Model in ${city}. Profil, Fotos und Kontakt auf NiceModels.ch.`
+
+  const ogImage = photo?.file_path
+    ? `${SUPA_URL}/storage/v1/object/public/model-photos/${photo.file_path}`
+    : `${SITE_URL}/logo.webp`
+
+  return {
+    title,
+    description: desc,
+    openGraph: {
+      title, description: desc, type: 'profile',
+      url: `${SITE_URL}/models/${id}`,
+      images: [{ url: ogImage, alt: name }],
+    },
+    twitter: {
+      card: 'summary_large_image', title, description: desc, images: [ogImage],
+    },
+    alternates: { canonical: `${SITE_URL}/models/${id}` },
+  }
 }
 
 async function getModelData(id: string) {
@@ -200,9 +271,29 @@ export default async function ModelPage({ params }: ModelPageProps) {
   const prevId = total > 1 ? allModelIds[(currentIndex - 1 + total) % total] : null
   const nextId = total > 1 ? allModelIds[(currentIndex + 1) % total]         : null
 
+  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+  const md = modelData.modelDetails as { showname?: string; city?: string; age?: number | null; about_me?: string | null } | null
+  const personName = md?.showname || (modelData.profile as { username?: string }).username || 'Model'
+  const personImage = (modelData.photos as { file_path?: string }[])?.[0]?.file_path
+    ? `${SUPA_URL}/storage/v1/object/public/model-photos/${(modelData.photos as { file_path?: string }[])[0].file_path}`
+    : `${SITE_URL}/logo.webp`
+  const personJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: personName,
+    url: `${SITE_URL}/models/${id}`,
+    image: personImage,
+    ...(md?.about_me ? { description: md.about_me.replace(/<[^>]*>/g, '').slice(0, 300) } : {}),
+    ...(md?.city ? { address: { '@type': 'PostalAddress', addressLocality: md.city, addressCountry: 'CH' } } : {}),
+  }
+
   return (
     <>
       <Navbar />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
       <ModelProfileClient
         modelData={modelData}
         allModelIds={allModelIds}

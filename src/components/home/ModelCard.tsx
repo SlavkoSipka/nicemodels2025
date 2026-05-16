@@ -103,7 +103,8 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
               fill
               sizes="(max-width: 640px) 48vw, 22vw"
               priority={priority}
-              quality={80}
+              fetchPriority={priority ? 'high' : 'auto'}
+              quality={75}
               placeholder="blur"
               blurDataURL={BLUR}
               className="object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"

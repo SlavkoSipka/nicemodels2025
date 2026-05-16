@@ -4,7 +4,7 @@ import MixedHomeClient from '@/components/home/MixedHomeClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
 
-export const revalidate = 60
+export const revalidate = 300
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -293,6 +293,11 @@ export default async function HomePage() {
   return statusMessages
   }
 
+  const buildStories = async () => {
+    const { data } = await admin.rpc('get_active_model_stories')
+    return (data ?? []) as any[]
+  }
+
   const buildChatModels = async () => {
   const { data: chatRaw } = await admin.from('model_details')
     .select('model_id, showname, city').eq('chat_available', true).limit(10)
@@ -316,13 +321,14 @@ export default async function HomePage() {
   return chatModels
   }
 
-  const [models, clubs, banners, listings, statusMessages, chatModels] = await Promise.all([
+  const [models, clubs, banners, listings, statusMessages, chatModels, stories] = await Promise.all([
     buildModels(),
     buildClubs(),
     buildBanners(),
     buildListings(),
     buildStatusMessages(),
     buildChatModels(),
+    buildStories(),
   ])
 
   return (
@@ -333,6 +339,7 @@ export default async function HomePage() {
       listings={listings}
       statusMessages={statusMessages}
       chatModels={chatModels}
+      stories={stories}
     />
   )
 }

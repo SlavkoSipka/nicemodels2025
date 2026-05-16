@@ -66,6 +66,7 @@ interface MixedHomeClientProps {
   listings: ListingBannerData[]
   statusMessages: StatusMessage[]
   chatModels: ChatModel[]
+  stories?: any[]
 }
 
 const WIDE_PER_PAGE = 3
@@ -94,7 +95,7 @@ function buildInitialCards(
 }
 
 export default function MixedHomeClient({
-  models, clubs, banners, listings, statusMessages, chatModels,
+  models, clubs, banners, listings, statusMessages, chatModels, stories,
 }: MixedHomeClientProps) {
   const t = useTranslations('home')
   // Filter state
@@ -342,9 +343,14 @@ export default function MixedHomeClient({
 
   // Shuffle on the client after hydration for fair rotation; cards are already
   // visible from the deterministic initial build (no skeleton gate needed).
+  // Keep the top N cards stable to preserve the SSR LCP image — only rotate
+  // the tail. This avoids the LCP image being swapped post-hydration.
+  const LCP_STABLE_TOP = 4
   useEffect(() => {
     const fresh = buildInitialCards(models, clubs, visibleBanners, listings)
-    setCards(randomShuffle([...fresh.cards]))
+    const top = fresh.cards.slice(0, LCP_STABLE_TOP)
+    const tail = fresh.cards.slice(LCP_STABLE_TOP)
+    setCards([...top, ...randomShuffle([...tail])])
     setWideSlots(randomShuffle([...fresh.wideSlots]))
     const side = fresh.sidebarRail.length <= 1
       ? fresh.sidebarRail
@@ -661,7 +667,7 @@ export default function MixedHomeClient({
     <>
       <Navbar />
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
-        <StoriesSection />
+        <StoriesSection initialStories={stories} />
 
         <div className="w-full pt-3 sm:pt-4 pb-4 sm:pb-6">
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">

@@ -89,6 +89,7 @@ export default function MobileBannerPopup({ banners }: MobileBannerPopupProps) {
       className="fixed bottom-2 left-2 right-2 z-40 xl:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
+      <style>{`@keyframes banner-marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }`}</style>
       <div
         className="relative rounded-2xl overflow-hidden"
         style={{

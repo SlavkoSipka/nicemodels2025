@@ -28,16 +28,22 @@ interface ModelStory {
   }>;
 }
 
-export default function StoriesSection() {
-  const [modelStories, setModelStories] = useState<ModelStory[]>([]);
-  const [loading, setLoading] = useState(true);
+interface StoriesSectionProps {
+  initialStories?: ModelStory[];
+}
+
+export default function StoriesSection({ initialStories }: StoriesSectionProps = {}) {
+  const [modelStories, setModelStories] = useState<ModelStory[]>(initialStories ?? []);
+  const [loading, setLoading] = useState(initialStories === undefined);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [viewingModelIndex, setViewingModelIndex] = useState<number | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
     loadCurrentUser();
-    loadStories();
+    if (initialStories === undefined) {
+      loadStories();
+    }
   }, []);
 
   async function loadCurrentUser() {

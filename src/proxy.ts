@@ -57,7 +57,19 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request })
   }
 
-  const response = await updateSession(request)
+  // Skip Supabase auth refresh for anonymous visitors (no sb-* cookie).
+  // Most home/model/club page hits are unauthenticated; calling
+  // updateSession adds a 50–150ms Supabase round-trip on every request.
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some(c => c.name.startsWith('sb-'))
+
+  let response: NextResponse
+  if (hasAuthCookie) {
+    response = await updateSession(request)
+  } else {
+    response = NextResponse.next({ request })
+  }
 
   // Set visitor canton cookie once per session (7 days). Used by the home
   // and models pages to filter banners by region.

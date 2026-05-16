@@ -76,6 +76,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
               alt={tNav('logoAlt')}
               width={162}
               height={48}
+              sizes="(max-width: 768px) 128px, 162px"
               className="h-8 md:h-10 w-auto object-contain"
               priority
             />
@@ -443,6 +444,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
             alt={tNav('logoAlt')}
             width={120}
             height={36}
+            sizes="120px"
             className="h-7 w-auto object-contain"
             priority
           />

@@ -55,6 +55,7 @@ export default function Navbar() {
                 alt={t('logoAlt')}
                 width={240}
                 height={60}
+                sizes="(max-width: 640px) 128px, 192px"
                 className="h-8 w-auto sm:h-10 md:h-12"
                 priority
               />
