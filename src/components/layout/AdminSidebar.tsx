@@ -34,7 +34,7 @@ const PATH_TO_LABEL: Array<{ match: (p: string) => boolean; key: string }> = [
   { match: p => p.startsWith('/dashboard/admin/reports'), key: 'reports' },
   { match: p => p.startsWith('/dashboard/admin/blocked'), key: 'blocked' },
   { match: p => p.startsWith('/dashboard/admin/deleted'), key: 'deleted' },
-  { match: p => p.startsWith('/dashboard/admin/discussions'), key: 'comments' },
+  { match: p => p.startsWith('/dashboard/admin/discussions'), key: 'blog' },
 ]
 
 export interface AdminSidebarCounts {
@@ -89,6 +89,7 @@ const GROUPS: NavGroup[] = [
       { labelKey: 'visitors', href: '/dashboard/admin/users', icon: <UserCircle className="w-4 h-4" /> },
       { labelKey: 'jobsRents', href: '/dashboard/admin/jobs-rents', icon: <Briefcase className="w-4 h-4" /> },
       { labelKey: 'comments', href: '/dashboard/admin/comments', icon: <MessageSquare className="w-4 h-4" />, badgeKey: 'comments' },
+      { labelKey: 'blog', href: '/dashboard/admin/discussions', icon: <MessageSquare className="w-4 h-4" /> },
       { labelKey: 'banners', href: '/dashboard/admin/banners', icon: <Megaphone className="w-4 h-4" />, badgeKey: 'banners', urgent: true },
     ],
   },
