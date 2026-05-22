@@ -8,7 +8,8 @@ import { useAuth } from '@/components/auth/AuthProvider'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
   Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
-  MessageCircle, Lock, Send, Loader2, Trash2, MessageSquare, Navigation, Megaphone
+  MessageCircle, Lock, Send, Loader2, Trash2, MessageSquare, Navigation, Megaphone,
+  Globe
 } from 'lucide-react'
 
 export default function ModelDashboardPage() {
@@ -35,6 +36,8 @@ export default function ModelDashboardPage() {
   const [liveCity, setLiveCity] = useState<string | null>(null)
   const [livePostalCode, setLivePostalCode] = useState<string | null>(null)
   const [liveToggling, setLiveToggling] = useState(false)
+  const [sedcardVisible, setSedcardVisible] = useState(true)
+  const [sedcardToggling, setSedcardToggling] = useState(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -174,6 +177,7 @@ export default function ModelDashboardPage() {
         setIsVerified(verificationData?.status === 'approved')
         setHasActiveAd(adActive)
         setChatAvailable(modelDetailsData?.chat_available ?? false)
+        setSedcardVisible(modelDetailsData?.sedcard_visible ?? true)
         setShareLiveLocation(modelDetailsData?.share_live_location ?? false)
         setLiveCity(modelDetailsData?.live_location_city ?? null)
         setLivePostalCode(modelDetailsData?.live_location_postal_code ?? null)
@@ -211,6 +215,37 @@ export default function ModelDashboardPage() {
       window.dispatchEvent(new CustomEvent('chat-available-changed', { detail: { available: next } }))
     } catch {}
     finally { setChatToggling(false) }
+  }
+
+  async function toggleSedcardVisible() {
+    if (!user || !hasActiveAd) return
+    setSedcardToggling(true)
+    try {
+      const supabase = createClient()
+      const next = !sedcardVisible
+      // Turning sedcard OFF must also pull the model out of the chat widget,
+      // since a hidden sedcard must not be reachable anywhere public.
+      const updates: Record<string, unknown> = { sedcard_visible: next }
+      if (!next && chatAvailable) updates.chat_available = false
+      await supabase
+        .from('model_details')
+        .update(updates)
+        .eq('model_id', user.id)
+      if (!next && chatAvailable) {
+        await supabase
+          .from('online_status')
+          .upsert({
+            user_id: user.id,
+            is_online: false,
+            is_available_for_chat: false,
+            last_seen_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' })
+        setChatAvailable(false)
+        window.dispatchEvent(new CustomEvent('chat-available-changed', { detail: { available: false } }))
+      }
+      setSedcardVisible(next)
+    } catch {}
+    finally { setSedcardToggling(false) }
   }
 
   async function postStatusMessage() {
@@ -773,6 +808,45 @@ export default function ModelDashboardPage() {
                 {chatAvailable && (
                   <p className="text-[11px] text-emerald-600 font-medium mt-2.5 pl-11">
                     {t('appearAvailable')}
+                  </p>
+                )}
+              </div>
+
+              {/* Sedcard visibility toggle */}
+              <div className={`border rounded-lg p-3 md:p-4 ${hasActiveAd ? 'bg-white border-gray-200' : 'bg-gray-100 border-gray-200'}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center shrink-0 ${sedcardVisible && hasActiveAd ? 'bg-emerald-100' : hasActiveAd ? 'bg-gray-100' : 'bg-gray-200'}`}>
+                    <Globe className={`w-4 h-4 ${sedcardVisible && hasActiveAd ? 'text-emerald-600' : hasActiveAd ? 'text-gray-400' : 'text-gray-300'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 leading-tight">{t('sedcardVisible')}</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5 leading-tight">
+                      {hasActiveAd
+                        ? sedcardVisible ? t('sedcardVisibleOn') : t('sedcardVisibleOff')
+                        : t('requiresActiveAd')}
+                    </p>
+                  </div>
+                  {hasActiveAd ? (
+                    <button
+                      onClick={toggleSedcardVisible}
+                      disabled={sedcardToggling}
+                      className={`relative shrink-0 w-11 h-6 rounded-full transition-colors duration-200 focus:outline-none ${sedcardVisible ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                    >
+                      {sedcardToggling ? (
+                        <Loader2 className="absolute inset-0 m-auto w-3.5 h-3.5 animate-spin text-white" />
+                      ) : (
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${sedcardVisible ? 'translate-x-5' : 'translate-x-0'}`}
+                        />
+                      )}
+                    </button>
+                  ) : (
+                    <Lock className="w-4 h-4 text-gray-300 shrink-0" />
+                  )}
+                </div>
+                {hasActiveAd && (
+                  <p className="text-[10px] text-gray-400 mt-2.5 pl-11">
+                    {t('sedcardVisibleHint')}
                   </p>
                 )}
               </div>

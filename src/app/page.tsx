@@ -278,7 +278,7 @@ async function buildStatusMessages() {
     const msgIds = [...new Set(statusRaw.map(s => s.model_id))]
     const [{ data: p1 }, { data: d1 }, { data: ph1 }] = await Promise.all([
       admin.from('profiles').select('id, username').in('id', msgIds).eq('is_blocked', false),
-      admin.from('model_details').select('model_id, showname').in('model_id', msgIds),
+      admin.from('model_details').select('model_id, showname, sedcard_visible').in('model_id', msgIds),
       admin.from('model_photos').select('model_id, file_path').in('model_id', msgIds)
         .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
@@ -286,7 +286,11 @@ async function buildStatusMessages() {
     const dMap = new Map((d1 || []).map(x => [x.model_id, x]))
     const phMap = new Map<string, string>()
     for (const p of ph1 || []) { if (!phMap.has(p.model_id) && p.file_path) phMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`) }
-    statusMessages = statusRaw.filter(s => pMap.has(s.model_id)).map(s => ({
+    statusMessages = statusRaw.filter(s => {
+      if (!pMap.has(s.model_id)) return false
+      const det = dMap.get(s.model_id) as { sedcard_visible?: boolean } | undefined
+      return det?.sedcard_visible !== false
+    }).map(s => ({
       id: s.id, model_id: s.model_id, caption: s.message, created_at: s.created_at,
       model_name: dMap.get(s.model_id)?.showname || pMap.get(s.model_id)?.username || 'Model',
       model_photo: phMap.get(s.model_id) || null,
@@ -298,13 +302,31 @@ async function buildStatusMessages() {
 async function buildStories() {
   const admin = createAdminClient()
   const { data } = await admin.rpc('get_active_model_stories')
-  return (data ?? []) as any[]
+  const rows = (data ?? []) as any[]
+  if (!rows.length) return rows
+
+  // Exclude models who have toggled their sedcard off.
+  const ids = [...new Set(rows.map(r => r.model_id).filter(Boolean))]
+  if (!ids.length) return rows
+  const { data: visRows } = await admin
+    .from('model_details')
+    .select('model_id, sedcard_visible')
+    .in('model_id', ids)
+  const hiddenIds = new Set(
+    (visRows || [])
+      .filter((r: { sedcard_visible?: boolean }) => r.sedcard_visible === false)
+      .map((r: { model_id: string }) => r.model_id)
+  )
+  return rows.filter(r => !hiddenIds.has(r.model_id))
 }
 
 async function buildChatModels() {
   const admin = createAdminClient()
   const { data: chatRaw } = await admin.from('model_details')
-    .select('model_id, showname, city').eq('chat_available', true).limit(10)
+    .select('model_id, showname, city')
+    .eq('chat_available', true)
+    .eq('sedcard_visible', true)
+    .limit(10)
 
   let chatModels: any[] = []
   if (chatRaw?.length) {

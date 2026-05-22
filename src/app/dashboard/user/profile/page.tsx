@@ -6,8 +6,10 @@ import { createClient } from '@/lib/supabase/client'
 import { User, Save, CheckCircle, Camera, Trash2, Loader2 } from 'lucide-react'
 import CitySearch from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
+import PhoneInput from '@/components/ui/PhoneInput'
 import Image from 'next/image'
 import { formatDobDisplay } from '@/lib/utils/dob'
+import { splitPhone, joinPhone, DEFAULT_DIAL_CODE } from '@/lib/countries'
 
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -19,7 +21,8 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [username, setUsername] = useState('')
-  const [phone, setPhone] = useState('')
+  const [phoneCountry, setPhoneCountry] = useState(DEFAULT_DIAL_CODE)
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [city, setCity] = useState('')
   const [description, setDescription] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -43,7 +46,9 @@ export default function UserProfile() {
       if (data) {
         setProfile(data)
         setUsername(data.username || '')
-        setPhone(data.phone || '')
+        const { dialCode, number } = splitPhone(data.phone)
+        setPhoneCountry(dialCode)
+        setPhoneNumber(number)
         setCity(data.city || '')
         setDescription(data.description || '')
         setFirstName(data.first_name || '')
@@ -158,7 +163,7 @@ export default function UserProfile() {
     if (user) {
       const { error } = await supabase.from('profiles').update({
         username,
-        phone,
+        phone: joinPhone(phoneCountry, phoneNumber) || null,
         city: city || null,
         description: description || null,
         first_name: firstName || null,
@@ -280,8 +285,13 @@ export default function UserProfile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={labelCls}>{t('phone')}</label>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                  placeholder={t('phonePlaceholder')} className={inputCls} />
+                <PhoneInput
+                  countryCode={phoneCountry}
+                  phoneNumber={phoneNumber}
+                  onCountryCodeChange={setPhoneCountry}
+                  onPhoneNumberChange={setPhoneNumber}
+                  placeholder={t('phonePlaceholder')}
+                />
               </div>
               <div>
                 <label className={labelCls}>{t('dob')}</label>

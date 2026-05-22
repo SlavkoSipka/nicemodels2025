@@ -10,6 +10,7 @@ import { processImage } from '@/lib/imageProcessor'
 import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
+import PhoneInput from '@/components/ui/PhoneInput'
 
 // Countries list (abbreviated)
 const COUNTRIES = [
@@ -915,42 +916,14 @@ export default function ModelOnboardingForm() {
               <label className="block text-xs font-bold text-gray-700 mb-1">
                 {t('s1.phone')} <span className="text-pink-600">*</span>
               </label>
-              <div className="flex flex-row gap-2 items-stretch max-w-full">
-                <select
-                  value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-[110px] sm:w-36 md:w-40 min-w-0 px-2 sm:px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50 flex-shrink-0"
-                >
-                  <option value="+41">🇨🇭 +41</option>
-                  <option value="+49">🇩🇪 +49</option>
-                  <option value="+43">🇦🇹 +43</option>
-                  <option value="+39">🇮🇹 +39</option>
-                  <option value="+33">🇫🇷 +33</option>
-                  <option value="+44">🇬🇧 +44</option>
-                  <option value="+1">🇺🇸 +1</option>
-                  <option value="+420">🇨🇿 +420</option>
-                  <option value="+48">🇵🇱 +48</option>
-                  <option value="+7">🇷🇺 +7</option>
-                  <option value="+380">🇺🇦 +380</option>
-                  <option value="+40">🇷🇴 +40</option>
-                  <option value="+381">🇷🇸 +381</option>
-                  <option value="+385">🇭🇷 +385</option>
-                  <option value="+386">🇸🇮 +386</option>
-                  <option value="+36">🇭🇺 +36</option>
-                  <option value="+421">🇸🇰 +421</option>
-                  <option value="+90">🇹🇷 +90</option>
-                  <option value="+34">🇪🇸 +34</option>
-                  <option value="+351">🇵🇹 +351</option>
-                </select>
-                <input
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder={t('s1.phonePh')}
-                  className="w-full min-w-0 flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
-                  required
-                />
-              </div>
+              <PhoneInput
+                countryCode={countryCode}
+                phoneNumber={phoneNumber}
+                onCountryCodeChange={setCountryCode}
+                onPhoneNumberChange={setPhoneNumber}
+                placeholder={t('s1.phonePh')}
+                required
+              />
             </div>
 
             {/* Divider */}
@@ -2013,46 +1986,20 @@ export default function ModelOnboardingForm() {
                 </label>
               </div>
 
-              <div className="grid grid-cols-[110px_1fr] md:grid-cols-2 gap-3 md:gap-4">
-                <div className="min-w-0">
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    {t('s10.countryCode')} <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    className="w-full px-2 md:px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
-                  >
-                    <option value="+41">Switzerland (+41)</option>
-                    <option value="+49">Germany (+49)</option>
-                    <option value="+43">Austria (+43)</option>
-                    <option value="+39">Italy (+39)</option>
-                    <option value="+33">France (+33)</option>
-                    <option value="+44">United Kingdom (+44)</option>
-                    <option value="+1">USA/Canada (+1)</option>
-                    <option value="+420">Czech Republic (+420)</option>
-                    <option value="+48">Poland (+48)</option>
-                    <option value="+7">Russia (+7)</option>
-                    <option value="+380">Ukraine (+380)</option>
-                    <option value="+40">Romania (+40)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">
-                    {t('s10.phone')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder={t('s10.phonePh')}
-                    className="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t('s10.phoneHint')}
-                  </p>
-                </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                  {t('s10.phone')} <span className="text-red-500">*</span>
+                </label>
+                <PhoneInput
+                  countryCode={countryCode}
+                  phoneNumber={phoneNumber}
+                  onCountryCodeChange={setCountryCode}
+                  onPhoneNumberChange={setPhoneNumber}
+                  placeholder={t('s10.phonePh')}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t('s10.phoneHint')}
+                </p>
               </div>
 
               {/* Contact Apps */}

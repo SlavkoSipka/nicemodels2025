@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Building2, Save, AlertCircle, CheckCircle, Phone, MapPin } from 'lucide-react'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import CitySearch from '@/components/ui/CitySearch'
+import PhoneInput from '@/components/ui/PhoneInput'
 
 type ContactMethod = 'call' | 'sms' | 'whatsapp' | 'viber' | 'telegram' | 'email'
 
@@ -377,28 +378,13 @@ export default function BasicInfoPage() {
           {/* Phone */}
           <div>
             <p className="text-xs font-bold text-gray-700 mb-2">{t('phoneNumber')}</p>
-            <div className="grid grid-cols-[110px_1fr] md:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">{t('countryCode')}</label>
-                <input
-                  type="text"
-                  value={formData.country_code}
-                  onChange={(e) => handleChange('country_code', e.target.value)}
-                  placeholder="+41"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 mb-1">{t('phoneNumberLabel')}</label>
-                <input
-                  type="text"
-                  value={formData.phone_number}
-                  onChange={(e) => handleChange('phone_number', e.target.value)}
-                  placeholder="79 123 45 67"
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
-                />
-              </div>
-            </div>
+            <PhoneInput
+              countryCode={formData.country_code}
+              phoneNumber={formData.phone_number}
+              onCountryCodeChange={(v) => handleChange('country_code', v)}
+              onPhoneNumberChange={(v) => handleChange('phone_number', v)}
+              placeholder="79 123 45 67"
+            />
           </div>
 
           {/* Email + Website */}

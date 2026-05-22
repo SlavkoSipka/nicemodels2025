@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl'
 import { ChevronLeft } from 'lucide-react'
 import { RegistrationData } from '../ModelRegistrationWizard'
 import { useState, useEffect } from 'react'
+import PhoneInput from '@/components/ui/PhoneInput'
 
 interface Props {
   data: RegistrationData
@@ -64,35 +65,18 @@ export default function ContactDetailsStep({ data, updateData, nextStep, prevSte
           </label>
         </div>
 
-        <div className="grid grid-cols-[110px_1fr] md:grid-cols-2 gap-3 md:gap-4 mb-4">
-          <div>
-            <label className="block text-sm mb-2">{t('countryCode')}</label>
-            <select
-              value={data.countryCode}
-              onChange={(e) => updateData({ countryCode: e.target.value })}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
-            >
-              <option value="+41">{t('codes.ch')}</option>
-              <option value="+49">{t('codes.de')}</option>
-              <option value="+43">{t('codes.at')}</option>
-              <option value="+33">{t('codes.fr')}</option>
-              <option value="+39">{t('codes.it')}</option>
-              <option value="+34">{t('codes.es')}</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm mb-2">
-              {t('phoneNumber')} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              placeholder={t('phonePlaceholder')}
-              value={data.phoneNumber}
-              onChange={(e) => updateData({ phoneNumber: e.target.value })}
-              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
-            <p className="text-xs text-gray-500 mt-1">{t('phoneHint')}</p>
-          </div>
+        <div className="mb-4">
+          <label className="block text-sm mb-2">
+            {t('phoneNumber')} <span className="text-red-500">*</span>
+          </label>
+          <PhoneInput
+            countryCode={data.countryCode}
+            phoneNumber={data.phoneNumber}
+            onCountryCodeChange={(v) => updateData({ countryCode: v })}
+            onPhoneNumberChange={(v) => updateData({ phoneNumber: v })}
+            placeholder={t('phonePlaceholder')}
+          />
+          <p className="text-xs text-gray-500 mt-1">{t('phoneHint')}</p>
         </div>
 
         <div className="flex gap-4 mb-6 flex-wrap">

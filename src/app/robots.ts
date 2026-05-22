@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
           '/onboarding',
           '/reset-password',
           '/forgot-password',
-          '/profile/edit',
           '/chat/',
           '/unsubscribe',
           '/login',

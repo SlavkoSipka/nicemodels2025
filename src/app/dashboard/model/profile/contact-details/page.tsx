@@ -5,21 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Phone, Save, CheckCircle, AlertCircle } from 'lucide-react'
-
-const COUNTRY_CODES = [
-  { label: 'Switzerland (+41)', value: '+41' },
-  { label: 'Germany (+49)', value: '+49' },
-  { label: 'Austria (+43)', value: '+43' },
-  { label: 'Italy (+39)', value: '+39' },
-  { label: 'France (+33)', value: '+33' },
-  { label: 'United Kingdom (+44)', value: '+44' },
-  { label: 'USA/Canada (+1)', value: '+1' },
-  { label: 'Czech Republic (+420)', value: '+420' },
-  { label: 'Poland (+48)', value: '+48' },
-  { label: 'Russia (+7)', value: '+7' },
-  { label: 'Ukraine (+380)', value: '+380' },
-  { label: 'Romania (+40)', value: '+40' },
-]
+import PhoneInput from '@/components/ui/PhoneInput'
 
 export default function ContactDetailsPage() {
   const router = useRouter()
@@ -144,18 +130,15 @@ export default function ContactDetailsPage() {
           </div>
 
           {/* Phone */}
-          <div className="grid grid-cols-[110px_1fr] md:grid-cols-2 gap-3">
-            <div className="min-w-0">
-              <label className="block text-xs font-bold text-gray-800 mb-1">{t('countryCode')} <span className="text-red-500">*</span></label>
-              <select value={countryCode} onChange={e => setCountryCode(e.target.value)} className={inputCls}>
-                {COUNTRY_CODES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-800 mb-1">{t('phoneNumber')} <span className="text-red-500">*</span></label>
-              <input type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)}
-                placeholder={t('phonePlaceholder')} className={inputCls} />
-            </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-800 mb-1">{t('phoneNumber')} <span className="text-red-500">*</span></label>
+            <PhoneInput
+              countryCode={countryCode}
+              phoneNumber={phoneNumber}
+              onCountryCodeChange={setCountryCode}
+              onPhoneNumberChange={setPhoneNumber}
+              placeholder={t('phonePlaceholder')}
+            />
           </div>
 
           {/* Messaging apps */}

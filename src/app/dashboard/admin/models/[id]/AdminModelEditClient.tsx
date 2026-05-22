@@ -12,6 +12,7 @@ import {
   ShieldCheck, Ban, ImageIcon, Film, DollarSign,
 } from 'lucide-react'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
+import PhoneInput from '@/components/ui/PhoneInput'
 import { MODEL_ETHNICITY_SLUGS } from '@/lib/modelEthnicitySlugs'
 
 interface Props {
@@ -27,21 +28,6 @@ interface Props {
   workingHours: any[]
   rates: any[]
 }
-
-const COUNTRY_CODES = [
-  { label: 'Switzerland (+41)', value: '+41' },
-  { label: 'Germany (+49)', value: '+49' },
-  { label: 'Austria (+43)', value: '+43' },
-  { label: 'Italy (+39)', value: '+39' },
-  { label: 'France (+33)', value: '+33' },
-  { label: 'United Kingdom (+44)', value: '+44' },
-  { label: 'USA/Canada (+1)', value: '+1' },
-  { label: 'Czech Republic (+420)', value: '+420' },
-  { label: 'Poland (+48)', value: '+48' },
-  { label: 'Russia (+7)', value: '+7' },
-  { label: 'Ukraine (+380)', value: '+380' },
-  { label: 'Romania (+40)', value: '+40' },
-]
 
 const AVAILABLE_LANGUAGES = [
   'English', 'German', 'French', 'Italian', 'Spanish', 'Portuguese',
@@ -80,6 +66,7 @@ export default function AdminModelEditClient({
   const t = useTranslations('admin.modelEdit')
   const tc = useTranslations('admin.common')
   const ethn = useTranslations('onboarding.model.eth')
+  const ts2 = useTranslations('onboarding.model.s2')
 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -473,8 +460,15 @@ export default function AdminModelEditClient({
                     <label className={labelCls}>{t('hairColor')}</label>
                     <select value={bio.hair_color} onChange={e => setBio(p => ({ ...p, hair_color: e.target.value }))} className={inputCls}>
                       <option value="">{tc('select')}</option>
-                      {['blond','light_brown','brunette','black','red','other'].map(v => (
-                        <option key={v} value={v}>{v.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                      {([
+                        ['blond','hairBlond'],
+                        ['light_brown','hairLightBrown'],
+                        ['brunette','hairBrunette'],
+                        ['black','hairBlack'],
+                        ['red','hairRed'],
+                        ['other','hairOther'],
+                      ] as const).map(([v, k]) => (
+                        <option key={v} value={v}>{ts2(k)}</option>
                       ))}
                     </select>
                   </div>
@@ -482,8 +476,15 @@ export default function AdminModelEditClient({
                     <label className={labelCls}>{t('eyeColor')}</label>
                     <select value={bio.eye_color} onChange={e => setBio(p => ({ ...p, eye_color: e.target.value }))} className={inputCls}>
                       <option value="">{tc('select')}</option>
-                      {['black','brown','green','blue','gray'].map(v => (
-                        <option key={v} value={v}>{v.charAt(0).toUpperCase() + v.slice(1)}</option>
+                      {([
+                        ['black','eyeBlack'],
+                        ['brown','eyeBrown'],
+                        ['green','eyeGreen'],
+                        ['blue','eyeBlue'],
+                        ['gray','eyeGray'],
+                        ['hazel','eyeHazel'],
+                      ] as const).map(([v, k]) => (
+                        <option key={v} value={v}>{ts2(k)}</option>
                       ))}
                     </select>
                   </div>
@@ -509,8 +510,13 @@ export default function AdminModelEditClient({
                     <label className={labelCls}>{t('pubicHair')}</label>
                     <select value={bio.pubic_hair} onChange={e => setBio(p => ({ ...p, pubic_hair: e.target.value }))} className={inputCls}>
                       <option value="">{tc('select')}</option>
-                      {['shaved_completely','shaved_mostly','trimmed','all_natural'].map(v => (
-                        <option key={v} value={v}>{v.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                      {([
+                        ['shaved_completely','pubicShavedFull'],
+                        ['shaved_mostly','pubicShavedMost'],
+                        ['trimmed','pubicTrimmed'],
+                        ['all_natural','pubicNatural'],
+                      ] as const).map(([v, k]) => (
+                        <option key={v} value={v}>{ts2(k)}</option>
                       ))}
                     </select>
                   </div>
@@ -611,18 +617,14 @@ export default function AdminModelEditClient({
                   className="w-4 h-4 text-brand rounded" />
                 <span className="text-sm font-semibold text-gray-900">{t('showPhoneNumber')}</span>
               </label>
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-2 gap-3">
-                <div className="min-w-0">
-                  <label className={labelCls}>{t('countryCode')}</label>
-                  <select value={contact.country_code} onChange={e => setContact(p => ({ ...p, country_code: e.target.value }))} className={inputCls}>
-                    {COUNTRY_CODES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className={labelCls}>{t('phoneNumber')}</label>
-                  <input type="tel" value={contact.phone_number}
-                    onChange={e => setContact(p => ({ ...p, phone_number: e.target.value }))} className={inputCls} />
-                </div>
+              <div>
+                <label className={labelCls}>{t('phoneNumber')}</label>
+                <PhoneInput
+                  countryCode={contact.country_code}
+                  phoneNumber={contact.phone_number}
+                  onCountryCodeChange={v => setContact(p => ({ ...p, country_code: v }))}
+                  onPhoneNumberChange={v => setContact(p => ({ ...p, phone_number: v }))}
+                />
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-800 mb-2">{t('availableOn')}</p>

@@ -402,7 +402,13 @@
       "imageUploadFailed": "Image upload failed: {message}",
       "createFailed": "Failed to create",
       "updateFailed": "Update failed",
-      "deleteFailed": "Delete failed"
+      "deleteFailed": "Delete failed",
+      "edit": "Edit",
+      "editTopic": "Edit topic",
+      "editBody": "Body",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
     },
     "blocked": {
       "title": "Blocked Users",
@@ -1243,6 +1249,10 @@
         "showAvailable": "Muestra a los clientes que estás disponible",
         "requiresActiveAd": "Requiere un anuncio activo",
         "appearAvailable": "● Apareces como disponible para chat en la página principal",
+        "sedcardVisible": "Sedcard pública",
+        "sedcardVisibleOn": "Visible en el directorio, la búsqueda y la navegación anterior/siguiente",
+        "sedcardVisibleOff": "Oculta en todas partes — la suscripción sigue activa",
+        "sedcardVisibleHint": "Desactivarla no pausa tu suscripción",
         "shareLiveLocation": "Compartir ubicación en vivo",
         "liveLocationOn": "Tu ubicación en vivo es visible en tu tarjeta",
         "liveLocationOff": "Comparte tu ciudad actual en tu tarjeta de perfil",
@@ -2760,6 +2770,12 @@
   },
   "models": {
     "profile": {
+      "unavailable": {
+        "title": "Esta sedcard no está disponible por el momento",
+        "titleNamed": "La sedcard de {name} no está disponible por el momento",
+        "body": "El modelo ha ocultado temporalmente su perfil. Vuelve más tarde.",
+        "browseOthers": "Ver otros modelos"
+      },
       "model": "Modelo",
       "verified": "Verificado",
       "vip": "VIP",
@@ -2930,7 +2946,13 @@
       "loginModalFavoriteMessage": "Debes iniciar sesión para guardar modelos en tus favoritos. Crea una cuenta o inicia sesión para continuar.",
       "loginModalFavoriteExtra": "Crea una cuenta gratuita para acceder a favoritos, dejar comentarios y más.",
       "createAccount": "Crear cuenta",
-      "logIn": "Iniciar sesión"
+      "logIn": "Iniciar sesión",
+      "notSpecified": "No especificado",
+      "langStar1": "1 estrella — Elemental: palabras familiares y frases muy cortas.",
+      "langStar2": "2 estrellas — Básico: conversaciones sencillas en situaciones cotidianas.",
+      "langStar3": "3 estrellas — Medio: cómodo en la mayoría de contextos sociales y de viaje.",
+      "langStar4": "4 estrellas — Bueno: gran fluidez; temas complejos con pequeñas lagunas.",
+      "langStar5": "5 estrellas — Excelente / nativo: dominio total en entornos profesionales y sociales."
     }
   },
   "onboarding": {
@@ -3131,6 +3153,7 @@
         "eyeGreen": "Verdes",
         "eyeBlue": "Azules",
         "eyeGray": "Grises",
+        "eyeHazel": "Color avellana",
         "height": "Altura (cm)",
         "heightPh": "cm",
         "weight": "Peso (kg)",
@@ -3361,6 +3384,12 @@
       "noContact": "El anunciante aún no ha proporcionado información de contacto.",
       "viewClubProfile": "Ver perfil de {clubName}",
       "photoAlt": "Foto {n}"
+    },
+    "profile": {
+      "closed": "Cerrado",
+      "unknown": "Desconocido",
+      "noBio": "Sin biografía disponible.",
+      "notAModel": "Este usuario no es un modelo."
     },
     "checkout": {
       "orderNotFound": "Pedido no encontrado",

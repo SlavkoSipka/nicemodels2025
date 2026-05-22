@@ -7,6 +7,8 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { Phone, Mail, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react'
 import { contactSubjectLabel } from '@/lib/contact/subjectLabels'
+import PhoneInput from '@/components/ui/PhoneInput'
+import { joinPhone, DEFAULT_DIAL_CODE } from '@/lib/countries'
 
 const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID ?? ''
 const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID ?? ''
@@ -16,10 +18,11 @@ export default function ContactPage() {
   const t = useTranslations('publicPages.contact')
   const [formData, setFormData] = useState({
     email: '',
-    phone: '',
     subject: '',
     message: ''
   })
+  const [phoneCountry, setPhoneCountry] = useState(DEFAULT_DIAL_CODE)
+  const [phoneNumber, setPhoneNumber] = useState('')
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -40,12 +43,13 @@ export default function ContactPage() {
 
     setSending(true)
     try {
+      const fullPhone = joinPhone(phoneCountry, phoneNumber.trim())
       await emailjs.send(
         serviceId,
         templateId,
         {
           user_email: formData.email.trim(),
-          user_phone: formData.phone.trim() || '—',
+          user_phone: fullPhone || '—',
           subject_key: formData.subject,
           subject_label: contactSubjectLabel(formData.subject),
           message: formData.message.trim(),
@@ -55,7 +59,9 @@ export default function ContactPage() {
       )
 
       setSuccess(true)
-      setFormData({ email: '', phone: '', subject: '', message: '' })
+      setFormData({ email: '', subject: '', message: '' })
+      setPhoneCountry(DEFAULT_DIAL_CODE)
+      setPhoneNumber('')
       setTimeout(() => setSuccess(false), 8000)
     } catch {
       setError(t('errGeneric'))
@@ -191,12 +197,11 @@ export default function ContactPage() {
                         <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-slate-500">
                           {t('fieldPhone')}
                         </label>
-                        <input
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) => handleChange('phone', e.target.value)}
-                          className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-300 transition-colors text-slate-800 placeholder-slate-300"
-                          style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}
+                        <PhoneInput
+                          countryCode={phoneCountry}
+                          phoneNumber={phoneNumber}
+                          onCountryCodeChange={setPhoneCountry}
+                          onPhoneNumberChange={setPhoneNumber}
                           placeholder={t('phonePlaceholder')}
                         />
                       </div>

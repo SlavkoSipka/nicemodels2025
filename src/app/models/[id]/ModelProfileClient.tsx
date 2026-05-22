@@ -16,6 +16,16 @@ import {
 } from '@/lib/listingContactLinks'
 import { trackModelAction, trackProfileView } from '@/lib/tracking'
 import { isModelEthnicitySlug } from '@/lib/modelEthnicitySlugs'
+import {
+  hairColorKey,
+  eyeColorKey,
+  genderKey,
+  pubicHairKey,
+  dayOfWeekKey,
+  rateDurationKey,
+  incallOptionKey,
+  outcallOptionKey,
+} from '@/lib/modelDisplaySlugs'
 import { usePageLoader } from '@/components/layout/PageLoader'
 import StartChatButton from '@/components/chat/StartChatButton'
 import {
@@ -88,6 +98,12 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
   const t = useTranslations('models.profile')
   const te = useTranslations('onboarding.model.eth')
+  const ts2 = useTranslations('onboarding.model.s2')
+  const tBio = useTranslations('dashboard.model.biography')
+  const tDay = useTranslations('onboarding.model.day')
+  const tDur = useTranslations('onboarding.model.dur')
+  const tIncall = useTranslations('onboarding.model.incall')
+  const tOutcall = useTranslations('onboarding.model.outcall')
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const touchStartX = useRef<number | null>(null)
@@ -645,41 +661,19 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
   /** Tooltip for hover over star position 1–5 (what that rating means) */
   const languageStarTooltip = (starIndex: number) => {
-    const t: Record<number, string> = {
-      1: '1 star — Elementary: familiar words and very short phrases.',
-      2: '2 stars — Basic: simple conversations in everyday situations.',
-      3: '3 stars — Fair: comfortable in most common social and travel contexts.',
-      4: '4 stars — Good: strong fluency; complex topics with only small gaps.',
-      5: '5 stars — Excellent / native-like: full fluency in professional and social settings.',
-    }
-    return t[starIndex] ?? ''
+    const keys = ['langStar1', 'langStar2', 'langStar3', 'langStar4', 'langStar5'] as const
+    const key = keys[starIndex - 1]
+    return key ? t(key) : ''
   }
 
   const formatDayOfWeek = (day: string) => {
-    const days: Record<string, string> = {
-      'monday': 'Monday',
-      'tuesday': 'Tuesday',
-      'wednesday': 'Wednesday',
-      'thursday': 'Thursday',
-      'friday': 'Friday',
-      'saturday': 'Saturday',
-      'sunday': 'Sunday'
-    }
-    return days[day] || day
+    const key = dayOfWeekKey(day)
+    return key ? tDay(key) : day
   }
 
   const formatDuration = (duration: string) => {
-    const durations: Record<string, string> = {
-      '30_minutes': '30 minutes',
-      '1_hour': '1 hour',
-      '2_hours': '2 hours',
-      'additional_hour': 'Additional hour',
-      'overnight': 'Overnight',
-      'dinner_date': 'Dinner date',
-      'weekend': 'Weekend',
-      'specific_time': 'Specific time'
-    }
-    return durations[duration] || duration
+    const key = rateDurationKey(duration)
+    return key ? tDur(key as any) : duration
   }
 
   const formatEthnicity = (ethnicity: string) => {
@@ -690,20 +684,37 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   }
 
   const formatHairColor = (color: string) => {
-    return color?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Not specified'
+    if (!color) return t('notSpecified')
+    const key = hairColorKey(color)
+    return key ? ts2(key as any) : color.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
   const formatEyeColor = (color: string) => {
-    return color?.replace(/\b\w/g, l => l.toUpperCase()) || 'Not specified'
+    if (!color) return t('notSpecified')
+    const key = eyeColorKey(color)
+    return key ? ts2(key as any) : color.replace(/\b\w/g, l => l.toUpperCase())
   }
 
   const formatGender = (gender: string) => {
-    return gender?.charAt(0).toUpperCase() + gender?.slice(1) || 'Not specified'
+    if (!gender) return t('notSpecified')
+    const key = genderKey(gender)
+    return key ? tBio(key as any) : gender.charAt(0).toUpperCase() + gender.slice(1)
   }
 
   const formatIncallOptions = (options: string[]) => {
     if (!options || options.length === 0) return []
-    return options.map(opt => opt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))
+    return options.map(opt => {
+      const key = incallOptionKey(opt)
+      return key ? tIncall(key as any) : opt
+    })
+  }
+
+  const formatOutcallOptions = (options: string[]) => {
+    if (!options || options.length === 0) return []
+    return options.map(opt => {
+      const key = outcallOptionKey(opt)
+      return key ? tOutcall(key as any) : opt
+    })
   }
 
   return (
@@ -1274,7 +1285,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   )}
                   {modelDetails?.outcall_options?.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      {formatIncallOptions(modelDetails.outcall_options).map((opt: string, i: number) => (
+                      {formatOutcallOptions(modelDetails.outcall_options).map((opt: string, i: number) => (
                         <span key={i} className="text-xs px-2.5 py-1 rounded-md font-medium" style={{ background: 'rgba(99,102,241,0.08)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>{t('outcallLabel', { opt })}</span>
                       ))}
                     </div>

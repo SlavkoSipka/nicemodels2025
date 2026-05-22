@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import PhoneInput from '@/components/ui/PhoneInput'
 
 interface ClubFormData {
   club_name: string
@@ -204,36 +205,14 @@ export default function ClubOnboardingForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {t('phoneNumber')} <span className="text-pink-600">*</span>
               </label>
-              <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[140px_1fr] gap-3">
-                <div className="relative">
-                  <select
-                    value={formData.country_code}
-                    onChange={(e) => handleChange('country_code', e.target.value)}
-                    className={`${inputCls} appearance-none cursor-pointer`}
-                  >
-                    <option value="+41">+41 (CH)</option>
-                    <option value="+43">+43 (AT)</option>
-                    <option value="+49">+49 (DE)</option>
-                    <option value="+33">+33 (FR)</option>
-                    <option value="+39">+39 (IT)</option>
-                    <option value="+44">+44 (UK)</option>
-                    <option value="+1">+1 (US/CA)</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                    <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                    </svg>
-                  </div>
-                </div>
-                <input
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={(e) => handleChange('phone_number', e.target.value)}
-                  placeholder={t('phonePlaceholder')}
-                  required
-                  className={inputCls}
-                />
-              </div>
+              <PhoneInput
+                countryCode={formData.country_code}
+                phoneNumber={formData.phone_number}
+                onCountryCodeChange={(v) => handleChange('country_code', v)}
+                onPhoneNumberChange={(v) => handleChange('phone_number', v)}
+                placeholder={t('phonePlaceholder')}
+                required
+              />
             </div>
 
             {/* Messaging apps */}

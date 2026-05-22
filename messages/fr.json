@@ -402,7 +402,13 @@
       "imageUploadFailed": "Image upload failed: {message}",
       "createFailed": "Failed to create",
       "updateFailed": "Update failed",
-      "deleteFailed": "Delete failed"
+      "deleteFailed": "Delete failed",
+      "edit": "Edit",
+      "editTopic": "Edit topic",
+      "editBody": "Body",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
     },
     "blocked": {
       "title": "Blocked Users",
@@ -1243,6 +1249,10 @@
         "showAvailable": "Montrez aux clients que vous êtes disponible",
         "requiresActiveAd": "Nécessite une annonce active",
         "appearAvailable": "● Vous apparaissez comme disponible pour le chat sur la page d'accueil",
+        "sedcardVisible": "Sedcard public",
+        "sedcardVisibleOn": "Visible dans l'annuaire, la recherche et la navigation précédent/suivant",
+        "sedcardVisibleOff": "Masquée partout — l'abonnement continue",
+        "sedcardVisibleHint": "Désactiver ne met pas votre abonnement en pause",
         "shareLiveLocation": "Partager la localisation en direct",
         "liveLocationOn": "Votre localisation en direct est visible sur votre carte",
         "liveLocationOff": "Partagez votre ville actuelle sur votre carte de profil",
@@ -2760,6 +2770,12 @@
   },
   "models": {
     "profile": {
+      "unavailable": {
+        "title": "Cette sedcard n'est pas disponible pour le moment",
+        "titleNamed": "La sedcard de {name} n'est pas disponible pour le moment",
+        "body": "Le modèle a temporairement masqué son profil. Reviens plus tard.",
+        "browseOthers": "Découvrir d'autres modèles"
+      },
       "model": "Modèle",
       "verified": "Vérifié",
       "vip": "VIP",
@@ -2930,7 +2946,13 @@
       "loginModalFavoriteMessage": "Vous devez être connecté(e) pour enregistrer des modèles dans vos favoris. Créez un compte ou connectez-vous pour continuer.",
       "loginModalFavoriteExtra": "Créez un compte gratuit pour profiter des favoris, des commentaires et plus encore.",
       "createAccount": "Créer un compte",
-      "logIn": "Connexion"
+      "logIn": "Connexion",
+      "notSpecified": "Non précisé",
+      "langStar1": "1 étoile — Élémentaire : mots familiers et phrases très courtes.",
+      "langStar2": "2 étoiles — Basique : conversations simples dans des situations quotidiennes.",
+      "langStar3": "3 étoiles — Moyen : à l'aise dans la plupart des contextes sociaux et de voyage.",
+      "langStar4": "4 étoiles — Bon : grande aisance ; sujets complexes avec quelques petites lacunes.",
+      "langStar5": "5 étoiles — Excellent / langue maternelle : maîtrise totale en milieu professionnel et social."
     }
   },
   "onboarding": {
@@ -3131,6 +3153,7 @@
         "eyeGreen": "Verts",
         "eyeBlue": "Bleus",
         "eyeGray": "Gris",
+        "eyeHazel": "Noisette",
         "height": "Taille (cm)",
         "heightPh": "cm",
         "weight": "Poids (kg)",
@@ -3361,6 +3384,12 @@
       "noContact": "L'annonceur n'a pas encore renseigné d'informations de contact.",
       "viewClubProfile": "Voir le profil de {clubName}",
       "photoAlt": "Photo {n}"
+    },
+    "profile": {
+      "closed": "Fermé",
+      "unknown": "Inconnu",
+      "noBio": "Aucune biographie disponible.",
+      "notAModel": "Cet utilisateur n'est pas un modèle."
     },
     "checkout": {
       "orderNotFound": "Commande introuvable",

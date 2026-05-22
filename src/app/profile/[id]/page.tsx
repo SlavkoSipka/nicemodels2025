@@ -38,6 +38,9 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Create Supabase server client
   const supabase = await createClient()
   const tNav = await getTranslations('nav')
+  const tProfile = await getTranslations('publicPages.profile')
+  const tDay = await getTranslations('onboarding.model.day')
+  const tModel = await getTranslations('models.profile')
 
   // Fetch profile from Supabase
   const profileData = await getProfileById(id, supabase)
@@ -55,7 +58,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             <h1 className="text-3xl font-bold mb-4">
               {profileData.full_name || profileData.username || 'User'}
             </h1>
-            <p className="text-gray-600">This user is not a model.</p>
+            <p className="text-gray-600">{tProfile('notAModel')}</p>
           </div>
         </div>
       </div>
@@ -65,25 +68,27 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   // Get rating
   const rating = await getModelRating(id, supabase)
 
-  // Map days of week
-  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  
+  // Days of week indexed 0=Sunday..6=Saturday to match DB convention
+  const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const
+
   const availability = Array.from({ length: 7 }, (_, i) => {
     const slot = profileData.availability?.find(a => a.day_of_week === i)
+    const isOpen = !!(slot && slot.is_available)
     return {
-      day: dayNames[i],
-      hours: slot && slot.is_available 
-        ? `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`
-        : 'Closed'
+      day: tDay(dayKeys[i]),
+      hours: isOpen
+        ? `${slot!.start_time.slice(0, 5)} - ${slot!.end_time.slice(0, 5)}`
+        : tProfile('closed'),
+      isOpen,
     }
   })
 
   const profile = {
     id,
-    name: profileData.full_name || 'Model',
+    name: profileData.full_name || tModel('fallbackModel'),
     age: profileData.model_details.age || 0,
-    city: profileData.model_details.location_city || 'Unknown',
-    country: profileData.model_details.location_country || 'Unknown',
+    city: profileData.model_details.location_city || tProfile('unknown'),
+    country: profileData.model_details.location_country || tProfile('unknown'),
     price: profileData.model_details.price_per_hour || 0,
     rating: rating.rating,
     reviews: rating.count,
@@ -91,7 +96,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     online: false, // TODO: implement online status
     height: profileData.model_details.height || 0,
     languages: profileData.model_details?.speaks_languages || [],
-    bio: profileData.model_details.bio || 'No bio available.',
+    bio: profileData.model_details.bio || tProfile('noBio'),
     services: profileData.model_details.services || [],
     availability,
     photos: profileData.photos?.map(p => p.photo_url) || [],
@@ -280,7 +285,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 {profile.availability.map((slot) => (
                   <div key={slot.day} className="flex justify-between items-center py-3 px-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
                     <span className="text-gray-700 font-medium">{slot.day}</span>
-                    <span className={`font-bold px-3 py-1 rounded-lg ${slot.hours === 'Closed' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                    <span className={`font-bold px-3 py-1 rounded-lg ${slot.isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {slot.hours}
                     </span>
                   </div>

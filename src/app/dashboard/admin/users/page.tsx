@@ -8,6 +8,8 @@ import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
 import { formatDobDisplay } from '@/lib/utils/dob'
 import DobInput from '@/components/forms/DobInput'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
+import PhoneInput from '@/components/ui/PhoneInput'
+import { splitPhone, joinPhone, DEFAULT_DIAL_CODE } from '@/lib/countries'
 
 interface Visitor {
   id: string
@@ -29,7 +31,8 @@ interface EditForm {
   username: string
   first_name: string
   last_name: string
-  phone: string
+  phone_country: string
+  phone_number: string
   date_of_birth: string
   city: string
   description: string
@@ -69,11 +72,13 @@ export default function AdminUsersPage() {
 
   const openEdit = (v: Visitor) => {
     setEditingVisitor(v)
+    const { dialCode, number } = splitPhone(v.phone)
     setEditForm({
       username: v.username || '',
       first_name: v.first_name || '',
       last_name: v.last_name || '',
-      phone: v.phone || '',
+      phone_country: dialCode || DEFAULT_DIAL_CODE,
+      phone_number: number,
       date_of_birth: v.date_of_birth || '',
       city: v.city || '',
       description: v.description || '',
@@ -99,6 +104,7 @@ export default function AdminUsersPage() {
     setEditSuccess('')
 
     try {
+      const fullPhone = joinPhone(editForm.phone_country, editForm.phone_number.trim()) || null
       const res = await fetch('/api/admin/update-visitor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -107,7 +113,7 @@ export default function AdminUsersPage() {
           username: editForm.username.trim(),
           first_name: editForm.first_name.trim() || null,
           last_name: editForm.last_name.trim() || null,
-          phone: editForm.phone.trim() || null,
+          phone: fullPhone,
           date_of_birth: editForm.date_of_birth || null,
           city: editForm.city.trim() || null,
           description: editForm.description.trim() || null,
@@ -128,7 +134,7 @@ export default function AdminUsersPage() {
               username: editForm.username.trim(),
               first_name: editForm.first_name.trim() || null,
               last_name: editForm.last_name.trim() || null,
-              phone: editForm.phone.trim() || null,
+              phone: fullPhone,
               date_of_birth: editForm.date_of_birth || null,
               city: editForm.city.trim() || null,
               description: editForm.description.trim() || null,
@@ -521,10 +527,13 @@ export default function AdminUsersPage() {
 
                   <div>
                     <label className={labelCls}>{t('colPhone')}</label>
-                    <input type="tel" value={editForm.phone}
-                      onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
+                    <PhoneInput
+                      countryCode={editForm.phone_country}
+                      phoneNumber={editForm.phone_number}
+                      onCountryCodeChange={v => setEditForm({ ...editForm, phone_country: v })}
+                      onPhoneNumberChange={v => setEditForm({ ...editForm, phone_number: v })}
                       placeholder={t('phonePlaceholder')}
-                      className={inputCls} />
+                    />
                   </div>
 
                   <div>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import RichTextEditor from '@/components/ui/RichTextEditor'
+import PhoneInput from '@/components/ui/PhoneInput'
+import { DEFAULT_DIAL_CODE } from '@/lib/countries'
 
 interface SimplifiedClubModelFormProps {
   clubId: string
@@ -19,6 +21,7 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
   const [formData, setFormData] = useState({
     // Basic Info
     stage_name: '',
+    country_code: DEFAULT_DIAL_CODE,
     phone_number: '',
     age: '',
     gender: '',
@@ -90,6 +93,18 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
 
       if (detailsError) throw detailsError
 
+      // Persist phone in model_contact_details if provided
+      if (formData.phone_number.trim()) {
+        await supabase
+          .from('model_contact_details')
+          .upsert({
+            model_id: profile.id,
+            country_code: formData.country_code,
+            phone_number: formData.phone_number.trim(),
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'model_id' })
+      }
+
       // Success! Redirect back to models list
       alert(t('successAlert'))
       router.push('/dashboard/company/models')
@@ -146,12 +161,12 @@ export default function SimplifiedClubModelForm({ clubId }: SimplifiedClubModelF
               <label className="block text-sm font-semibold text-gray-700 mb-1">
                 {t('phoneNumber')}
               </label>
-              <input
-                type="tel"
-                value={formData.phone_number}
-                onChange={(e) => handleChange('phone_number', e.target.value)}
+              <PhoneInput
+                countryCode={formData.country_code}
+                phoneNumber={formData.phone_number}
+                onCountryCodeChange={(v) => handleChange('country_code', v)}
+                onPhoneNumberChange={(v) => handleChange('phone_number', v)}
                 placeholder={t('phonePlaceholder')}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all"
               />
             </div>
 

@@ -402,7 +402,13 @@
       "imageUploadFailed": "Image upload failed: {message}",
       "createFailed": "Failed to create",
       "updateFailed": "Update failed",
-      "deleteFailed": "Delete failed"
+      "deleteFailed": "Delete failed",
+      "edit": "Edit",
+      "editTopic": "Edit topic",
+      "editBody": "Body",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
     },
     "blocked": {
       "title": "Blocked Users",
@@ -1243,6 +1249,10 @@
         "showAvailable": "Show clients you're available",
         "requiresActiveAd": "Requires an active ad",
         "appearAvailable": "● You appear as available for chat on the homepage",
+        "sedcardVisible": "Sedcard public",
+        "sedcardVisibleOn": "Visible in directory, search and prev/next",
+        "sedcardVisibleOff": "Hidden everywhere — subscription keeps running",
+        "sedcardVisibleHint": "Toggling off does not pause your subscription",
         "shareLiveLocation": "Share Live Location",
         "liveLocationOn": "Your live location is visible on your card",
         "liveLocationOff": "Share your current city on your profile card",
@@ -2760,6 +2770,12 @@
   },
   "models": {
     "profile": {
+      "unavailable": {
+        "title": "This sedcard is currently unavailable",
+        "titleNamed": "{name}'s sedcard is currently unavailable",
+        "body": "The model has temporarily hidden their profile. Please check back later.",
+        "browseOthers": "Browse other models"
+      },
       "model": "Model",
       "verified": "Verified",
       "vip": "VIP",
@@ -2930,7 +2946,13 @@
       "loginModalFavoriteMessage": "You need to be logged in to save models to your favorites. Create an account or log in to continue.",
       "loginModalFavoriteExtra": "Create a free account to access favorites, leave comments, and more.",
       "createAccount": "Create Account",
-      "logIn": "Log In"
+      "logIn": "Log In",
+      "notSpecified": "Not specified",
+      "langStar1": "1 star — Elementary: familiar words and very short phrases.",
+      "langStar2": "2 stars — Basic: simple conversations in everyday situations.",
+      "langStar3": "3 stars — Fair: comfortable in most common social and travel contexts.",
+      "langStar4": "4 stars — Good: strong fluency; complex topics with only small gaps.",
+      "langStar5": "5 stars — Excellent / native-like: full fluency in professional and social settings."
     }
   },
   "onboarding": {
@@ -3131,6 +3153,7 @@
         "eyeGreen": "Green",
         "eyeBlue": "Blue",
         "eyeGray": "Gray",
+        "eyeHazel": "Hazel",
         "height": "Height (cm)",
         "heightPh": "cm",
         "weight": "Weight (kg)",
@@ -3361,6 +3384,12 @@
       "noContact": "The advertiser hasn't provided contact info for this listing yet.",
       "viewClubProfile": "View {clubName}'s profile",
       "photoAlt": "Photo {n}"
+    },
+    "profile": {
+      "closed": "Closed",
+      "unknown": "Unknown",
+      "noBio": "No bio available.",
+      "notAModel": "This user is not a model."
     },
     "checkout": {
       "orderNotFound": "Order not found",

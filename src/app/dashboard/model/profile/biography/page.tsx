@@ -193,9 +193,9 @@ export default function BiographyEditPage() {
               <label className={labelCls}>{t('gender')}</label>
               <select value={formData.gender} onChange={e => handleChange('gender', e.target.value)} className={inputCls}>
                 <option value="">{tc('select')}</option>
-                <option value="female">Female</option>
-                <option value="male">Male</option>
-                <option value="trans">Trans</option>
+                <option value="female">{t('genderFemale')}</option>
+                <option value="male">{t('genderMale')}</option>
+                <option value="trans">{t('genderTrans')}</option>
               </select>
             </div>
             <div>
@@ -309,12 +309,12 @@ export default function BiographyEditPage() {
               <label className={labelCls}>{t('hairColor')}</label>
               <select value={formData.hair_color} onChange={e => handleChange('hair_color', e.target.value)} className={inputCls}>
                 <option value="">{tc('select')}</option>
-                <option value="blond">Blond</option>
-                <option value="light_brown">Light brown</option>
-                <option value="brunette">Brunette</option>
+                <option value="blond">{tp('hairBlond')}</option>
+                <option value="light_brown">{tp('hairLightBrown')}</option>
+                <option value="brunette">{tp('hairBrunette')}</option>
                 <option value="black">{tp('hairBlack')}</option>
-                <option value="red">Red</option>
-                <option value="other">Other</option>
+                <option value="red">{tp('hairRed')}</option>
+                <option value="other">{tp('hairOther')}</option>
               </select>
             </div>
             <div>
@@ -322,9 +322,11 @@ export default function BiographyEditPage() {
               <select value={formData.eye_color} onChange={e => handleChange('eye_color', e.target.value)} className={inputCls}>
                 <option value="">{tc('select')}</option>
                 <option value="black">{tp('eyeBlack')}</option>
-                <option value="green">Green</option>
-                <option value="blue">Blue</option>
-                <option value="gray">Gray</option>
+                <option value="brown">{tp('eyeBrown')}</option>
+                <option value="green">{tp('eyeGreen')}</option>
+                <option value="blue">{tp('eyeBlue')}</option>
+                <option value="gray">{tp('eyeGray')}</option>
+                <option value="hazel">{tp('eyeHazel')}</option>
               </select>
             </div>
             <div>
@@ -363,10 +365,10 @@ export default function BiographyEditPage() {
               <label className={labelCls}>{t('pubicHair')}</label>
               <select value={formData.pubic_hair} onChange={e => handleChange('pubic_hair', e.target.value)} className={inputCls}>
                 <option value="">{tc('select')}</option>
-                <option value="shaved_completely">Shaved completely</option>
-                <option value="shaved_mostly">Shaved mostly</option>
-                <option value="trimmed">Trimmed</option>
-                <option value="all_natural">All natural</option>
+                <option value="shaved_completely">{tp('pubicShavedFull')}</option>
+                <option value="shaved_mostly">{tp('pubicShavedMost')}</option>
+                <option value="trimmed">{tp('pubicTrimmed')}</option>
+                <option value="all_natural">{tp('pubicNatural')}</option>
               </select>
             </div>
           </div>

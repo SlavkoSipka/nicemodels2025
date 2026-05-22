@@ -11,6 +11,7 @@ import {
   Clock, ShieldCheck, Ban, ImageIcon, Film,
 } from 'lucide-react'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
+import PhoneInput from '@/components/ui/PhoneInput'
 
 interface Props {
   clubId: string
@@ -389,16 +390,13 @@ export default function AdminClubEditClient({
             <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
               <div>
                 <p className="text-sm font-bold text-gray-800 mb-3">{t('phone')}</p>
-                <div className="grid grid-cols-[110px_1fr] sm:grid-cols-3 gap-3">
-                  <div className="min-w-0">
-                    <label className={labelCls}>{t('countryCode')}</label>
-                    <input value={contact.country_code} onChange={e => setContact(p => ({ ...p, country_code: e.target.value }))} className={inputCls} />
-                  </div>
-                  <div className="sm:col-span-2 min-w-0">
-                    <label className={labelCls}>{t('phoneNumber')}</label>
-                    <input value={contact.phone_number} onChange={e => setContact(p => ({ ...p, phone_number: e.target.value }))} className={inputCls} />
-                  </div>
-                </div>
+                <label className={labelCls}>{t('phoneNumber')}</label>
+                <PhoneInput
+                  countryCode={contact.country_code}
+                  phoneNumber={contact.phone_number}
+                  onCountryCodeChange={v => setContact(p => ({ ...p, country_code: v }))}
+                  onPhoneNumberChange={v => setContact(p => ({ ...p, phone_number: v }))}
+                />
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-800 mb-2">{t('availableOn')}</p>

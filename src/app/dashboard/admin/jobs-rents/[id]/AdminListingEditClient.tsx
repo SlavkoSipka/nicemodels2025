@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import RichTextEditor from '@/components/ui/RichTextEditor'
+import PhoneInput from '@/components/ui/PhoneInput'
 import {
   ArrowLeft, Save, AlertCircle, CheckCircle, MapPin, FileText,
   Upload, Phone, Briefcase, Trash2, ChevronDown, ChevronUp,
@@ -440,18 +441,15 @@ export default function AdminListingEditClient({
             <p className="text-sm font-bold text-gray-800">{t('sectionContact')}</p>
           </div>
 
-          <div className="grid grid-cols-[110px_1fr] sm:grid-cols-[120px_1fr] gap-3">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">{t('code')}</label>
-              <input type="text" value={countryCode} onChange={e => setCountryCode(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">{t('phoneNumber')}</label>
-              <input type="text" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)}
-                placeholder={t('phonePlaceholder')}
-                className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400" />
-            </div>
+          <div>
+            <label className="block text-xs font-bold text-gray-700 mb-1">{t('phoneNumber')}</label>
+            <PhoneInput
+              countryCode={countryCode}
+              phoneNumber={phoneNumber}
+              onCountryCodeChange={setCountryCode}
+              onPhoneNumberChange={setPhoneNumber}
+              placeholder={t('phonePlaceholder')}
+            />
           </div>
 
           <p className="text-xs text-gray-500 mb-2">{t('phoneOptions')}</p>

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, MessageSquarePlus, Pin, Trash2, ExternalLink, ImagePlus, X } from 'lucide-react'
+import { ArrowLeft, MessageSquarePlus, Pin, Trash2, ExternalLink, ImagePlus, X, Pencil } from 'lucide-react'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import { isDiscussionSchemaMissing } from '@/lib/discussion/supabaseErrors'
 
@@ -37,6 +37,10 @@ export default function AdminDiscussionsPage() {
   const [error, setError] = useState('')
   const [savingId, setSavingId] = useState<string | null>(null)
   const [schemaMissing, setSchemaMissing] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editSlug, setEditSlug] = useState('')
+  const [editBody, setEditBody] = useState('')
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 
@@ -131,7 +135,7 @@ export default function AdminDiscussionsPage() {
     await load()
   }
 
-  const patchTopic = async (id: string, patch: Record<string, unknown>) => {
+  const patchTopic = async (id: string, patch: Record<string, unknown>): Promise<boolean> => {
     setSavingId(id)
     setError('')
     const res = await fetch('/api/admin/discussion-topics', {
@@ -143,9 +147,35 @@ export default function AdminDiscussionsPage() {
     setSavingId(null)
     if (!res.ok) {
       setError(data.error || t('updateFailed'))
-      return
+      return false
     }
     await load()
+    return true
+  }
+
+  const startEdit = (topic: TopicRow) => {
+    setEditingId(topic.id)
+    setEditTitle(topic.title)
+    setEditSlug(topic.slug)
+    setEditBody(topic.body || '')
+    setError('')
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+    setEditTitle('')
+    setEditSlug('')
+    setEditBody('')
+  }
+
+  const saveEdit = async (id: string) => {
+    const patch: Record<string, unknown> = {
+      title: editTitle.trim(),
+      body: editBody,
+    }
+    if (editSlug.trim()) patch.slug = editSlug.trim()
+    const ok = await patchTopic(id, patch)
+    if (ok) cancelEdit()
   }
 
   const removeTopic = async (id: string) => {
@@ -286,8 +316,9 @@ export default function AdminDiscussionsPage() {
                 {topics.map(topic => (
                   <li
                     key={topic.id}
-                    className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-start gap-3"
+                    className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col gap-3"
                   >
+                    <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                     {coverUrl(topic.cover_image) && (
                       <Image src={coverUrl(topic.cover_image)!} alt="" width={96} height={64} className="rounded-md object-cover shrink-0 border border-gray-100" style={{ width: 96, height: 64 }} />
                     )}
@@ -312,6 +343,14 @@ export default function AdminDiscussionsPage() {
                       <p className="text-xs text-gray-400 font-mono mt-1">/blog/{topic.slug}</p>
                     </div>
                     <div className="flex flex-wrap gap-2 shrink-0">
+                      <button
+                        type="button"
+                        disabled={savingId === topic.id}
+                        onClick={() => (editingId === topic.id ? cancelEdit() : startEdit(topic))}
+                        className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 inline-flex items-center gap-1"
+                      >
+                        <Pencil className="w-3 h-3" /> {editingId === topic.id ? t('cancel') : t('edit')}
+                      </button>
                       {topic.status !== 'active' && (
                         <button
                           type="button"
@@ -375,6 +414,49 @@ export default function AdminDiscussionsPage() {
                         <Trash2 className="w-3 h-3" /> {t('delete')}
                       </button>
                     </div>
+                    </div>
+                    {editingId === topic.id && (
+                      <div className="border-t border-gray-100 pt-4 space-y-3">
+                        <h3 className="text-sm font-semibold text-gray-900">{t('editTopic')}</h3>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">{t('fieldTitle')}</label>
+                          <input
+                            value={editTitle}
+                            onChange={e => setEditTitle(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm"
+                            placeholder={t('titlePlaceholder')}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">{t('fieldSlug')}</label>
+                          <input
+                            value={editSlug}
+                            onChange={e => setEditSlug(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono"
+                            placeholder={t('slugPlaceholder')}
+                          />
+                        </div>
+                        <RichTextEditor label={t('editBody')} value={editBody} onChange={setEditBody} height={220} />
+                        <div className="flex flex-wrap gap-2 justify-end">
+                          <button
+                            type="button"
+                            onClick={cancelEdit}
+                            disabled={savingId === topic.id}
+                            className="px-4 py-2 text-sm font-semibold rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            {t('cancel')}
+                          </button>
+                          <button
+                            type="button"
+                            disabled={savingId === topic.id || !editTitle.trim()}
+                            onClick={() => saveEdit(topic.id)}
+                            className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                          >
+                            {savingId === topic.id ? t('saving') : t('save')}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>

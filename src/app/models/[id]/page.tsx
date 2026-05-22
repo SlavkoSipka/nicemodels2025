@@ -1,12 +1,38 @@
 import type { Metadata } from 'next'
 import { cache } from 'react'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
+import { EyeOff } from 'lucide-react'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ModelProfileClient from './ModelProfileClient'
 import { fetchViewCounts } from '@/lib/viewCounts'
+
+async function UnavailableSedcard({ showname }: { showname: string | null }) {
+  const t = await getTranslations('models.profile.unavailable')
+  return (
+    <main className="min-h-[70vh] flex items-center justify-center px-4 py-16 bg-gray-50">
+      <div className="max-w-md w-full bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+        <div className="w-14 h-14 mx-auto mb-5 rounded-full bg-gray-100 flex items-center justify-center">
+          <EyeOff className="w-7 h-7 text-gray-400" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">
+          {showname ? t('titleNamed', { name: showname }) : t('title')}
+        </h1>
+        <p className="text-sm text-gray-600 mb-6 leading-relaxed">{t('body')}</p>
+        <Link
+          href="/models-page"
+          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-bold hover:bg-brand-hover transition-colors"
+        >
+          {t('browseOthers')}
+        </Link>
+      </div>
+    </main>
+  )
+}
 
 const SITE_URL = 'https://www.nicemodels.ch'
 
@@ -31,7 +57,7 @@ const getModelMeta = cache(async (id: string) => {
   const [{ data: details }, { data: photo }] = await Promise.all([
     admin
       .from('model_details')
-      .select('showname, city, age, ethnicity, hair_color, about_me')
+      .select('showname, city, age, ethnicity, hair_color, about_me, sedcard_visible')
       .eq('model_id', id)
       .maybeSingle(),
     admin
@@ -66,9 +92,13 @@ export async function generateMetadata({ params }: ModelPageProps): Promise<Meta
     ? `${SUPA_URL}/storage/v1/object/public/model-photos/${photo.file_path}`
     : `${SITE_URL}/logo.webp`
 
+  // If the model has toggled their sedcard off, do not index this page.
+  const isHidden = details?.sedcard_visible === false
+
   return {
     title,
     description: desc,
+    ...(isHidden ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       title, description: desc, type: 'profile',
       url: `${SITE_URL}/models/${id}`,
@@ -94,6 +124,28 @@ async function getModelData(id: string) {
     .single()
 
   if (profileError || !profile) return null
+
+  // Early visibility gate: check if the model has toggled their sedcard off.
+  // Owners and admins still see the full profile; everyone else gets the unavailable view.
+  const [{ data: visibilityRow }, { data: { user: viewer } }] = await Promise.all([
+    supabase.from('model_details').select('sedcard_visible, showname').eq('model_id', id).maybeSingle(),
+    supabase.auth.getUser(),
+  ])
+  const sedcardVisible = visibilityRow?.sedcard_visible !== false
+  const isOwner = viewer?.id === id
+  let isAdmin = false
+  if (viewer && !isOwner) {
+    const { data: viewerProfile } = await supabase
+      .from('profiles').select('role').eq('id', viewer.id).maybeSingle()
+    isAdmin = viewerProfile?.role === 'admin'
+  }
+  if (!sedcardVisible && !isOwner && !isAdmin) {
+    return {
+      unavailable: true as const,
+      profile,
+      showname: visibilityRow?.showname || (profile as { username?: string }).username || null,
+    }
+  }
 
   // All remaining queries run in PARALLEL
   const [
@@ -265,6 +317,18 @@ export default async function ModelPage({ params }: ModelPageProps) {
   ])
 
   if (!modelData) notFound()
+
+  // Sedcard has been toggled OFF by the model — show a placeholder instead
+  // of the full profile. Owners/admins never hit this branch (handled inside getModelData).
+  if ('unavailable' in modelData && modelData.unavailable) {
+    return (
+      <>
+        <Navbar />
+        <UnavailableSedcard showname={modelData.showname} />
+        <Footer />
+      </>
+    )
+  }
 
   const total        = allModelIds.length
   const currentIndex = allModelIds.indexOf(id)

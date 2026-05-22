@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import DobInput from '@/components/forms/DobInput'
+import PhoneInput from '@/components/ui/PhoneInput'
+import { joinPhone, DEFAULT_DIAL_CODE } from '@/lib/countries'
 
 function getAge(dateString: string): number {
   const today = new Date()
@@ -26,11 +28,12 @@ export default function RegisterForm() {
     userType: '',
     username: '',
     email: '',
-    phone: '',
     dateOfBirth: '',
     password: '',
     confirmPassword: '',
   })
+  const [phoneCountry, setPhoneCountry] = useState<string>(DEFAULT_DIAL_CODE)
+  const [phoneNumber, setPhoneNumber] = useState<string>('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -54,7 +57,8 @@ export default function RegisterForm() {
       return
     }
 
-    if (!formData.phone.trim()) {
+    const fullPhone = joinPhone(phoneCountry, phoneNumber)
+    if (!phoneNumber.trim()) {
       setError(t('errorPhoneRequired'))
       setLoading(false)
       return
@@ -102,7 +106,7 @@ export default function RegisterForm() {
           data: {
             username: formData.username,
             role: formData.userType === 'model' ? 'model' : formData.userType === 'company' ? 'company' : 'user',
-            phone: formData.phone,
+            phone: fullPhone,
             date_of_birth: formData.dateOfBirth,
           },
         },
@@ -288,14 +292,14 @@ export default function RegisterForm() {
         <label htmlFor="phone" className="block text-xs font-bold text-gray-700 mb-1">
           {t('phoneLabel')}<span className="text-pink-600">*</span>
         </label>
-        <input
+        <PhoneInput
           id="phone"
-          type="tel"
-          value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          required
+          countryCode={phoneCountry}
+          phoneNumber={phoneNumber}
+          onCountryCodeChange={setPhoneCountry}
+          onPhoneNumberChange={setPhoneNumber}
           placeholder={t('phonePlaceholder')}
-          className={inputCls}
+          required
         />
       </div>
 
