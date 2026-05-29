@@ -46,6 +46,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 src={photo}
                 alt={`Photo ${index + 1}`}
                 fill
+                sizes="(max-width: 768px) 48vw, 30vw"
                 className="object-cover group-hover:scale-110 transition-transform duration-300"
               />
               <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-30 transition-opacity" />
@@ -83,6 +84,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               src={photos[selectedIndex]}
               alt={`Photo ${selectedIndex + 1}`}
               fill
+              sizes="100vw"
               className="object-contain"
             />
           </div>

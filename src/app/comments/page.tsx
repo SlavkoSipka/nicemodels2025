@@ -16,7 +16,7 @@ export default async function CommentsPage() {
   const supabase = await createClient()
 
   // Fetch all approved comments with model details and photos
-  const { data: comments, error } = await supabase
+  const { data: comments } = await supabase
     .from('model_comments')
     .select(`
       id,
@@ -82,8 +82,6 @@ export default async function CommentsPage() {
       modelPhoto: photoMap[model?.id] || null
     }
   }) || []
-
-  console.log('Comments page:', { comments: commentsWithPhotos.length, error })
 
   return (
     <>

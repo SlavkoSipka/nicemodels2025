@@ -175,7 +175,6 @@ export default function ModelRegistrationWizard() {
   }
 
   const handleSubmit = async () => {
-    console.log('Submitting registration:', formData)
     // TODO: Submit to Supabase
     alert(tw('completeNotice'))
   }

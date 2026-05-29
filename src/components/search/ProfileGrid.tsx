@@ -2,43 +2,56 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, Star, CheckCircle, Heart, MessageSquare } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { MapPin, Star, CheckCircle } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
-import { searchProfiles, getPrimaryPhoto, getModelRating, type Profile } from '@/lib/api/profiles'
+import { searchProfiles, getPrimaryPhoto, getModelRatingsBatch, type Profile } from '@/lib/api/profiles'
 import { createClient } from '@/lib/supabase/client'
+
+const PAGE_SIZE = 24
 
 export default function ProfileGrid() {
   const t = useTranslations('search.grid')
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
   const supabase = createClient()
 
-  useEffect(() => {
-    async function fetchProfiles() {
-      setLoading(true)
-      const result = await searchProfiles({}, 1, 12, supabase)
-      
-      // Get ratings for each profile
-      const profilesWithRatings = await Promise.all(
-        result.profiles.map(async (profile) => {
-          const rating = await getModelRating(profile.id, supabase)
-          return {
-            ...profile,
-            rating: rating.rating,
-            reviewCount: rating.count,
-          }
-        })
-      )
-      
-      setProfiles(profilesWithRatings as any)
-      setTotal(result.total)
-      setLoading(false)
-    }
+  const loadPage = useCallback(async (pageNum: number) => {
+    const result = await searchProfiles({}, pageNum, PAGE_SIZE, supabase)
+    // One batched ratings query for the whole page instead of N round-trips.
+    const ratings = await getModelRatingsBatch(result.profiles.map(p => p.id), supabase)
+    const withRatings = result.profiles.map(p => {
+      const r = ratings.get(p.id)
+      return { ...p, rating: r?.rating ?? 0, reviewCount: r?.count ?? 0 }
+    })
+    return { profiles: withRatings as Profile[], total: result.total }
+  }, [supabase])
 
-    fetchProfiles()
-  }, [])
+  useEffect(() => {
+    let active = true
+    ;(async () => {
+      setLoading(true)
+      const { profiles: list, total: count } = await loadPage(1)
+      if (!active) return
+      setProfiles(list)
+      setTotal(count)
+      setPage(1)
+      setLoading(false)
+    })()
+    return () => { active = false }
+  }, [loadPage])
+
+  const handleLoadMore = async () => {
+    const next = page + 1
+    setLoadingMore(true)
+    const { profiles: list } = await loadPage(next)
+    setProfiles(prev => [...prev, ...list])
+    setPage(next)
+    setLoadingMore(false)
+  }
 
   if (loading) {
     return (
@@ -58,6 +71,8 @@ export default function ProfileGrid() {
     )
   }
 
+  const hasMore = profiles.length < total
+
   return (
     <div>
       {/* Results Header */}
@@ -65,22 +80,16 @@ export default function ProfileGrid() {
         <p className="text-gray-600">
           {t('showing', { visible: profiles.length, total })}
         </p>
-        <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
-          <option>{t('sortMostRecent')}</option>
-          <option>{t('sortPriceLow')}</option>
-          <option>{t('sortPriceHigh')}</option>
-          <option>{t('sortTopRated')}</option>
-          <option>{t('sortMostReviewed')}</option>
-        </select>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-5 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 2xl:grid-cols-9">
-        {profiles.map((profile) => (
+      {/* Grid — 2 columns on mobile for tappable targets */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        {profiles.map((profile, i) => (
           <Link
             key={profile.id}
             href={`/profile/${profile.id}`}
-            className="group bg-white rounded overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 m-3"
+            prefetch={i < 8}
+            className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
           >
             {/* Image */}
             <div className="relative w-full aspect-[3/4] overflow-hidden bg-gray-200">
@@ -88,13 +97,15 @@ export default function ProfileGrid() {
                 src={getPrimaryPhoto(profile.photos)}
                 alt={profile.full_name || 'Model'}
                 fill
+                sizes="(max-width: 640px) 48vw, (max-width: 1024px) 30vw, 18vw"
+                priority={i < 4}
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              
+
               {/* Badges */}
-              <div className="absolute top-1 left-1 right-1 flex items-start justify-between">
+              <div className="absolute top-1.5 left-1.5 right-1.5 flex items-start justify-between">
                 {profile.is_verified && (
-                  <div className="bg-blue-500 text-white px-1 py-0.5 rounded text-[9px] flex items-center">
+                  <div className="bg-blue-500 text-white px-1.5 py-0.5 rounded text-[10px] flex items-center">
                     <CheckCircle className="w-2.5 h-2.5 mr-0.5" />
                     {t('verified')}
                   </div>
@@ -103,18 +114,18 @@ export default function ProfileGrid() {
             </div>
 
             {/* Content */}
-            <div className="p-1.5">
-              <h3 className="font-semibold text-gray-800 text-[12px] truncate">
+            <div className="p-2">
+              <h3 className="font-semibold text-gray-800 text-[13px] truncate">
                 {profile.full_name || t('model')}
               </h3>
-              <p className="text-[10px] text-gray-600 mt-0.5 truncate flex items-center">
-                <MapPin className="w-3 h-3 mr-0.5" />
+              <p className="text-[11px] text-gray-600 mt-0.5 truncate flex items-center">
+                <MapPin className="w-3 h-3 mr-0.5 shrink-0" />
                 {profile.model_details?.location_city || t('unknown')}
               </p>
-              {(profile as any).rating && (
-                <div className="flex items-center text-[10px] text-gray-600 mt-0.5">
+              {!!(profile as any).rating && (
+                <div className="flex items-center text-[11px] text-gray-600 mt-0.5">
                   <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-0.5" />
-                  <span className="font-semibold">{(profile as any).rating || '0.0'}</span>
+                  <span className="font-semibold">{(profile as any).rating}</span>
                 </div>
               )}
             </div>
@@ -122,21 +133,18 @@ export default function ProfileGrid() {
         ))}
       </div>
 
-      {/* Pagination */}
-      <div className="mt-8 flex justify-center">
-        <nav className="flex items-center space-x-2">
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-            {t('previous')}
+      {/* Load more */}
+      {hasMore && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="px-6 py-2.5 bg-pink-600 text-white rounded-full text-sm font-bold hover:bg-pink-700 transition disabled:opacity-60"
+          >
+            {loadingMore ? t('loading') : t('next')}
           </button>
-          <button className="px-4 py-2 bg-pink-500 text-white rounded-lg">1</button>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">2</button>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">3</button>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-            {t('next')}
-          </button>
-        </nav>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
-

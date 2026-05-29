@@ -11,7 +11,7 @@ export default async function UserCommentsPage() {
   }
 
   // Fetch user's comments
-  const { data: comments, error } = await supabase
+  const { data: comments } = await supabase
     .from('model_comments')
     .select(`
       id,
@@ -30,8 +30,6 @@ export default async function UserCommentsPage() {
     `)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
-
-  console.log('User comments query:', { comments, error, userId: user.id })
 
   // Transform nested arrays to objects
   const transformedComments = comments?.map(comment => ({

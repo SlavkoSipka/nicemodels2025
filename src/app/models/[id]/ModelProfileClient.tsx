@@ -531,9 +531,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
           text: shareText,
           url: shareUrl
         })
-      } catch (err) {
-        // User cancelled or error occurred
-        console.log('Share cancelled or failed:', err)
+      } catch {
+        // User cancelled or share failed — no action needed.
       }
     } else {
       // Fallback for desktop - copy to clipboard
@@ -1978,7 +1977,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M5 3l14 9-14 9V3z"/></svg>
                     </div>
                   ) : (
-                    <img src={item.url} alt="" className="w-full h-full object-cover" />
+                    <Image src={item.url} alt="" fill sizes="40px" className="object-cover" />
                   )}
                 </button>
               ))}

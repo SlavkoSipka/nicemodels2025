@@ -97,6 +97,7 @@ export default async function SimilarProfiles({ currentProfileId, city, supabase
                 src={'image' in profile ? profile.image : getPrimaryPhoto(profile.photos)}
                 alt={'name' in profile ? profile.name : profile.full_name || 'Model'}
                 fill
+                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 18vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
               />
               {('verified' in profile ? profile.verified : profile.is_verified) && (

@@ -34,9 +34,8 @@ export default function ViewCount({ count, variant = 'badge', className = '' }: 
     <span
       className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${className}`}
       style={{
-        background: 'rgba(0,0,0,0.50)',
+        background: 'rgba(0,0,0,0.55)',
         color: 'rgba(255,255,255,0.9)',
-        backdropFilter: 'blur(8px)',
       }}
       title={labeled}
     >

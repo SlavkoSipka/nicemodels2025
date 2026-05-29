@@ -366,6 +366,11 @@ export default async function HomePage() {
     getStories(),
   ])
 
+  // Per-request seed: rotates the feed each load while keeping SSR and the
+  // hydrated client order identical (deterministic seeded shuffle), so cards
+  // never jump under the user's finger after hydration.
+  const seed = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
+
   return (
     <MixedHomeClient
       models={models}
@@ -375,6 +380,7 @@ export default async function HomePage() {
       statusMessages={statusMessages}
       chatModels={chatModels}
       stories={stories}
+      seed={seed}
     />
   )
 }

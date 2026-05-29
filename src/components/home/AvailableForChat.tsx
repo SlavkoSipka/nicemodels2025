@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
+import { useAuth } from '@/components/auth/AuthProvider'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export interface ChatModel {
@@ -17,41 +18,39 @@ export interface ChatModel {
 export default function AvailableForChat({ models }: { models: ChatModel[] }) {
   const router = useRouter()
   const t = useTranslations('components.home.availableForChat')
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  // Read auth from the shared context instead of an extra auth.getUser() round-trip.
+  const { user } = useAuth()
+  const isLoggedIn = !!user
   const [onlineIds, setOnlineIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    let channel: RealtimeChannel | undefined
+    if (!user) {
+      setOnlineIds(new Set())
+      return
+    }
     const supabase = createClient()
+    const channel: RealtimeChannel = supabase.channel('online-users')
 
-    ;(async () => {
-      const { data } = await supabase.auth.getUser()
-      setIsLoggedIn(!!data.user)
-      if (!data.user) return
+    function syncOnline(presenceState: Record<string, unknown[]>) {
+      const ids = new Set<string>(
+        Object.values(presenceState)
+          .flat()
+          .map((p: unknown) => (p as { user_id?: string }).user_id)
+          .filter(Boolean) as string[],
+      )
+      setOnlineIds(ids)
+    }
 
-      channel = supabase.channel('online-users')
-
-      function syncOnline(presenceState: Record<string, unknown[]>) {
-        const ids = new Set<string>(
-          Object.values(presenceState)
-            .flat()
-            .map((p: unknown) => (p as { user_id?: string }).user_id)
-            .filter(Boolean) as string[],
-        )
-        setOnlineIds(ids)
-      }
-
-      channel
-        .on('presence', { event: 'sync' }, () => syncOnline(channel!.presenceState()))
-        .on('presence', { event: 'join' }, () => syncOnline(channel!.presenceState()))
-        .on('presence', { event: 'leave' }, () => syncOnline(channel!.presenceState()))
-        .subscribe()
-    })()
+    channel
+      .on('presence', { event: 'sync' }, () => syncOnline(channel.presenceState()))
+      .on('presence', { event: 'join' }, () => syncOnline(channel.presenceState()))
+      .on('presence', { event: 'leave' }, () => syncOnline(channel.presenceState()))
+      .subscribe()
 
     return () => {
-      if (channel) supabase.removeChannel(channel)
+      supabase.removeChannel(channel)
     }
-  }, [])
+  }, [user])
 
   const visibleModels = useMemo(
     () => models.filter(m => onlineIds.has(m.id)),

@@ -9,7 +9,6 @@ import {
   useState,
 } from 'react'
 import { usePathname } from 'next/navigation'
-import Image from 'next/image'
 
 interface LoaderCtx { show: () => void }
 const Ctx = createContext<LoaderCtx>({ show: () => {} })
@@ -114,91 +113,38 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
       {visible && (
         <>
           <style>{LOADER_KEYFRAMES}</style>
-        <div
-          aria-hidden="true"
-          style={{
-            position:  'fixed',
-            inset:     0,
-            zIndex:    9999,
-            display:   'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#ffffff',
-            animation: fadingOut
-              ? `loader-bg-out ${FADE_MS}ms ease-in-out forwards`
-              : 'loader-bg-in 200ms ease-out forwards',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Ambient orbs */}
-          <div style={{
-            position: 'absolute', width: 400, height: 400,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(236,72,153,0.06) 0%, transparent 70%)',
-            top: '15%', left: '20%',
-            animation: 'loader-orb-1 4s ease-in-out infinite',
-            pointerEvents: 'none',
-          }} />
-          <div style={{
-            position: 'absolute', width: 350, height: 350,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(137,207,240,0.08) 0%, transparent 70%)',
-            bottom: '15%', right: '15%',
-            animation: 'loader-orb-2 5s ease-in-out infinite',
-            pointerEvents: 'none',
-          }} />
-
-          {/* Logo */}
-          <div style={{
-            animation: fadingOut
-              ? `loader-bg-out ${FADE_MS}ms ease-in forwards`
-              : 'loader-logo-in 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards',
-            marginBottom: 40,
-          }}>
-            <div style={{
-              animation: fadingOut ? 'none' : 'loader-logo-pulse 1.4s ease-in-out infinite 0.5s',
-            }}>
-              <Image
-                src="/logo.webp"
-                alt="nicemodels.ch"
-                width={132}
-                height={33}
-                sizes="132px"
-                style={{ height: 'auto', width: 132, filter: 'drop-shadow(0 0 20px rgba(236,72,153,0.15))' }}
-              />
-            </div>
-          </div>
-
-          <p
-            className="font-semibold tracking-wide text-base"
+          {/*
+            Slim top progress bar. Critically: the whole layer is
+            `pointer-events: none` and only 3px tall, so it can NEVER cover the
+            page or swallow the user's taps (the old full-screen white overlay
+            was the main cause of "tap does nothing -> tap again"). Instant
+            per-route loading.tsx skeletons provide the real content feedback.
+          */}
+          <div
+            aria-hidden="true"
             style={{
-              color: '#be185d',
-              marginTop: -24,
-              marginBottom: 32,
-              animation: fadingOut ? 'none' : 'loader-logo-pulse 1.4s ease-in-out infinite 0.5s',
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: 3,
+              zIndex: 9999,
+              pointerEvents: 'none',
+              background: 'transparent',
+              opacity: fadingOut ? 0 : 1,
+              transition: `opacity ${FADE_MS}ms ease-out`,
             }}
           >
-            Models
-          </p>
-
-          {/* Progress bar */}
-          <div style={{
-            position:     'absolute',
-            bottom:       0,
-            left:         0,
-            right:        0,
-            height:       2,
-            background:   '#f1f5f9',
-          }}>
-            <div style={{
-              height:     '100%',
-              background: 'linear-gradient(90deg, #ec4899, #f9a8d4, #89CFF0)',
-              animation:  `loader-bar ${MAX_MS}ms cubic-bezier(0.4,0,0.2,1) forwards`,
-              boxShadow:  '0 0 10px rgba(236,72,153,0.3)',
-            }} />
+            <div
+              style={{
+                height: '100%',
+                background: 'linear-gradient(90deg, #ec4899, #f9a8d4, #89CFF0)',
+                animation: `loader-bar ${MAX_MS}ms cubic-bezier(0.4,0,0.2,1) forwards`,
+                boxShadow: '0 0 10px rgba(236,72,153,0.4)',
+                transformOrigin: 'left center',
+              }}
+            />
           </div>
-        </div>
         </>
       )}
     </Ctx.Provider>
@@ -206,31 +152,10 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
 }
 
 const LOADER_KEYFRAMES = `
-@keyframes loader-bg-in { from { opacity: 0 } to { opacity: 1 } }
-@keyframes loader-bg-out { from { opacity: 1 } to { opacity: 0 } }
-@keyframes loader-logo-in {
-  0% { opacity: 0; transform: scale(0.82) translateY(10px) }
-  60% { opacity: 1; transform: scale(1.04) translateY(0) }
-  100% { opacity: 1; transform: scale(1) translateY(0) }
-}
-@keyframes loader-logo-pulse {
-  0%, 100% { opacity: 1; transform: scale(1) }
-  50% { opacity: 0.88; transform: scale(0.97) }
-}
 @keyframes loader-bar {
   0% { width: 0% }
   40% { width: 55% }
   70% { width: 78% }
   100% { width: 96% }
-}
-@keyframes loader-orb-1 {
-  0%, 100% { transform: translate(0, 0) scale(1) }
-  33% { transform: translate(30px, -20px) scale(1.15) }
-  66% { transform: translate(-20px, 15px) scale(0.9) }
-}
-@keyframes loader-orb-2 {
-  0%, 100% { transform: translate(0, 0) scale(1) }
-  33% { transform: translate(-25px, 20px) scale(0.88) }
-  66% { transform: translate(20px, -15px) scale(1.12) }
 }
 `.trim()

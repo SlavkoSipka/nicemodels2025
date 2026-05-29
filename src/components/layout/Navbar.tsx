@@ -6,16 +6,8 @@ import { useState } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useRouter, usePathname } from 'next/navigation'
-import dynamic from 'next/dynamic'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
 import { useAuth } from '@/components/auth/AuthProvider'
-
-// Heavy widget: keep it out of the main bundle and only load after hydration
-// when the user is actually logged in.
-const ChatWidget = dynamic(() => import('@/components/chat/ChatWidget'), {
-  ssr: false,
-  loading: () => null,
-})
 
 export default function Navbar() {
   const router = useRouter()
@@ -79,7 +71,7 @@ export default function Navbar() {
                     style={{ background: 'linear-gradient(135deg, #38bdf8, #89CFF0)', borderColor: 'rgba(137,207,240,0.35)' }}
                   >
                     {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                      <Image src={profile.avatar_url} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
                     ) : (
                       <User className="w-3.5 h-3.5" />
                     )}
@@ -107,10 +99,8 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/login"
-                    className="flex items-center justify-center px-6 text-xs font-semibold transition-all border-l border-r"
-                    style={{ color: '#475569', borderColor: 'rgba(137,207,240,0.35)' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#ec4899'; e.currentTarget.style.backgroundColor = 'rgba(236,72,153,0.05)' }}
-                    onMouseLeave={e => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.backgroundColor = 'transparent' }}
+                    className="flex items-center justify-center px-6 text-xs font-bold text-white transition-all border-l border-r hover:brightness-110"
+                    style={{ background: 'linear-gradient(135deg, #1e3a8a, #2563eb)', borderColor: 'rgba(137,207,240,0.35)' }}
                   >
                     {t('login')}
                   </Link>
@@ -235,8 +225,8 @@ export default function Navbar() {
                   </Link>
                   <Link
                     href="/login"
-                    className="block w-full px-4 py-3 text-sm font-bold text-center rounded-lg transition-all"
-                    style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}
+                    className="block w-full px-4 py-3 text-sm font-bold text-white text-center rounded-lg transition-all hover:brightness-110"
+                    style={{ background: 'linear-gradient(135deg, #1e3a8a, #2563eb)' }}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {t('login').toUpperCase()}
@@ -247,8 +237,6 @@ export default function Navbar() {
           </div>
         </div>
       )}
-      
-      {user && <ChatWidget />}
     </nav>
   )
 }

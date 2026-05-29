@@ -4,6 +4,7 @@ import "./globals.css";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import PageLoader from "@/components/layout/PageLoader";
 import PageTracker from "@/components/analytics/PageTracker";
+import GlobalChat from "@/components/chat/GlobalChat";
 import AuthProvider, { type AuthProfile } from "@/components/auth/AuthProvider";
 import QueryProvider from "@/lib/query/QueryProvider";
 import { Suspense } from "react";
@@ -189,6 +190,7 @@ export default async function RootLayout({
                 <PageTracker />
               </Suspense>
               {children}
+              <GlobalChat />
               </PageLoader>
             </QueryProvider>
           </AuthProvider>

@@ -187,37 +187,43 @@ export async function searchProfiles(filters: SearchFilters, page: number = 1, p
     return { profiles: [], total: 0 }
   }
 
-  // Load photos for each profile
-  const profilesWithPhotos = await Promise.all((data || []).map(async (profile) => {
+  const profileIds = (data || []).map((p) => p.id)
+
+  // Load photos for ALL profiles in ONE query (was an N+1: one query per profile).
+  const photosByModel = new Map<string, Photo[]>()
+  if (profileIds.length > 0) {
     const { data: photosData } = await supabase
       .from('model_photos')
-      .select('*')
-      .eq('model_id', profile.id)
+      .select('id, model_id, file_path, uploaded_at')
+      .in('model_id', profileIds)
       .eq('is_approved', true)
+      .order('model_id')
       .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
-      .limit(5) // Limit to 5 photos for performance
 
-    const photos = (photosData || []).map((photo) => {
+    for (const photo of photosData || []) {
+      const list = photosByModel.get(photo.model_id) || []
+      // Keep parity with the previous per-profile limit of 5.
+      if (list.length >= 5) continue
       const { data: urlData } = supabase.storage
         .from('model-photos')
         .getPublicUrl(photo.file_path)
-      
-      return {
+      list.push({
         id: photo.id,
         model_id: photo.model_id,
         photo_url: urlData.publicUrl || '',
         is_verified: false,
         is_primary: false,
         display_order: 0,
-        created_at: photo.uploaded_at
-      }
-    })
-
-    return {
-      ...profile,
-      photos
+        created_at: photo.uploaded_at,
+      })
+      photosByModel.set(photo.model_id, list)
     }
+  }
+
+  const profilesWithPhotos = (data || []).map((profile) => ({
+    ...profile,
+    photos: photosByModel.get(profile.id) || [],
   }))
 
   return {
@@ -402,23 +408,59 @@ export async function getSimilarProfiles(profileId: string, city: string, limit:
 export async function getModelRating(modelId: string, client: SupabaseClient) {
   const supabase = client
 
+  // Ratings live on model_comments.rating (visible = approved/reviewed).
   const { data, error } = await supabase
-    .from('reviews')
+    .from('model_comments')
     .select('rating')
     .eq('model_id', modelId)
-    .eq('is_approved', true)
+    .in('status', ['approved', 'reviewed'])
+    .not('rating', 'is', null)
 
   if (error || !data || data.length === 0) {
     return { rating: 0, count: 0 }
   }
 
-  const sum = data.reduce((acc, review) => acc + review.rating, 0)
+  const sum = data.reduce((acc, row) => acc + (row.rating || 0), 0)
   const average = sum / data.length
 
   return {
     rating: Math.round(average * 10) / 10, // Round to 1 decimal
     count: data.length,
   }
+}
+
+/**
+ * Average rating + review count for many models in ONE query (avoids the
+ * N+1 of calling getModelRating per profile).
+ */
+export async function getModelRatingsBatch(
+  modelIds: string[],
+  client: SupabaseClient,
+): Promise<Map<string, { rating: number; count: number }>> {
+  const result = new Map<string, { rating: number; count: number }>()
+  if (!modelIds.length) return result
+
+  const { data, error } = await client
+    .from('model_comments')
+    .select('model_id, rating')
+    .in('model_id', modelIds)
+    .in('status', ['approved', 'reviewed'])
+    .not('rating', 'is', null)
+
+  if (error || !data) return result
+
+  const acc = new Map<string, { sum: number; count: number }>()
+  for (const row of data as { model_id: string; rating: number | null }[]) {
+    if (row.rating == null) continue
+    const cur = acc.get(row.model_id) || { sum: 0, count: 0 }
+    cur.sum += row.rating
+    cur.count += 1
+    acc.set(row.model_id, cur)
+  }
+  for (const [id, { sum, count }] of acc) {
+    result.set(id, { rating: count ? Math.round((sum / count) * 10) / 10 : 0, count })
+  }
+  return result
 }
 
 /**

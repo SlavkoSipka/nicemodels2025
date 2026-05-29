@@ -19,7 +19,7 @@ import AvailableForChat, { type ChatModel } from './AvailableForChat'
 import { type StatusMessage } from './HomePageClient'
 import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { randomShuffle } from '@/lib/randomShuffle'
+import { seededShuffle } from '@/lib/randomShuffle'
 import { CANTON_NAMES } from '@/lib/cantons'
 
 interface Model {
@@ -67,6 +67,13 @@ interface MixedHomeClientProps {
   statusMessages: StatusMessage[]
   chatModels: ChatModel[]
   stories?: any[]
+  /**
+   * Per-request shuffle seed generated on the server. Reusing the same seed on
+   * the client makes the SSR and hydrated card order identical (deterministic),
+   * so the feed no longer reshuffles after hydration and moves cards out from
+   * under the user's finger.
+   */
+  seed?: number
 }
 
 const WIDE_PER_PAGE = 3
@@ -95,7 +102,7 @@ function buildInitialCards(
 }
 
 export default function MixedHomeClient({
-  models, clubs, banners, listings, statusMessages, chatModels, stories,
+  models, clubs, banners, listings, statusMessages, chatModels, stories, seed = 1,
 }: MixedHomeClientProps) {
   const t = useTranslations('home')
   // Filter state
@@ -116,10 +123,14 @@ export default function MixedHomeClient({
     [models, clubs, visibleBanners, listings],
   )
 
-  const [cards, setCards] = useState<CardItem[]>(initial.cards)
-  const [wideSlots, setWideSlots] = useState<CardItem[]>(initial.wideSlots)
-  const [sidebarRail, setSidebarRail] = useState<BannerData[]>(initial.sidebarRail)
-  const [mobileSidebarRail, setMobileSidebarRail] = useState<BannerData[]>(initial.mobileSidebarRail)
+  const [cards, setCards] = useState<CardItem[]>(() => seededShuffle(initial.cards, seed))
+  const [wideSlots, setWideSlots] = useState<CardItem[]>(() => seededShuffle(initial.wideSlots, seed))
+  const [sidebarRail, setSidebarRail] = useState<BannerData[]>(
+    () => (initial.sidebarRail.length <= 1 ? initial.sidebarRail : seededShuffle(initial.sidebarRail, seed).slice(0, 1)),
+  )
+  const [mobileSidebarRail, setMobileSidebarRail] = useState<BannerData[]>(
+    () => (initial.mobileSidebarRail.length <= 1 ? initial.mobileSidebarRail : seededShuffle(initial.mobileSidebarRail, seed)),
+  )
   const [page, setPage] = useState(0)
   const shouldScrollTop = useRef(false)
   const [selectedCity, setSelectedCity] = useState('all')
@@ -341,45 +352,41 @@ export default function MixedHomeClient({
 
   const isFiltering = selectedRegion !== 'all' || selectedCity !== 'all' || selectedLiveLocation !== 'all' || searchQuery.trim() !== ''
 
-  // Shuffle on the client after hydration for fair rotation; cards are already
-  // visible from the deterministic initial build (no skeleton gate needed).
-  // Keep the top N cards stable to preserve the SSR LCP image — only rotate
-  // the tail. This avoids the LCP image being swapped post-hydration.
-  const LCP_STABLE_TOP = 4
+  // Rebuild the feed when the canton-targeted banner set (or source data)
+  // changes. The order is produced by a DETERMINISTIC seeded shuffle using the
+  // server-provided `seed`, so the model cards keep their exact positions
+  // across SSR -> hydration -> canton resolution. Only banner membership can
+  // shift; the cards a user is about to tap never move under their finger.
   useEffect(() => {
     const fresh = buildInitialCards(models, clubs, visibleBanners, listings)
-    const top = fresh.cards.slice(0, LCP_STABLE_TOP)
-    const tail = fresh.cards.slice(LCP_STABLE_TOP)
-    setCards([...top, ...randomShuffle([...tail])])
-    setWideSlots(randomShuffle([...fresh.wideSlots]))
-    const side = fresh.sidebarRail.length <= 1
-      ? fresh.sidebarRail
-      : randomShuffle([...fresh.sidebarRail])
-    setSidebarRail(side.slice(0, 1))
-    const mobileSide = fresh.mobileSidebarRail.length <= 1
-      ? fresh.mobileSidebarRail
-      : randomShuffle([...fresh.mobileSidebarRail])
-    setMobileSidebarRail(mobileSide)
-  }, [visibleBanners, models, clubs, listings])
+    setCards(seededShuffle(fresh.cards, seed))
+    setWideSlots(seededShuffle(fresh.wideSlots, seed))
+    setSidebarRail(
+      fresh.sidebarRail.length <= 1 ? fresh.sidebarRail : seededShuffle(fresh.sidebarRail, seed).slice(0, 1),
+    )
+    setMobileSidebarRail(
+      fresh.mobileSidebarRail.length <= 1 ? fresh.mobileSidebarRail : seededShuffle(fresh.mobileSidebarRail, seed),
+    )
+  }, [visibleBanners, models, clubs, listings, seed])
 
   const activeCards = useMemo(() => {
     const { feedCard } = partitionBannersByPlacement(visibleBanners)
     if (!isFiltering) return cards
-    return randomShuffle([
+    return seededShuffle([
       ...filteredModels.map(m => ({ type: 'model' as const, data: m })),
       ...filteredClubs.map(c => ({ type: 'club' as const, data: c })),
       ...feedCard.map(b => ({ type: 'banner_card' as const, data: b })),
-    ])
-  }, [isFiltering, filteredModels, filteredClubs, cards, visibleBanners])
+    ], seed)
+  }, [isFiltering, filteredModels, filteredClubs, cards, visibleBanners, seed])
 
   const activeWideSlots = useMemo(() => {
     const { feedWide } = partitionBannersByPlacement(visibleBanners)
     if (!isFiltering) return wideSlots
-    return randomShuffle([
+    return seededShuffle([
       ...feedWide.map(b => ({ type: 'banner' as const, data: b })),
       ...filteredListings.map(l => ({ type: 'listing' as const, data: l })),
-    ])
-  }, [isFiltering, visibleBanners, filteredListings, wideSlots])
+    ], seed)
+  }, [isFiltering, visibleBanners, filteredListings, wideSlots, seed])
 
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
@@ -669,7 +676,7 @@ export default function MixedHomeClient({
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
         <StoriesSection initialStories={stories} />
 
-        <div className="w-full pt-3 sm:pt-4 pb-4 sm:pb-6">
+        <div className={`w-full pt-3 sm:pt-4 sm:pb-6 ${mobileSidebarRail.length > 0 ? 'pb-40' : 'pb-4'}`}>
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
               {sidebarRail.length > 0 && (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
 import { X, Send, Minus, Check, CheckCheck, Flag, Upload, AlertTriangle } from 'lucide-react';
@@ -76,12 +77,10 @@ export default function MiniChatWindow({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload: any) => {
-          console.log('📩 New message received:', payload.new);
           const newMsg = payload.new as Message;
           setMessages((prev) => {
             const hasTempVersion = prev.some((msg) => msg.id.toString().startsWith('temp-'));
             if (hasTempVersion && newMsg.sender_id === currentUserId) {
-              console.log('🔄 Replacing temp message with real one');
               return prev.map((msg) => 
                 msg.id.toString().startsWith('temp-') && msg.message_text === newMsg.message_text
                   ? newMsg
@@ -89,10 +88,8 @@ export default function MiniChatWindow({
               );
             }
             if (!prev.some((msg) => msg.id === newMsg.id)) {
-              console.log('✅ Adding new message to list');
               return [...prev, newMsg];
             }
-            console.log('⚠️ Message already exists, skipping');
             return prev;
           });
           scrollToBottom();
@@ -112,16 +109,13 @@ export default function MiniChatWindow({
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload: any) => {
-          console.log('📝 Message updated:', payload.new);
           const updatedMsg = payload.new as Message;
           setMessages((prev) =>
             prev.map((msg) => (msg.id === updatedMsg.id ? updatedMsg : msg))
           );
         }
       )
-      .subscribe((status: any) => {
-        console.log('📡 Messages channel status:', status);
-      });
+      .subscribe();
 
     // Real-time subscription for typing indicators
     const conversationChannel = supabase
@@ -139,7 +133,6 @@ export default function MiniChatWindow({
           filter: `id=eq.${conversationId}`,
         },
         (payload: any) => {
-          console.log('⌨️ Typing status update:', payload.new);
           const conv = payload.new;
           // Determine if other user is typing
           const now = new Date().getTime();
@@ -154,17 +147,13 @@ export default function MiniChatWindow({
           const isTyping = conv.participant1_id === currentUserId
             ? (now - participant2Typing < 3000)
             : (now - participant1Typing < 3000);
-          
-          console.log('⌨️ Other user typing:', isTyping);
+
           setIsOtherUserTyping(isTyping);
         }
       )
-      .subscribe((status: any) => {
-        console.log('📡 Typing channel status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔌 Disconnecting chat channels');
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(conversationChannel);
     };
@@ -259,9 +248,7 @@ export default function MiniChatWindow({
 
     const messageToSend = newMessage.trim();
     const tempId = `temp-${Date.now()}`;
-    
-    console.log('📤 Sending message:', messageToSend);
-    
+
     // Optimistic update - add message immediately
     const tempMessage: Message = {
       id: tempId,
@@ -303,12 +290,10 @@ export default function MiniChatWindow({
     }).select();
 
     if (error) {
-      console.error('❌ Error sending message:', error);
+      console.error('Error sending message:', error);
       setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
       alert(tc('failedToSend'));
       setNewMessage(messageToSend);
-    } else {
-      console.log('✅ Message sent successfully:', data);
     }
 
     setSending(false);
@@ -369,9 +354,11 @@ export default function MiniChatWindow({
       <div className="bg-gradient-to-r from-pink-600 to-rose-600 text-white p-3 rounded-t-2xl flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {otherUser.photo_url ? (
-            <img
+            <Image
               src={otherUser.photo_url}
               alt={otherUser.username}
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-full object-cover"
             />
           ) : (

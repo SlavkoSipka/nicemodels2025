@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { Plus, User } from 'lucide-react';
 import Link from 'next/link';
 import StoryViewer from './StoryViewer';
@@ -35,30 +36,18 @@ interface StoriesSectionProps {
 
 export default function StoriesSection({ initialStories }: StoriesSectionProps = {}) {
   const t = useTranslations('components.home.stories');
+  // Read auth from context instead of a per-mount getUser() + profile round-trip.
+  const { profile } = useAuth();
   const [modelStories, setModelStories] = useState<ModelStory[]>(initialStories ?? []);
   const [loading, setLoading] = useState(initialStories === undefined);
-  const [currentUser, setCurrentUser] = useState<any>(null);
   const [viewingModelIndex, setViewingModelIndex] = useState<number | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
-    loadCurrentUser();
     if (initialStories === undefined) {
       loadStories();
     }
   }, []);
-
-  async function loadCurrentUser() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-      setCurrentUser({ ...user, role: profile?.role });
-    }
-  }
 
   async function loadStories() {
     try {
@@ -99,7 +88,7 @@ export default function StoriesSection({ initialStories }: StoriesSectionProps =
     );
   }
 
-  const isModel = currentUser?.role === 'model';
+  const isModel = profile?.role === 'model';
   const hasAddButton = isModel;
   const totalSlots = 16;
   const ghostCount = Math.max(0, totalSlots - modelStories.length - (hasAddButton ? 1 : 0));

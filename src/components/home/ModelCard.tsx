@@ -75,20 +75,16 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   }
 
   return (
-    <div
-      className="relative block group w-full rounded-[12px]"
+    <Link
+      href={`/models/${model.id}`}
+      onClick={() => trackProfileView(model.id)}
+      aria-label={t('viewProfileAria', { title })}
+      className="block group w-full rounded-[12px]"
       onMouseEnter={() => setCardHover(true)}
       onMouseLeave={() => setCardHover(false)}
     >
-      {/* Full-card link behind content; tel/sms sit above with pointer-events-auto */}
-      <Link
-        href={`/models/${model.id}`}
-        onClick={() => trackProfileView(model.id)}
-        className="absolute inset-0 z-0 rounded-[12px]"
-        aria-label={t('viewProfileAria', { title })}
-      />
       <div
-        className="relative z-10 pointer-events-none overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
+        className="overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
         style={cardStyle}
       >
         {/* Photo */}
@@ -120,7 +116,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           {ago && (
             <span
               className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full sm:bottom-2"
-              style={{ background: 'rgba(0,0,0,0.50)', color: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}
+              style={{ background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.85)' }}
             >
               {ago}
             </span>
@@ -209,6 +205,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   )
 }

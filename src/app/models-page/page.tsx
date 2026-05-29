@@ -1,19 +1,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createClient } from '@/lib/supabase/server'
+import { unstable_cache } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
 
-export const dynamic = 'force-dynamic'
+const CACHE_TTL = 60
 
 async function loadBanners(
-  supabase: SupabaseClient,
   admin: SupabaseClient,
   SUPA_URL: string,
   now: string,
 ) {
-  const { data: bannersRaw } = await supabase
+  const { data: bannersRaw } = await admin
     .from('banners')
     .select(
       'id, owner_type, owner_id, title, image_path, cta_url, placement, target_cantons',
@@ -130,17 +129,36 @@ async function loadChatModels(admin: SupabaseClient, SUPA_URL: string) {
   }))
 }
 
-export default async function ModelsPage() {
-  const supabase = await createClient()
+async function loadStories(admin: SupabaseClient) {
+  const { data } = await admin.rpc('get_active_model_stories')
+  const rows = (data ?? []) as any[]
+  if (!rows.length) return rows
+  // Exclude models who have toggled their sedcard off (mirror homepage).
+  const ids = [...new Set(rows.map(r => r.model_id).filter(Boolean))]
+  if (!ids.length) return rows
+  const { data: visRows } = await admin
+    .from('model_details')
+    .select('model_id, sedcard_visible')
+    .in('model_id', ids)
+  const hiddenIds = new Set(
+    (visRows || [])
+      .filter((r: { sedcard_visible?: boolean }) => r.sedcard_visible === false)
+      .map((r: { model_id: string }) => r.model_id),
+  )
+  return rows.filter(r => !hiddenIds.has(r.model_id))
+}
+
+async function buildModelsPageData() {
   const admin = createAdminClient()
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const now = new Date().toISOString()
 
-  const bannersP = loadBanners(supabase, admin, SUPA_URL, now)
+  const bannersP = loadBanners(admin, SUPA_URL, now)
   const statusP = loadStatusMessages(admin, SUPA_URL, now)
   const chatP = loadChatModels(admin, SUPA_URL)
+  const storiesP = loadStories(admin)
 
-  const { data: modelsRaw } = await supabase.rpc('models_with_active_ads')
+  const { data: modelsRaw } = await admin.rpc('models_with_active_ads')
   const modelsData: Record<string, unknown>[] = modelsRaw ?? []
   const modelIds = modelsData.map(m => (m as { id: string }).id)
 
@@ -152,15 +170,15 @@ export default async function ModelsPage() {
       { data: allServices },
       { data: allPhotos },
     ] = await Promise.all([
-      supabase
+      admin
         .from('model_details')
         .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for, share_live_location, live_location_city, live_location_postal_code, live_location_updated_at')
         .in('model_id', modelIds),
-      supabase
+      admin
         .from('model_services')
         .select('model_id, services(id, name)')
         .in('model_id', modelIds),
-      supabase
+      admin
         .from('model_photos')
         .select('model_id, file_path')
         .in('model_id', modelIds)
@@ -230,9 +248,10 @@ export default async function ModelsPage() {
       banners,
       statusMessages,
       chatModels,
+      stories,
     ] = await Promise.all([
       uniqCityNames.length > 0
-        ? supabase
+        ? admin
             .from('cities')
             .select('name, postal_code, canton')
             .in('name', uniqCityNames)
@@ -242,6 +261,7 @@ export default async function ModelsPage() {
       bannersP,
       statusP,
       chatP,
+      storiesP,
     ])
 
     const cityCantonMap = new Map<string, string>()
@@ -278,10 +298,32 @@ export default async function ModelsPage() {
       }
     })
 
-    return <HomePageClient initialModels={models} initialBanners={banners} statusMessages={statusMessages} chatModels={chatModels} />
+    return { models, banners, statusMessages, chatModels, stories }
   }
 
-  const [banners, statusMessages, chatModels] = await Promise.all([bannersP, statusP, chatP])
+  const [banners, statusMessages, chatModels, stories] = await Promise.all([bannersP, statusP, chatP, storiesP])
 
-  return <HomePageClient initialModels={models} initialBanners={banners} statusMessages={statusMessages} chatModels={chatModels} />
+  return { models, banners, statusMessages, chatModels, stories }
+}
+
+// Cached, admin-only data load (no per-request cookies) so the models listing
+// is served from cache for 60s instead of doing the full Supabase work on every
+// request. Mirrors the homepage caching strategy.
+const getModelsPageData = unstable_cache(
+  buildModelsPageData,
+  ['models-page-data-v1'],
+  { revalidate: CACHE_TTL, tags: ['models-page'] },
+)
+
+export default async function ModelsPage() {
+  const { models, banners, statusMessages, chatModels, stories } = await getModelsPageData()
+  return (
+    <HomePageClient
+      initialModels={models as any}
+      initialBanners={banners as any}
+      statusMessages={statusMessages as any}
+      chatModels={chatModels as any}
+      stories={stories as any}
+    />
+  )
 }

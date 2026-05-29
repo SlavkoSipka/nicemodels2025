@@ -77,14 +77,11 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload: any) => {
-          console.log('📩 [Full Chat] New message received:', payload.new);
           const newMsg = payload.new as Message;
           setMessages((prev) => {
             if (!prev.some((msg) => msg.id === newMsg.id)) {
-              console.log('✅ [Full Chat] Adding new message to list');
               return [...prev, newMsg];
             }
-            console.log('⚠️ [Full Chat] Message already exists, skipping');
             return prev;
           });
           scrollToBottom();
@@ -104,15 +101,12 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           filter: `conversation_id=eq.${conversationId}`,
         },
         (payload: any) => {
-          console.log('📝 [Full Chat] Message updated:', payload.new);
           setMessages((prev) =>
             prev.map((msg) => (msg.id === payload.new.id ? (payload.new as Message) : msg))
           );
         }
       )
-      .subscribe((status: any) => {
-        console.log('📡 [Full Chat] Messages channel status:', status);
-      });
+      .subscribe();
 
     // Real-time subscription for typing indicators
     const conversationChannel = supabase
@@ -130,7 +124,6 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           filter: `id=eq.${conversationId}`,
         },
         (payload: any) => {
-          console.log('⌨️ [Full Chat] Typing status update:', payload.new);
           const conv = payload.new;
           if (!currentUserId) return;
           
@@ -145,17 +138,13 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           const isTyping = conv.participant1_id === currentUserId
             ? (now - participant2Typing < 3000)
             : (now - participant1Typing < 3000);
-          
-          console.log('⌨️ [Full Chat] Other user typing:', isTyping);
+
           setIsOtherUserTyping(isTyping);
         }
       )
-      .subscribe((status: any) => {
-        console.log('📡 [Full Chat] Typing channel status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('🔌 [Full Chat] Disconnecting chat channels');
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(conversationChannel);
     };

@@ -2579,7 +2579,8 @@
       "model": "modèle",
       "models": "modèles",
       "ofTotal": "sur {total}",
-      "noModelsFound": "Aucun modèle trouvé"
+      "noModelsFound": "Aucun modèle trouvé",
+      "loadMore": "Voir plus"
     }
   },
   "clubs": {

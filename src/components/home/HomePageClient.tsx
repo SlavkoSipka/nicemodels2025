@@ -63,9 +63,10 @@ interface HomePageClientProps {
   initialBanners?: BannerData[]
   statusMessages?: StatusMessage[]
   chatModels?: ChatModel[]
+  stories?: any[]
 }
 
-export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [] }: HomePageClientProps) {
+export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [], stories }: HomePageClientProps) {
   const t = useTranslations('home')
   const [selectedRegion,       setSelectedRegion]       = useState<string>('all')
   const [selectedCity,         setSelectedCity]         = useState<string>('all')
@@ -75,6 +76,11 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
   const [searchQuery,          setSearchQuery]          = useState<string>('')
   const [nearby,               setNearby]               = useState<NearbyValue>({ originCity: null, radiusKm: null })
   const { ids: nearbyModelIds } = useNearbyIds('model', nearby.originCity, nearby.radiusKm)
+
+  // Incremental rendering: only mount a page worth of cards at a time so the
+  // listing doesn't hydrate hundreds of ModelCards at once on mobile.
+  const PAGE_SIZE = 24
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   const visitorCanton = useVisitorCanton()
   const effectiveCanton = selectedRegion !== 'all' ? selectedRegion : visitorCanton
@@ -146,6 +152,10 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     return result
   }, [initialModels, selectedRegion, selectedCity, selectedLiveLocation, selectedCategory, selectedOffer, searchQuery, nearbyModelIds])
 
+  // Reset the visible window whenever the filtered result set changes so a new
+  // filter starts back at the first page of cards.
+  useEffect(() => { setVisibleCount(PAGE_SIZE) }, [filteredModels])
+
   const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
 
   const isFiltered =
@@ -199,7 +209,8 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       items.push(<BannerCard key={`banner-wide-${widePool[wideIdx].id}-0`} banner={widePool[wideIdx]} priority />)
       wideIdx++
     }
-    filteredModels.forEach((model, i) => {
+    const visibleModels = filteredModels.slice(0, visibleCount)
+    visibleModels.forEach((model, i) => {
       items.push(<ModelCard key={model.id} model={model} priority={i < 4} />)
       const n = i + 1
       if (n % WIDE_GAP === 0 && wideIdx < widePool.length) {
@@ -213,10 +224,24 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
         cardIdx++
       }
     })
+    const hasMore = filteredModels.length > visibleCount
     return (
-      <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
-        {items}
-      </div>
+      <>
+        <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
+          {items}
+        </div>
+        {hasMore && (
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+              className="px-6 py-2.5 rounded-full text-sm font-bold text-white transition-colors"
+              style={{ background: '#be185d' }}
+            >
+              {t('feed.loadMore')}
+            </button>
+          </div>
+        )}
+      </>
     )
   }
 
@@ -226,10 +251,10 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
         {/* Stories */}
-        <StoriesSection />
+        <StoriesSection initialStories={stories} />
 
         {/* Main: 3-col grid at xl with sticky side rails; centered single-column below xl */}
-        <div className="w-full pt-3 sm:pt-4 pb-4 sm:pb-6">
+        <div className={`w-full pt-3 sm:pt-4 sm:pb-6 ${mobileSidebarPool.length > 0 ? 'pb-40' : 'pb-4'}`}>
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
               {sidebarPool.length > 0 && (

@@ -2579,7 +2579,8 @@
       "model": "model",
       "models": "models",
       "ofTotal": "of {total}",
-      "noModelsFound": "No models found"
+      "noModelsFound": "No models found",
+      "loadMore": "Load more"
     }
   },
   "clubs": {

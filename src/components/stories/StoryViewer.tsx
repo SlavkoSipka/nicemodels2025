@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { X, ChevronLeft, ChevronRight, Pause, Play, Volume2, VolumeX, UserRound } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Story {
   id: string;
@@ -183,7 +184,7 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
           <ChevronLeft className="w-7 h-7 text-white/70 group-hover:text-white transition-colors" />
           <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-white/40 group-hover:border-white/80 transition-all">
             {getPhotoUrl(prevModel) ? (
-              <img src={getPhotoUrl(prevModel)!} alt={prevModel.model_showname} className="w-full h-full object-cover" />
+              <Image src={getPhotoUrl(prevModel)!} alt={prevModel.model_showname} width={44} height={44} sizes="44px" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm"
                 style={{ background: 'linear-gradient(135deg,#BE185D,#EC4899)' }}>
@@ -207,7 +208,7 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
           <ChevronRight className="w-7 h-7 text-white/70 group-hover:text-white transition-colors" />
           <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-white/40 group-hover:border-white/80 transition-all">
             {getPhotoUrl(nextModel) ? (
-              <img src={getPhotoUrl(nextModel)!} alt={nextModel.model_showname} className="w-full h-full object-cover" />
+              <Image src={getPhotoUrl(nextModel)!} alt={nextModel.model_showname} width={44} height={44} sizes="44px" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-white font-bold text-sm"
                 style={{ background: 'linear-gradient(135deg,#BE185D,#EC4899)' }}>
@@ -246,9 +247,12 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
               className="flex items-center gap-3 hover:opacity-80 transition-opacity pointer-events-auto"
             >
               {getPhotoUrl(modelStory) ? (
-                <img
+                <Image
                   src={getPhotoUrl(modelStory)!}
                   alt={modelStory.model_showname}
+                  width={40}
+                  height={40}
+                  sizes="40px"
                   className="w-10 h-10 rounded-full object-cover border-2 border-white"
                 />
               ) : (
@@ -278,10 +282,14 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
         {/* Story Content */}
         <div className="relative w-full h-full flex items-center justify-center">
           {currentStory.media_type === 'image' ? (
-            <img
+            <Image
               src={mediaUrl}
               alt="Story"
-              className="w-full h-full object-contain"
+              fill
+              sizes="(max-width: 512px) 100vw, 512px"
+              quality={80}
+              priority
+              className="object-contain"
               onLoad={() => !isPaused && startProgress()}
             />
           ) : (

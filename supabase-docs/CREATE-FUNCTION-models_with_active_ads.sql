@@ -3,6 +3,12 @@
 -- ============================================
 -- Vraća sve modele koji imaju aktivne oglase (paid orders sa ad_package)
 -- SECURITY DEFINER - zaobilazi RLS za anonymous users
+--
+-- NOTE: created_at returns the start of the model's CURRENT active ad
+-- (MAX(COALESCE(oi.activation_date, o.created_at))), NOT the profile signup
+-- date. This makes the "prije X dana" sedcard badge reset to ~0 each time an
+-- ad is (re)activated. Account statistics live in separate analytics tables
+-- and are unaffected.
 
 DROP FUNCTION IF EXISTS models_with_active_ads();
 
@@ -20,12 +26,13 @@ LANGUAGE plpgsql
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT DISTINCT
+  SELECT
     p.id,
     p.username,
     p.email,
     p.role::text,
-    p.created_at,
+    -- Latest active-ad start = when the current sedcard activation began.
+    MAX(COALESCE(oi.activation_date, o.created_at)) AS created_at,
     p.public_id
   FROM profiles p
   INNER JOIN orders o ON o.user_id = p.id
@@ -48,7 +55,8 @@ BEGIN
         + (pr.duration_days * INTERVAL '1 day')
         + (pr.duration_hours * INTERVAL '1 hour') > NOW()
     )
-  ORDER BY p.created_at DESC;
+  GROUP BY p.id, p.username, p.email, p.role, p.public_id
+  ORDER BY created_at DESC;
 END;
 $$;
 

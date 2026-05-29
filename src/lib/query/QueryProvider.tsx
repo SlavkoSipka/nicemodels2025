@@ -14,9 +14,13 @@ function makeClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 30_000,
-        gcTime: 5 * 60_000,
+        // Public listing/profile data changes slowly; a longer stale window
+        // avoids refetch churn as users navigate around on mobile.
+        staleTime: 60_000,
+        gcTime: 10 * 60_000,
         refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        retry: 1,
       },
     },
   })
