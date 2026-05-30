@@ -81,3 +81,54 @@ export function shortDate(d: string): string {
   const date = new Date(d)
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
 }
+
+function parseDayKey(raw: unknown): string | null {
+  if (typeof raw === 'string' && raw.length >= 10) return raw.slice(0, 10)
+  if (typeof raw !== 'number' && raw != null) {
+    const dt = new Date(raw as Date)
+    const x = dt.getTime()
+    if (!Number.isFinite(x)) return null
+    return dt.toISOString().slice(0, 10)
+  }
+  return null
+}
+
+/** Zero-fill daily page-view series from RPC `series` JSON (UTC dates). */
+export function denseTrafficSeriesFromRpc(
+  pts: unknown,
+  since: Date | null,
+): { date: string; views: number }[] {
+  const rows = Array.isArray(pts)
+    ? (pts as { date?: unknown; views?: unknown }[])
+    : []
+  const viewsByDay = new Map<string, number>()
+  for (const p of rows) {
+    if (!p?.date) continue
+    const k = parseDayKey(p.date)
+    if (!k) continue
+    viewsByDay.set(k, Number(p.views ?? 0))
+  }
+
+  let start: Date
+  if (since) {
+    start = new Date(since)
+    start.setHours(0, 0, 0, 0)
+  } else if (viewsByDay.size > 0) {
+    const times = [...viewsByDay.keys()].map(k => new Date(`${k}T00:00:00Z`).getTime())
+    start = new Date(Math.min(...times))
+    start.setHours(0, 0, 0, 0)
+  } else {
+    start = new Date()
+    start.setHours(0, 0, 0, 0)
+  }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const out: { date: string; views: number }[] = []
+  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    const key = d.toISOString().slice(0, 10)
+    out.push({ date: key, views: viewsByDay.get(key) ?? 0 })
+  }
+  return out
+}

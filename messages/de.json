@@ -53,6 +53,7 @@
       "failedToSaveTry": "Speichern fehlgeschlagen. Bitte erneut versuchen.",
       "failedToDelete": "Löschen fehlgeschlagen",
       "failedToUpdate": "Aktualisierung fehlgeschlagen",
+      "loadFailed": "Daten konnten nicht geladen werden. Bitte Seite aktualisieren.",
       "tryAgain": "Erneut versuchen",
       "permanently": "endgültig",
       "confirmDelete": "DELETE eingeben, um endgültig zu entfernen",

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
-import { Globe, Eye, Users, Lock } from 'lucide-react'
+import { Globe, Eye, Users, Lock, AlertCircle } from 'lucide-react'
 import KpiCard from '@/components/admin/charts/KpiCard'
 import DateRangePicker, { RangeKey } from '@/components/admin/charts/DateRangePicker'
 import ChartCard from '@/components/admin/charts/ChartCard'
@@ -28,13 +28,26 @@ export default function TrafficStatsPage() {
   const [range, setRange] = useState<RangeKey>('30d')
   const [data, setData] = useState<TrafficResp | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setLoading(true)
+    setError(null)
     fetch(`/api/admin/stats/traffic?range=${range}`)
-      .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
-      .catch(() => setLoading(false))
+      .then(async r => {
+        const d = await r.json()
+        if (!r.ok || !d?.kpis) {
+          setError(d?.error || tc('loadFailed'))
+          setData(null)
+        } else {
+          setData(d)
+        }
+        setLoading(false)
+      })
+      .catch(() => {
+        setError(tc('loadFailed'))
+        setLoading(false)
+      })
   }, [range])
 
   return (
@@ -49,7 +62,14 @@ export default function TrafficStatsPage() {
         <DateRangePicker value={range} onChange={setRange} />
       </div>
 
-      {loading || !data ? (
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
+      )}
+
+      {loading ? (
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -58,7 +78,7 @@ export default function TrafficStatsPage() {
           </div>
           <div className="h-80 bg-gray-200 rounded-xl animate-pulse" />
         </div>
-      ) : (
+      ) : !data?.kpis ? null : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <KpiCard label={t('totalPageViews')} value={data.kpis.totalViews.toLocaleString()} icon={<Eye className="w-4 h-4" />} accent="text-sky-600 bg-sky-50" />

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyAdmin, parseRange, rangeToDate, bucketByDay } from '@/lib/adminApi'
+import { denseTrafficSeriesFromRpc } from '@/lib/adminUtils'
 
 export const runtime = 'nodejs'
 
@@ -12,57 +13,6 @@ type AggJson = {
   topReferrers?: unknown
   roleCounts?: unknown
   kpis?: Record<string, unknown>
-}
-
-function parseDayKey(raw: unknown): string | null {
-  if (typeof raw === 'string' && raw.length >= 10) return raw.slice(0, 10)
-  if (typeof raw !== 'number' && raw != null) {
-    const dt = new Date(raw as Date)
-    const x = dt.getTime()
-    if (!Number.isFinite(x)) return null
-    return dt.toISOString().slice(0, 10)
-  }
-  return null
-}
-
-/** Match legacy bucket-by-day chart: zero-fill from `since` through today when `since` set. */
-function denseTrafficSeries(
-  pts: unknown,
-  since: Date | null,
-): { date: string; views: number }[] {
-  const rows = Array.isArray(pts)
-    ? (pts as { date?: unknown; views?: unknown }[])
-    : []
-  const viewsByDay = new Map<string, number>()
-  for (const p of rows) {
-    if (!p?.date) continue
-    const k = parseDayKey(p.date)
-    if (!k) continue
-    viewsByDay.set(k, Number(p.views ?? 0))
-  }
-
-  let start: Date
-  if (since) {
-    start = new Date(since)
-    start.setHours(0, 0, 0, 0)
-  } else if (viewsByDay.size > 0) {
-    const times = [...viewsByDay.keys()].map(k => new Date(`${k}T00:00:00Z`).getTime())
-    start = new Date(Math.min(...times))
-    start.setHours(0, 0, 0, 0)
-  } else {
-    start = new Date()
-    start.setHours(0, 0, 0, 0)
-  }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const out: { date: string; views: number }[] = []
-  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
-    const key = d.toISOString().slice(0, 10)
-    out.push({ date: key, views: viewsByDay.get(key) ?? 0 })
-  }
-  return out
 }
 
 function legacyTrafficFallback(
@@ -176,7 +126,7 @@ export async function GET(req: NextRequest) {
         anonymous: Number(k.anonymous ?? 0),
         topPath: (k.topPath as string | null) ?? null,
       },
-      series: denseTrafficSeries(agg.series, since),
+      series: denseTrafficSeriesFromRpc(agg.series, since),
       topPaths: Array.isArray(agg.topPaths)
         ? (agg.topPaths as { path: string; views: number }[])
           .map(p => ({
@@ -195,12 +145,17 @@ export async function GET(req: NextRequest) {
     }
     usedRpc = true
   } else {
+    if (aggErr) {
+      console.warn('[admin/traffic] RPC fallback:', aggErr.message)
+    }
     let q = admin
       .from('page_views')
       .select('created_at,path,viewer_id,viewer_role,session_id,referrer')
+      .order('created_at', { ascending: false })
       .limit(FALLBACK_ROWS)
     if (sinceIso) q = q.gte('created_at', sinceIso)
-    const { data: rows } = await q
+    const { data: rows, error: rowsErr } = await q
+    if (rowsErr) console.error('[admin/traffic] fallback query error:', rowsErr)
 
     body = legacyTrafficFallback((rows || []) as Record<string, unknown>[], range, since)
   }

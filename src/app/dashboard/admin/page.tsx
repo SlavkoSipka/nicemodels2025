@@ -46,20 +46,31 @@ function money(n: number) {
 
 export default function AdminOverviewPage() {
   const t = useTranslations('admin.overview')
+  const tc = useTranslations('admin.common')
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState<Overview | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/stats/overview')
-      .then(r => r.json())
-      .then(d => {
-        setData(d)
+      .then(async r => {
+        const d = await r.json()
+        if (!r.ok || !d?.kpis) {
+          setError(d?.error || tc('loadFailed'))
+          setData(null)
+        } else {
+          setData(d)
+          setError(null)
+        }
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(() => {
+        setError(tc('loadFailed'))
+        setLoading(false)
+      })
   }, [])
 
-  if (loading || !data) {
+  if (loading) {
     return (
       <div className="p-3 sm:p-6 lg:p-8">
         <div className="h-8 w-52 bg-gray-200 rounded animate-pulse mb-6" />
@@ -69,6 +80,17 @@ export default function AdminOverviewPage() {
           ))}
         </div>
         <div className="h-80 bg-gray-200 rounded-xl animate-pulse" />
+      </div>
+    )
+  }
+
+  if (error || !data?.kpis) {
+    return (
+      <div className="p-3 sm:p-6 lg:p-8">
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          <p className="text-sm text-red-800">{error || tc('loadFailed')}</p>
+        </div>
       </div>
     )
   }

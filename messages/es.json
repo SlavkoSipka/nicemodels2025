@@ -53,6 +53,7 @@
       "failedToSaveTry": "Failed to save. Please try again.",
       "failedToDelete": "Failed to delete",
       "failedToUpdate": "Failed to update",
+      "loadFailed": "No se pudieron cargar los datos. Actualice la página.",
       "tryAgain": "Try again",
       "permanently": "permanently",
       "confirmDelete": "Type DELETE to permanently remove",

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyAdmin, bucketByDay } from '@/lib/adminApi'
+import { denseTrafficSeriesFromRpc } from '@/lib/adminUtils'
 
 export const runtime = 'nodejs'
 
 const DAY = 24 * 60 * 60 * 1000
+const TRAFFIC_FALLBACK_ROWS = 8000
 
 export async function GET(_req: NextRequest) {
   if (!(await verifyAdmin())) {
@@ -17,7 +19,7 @@ export async function GET(_req: NextRequest) {
 
   const [
     modelsC, clubsC, visitorsC, listingsC, activeBannersC, pendingMediaP, pendingMediaV,
-    verificationsC, reportsC, commentsC, ordersSum, revenue30, pageViewsSince, signupsSince,
+    verificationsC, reportsC, commentsC, ordersSum, revenue30, pageViewsCount, trafficAgg, signupsSince,
     roleDistribution, siteActions, topModelsStats,
   ] = await Promise.all([
     admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'model'),
@@ -32,12 +34,17 @@ export async function GET(_req: NextRequest) {
     admin.from('model_comments').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
     admin.from('orders').select('total_amount').eq('status', 'paid'),
     admin.from('orders').select('total_amount').eq('status', 'paid').gte('created_at', sinceIso),
-    admin.from('page_views').select('created_at').gte('created_at', sinceIso),
+    admin.from('page_views').select('id', { count: 'exact', head: true }).gte('created_at', sinceIso),
+    admin.rpc('get_traffic_aggregates_v1', { p_since: sinceIso }),
     admin.from('profiles').select('created_at,role').gte('created_at', sinceIso),
     admin.rpc('get_role_distribution_v1'),
     admin.from('site_actions').select('id, action_type, title, description, created_at').order('created_at', { ascending: false }).limit(15),
     admin.from('model_statistics').select('model_id').eq('action_type', 'profile_view'),
   ])
+
+  if (pageViewsCount.error) {
+    console.error('[admin/overview] page_views count error:', pageViewsCount.error)
+  }
 
   let roleCounts: Record<string, number> = { model: 0, company: 0, user: 0, admin: 0 }
   const rpcRoles = roleDistribution.data as { role: string | null; count: number | string | null }[] | null
@@ -62,7 +69,7 @@ export async function GET(_req: NextRequest) {
   // top models by profile_view count
   const modelViewCounts = new Map<string, number>()
   for (const row of topModelsStats.data || []) {
-    const id = (row as any).model_id as string
+    const id = (row as { model_id: string }).model_id
     modelViewCounts.set(id, (modelViewCounts.get(id) || 0) + 1)
   }
   const sortedTop = [...modelViewCounts.entries()]
@@ -77,12 +84,12 @@ export async function GET(_req: NextRequest) {
       admin.from('model_details').select('model_id,showname').in('model_id', topIds),
     ])
     const profileMap = new Map((topProfiles || []).map(p => [p.id, p]))
-    const detailMap = new Map((topDetails || []).map(d => [(d as any).model_id, d]))
+    const detailMap = new Map((topDetails || []).map(d => [(d as { model_id: string }).model_id, d]))
     topModels = sortedTop.map(([id, views]) => ({
       id,
       name:
-        (detailMap.get(id) as any)?.showname ||
-        (profileMap.get(id) as any)?.username ||
+        (detailMap.get(id) as { showname?: string } | undefined)?.showname ||
+        (profileMap.get(id) as { username?: string } | undefined)?.username ||
         'Model',
       views,
     }))
@@ -97,16 +104,33 @@ export async function GET(_req: NextRequest) {
     users: d.user || 0,
   }))
 
-  // Page views per day
-  const pageViewRows = (pageViewsSince.data || []) as { created_at: string }[]
-  const trafficSeries = bucketByDay(pageViewRows, since).map(d => ({
-    date: d.date,
-    views: d.count,
-  }))
+  // Page views per day — prefer RPC aggregates; fallback to recent raw rows
+  let trafficSeries: { date: string; views: number }[] = []
+  const aggRaw = trafficAgg.data
+  if (!trafficAgg.error && aggRaw != null && typeof aggRaw === 'object') {
+    trafficSeries = denseTrafficSeriesFromRpc(
+      (aggRaw as { series?: unknown }).series,
+      since,
+    )
+  } else {
+    if (trafficAgg.error) {
+      console.warn('[admin/overview] traffic RPC fallback:', trafficAgg.error.message)
+    }
+    const { data: pageViewRows } = await admin
+      .from('page_views')
+      .select('created_at')
+      .gte('created_at', sinceIso)
+      .order('created_at', { ascending: false })
+      .limit(TRAFFIC_FALLBACK_ROWS)
+    trafficSeries = bucketByDay(
+      (pageViewRows || []) as { created_at: string }[],
+      since,
+    ).map(d => ({ date: d.date, views: d.count }))
+  }
 
   // Revenue totals
-  const revTotal = (ordersSum.data || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0)
-  const rev30 = (revenue30.data || []).reduce((s, r: any) => s + Number(r.total_amount || 0), 0)
+  const revTotal = (ordersSum.data || []).reduce((s, r: { total_amount?: number | null }) => s + Number(r.total_amount || 0), 0)
+  const rev30 = (revenue30.data || []).reduce((s, r: { total_amount?: number | null }) => s + Number(r.total_amount || 0), 0)
 
   const pendingMedia = (pendingMediaP.count ?? 0) + (pendingMediaV.count ?? 0)
 
@@ -124,7 +148,7 @@ export async function GET(_req: NextRequest) {
       pendingComments: commentsC.count ?? 0,
       revenueAllTime: revTotal,
       revenue30d: rev30,
-      pageViews30d: pageViewRows.length,
+      pageViews30d: pageViewsCount.count ?? 0,
       signups30d: signupRows.length,
     },
     trafficSeries,

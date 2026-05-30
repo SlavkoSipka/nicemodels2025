@@ -52,26 +52,20 @@ export function trackProfileView(modelId: string): void {
 // insert into the analytics tables. Failures are always silent.
 // ==========================================================================
 
-async function postEvent(event_type: string, payload: Record<string, any>): Promise<void> {
+async function postEvent(event_type: string, payload: Record<string, unknown>): Promise<void> {
   if (typeof window === 'undefined') return
   try {
-    const body = JSON.stringify({ event_type, payload })
-    // Prefer sendBeacon for fire-and-forget reliability on navigations.
-    if (navigator.sendBeacon) {
-      const ok = navigator.sendBeacon(
-        '/api/track/event',
-        new Blob([body], { type: 'application/json' })
-      )
-      if (ok) return
-    }
-    await fetch('/api/track/event', {
+    const res = await fetch('/api/track/event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body,
+      body: JSON.stringify({ event_type, payload }),
       keepalive: true,
     })
+    if (process.env.NODE_ENV === 'development' && !res.ok) {
+      console.warn('[tracking]', event_type, 'failed:', res.status)
+    }
   } catch {
-    // silent
+    // silent in production
   }
 }
 

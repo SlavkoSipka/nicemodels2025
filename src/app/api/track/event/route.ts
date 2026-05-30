@@ -14,13 +14,36 @@ type EventType =
 
 interface EventBody {
   event_type: EventType
-  payload: Record<string, any>
+  payload: Record<string, unknown>
+}
+
+const IPV4_RE = /^(?:\d{1,3}\.){3}\d{1,3}$/
+const IPV6_RE = /^[\da-f:]+$/i
+
+/** Return a value safe for Postgres `inet`, or null if invalid / unknown. */
+export function sanitizeIp(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  const trimmed = raw.trim()
+  if (!trimmed || trimmed.toLowerCase() === 'unknown') return null
+  if (IPV4_RE.test(trimmed)) {
+    const parts = trimmed.split('.').map(Number)
+    if (parts.every(n => n >= 0 && n <= 255)) return trimmed
+    return null
+  }
+  if (trimmed.includes(':') && IPV6_RE.test(trimmed)) return trimmed
+  return null
 }
 
 function getIp(req: NextRequest): string | null {
   const fwd = req.headers.get('x-forwarded-for')
-  if (fwd) return fwd.split(',')[0]!.trim()
-  return req.headers.get('x-real-ip') || null
+  if (fwd) return sanitizeIp(fwd.split(',')[0]!.trim())
+  return sanitizeIp(req.headers.get('x-real-ip'))
+}
+
+async function parseEventBody(request: NextRequest): Promise<EventBody> {
+  const raw = await request.text()
+  if (!raw.trim()) return { event_type: '' as EventType, payload: {} }
+  return JSON.parse(raw) as EventBody
 }
 
 export async function POST(request: NextRequest) {
@@ -30,7 +53,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 })
     }
 
-    const { event_type, payload = {} } = (await request.json()) as EventBody
+    const { event_type, payload = {} } = await parseEventBody(request)
     if (!event_type) {
       return NextResponse.json({ error: 'event_type is required' }, { status: 400 })
     }
@@ -63,7 +86,7 @@ export async function POST(request: NextRequest) {
         const path = String(payload.path || '')
         if (!path) return NextResponse.json({ ok: true })
         if (path.startsWith('/dashboard/admin')) return NextResponse.json({ ok: true })
-        await admin.from('page_views').insert({
+        const { error } = await admin.from('page_views').insert({
           path,
           viewer_id,
           viewer_role,
@@ -72,6 +95,10 @@ export async function POST(request: NextRequest) {
           user_agent: ua,
           ip_address: ip,
         })
+        if (error) {
+          console.error('[track/event] page_view insert error:', error)
+          return NextResponse.json({ ok: false, error: 'insert failed' }, { status: 500 })
+        }
         break
       }
       case 'listing_view': {
@@ -106,19 +133,20 @@ export async function POST(request: NextRequest) {
       case 'banner_impression': {
         const banner_id = String(payload.banner_id || '')
         if (!banner_id) return NextResponse.json({ error: 'banner_id required' }, { status: 400 })
-        await admin.from('banner_impressions').insert({
+        const { error } = await admin.from('banner_impressions').insert({
           banner_id,
           viewer_id,
           page_path: payload.page_path || null,
           user_agent: ua,
           ip_address: ip,
         })
+        if (error) console.error('[track/event] banner_impression insert error:', error)
         break
       }
       case 'banner_click': {
         const banner_id = String(payload.banner_id || '')
         if (!banner_id) return NextResponse.json({ error: 'banner_id required' }, { status: 400 })
-        await admin.from('banner_clicks').insert({
+        const { error } = await admin.from('banner_clicks').insert({
           banner_id,
           viewer_id,
           click_type: payload.click_type || null,
@@ -126,6 +154,7 @@ export async function POST(request: NextRequest) {
           user_agent: ua,
           ip_address: ip,
         })
+        if (error) console.error('[track/event] banner_click insert error:', error)
         break
       }
       default:
@@ -133,7 +162,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ ok: true })
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err.message || 'server error' }, { status: 500 })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'server error'
+    return NextResponse.json({ ok: false, error: message }, { status: 500 })
   }
 }
