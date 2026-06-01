@@ -2486,15 +2486,6 @@
       "newsletter": "Newsletter abonnieren",
       "submit": "Registrieren",
       "submitting": "Konto wird erstellt...",
-      "successTitle": "Prüfen Sie Ihre E-Mails!",
-      "successWeSent": "Wir haben einen Bestätigungslink gesendet an:",
-      "successInstruction": "Bitte klicken Sie auf den Link, um Ihr Konto zu verifizieren.",
-      "successDidntReceive": "Keine E-Mail erhalten? Prüfen Sie den Spam-Ordner.",
-      "resendSending": "Sendet...",
-      "resendCooldown": "E-Mail erneut senden ({seconds}s)",
-      "resendButton": "Bestätigungs-E-Mail erneut senden",
-      "resendSuccess": "Bestätigungs-E-Mail gesendet! Prüfen Sie Ihren Posteingang.",
-      "goToLogin": "Zur Anmeldung",
       "errorSelectType": "Bitte wählen Sie einen Benutzertyp",
       "errorPhoneRequired": "Telefonnummer ist erforderlich",
       "errorDobRequired": "Geburtsdatum ist erforderlich",
@@ -2504,7 +2495,7 @@
       "errorPasswordLength": "Das Passwort muss mindestens 6 Zeichen lang sein",
       "errorAlreadyRegistered": "Diese E-Mail ist bereits registriert. Bitte melden Sie sich an oder verwenden Sie eine andere E-Mail.",
       "errorRegistrationFailed": "Registrierung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-      "errorResendFailed": "E-Mail konnte nicht erneut gesendet werden"
+      "errorNoSession": "Konto erstellt, aber Anmeldung fehlgeschlagen. Versuchen Sie sich anzumelden oder kontaktieren Sie den Support."
     },
     "forgotPassword": {
       "backToLogin": "Zurück zur Anmeldung",

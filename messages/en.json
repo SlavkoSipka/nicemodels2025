@@ -2486,15 +2486,6 @@
       "newsletter": "Subscribe to newsletter",
       "submit": "Register",
       "submitting": "Creating account...",
-      "successTitle": "Check your email!",
-      "successWeSent": "We've sent a verification link to:",
-      "successInstruction": "Please click the link to verify your account.",
-      "successDidntReceive": "Didn't receive the email? Check your spam folder.",
-      "resendSending": "Sending...",
-      "resendCooldown": "Resend Email ({seconds}s)",
-      "resendButton": "Resend Verification Email",
-      "resendSuccess": "Verification email sent! Check your inbox.",
-      "goToLogin": "Go to Login",
       "errorSelectType": "Please select a user type",
       "errorPhoneRequired": "Phone number is required",
       "errorDobRequired": "Date of birth is required",
@@ -2504,7 +2495,7 @@
       "errorPasswordLength": "Password must be at least 6 characters",
       "errorAlreadyRegistered": "This email is already registered. Please sign in or use a different email.",
       "errorRegistrationFailed": "Registration failed. Please try again.",
-      "errorResendFailed": "Failed to resend email"
+      "errorNoSession": "Account created but sign-in failed. Try logging in, or contact support if the problem continues."
     },
     "forgotPassword": {
       "backToLogin": "Back to login",

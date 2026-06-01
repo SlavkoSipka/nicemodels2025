@@ -2486,15 +2486,6 @@
       "newsletter": "Suscribirme al boletín",
       "submit": "Registrarse",
       "submitting": "Creando cuenta...",
-      "successTitle": "¡Revisa tu correo!",
-      "successWeSent": "Hemos enviado un enlace de verificación a:",
-      "successInstruction": "Haz clic en el enlace para verificar tu cuenta.",
-      "successDidntReceive": "¿No recibiste el correo? Revisa la carpeta de spam.",
-      "resendSending": "Enviando...",
-      "resendCooldown": "Reenviar correo ({seconds}s)",
-      "resendButton": "Reenviar correo de verificación",
-      "resendSuccess": "¡Correo enviado! Revisa tu bandeja de entrada.",
-      "goToLogin": "Ir al inicio de sesión",
       "errorSelectType": "Selecciona un tipo de usuario",
       "errorPhoneRequired": "El número de teléfono es obligatorio",
       "errorDobRequired": "La fecha de nacimiento es obligatoria",
@@ -2504,7 +2495,7 @@
       "errorPasswordLength": "La contraseña debe tener al menos 6 caracteres",
       "errorAlreadyRegistered": "Este correo ya está registrado. Inicia sesión o usa otro correo.",
       "errorRegistrationFailed": "Error en el registro. Inténtalo de nuevo.",
-      "errorResendFailed": "No se pudo reenviar el correo"
+      "errorNoSession": "Cuenta creada pero no se pudo iniciar sesión. Intente iniciar sesión o contacte con soporte."
     },
     "forgotPassword": {
       "backToLogin": "Volver al inicio de sesión",

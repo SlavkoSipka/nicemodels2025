@@ -94,6 +94,7 @@ Ova funkcija se koristi na home page-u:
 - `INVITE-SYSTEM-GUIDE.md` → Dokumentacija invite sistema
 - `INVITE-SYSTEM-IMPLEMENTATION.md` → Implementacija invite sistema
 - `INVITE-SYSTEM-SQL-COMPLETE.sql` → SQL za invite sistem
+- `DISABLE-SIGNUP-EMAIL-CONFIRMATION.md` → Isključivanje email potvrde pri registraciji (instant onboarding)
 
 ---
 

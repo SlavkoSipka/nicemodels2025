@@ -2486,15 +2486,6 @@
       "newsletter": "S'abonner à la newsletter",
       "submit": "S'inscrire",
       "submitting": "Création du compte...",
-      "successTitle": "Vérifiez vos e-mails !",
-      "successWeSent": "Nous avons envoyé un lien de vérification à :",
-      "successInstruction": "Cliquez sur le lien pour vérifier votre compte.",
-      "successDidntReceive": "Vous n'avez pas reçu l'e-mail ? Vérifiez votre dossier spam.",
-      "resendSending": "Envoi...",
-      "resendCooldown": "Renvoyer l'e-mail ({seconds}s)",
-      "resendButton": "Renvoyer l'e-mail de vérification",
-      "resendSuccess": "E-mail de vérification envoyé ! Consultez votre boîte de réception.",
-      "goToLogin": "Aller à la connexion",
       "errorSelectType": "Veuillez sélectionner un type d'utilisateur",
       "errorPhoneRequired": "Le numéro de téléphone est obligatoire",
       "errorDobRequired": "La date de naissance est obligatoire",
@@ -2504,7 +2495,7 @@
       "errorPasswordLength": "Le mot de passe doit contenir au moins 6 caractères",
       "errorAlreadyRegistered": "Cet e-mail est déjà enregistré. Connectez-vous ou utilisez un autre e-mail.",
       "errorRegistrationFailed": "Échec de l'inscription. Veuillez réessayer.",
-      "errorResendFailed": "Échec du renvoi de l'e-mail"
+      "errorNoSession": "Compte créé mais connexion impossible. Essayez de vous connecter ou contactez le support."
     },
     "forgotPassword": {
       "backToLogin": "Retour à la connexion",

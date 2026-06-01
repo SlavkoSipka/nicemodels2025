@@ -1,15 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import * as React from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
-import Link from 'next/link'
 import DobInput from '@/components/forms/DobInput'
 import PhoneInput from '@/components/ui/PhoneInput'
 import { joinPhone, DEFAULT_DIAL_CODE } from '@/lib/countries'
+
+function safePostAuthRedirect(raw: string | null): string {
+  const fallback = '/dashboard'
+  if (!raw) return fallback
+  const pathname = raw.trim().split('#')[0].split('?')[0]
+  if (!pathname.startsWith('/') || pathname.startsWith('//')) return fallback
+  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/') || pathname === '/onboarding') {
+    return pathname
+  }
+  return fallback
+}
 
 function getAge(dateString: string): number {
   const today = new Date()
@@ -21,7 +30,6 @@ function getAge(dateString: string): number {
 }
 
 export default function RegisterForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const t = useTranslations('auth.register')
   const [formData, setFormData] = useState({
@@ -41,15 +49,11 @@ export default function RegisterForm() {
   const [newsletter, setNewsletter] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
-  const [registeredEmail, setRegisteredEmail] = useState('')
-  const [resendCooldown, setResendCooldown] = useState(0)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    setSuccess(false)
 
     if (!formData.userType) {
       setError(t('errorSelectType'))
@@ -96,13 +100,11 @@ export default function RegisterForm() {
 
     try {
       const supabase = createClient()
-      
-      const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${siteOrigin}/auth/callback`,
           data: {
             username: formData.username,
             role: formData.userType === 'model' ? 'model' : formData.userType === 'company' ? 'company' : 'user',
@@ -123,106 +125,32 @@ export default function RegisterForm() {
         }
       }
 
-      // Supabase returns success with empty identities[] when email is already taken
-      // (with email confirmation enabled). Surface a clear error in that case.
       if (authData?.user && Array.isArray(authData.user.identities) && authData.user.identities.length === 0) {
         setError(t('errorAlreadyRegistered'))
         setLoading(false)
         return
       }
 
-      setSuccess(true)
-      setRegisteredEmail(formData.email)
-      setResendCooldown(60)
-    } catch (err: any) {
-      if (!err.message?.includes('Refresh Token Not Found')) {
-        setError(err.message || t('errorRegistrationFailed'))
-      } else {
-        setSuccess(true)
-        setRegisteredEmail(formData.email)
-        setResendCooldown(60)
+      if (authData?.session) {
+        window.location.href = safePostAuthRedirect(searchParams.get('redirect'))
+        return
       }
-    } finally {
+
+      setError(t('errorNoSession'))
       setLoading(false)
-    }
-  }
-
-  React.useEffect(() => {
-    if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [resendCooldown])
-
-  const handleResendEmail = async () => {
-    if (resendCooldown > 0) return
-    
-    setLoading(true)
-    setError('')
-    
-    try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: registeredEmail,
-      })
-      
-      if (error) throw error
-      
-      setResendCooldown(60)
-      alert(t('resendSuccess'))
-    } catch (err: any) {
-      setError(err.message || t('errorResendFailed'))
-    } finally {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : ''
+      if (message.includes('Refresh Token Not Found')) {
+        // Supabase client quirk after signUp — session cookies may still be set.
+        window.location.href = safePostAuthRedirect(searchParams.get('redirect'))
+        return
+      }
+      setError(message || t('errorRegistrationFailed'))
       setLoading(false)
     }
   }
 
   const inputCls = 'w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50'
-
-  if (success) {
-    return (
-      <div className="text-center py-8">
-        <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">{t('successTitle')}</h2>
-        <p className="text-sm text-gray-600 mb-2">{t('successWeSent')}</p>
-        <p className="text-sm font-semibold text-pink-600 mb-4">{registeredEmail}</p>
-        <p className="text-xs text-gray-500 mb-6">{t('successInstruction')}</p>
-
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg mb-4 text-left">
-            <p className="text-xs text-red-700">{error}</p>
-          </div>
-        )}
-
-        <div className="space-y-3 mb-6">
-          <p className="text-xs text-gray-500">{t('successDidntReceive')}</p>
-          <button
-            onClick={handleResendEmail}
-            disabled={resendCooldown > 0 || loading}
-            className="w-full px-6 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading
-              ? t('resendSending')
-              : resendCooldown > 0
-                ? t('resendCooldown', { seconds: resendCooldown })
-                : t('resendButton')}
-          </button>
-        </div>
-
-        <Link
-          href={searchParams.get('redirect') ? `/login?redirect=${searchParams.get('redirect')}` : '/login'}
-          className="inline-block px-6 py-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-semibold hover:from-pink-700 hover:to-rose-700 transition-all"
-        >
-          {t('goToLogin')}
-        </Link>
-      </div>
-    )
-  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
