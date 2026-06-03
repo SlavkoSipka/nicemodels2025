@@ -10,7 +10,8 @@ import { processImage } from '@/lib/imageProcessor'
 import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
-import PhoneInput from '@/components/ui/PhoneInput'
+import { splitPhone } from '@/lib/countries'
+import { ageFromDateOfBirth } from '@/lib/age'
 
 // Countries list (abbreviated)
 const COUNTRIES = [
@@ -144,7 +145,7 @@ function NewLanguageInput({
 
 export default function ModelOnboardingForm() {
   const router = useRouter()
-  const { refreshProfile } = useAuth()
+  const { refreshProfile, profile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [currentStep, setCurrentStep] = useState(1)
@@ -156,7 +157,6 @@ export default function ModelOnboardingForm() {
     gender: '',
     ethnicity: '',
     nationality: '',
-    age: '',
     
     // Physical Features (Step 2)
     hair_color: '',
@@ -226,8 +226,6 @@ export default function ModelOnboardingForm() {
 
   // Contact Details (Step 10)
   const [showPhoneNumber, setShowPhoneNumber] = useState(false)
-  const [countryCode, setCountryCode] = useState('+41') // Switzerland default
-  const [phoneNumber, setPhoneNumber] = useState('')
   const [hasViber, setHasViber] = useState(false)
   const [hasWhatsApp, setHasWhatsApp] = useState(false)
   const [hasTelegram, setHasTelegram] = useState(false)
@@ -769,12 +767,8 @@ export default function ModelOnboardingForm() {
       setError(t('err.shownameGender'))
       return false
     }
-    if (!phoneNumber.trim()) {
+    if (!profile?.phone?.trim()) {
       setError(t('err.phone'))
-      return false
-    }
-    if (formData.age && (parseInt(formData.age) < 18 || parseInt(formData.age) > 100)) {
-      setError(t('err.ageRange'))
       return false
     }
     return true
@@ -822,7 +816,7 @@ export default function ModelOnboardingForm() {
         gender: formData.gender || null,
         ethnicity: formData.ethnicity || null,
         nationality: formData.nationality || null,
-        age: formData.age ? parseInt(formData.age) : null,
+        age: ageFromDateOfBirth(profile?.date_of_birth),
       }
 
       const { error: detailsError } = await supabase
@@ -831,13 +825,14 @@ export default function ModelOnboardingForm() {
 
       if (detailsError) throw detailsError
 
-      if (phoneNumber.trim()) {
+      if (profile?.phone?.trim()) {
+        const { dialCode, number } = splitPhone(profile.phone)
         const { error: contactError } = await supabase
           .from('model_contact_details')
           .upsert({
             model_id: user.id,
-            country_code: countryCode,
-            phone_number: phoneNumber.trim(),
+            country_code: dialCode,
+            phone_number: number.trim(),
           }, { onConflict: 'model_id' })
 
         if (contactError) throw contactError
@@ -911,21 +906,6 @@ export default function ModelOnboardingForm() {
               </div>
             </div>
 
-            {/* Phone Number */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">
-                {t('s1.phone')} <span className="text-pink-600">*</span>
-              </label>
-              <PhoneInput
-                countryCode={countryCode}
-                phoneNumber={phoneNumber}
-                onCountryCodeChange={setCountryCode}
-                onPhoneNumberChange={setPhoneNumber}
-                placeholder={t('s1.phonePh')}
-                required
-              />
-            </div>
-
             {/* Divider */}
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-gray-200" />
@@ -933,8 +913,8 @@ export default function ModelOnboardingForm() {
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
-            {/* 2×2 grid: Slogan, Ethnicity, Nationality, Age */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Slogan, Ethnicity, Nationality */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Slogan */}
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">{t('s1.slogan')}</label>
@@ -980,20 +960,6 @@ export default function ModelOnboardingForm() {
                     <option key={country} value={country}>{country}</option>
                   ))}
                 </select>
-              </div>
-
-              {/* Age */}
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">{t('s1.age')}</label>
-                <input
-                  type="number"
-                  value={formData.age}
-                  onChange={(e) => handleChange('age', e.target.value)}
-                  placeholder={t('s1.agePh')}
-                  min="18"
-                  max="100"
-                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
-                />
               </div>
             </div>
 
@@ -1986,21 +1952,11 @@ export default function ModelOnboardingForm() {
                 </label>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1">
-                  {t('s10.phone')} <span className="text-red-500">*</span>
-                </label>
-                <PhoneInput
-                  countryCode={countryCode}
-                  phoneNumber={phoneNumber}
-                  onCountryCodeChange={setCountryCode}
-                  onPhoneNumberChange={setPhoneNumber}
-                  placeholder={t('s10.phonePh')}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t('s10.phoneHint')}
+              {profile?.phone && (
+                <p className="text-sm text-gray-600">
+                  {t('s10.phoneFromRegistration', { phone: profile.phone })}
                 </p>
-              </div>
+              )}
 
               {/* Contact Apps */}
               <div className="flex flex-wrap gap-3 mt-4">

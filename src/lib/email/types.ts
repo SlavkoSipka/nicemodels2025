@@ -23,6 +23,7 @@ export type EmailKind =
   | 'verification_approved'
   | 'verification_rejected'
   // Engagement
+  | 'welcome'
   | 'fav_digest'
   | 'saved_search_match'
   // Reports
@@ -40,6 +41,7 @@ export const KIND_TO_CATEGORY: Record<EmailKind, EmailCategory> = {
   verification_submitted:  'verification',
   verification_approved:   'verification',
   verification_rejected:   'verification',
+  welcome:                 'engagement',
   fav_digest:              'fav_digest',
   saved_search_match:      'saved_search_alerts',
   report_received:         'reports',
@@ -52,6 +54,8 @@ export const NON_OPT_OUT_KINDS: Set<EmailKind> = new Set([
   'admin_account_blocked',
   'admin_account_unblocked',
   'admin_account_deleted',
+  // One-time welcome after registration.
+  'welcome',
 ])
 
 export interface BaseEmailData {

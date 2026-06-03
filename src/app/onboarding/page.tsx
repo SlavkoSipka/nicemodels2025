@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useAuth } from '@/components/auth/AuthProvider'
@@ -17,6 +17,7 @@ export default function OnboardingPage() {
   const { user, profile, isLoading: authLoading, profileError, refreshProfile } = useAuth()
   const [userRole, setUserRole] = useState<string | null>(null)
   const [stuckTooLong, setStuckTooLong] = useState(false)
+  const welcomeRequested = useRef(false)
 
   // Decide what to do once auth + profile resolve.
   useEffect(() => {
@@ -39,6 +40,14 @@ export default function OnboardingPage() {
     }
     setUserRole(profile.role || 'user')
   }, [authLoading, user, profile, router])
+
+  // One-time welcome email when onboarding form is shown (model / club).
+  useEffect(() => {
+    if (!userRole || welcomeRequested.current) return
+    if (userRole !== 'model' && userRole !== 'company') return
+    welcomeRequested.current = true
+    fetch('/api/email/welcome', { method: 'POST' }).catch(() => {})
+  }, [userRole])
 
   // If the page hasn't resolved (no role, no redirect) after 10s, surface
   // the retry UI. Covers all stuck states: auth hanging, profile missing, etc.

@@ -212,6 +212,30 @@ export function sendVerificationRejectedEmail(opts: BaseRecipient & { reason?: s
   })
 }
 
+// ---------- Welcome (registration) --------------------------------------------
+
+export function sendWelcomeEmail(opts: BaseRecipient) {
+  const name = opts.displayName || 'there'
+  return sendEmail({
+    to: opts.email,
+    subject: 'Welcome to NiceModels',
+    kind: 'welcome',
+    recipientUserId: opts.userId ?? null,
+    layout: {
+      title: 'Welcome to NiceModels',
+      preheader: 'Thanks for joining NiceModels.ch — complete your profile to get started.',
+      bodyHtml: `
+        <p>Hi ${escape(name)},</p>
+        <p>Welcome to <strong>NiceModels.ch</strong> — we're glad you're here.</p>
+        <p>Your account is ready. Complete your profile on the onboarding page to start using the platform.</p>
+        <p style="margin-top:14px;color:#64748b;font-size:13px;">If you have any questions, our team is happy to help.</p>
+      `,
+      ctaLabel: 'Continue setup',
+      ctaUrl: `${APP_URL}/onboarding`,
+    },
+  })
+}
+
 // ---------- Favorites digest -------------------------------------------------
 
 export interface FavDigestItem {

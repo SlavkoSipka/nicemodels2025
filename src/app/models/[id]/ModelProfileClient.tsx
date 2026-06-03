@@ -99,7 +99,6 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   const t = useTranslations('models.profile')
   const te = useTranslations('onboarding.model.eth')
   const ts2 = useTranslations('onboarding.model.s2')
-  const tBio = useTranslations('dashboard.model.biography')
   const tDay = useTranslations('onboarding.model.day')
   const tDur = useTranslations('onboarding.model.dur')
   const tIncall = useTranslations('onboarding.model.incall')
@@ -695,9 +694,10 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   }
 
   const formatGender = (gender: string) => {
-    if (!gender) return t('notSpecified')
+    if (!gender?.trim()) return null
     const key = genderKey(gender)
-    return key ? tBio(key as any) : gender.charAt(0).toUpperCase() + gender.slice(1)
+    if (key) return t(key as 'genderFemale' | 'genderMale' | 'genderTrans')
+    return gender.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
   const formatIncallOptions = (options: string[]) => {
@@ -1039,6 +1039,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
               {/* ── Stats row ── */}
               {modelDetails && (() => {
+                const genderLabel = modelDetails.gender ? formatGender(modelDetails.gender) : null
                 const statRows = [
                   modelDetails.age         && [t('statAge'),         `${modelDetails.age} ${t('yrsShort')}`],
                   modelDetails.height_cm   && [t('statHeight'),      `${modelDetails.height_cm} cm`],
@@ -1051,7 +1052,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   modelDetails.ethnicity   && [t('statEthnicity'),   formatEthnicity(modelDetails.ethnicity)],
                   modelDetails.nationality && [t('statNationality'), modelDetails.nationality],
                   modelDetails.dress_size  && [t('statDress'),       modelDetails.dress_size.toUpperCase()],
-                  modelDetails.gender      && [t('statGender'),      formatGender(modelDetails.gender)],
+                  genderLabel              && [t('statGender'),      genderLabel],
                 ].filter(Boolean)
                 if (!statRows.length) return null
                 return (

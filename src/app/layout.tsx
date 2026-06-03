@@ -123,7 +123,7 @@ export default async function RootLayout({
     const { data: profileRow } = await supabase
       .from("profiles")
       .select(
-        "id, username, role, avatar_url, onboarding_completed, is_blocked, blocked_reason, blocked_at",
+        "id, username, role, avatar_url, onboarding_completed, phone, date_of_birth, is_blocked, blocked_reason, blocked_at",
       )
       .eq("id", user.id)
       .maybeSingle();

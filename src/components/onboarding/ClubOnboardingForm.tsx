@@ -6,24 +6,21 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
-import PhoneInput from '@/components/ui/PhoneInput'
+import { splitPhone } from '@/lib/countries'
 
 interface ClubFormData {
   club_name: string
   display_name: string
   area: string
-  country_code: string
-  phone_number: string
   has_viber: boolean
   has_whatsapp: boolean
   has_telegram: boolean
-  email: string
   website: string
 }
 
 export default function ClubOnboardingForm() {
   const router = useRouter()
-  const { refreshProfile } = useAuth()
+  const { refreshProfile, profile, user } = useAuth()
   const t = useTranslations('onboarding.club')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -32,12 +29,9 @@ export default function ClubOnboardingForm() {
     club_name: '',
     display_name: '',
     area: '',
-    country_code: '+41',
-    phone_number: '',
     has_viber: false,
     has_whatsapp: false,
     has_telegram: false,
-    email: '',
     website: '',
   })
 
@@ -45,7 +39,7 @@ export default function ClubOnboardingForm() {
     handleChange('area', city?.name || '')
   }
 
-  const handleChange = (field: keyof ClubFormData, value: any) => {
+  const handleChange = (field: keyof ClubFormData, value: boolean | string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
@@ -56,7 +50,7 @@ export default function ClubOnboardingForm() {
       setError(t('clubNameRequired'))
       return
     }
-    if (!formData.phone_number.trim()) {
+    if (!profile?.phone?.trim()) {
       setError(t('phoneRequired'))
       return
     }
@@ -66,15 +60,15 @@ export default function ClubOnboardingForm() {
 
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user: authUser } } = await supabase.auth.getUser()
 
-      if (!user) throw new Error('Not authenticated')
+      if (!authUser) throw new Error('Not authenticated')
 
       const { error: detailsError } = await supabase
         .from('club_details')
         .upsert(
           {
-            club_id: user.id,
+            club_id: authUser.id,
             club_name: formData.club_name,
             display_name: formData.display_name || null,
             area: formData.area || null,
@@ -84,16 +78,17 @@ export default function ClubOnboardingForm() {
 
       if (detailsError) throw detailsError
 
+      const { dialCode, number } = splitPhone(profile.phone)
       const { error: contactError } = await supabase
         .from('club_contact_details')
         .upsert({
-          club_id: user.id,
-          country_code: formData.country_code,
-          phone_number: formData.phone_number.trim(),
+          club_id: authUser.id,
+          country_code: dialCode,
+          phone_number: number.trim(),
           has_viber: formData.has_viber,
           has_whatsapp: formData.has_whatsapp,
           has_telegram: formData.has_telegram,
-          email: formData.email.trim() || null,
+          email: user?.email?.trim() || authUser.email?.trim() || null,
           website: formData.website.trim() || null,
           show_phone_number: true,
         }, { onConflict: 'club_id' })
@@ -109,9 +104,9 @@ export default function ClubOnboardingForm() {
       await refreshProfile()
       router.push('/dashboard/company')
       router.refresh()
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Submission error:', err)
-      setError(err.message || t('submissionError'))
+      setError(err instanceof Error ? err.message : t('submissionError'))
     } finally {
       setLoading(false)
     }
@@ -200,20 +195,11 @@ export default function ClubOnboardingForm() {
           <h2 className="text-lg font-bold text-gray-900 mb-3">{t('contactDetails')}</h2>
 
           <div className="space-y-4">
-            {/* Phone */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('phoneNumber')} <span className="text-pink-600">*</span>
-              </label>
-              <PhoneInput
-                countryCode={formData.country_code}
-                phoneNumber={formData.phone_number}
-                onCountryCodeChange={(v) => handleChange('country_code', v)}
-                onPhoneNumberChange={(v) => handleChange('phone_number', v)}
-                placeholder={t('phonePlaceholder')}
-                required
-              />
-            </div>
+            {profile?.phone && (
+              <p className="text-sm text-gray-600">
+                {t('phoneFromRegistration', { phone: profile.phone })}
+              </p>
+            )}
 
             {/* Messaging apps */}
             <div>
@@ -238,32 +224,18 @@ export default function ClubOnboardingForm() {
               </div>
             </div>
 
-            {/* Email & Website */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('email')} <span className="text-gray-400 font-normal">{t('optional')}</span>
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleChange('email', e.target.value)}
-                  placeholder={t('emailPlaceholder')}
-                  className={inputCls}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('website')} <span className="text-gray-400 font-normal">{t('optional')}</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.website}
-                  onChange={(e) => handleChange('website', e.target.value)}
-                  placeholder={t('websitePlaceholder')}
-                  className={inputCls}
-                />
-              </div>
+            {/* Website */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('website')} <span className="text-gray-400 font-normal">{t('optional')}</span>
+              </label>
+              <input
+                type="text"
+                value={formData.website}
+                onChange={(e) => handleChange('website', e.target.value)}
+                placeholder={t('websitePlaceholder')}
+                className={inputCls}
+              />
             </div>
           </div>
         </div>
@@ -279,7 +251,7 @@ export default function ClubOnboardingForm() {
         <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
           <button
             type="submit"
-            disabled={loading || !formData.club_name || !formData.phone_number.trim()}
+            disabled={loading || !formData.club_name || !profile?.phone?.trim()}
             className="px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white rounded-lg font-medium hover:from-pink-600 hover:to-pink-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? t('saving') : t('finish')}
