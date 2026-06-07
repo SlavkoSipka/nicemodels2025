@@ -1,5 +1,37 @@
 export type BannerPlacement = 'feed_wide' | 'feed_card' | 'sidebar_left'
 
+export interface BannerSpec {
+  /** CSS aspect-ratio value, e.g. "4 / 1". */
+  aspectRatio: string
+  /** Tailwind aspect class, e.g. "aspect-[4/1]". */
+  aspectClass: string
+  /** Recommended source dimensions in pixels. */
+  recommended: { width: number; height: number }
+}
+
+/** Single source of truth for banner slot dimensions per placement. */
+export const BANNER_SPECS: Record<BannerPlacement, BannerSpec> = {
+  feed_wide: {
+    aspectRatio: '4 / 1',
+    aspectClass: 'aspect-[4/1]',
+    recommended: { width: 1200, height: 300 },
+  },
+  feed_card: {
+    aspectRatio: '3 / 4',
+    aspectClass: 'aspect-[3/4]',
+    recommended: { width: 600, height: 800 },
+  },
+  sidebar_left: {
+    aspectRatio: '2 / 3',
+    aspectClass: 'aspect-[2/3]',
+    recommended: { width: 500, height: 750 },
+  },
+}
+
+export function bannerSpec(p: string | undefined | null): BannerSpec {
+  return BANNER_SPECS[normalizePlacement(p)]
+}
+
 export function normalizePlacement(p: string | undefined | null): BannerPlacement {
   if (p === 'feed_card' || p === 'sidebar_left') return p
   return 'feed_wide'

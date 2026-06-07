@@ -1,10 +1,10 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { trackBannerImpression, trackBannerClick } from '@/lib/tracking'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
+import BannerImage from './BannerImage'
 
 export interface BannerData {
   id: string
@@ -92,16 +92,14 @@ export default function BannerCard({ banner, priority = false }: BannerCardProps
           el.style.borderColor = 'rgba(0,0,0,0.06)'
         }}
       >
-        <Image
+        <BannerImage
           src={banner.image_url}
           alt={banner.title}
-          fill
           sizes="(max-width: 640px) 100vw, 50vw"
           priority={priority}
           quality={85}
-          placeholder="blur"
           blurDataURL={BLUR}
-          className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+          hoverScale
         />
       </div>
     </Link>

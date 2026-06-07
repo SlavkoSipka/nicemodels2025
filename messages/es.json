@@ -1811,9 +1811,9 @@
         "step3": "3. Selecciona la duración:",
         "oneTimePayment": "Pago único",
         "step4": "4. Sube la imagen del banner:",
-        "uploadHintFeedCard": "Recomendado: vertical ~3:4 (como una tarjeta de perfil). Máx. 10 MB.",
-        "uploadHintSidebar": "Recomendado: vertical ~2:3 o 9:16. Máx. 10 MB.",
-        "uploadHintWide": "Recomendado: panorámico 4:1. Máx. 10 MB. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Recomendado: vertical 3:4 — p. ej. 600×800 px. Máx. 10 MB. Tu imagen completa siempre se muestra, nunca se recorta.",
+        "uploadHintSidebar": "Recomendado: vertical 2:3 — p. ej. 500×750 px. Máx. 10 MB. Tu imagen completa siempre se muestra, nunca se recorta.",
+        "uploadHintWide": "Recomendado: panorámico 4:1 — p. ej. 1200×300 px. Máx. 10 MB. JPG, PNG, WebP. Tu imagen completa siempre se muestra, nunca se recorta.",
         "clickToUpload": "Haz clic para subir el banner",
         "linkOptional": "Enlace (opcional)",
         "linkPlaceholder": "https://... o déjalo vacío para tu perfil",
@@ -2385,9 +2385,9 @@
         "step3": "3. Selecciona la duración:",
         "oneTimePayment": "Pago único",
         "step4": "4. Sube la imagen del banner:",
-        "uploadHintFeedCard": "Recomendado: vertical ~3:4 (como una tarjeta de perfil). Máx. 10 MB.",
-        "uploadHintSidebar": "Recomendado: vertical ~2:3 o 9:16. Máx. 10 MB.",
-        "uploadHintWide": "Recomendado: panorámico 4:1. Máx. 10 MB. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Recomendado: vertical 3:4 — p. ej. 600×800 px. Máx. 10 MB. Tu imagen completa siempre se muestra, nunca se recorta.",
+        "uploadHintSidebar": "Recomendado: vertical 2:3 — p. ej. 500×750 px. Máx. 10 MB. Tu imagen completa siempre se muestra, nunca se recorta.",
+        "uploadHintWide": "Recomendado: panorámico 4:1 — p. ej. 1200×300 px. Máx. 10 MB. JPG, PNG, WebP. Tu imagen completa siempre se muestra, nunca se recorta.",
         "clickToUpload": "Haz clic para subir el banner",
         "linkOptional": "Enlace (opcional)",
         "linkPlaceholder": "https://... o déjalo vacío para tu perfil de club",
@@ -4227,7 +4227,10 @@
     },
     "placementMock": {
       "desktop": "Escritorio",
-      "mobile": "Móvil"
+      "mobile": "Móvil",
+      "livePreviewTitle": "Exactamente como se ve en el sitio",
+      "livePreviewHint": "Tu imagen completa siempre se muestra — nunca se recorta.",
+      "yourBanner": "Tu banner"
     },
     "placementPicker": {
       "activeInSlot": "Activo en este espacio",

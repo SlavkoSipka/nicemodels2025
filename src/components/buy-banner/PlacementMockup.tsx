@@ -54,10 +54,12 @@ function WideBanner({ previewUrl }: { previewUrl?: string | null }) {
   const t = useTranslations('components.bannerPreviewMock')
   if (previewUrl) {
     return (
-      <div className={`relative rounded overflow-hidden ${HIGHLIGHT_RING}`}>
+      <div className={`relative aspect-[4/1] rounded overflow-hidden bg-slate-100 ${HIGHLIGHT_RING}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={previewUrl} alt="" className="w-full aspect-[4/1] object-cover" />
-        <div className="absolute top-0.5 left-0.5 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center gap-0.5 shadow" style={{ fontSize: 5 }}>
+        <img src={previewUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-60" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-contain" />
+        <div className="absolute top-0.5 left-0.5 z-10 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center gap-0.5 shadow" style={{ fontSize: 5 }}>
           <Megaphone className="w-[5px] h-[5px]" />
           {t('bannerYourAd')}
         </div>
@@ -85,10 +87,12 @@ function CardBannerCell({ previewUrl }: { previewUrl?: string | null }) {
   const t = useTranslations('components.bannerPreviewMock')
   if (previewUrl) {
     return (
-      <div className={`relative aspect-[3/4] rounded overflow-hidden ${HIGHLIGHT_RING}`}>
+      <div className={`relative aspect-[3/4] rounded overflow-hidden bg-slate-100 ${HIGHLIGHT_RING}`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={previewUrl} alt="" className="w-full h-full object-cover" />
-        <div className="absolute top-0.5 left-0.5 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center gap-0.5 shadow" style={{ fontSize: 5 }}>
+        <img src={previewUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-60" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-contain" />
+        <div className="absolute top-0.5 left-0.5 z-10 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center gap-0.5 shadow" style={{ fontSize: 5 }}>
           <Megaphone className="w-[5px] h-[5px]" />
           {t('bannerYourAd')}
         </div>
@@ -117,10 +121,12 @@ function SidebarBannerCell({ previewUrl }: { previewUrl?: string | null }) {
   const t = useTranslations('components.bannerPreviewMock')
   if (previewUrl) {
     return (
-      <div className={`relative w-full h-full rounded overflow-hidden ${HIGHLIGHT_RING} min-h-[120px]`}>
+      <div className={`relative w-full h-full rounded overflow-hidden bg-slate-100 ${HIGHLIGHT_RING} min-h-[120px]`}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={previewUrl} alt="" className="w-full h-full object-cover" />
-        <div className="absolute top-0.5 left-0.5 right-0.5 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center justify-center gap-0.5 shadow" style={{ fontSize: 5 }}>
+        <img src={previewUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-60" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-contain" />
+        <div className="absolute top-0.5 left-0.5 right-0.5 z-10 bg-violet-600 text-white px-1 py-[1px] rounded font-extrabold flex items-center justify-center gap-0.5 shadow" style={{ fontSize: 5 }}>
           <Megaphone className="w-[5px] h-[5px]" />
           {t('bannerYoursLabel')}
         </div>

@@ -1811,9 +1811,9 @@
         "step3": "3. Dauer wählen:",
         "oneTimePayment": "Einmalzahlung",
         "step4": "4. Banner-Bild hochladen:",
-        "uploadHintFeedCard": "Empfohlen: Hochformat ~3:4 (wie eine Profilkarte). Max. 10 MB.",
-        "uploadHintSidebar": "Empfohlen: Hochformat ~2:3 oder 9:16. Max. 10 MB.",
-        "uploadHintWide": "Empfohlen: breites Querformat 4:1. Max. 10 MB. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Empfohlen: Hochformat 3:4 — z. B. 600×800 px. Max. 10 MB. Dein ganzes Bild wird immer angezeigt, nie beschnitten.",
+        "uploadHintSidebar": "Empfohlen: Hochformat 2:3 — z. B. 500×750 px. Max. 10 MB. Dein ganzes Bild wird immer angezeigt, nie beschnitten.",
+        "uploadHintWide": "Empfohlen: breites 4:1 — z. B. 1200×300 px. Max. 10 MB. JPG, PNG, WebP. Dein ganzes Bild wird immer angezeigt, nie beschnitten.",
         "clickToUpload": "Klicken, um Banner hochzuladen",
         "linkOptional": "Link (optional)",
         "linkPlaceholder": "https://... oder leer lassen für dein Profil",
@@ -2385,9 +2385,9 @@
         "step3": "3. Dauer wählen:",
         "oneTimePayment": "Einmalzahlung",
         "step4": "4. Banner-Bild hochladen:",
-        "uploadHintFeedCard": "Empfohlen: Hochformat ~3:4 (wie eine Profilkarte). Max. 10 MB.",
-        "uploadHintSidebar": "Empfohlen: Hochformat ~2:3 oder 9:16. Max. 10 MB.",
-        "uploadHintWide": "Empfohlen: breites Querformat 4:1. Max. 10 MB. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Empfohlen: Hochformat 3:4 — z. B. 600×800 px. Max. 10 MB. Dein ganzes Bild wird immer angezeigt, nie beschnitten.",
+        "uploadHintSidebar": "Empfohlen: Hochformat 2:3 — z. B. 500×750 px. Max. 10 MB. Dein ganzes Bild wird immer angezeigt, nie beschnitten.",
+        "uploadHintWide": "Empfohlen: breites 4:1 — z. B. 1200×300 px. Max. 10 MB. JPG, PNG, WebP. Dein ganzes Bild wird immer angezeigt, nie beschnitten.",
         "clickToUpload": "Klicken, um Banner hochzuladen",
         "linkOptional": "Link (optional)",
         "linkPlaceholder": "https://... oder leer lassen für dein Club-Profil",
@@ -4227,7 +4227,10 @@
     },
     "placementMock": {
       "desktop": "Desktop",
-      "mobile": "Mobil"
+      "mobile": "Mobil",
+      "livePreviewTitle": "Genau so sieht es auf der Seite aus",
+      "livePreviewHint": "Dein ganzes Bild wird immer angezeigt — nie beschnitten.",
+      "yourBanner": "Dein Banner"
     },
     "placementPicker": {
       "activeInSlot": "In diesem Platz aktiv",

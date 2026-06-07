@@ -1811,9 +1811,9 @@
         "step3": "3. Select duration:",
         "oneTimePayment": "One-time payment",
         "step4": "4. Upload banner image:",
-        "uploadHintFeedCard": "Recommended: portrait ~3:4 (like a profile card). Max 10MB.",
-        "uploadHintSidebar": "Recommended: portrait ~2:3 or 9:16. Max 10MB.",
-        "uploadHintWide": "Recommended: wide landscape 4:1. Max 10MB. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Recommended: portrait 3:4 — e.g. 600×800 px. Max 10MB. Your whole image is always shown, never cropped.",
+        "uploadHintSidebar": "Recommended: portrait 2:3 — e.g. 500×750 px. Max 10MB. Your whole image is always shown, never cropped.",
+        "uploadHintWide": "Recommended: wide 4:1 — e.g. 1200×300 px. Max 10MB. JPG, PNG, WebP. Your whole image is always shown, never cropped.",
         "clickToUpload": "Click to upload banner",
         "linkOptional": "Link (optional)",
         "linkPlaceholder": "https://... or leave empty for your profile",
@@ -2385,9 +2385,9 @@
         "step3": "3. Select duration:",
         "oneTimePayment": "One-time payment",
         "step4": "4. Upload banner image:",
-        "uploadHintFeedCard": "Recommended: portrait ~3:4 (like a profile card). Max 10MB.",
-        "uploadHintSidebar": "Recommended: portrait ~2:3 or 9:16. Max 10MB.",
-        "uploadHintWide": "Recommended: wide landscape 4:1. Max 10MB. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Recommended: portrait 3:4 — e.g. 600×800 px. Max 10MB. Your whole image is always shown, never cropped.",
+        "uploadHintSidebar": "Recommended: portrait 2:3 — e.g. 500×750 px. Max 10MB. Your whole image is always shown, never cropped.",
+        "uploadHintWide": "Recommended: wide 4:1 — e.g. 1200×300 px. Max 10MB. JPG, PNG, WebP. Your whole image is always shown, never cropped.",
         "clickToUpload": "Click to upload banner",
         "linkOptional": "Link (optional)",
         "linkPlaceholder": "https://... or leave empty for your club profile",
@@ -4227,7 +4227,10 @@
     },
     "placementMock": {
       "desktop": "Desktop",
-      "mobile": "Mobile"
+      "mobile": "Mobile",
+      "livePreviewTitle": "Exactly how it looks on the site",
+      "livePreviewHint": "Your whole image is always shown — nothing is ever cropped.",
+      "yourBanner": "Your banner"
     },
     "placementPicker": {
       "activeInSlot": "Active in this slot",

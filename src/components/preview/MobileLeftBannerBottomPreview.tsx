@@ -47,8 +47,12 @@ export default function MobileLeftBannerBottomPreview({
               }`}
             >
               {previewUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={previewUrl} alt="" aria-hidden className="absolute inset-0 w-full h-full object-cover scale-110 blur-md opacity-60" />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-contain" />
+                </>
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 flex items-center justify-center">
                   <Megaphone className={sm ? 'w-2 h-2 text-white' : 'w-6 h-6 text-white'} />

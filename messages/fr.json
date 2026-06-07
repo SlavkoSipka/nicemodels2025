@@ -1811,9 +1811,9 @@
         "step3": "3. Sélectionnez la durée :",
         "oneTimePayment": "Paiement unique",
         "step4": "4. Téléversez l'image de la bannière :",
-        "uploadHintFeedCard": "Recommandé : portrait ~3:4 (comme une carte de profil). 10 Mo max.",
-        "uploadHintSidebar": "Recommandé : portrait ~2:3 ou 9:16. 10 Mo max.",
-        "uploadHintWide": "Recommandé : format paysage large 4:1. 10 Mo max. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Recommandé : portrait 3:4 — p. ex. 600×800 px. 10 Mo max. Toute votre image est toujours affichée, jamais rognée.",
+        "uploadHintSidebar": "Recommandé : portrait 2:3 — p. ex. 500×750 px. 10 Mo max. Toute votre image est toujours affichée, jamais rognée.",
+        "uploadHintWide": "Recommandé : large 4:1 — p. ex. 1200×300 px. 10 Mo max. JPG, PNG, WebP. Toute votre image est toujours affichée, jamais rognée.",
         "clickToUpload": "Cliquez pour téléverser une bannière",
         "linkOptional": "Lien (facultatif)",
         "linkPlaceholder": "https://... ou laissez vide pour votre profil",
@@ -2385,9 +2385,9 @@
         "step3": "3. Sélectionnez la durée :",
         "oneTimePayment": "Paiement unique",
         "step4": "4. Téléversez l'image de la bannière :",
-        "uploadHintFeedCard": "Recommandé : portrait ~3:4 (comme une carte de profil). 10 Mo max.",
-        "uploadHintSidebar": "Recommandé : portrait ~2:3 ou 9:16. 10 Mo max.",
-        "uploadHintWide": "Recommandé : format paysage large 4:1. 10 Mo max. JPG, PNG, WebP.",
+        "uploadHintFeedCard": "Recommandé : portrait 3:4 — p. ex. 600×800 px. 10 Mo max. Toute votre image est toujours affichée, jamais rognée.",
+        "uploadHintSidebar": "Recommandé : portrait 2:3 — p. ex. 500×750 px. 10 Mo max. Toute votre image est toujours affichée, jamais rognée.",
+        "uploadHintWide": "Recommandé : large 4:1 — p. ex. 1200×300 px. 10 Mo max. JPG, PNG, WebP. Toute votre image est toujours affichée, jamais rognée.",
         "clickToUpload": "Cliquez pour téléverser une bannière",
         "linkOptional": "Lien (facultatif)",
         "linkPlaceholder": "https://... ou laissez vide pour votre profil de club",
@@ -4227,7 +4227,10 @@
     },
     "placementMock": {
       "desktop": "Bureau",
-      "mobile": "Mobile"
+      "mobile": "Mobile",
+      "livePreviewTitle": "Exactement comme sur le site",
+      "livePreviewHint": "Toute votre image est toujours affichée — jamais rognée.",
+      "yourBanner": "Votre bannière"
     },
     "placementPicker": {
       "activeInSlot": "Déjà actif sur cet emplacement",

@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import BannerPlacementPreview from '@/components/buy-banner/BannerPlacementPreview'
 import PlacementPicker from '@/components/buy-banner/PlacementPicker'
+import BannerLivePreview from '@/components/buy-banner/BannerLivePreview'
+import BannerImage from '@/components/home/BannerImage'
 import CantonMultiSelect from '@/components/buy-banner/CantonMultiSelect'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
@@ -445,12 +447,12 @@ export default function BuyBannerPage() {
             <p className="text-sm font-bold text-gray-800">{t('step4')}</p>
             <p className="text-xs text-gray-400">{uploadHint}</p>
             {imagePreview ? (
-              <div className={`relative rounded-xl overflow-hidden border border-gray-200 ${previewAspectClass}`}>
-                <img src={imagePreview} alt={t('previewAlt')} className="w-full h-full object-cover" />
+              <div className={`relative rounded-xl overflow-hidden border border-gray-200 bg-slate-100 ${previewAspectClass}`}>
+                <BannerImage src={imagePreview} alt={t('previewAlt')} plain />
                 <button
                   type="button"
                   onClick={clearImage}
-                  className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700"
+                  className="absolute top-2 right-2 z-10 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -478,6 +480,10 @@ export default function BuyBannerPage() {
                 className="w-full max-w-lg px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand"
               />
             </div>
+
+            {imagePreview && selectedPlacement && (
+              <BannerLivePreview placement={selectedPlacement} previewUrl={imagePreview} />
+            )}
           </div>
         )}
 
@@ -541,17 +547,17 @@ export default function BuyBannerPage() {
               {banners.map(banner => (
                 <div key={banner.id} className="border border-gray-100 rounded-xl overflow-hidden bg-gray-50">
                   {banner.image_path && (
-                    <img
-                      src={storageUrl(banner.image_path)!}
-                      alt={t('bannerFallbackTitle')}
-                      className={`w-full object-cover ${
+                    <div
+                      className={`relative w-full bg-slate-100 ${
                         normalizePlacement(banner.placement) === 'feed_wide'
                           ? 'aspect-[4/1]'
                           : normalizePlacement(banner.placement) === 'sidebar_left'
-                            ? 'aspect-[2/3] max-h-96'
-                            : 'aspect-[3/4] max-h-80'
+                            ? 'aspect-[2/3] max-h-96 mx-auto'
+                            : 'aspect-[3/4] max-h-80 mx-auto'
                       }`}
-                    />
+                    >
+                      <BannerImage src={storageUrl(banner.image_path)!} alt={t('bannerFallbackTitle')} plain />
+                    </div>
                   )}
                   <div className="p-3 flex items-center justify-between gap-2">
                     <div>

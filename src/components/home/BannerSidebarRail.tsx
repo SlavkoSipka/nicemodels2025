@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import type { BannerData } from './BannerCard'
+import BannerImage from './BannerImage'
 
 const BLUR =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z'
@@ -31,15 +31,13 @@ export default function BannerSidebarRail({ banners }: BannerSidebarRailProps) {
                 background: '#f1f5f9',
               }}
             >
-              <Image
+              <BannerImage
                 src={banner.image_url!}
                 alt={banner.title}
-                fill
                 sizes="240px"
                 quality={65}
-                placeholder="blur"
                 blurDataURL={BLUR}
-                className="object-cover group-hover:scale-[1.02] transition-transform duration-500"
+                hoverScale
               />
             </div>
           </Link>
