@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getStripe } from '@/lib/stripe/server'
 import { validateStripeEnv } from '@/lib/stripe/validate-env'
 import { findBannerPrice, fetchBannerRegionPricing } from '@/lib/bannerPricing'
-import { isValidCanton, MAX_BANNER_REGIONS } from '@/lib/cantons'
+import { isValidCanton, cantonGroup, MAX_BANNER_REGIONS } from '@/lib/cantons'
 import { normalizePlacement } from '@/lib/bannerPlacement'
 import { activateOrderItems } from '@/lib/orders/activateOrderItems'
 import { isModelSedcardFreePeriod } from '@/lib/modelSedcardFree'
@@ -406,7 +406,9 @@ function resolveItem(
       throw new Error('Product type mismatch for banner package')
     }
     const placement = normalizePlacement(item.placement)
-    const cantons = (item.targetCantons || []).filter(isValidCanton)
+    const cantons = Array.from(
+      new Set((item.targetCantons || []).filter(isValidCanton).map(cantonGroup)),
+    )
     if (cantons.length < 1 || cantons.length > MAX_BANNER_REGIONS) {
       throw new Error(`Pick between 1 and ${MAX_BANNER_REGIONS} regions`)
     }

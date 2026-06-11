@@ -17,7 +17,7 @@ export const CANTON_NAMES: Record<string, string> = {
   GE: 'Geneva',
   FL: 'Liechtenstein',
   GL: 'Glarus',
-  GR: 'Grisons',
+  GR: 'Graubünden GR',
   JU: 'Jura',
   LU: 'Lucerne',
   NE: 'Neuchâtel',
@@ -42,14 +42,44 @@ export const TOTAL_CANTONS = CANTON_CODES.length // 27
 
 export const VALID_CANTONS = new Set(CANTON_CODES)
 
+/**
+ * Some neighbouring cantons are treated as a single location everywhere they
+ * are displayed, filtered, and selected. Members map to a canonical group
+ * code; the underlying ISO codes are kept intact in the cities table, geo-IP
+ * cookie, and banner targeting.
+ */
+const CANTON_GROUP: Record<string, string> = {
+  BL: 'BS', // Basel-Land + Basel-Stadt → Basel
+  AR: 'AI', // Appenzell A. + Appenzell I. → Appenzell AI/AR
+}
+
+/** Display labels for canonical group codes (override CANTON_NAMES). */
+const GROUP_LABELS: Record<string, string> = {
+  BS: 'Basel',
+  AI: 'Appenzell AI/AR',
+}
+
+/** Map any canton code to its canonical group code (identity when ungrouped). */
+export function cantonGroup(code: string | null | undefined): string {
+  if (!code) return ''
+  return CANTON_GROUP[code] ?? code
+}
+
 /** Maximum number of cantons a banner buyer may target in one purchase. */
 export const MAX_BANNER_REGIONS = 4
 
 /** Largest cantons by population — quick-pick (sized to MAX_BANNER_REGIONS). */
 export const TOP_CANTONS = ['ZH', 'BE', 'VD', 'AG'] as const
 
+/**
+ * Canonical group codes offered in selectors and region dropdowns — raw codes
+ * that collapse into another group (BL, AR) are dropped.
+ */
+export const SELECTABLE_REGIONS = CANTON_CODES.filter(c => !(c in CANTON_GROUP))
+
 export function cantonName(code: string): string {
-  return CANTON_NAMES[code] || code
+  const group = cantonGroup(code)
+  return GROUP_LABELS[group] || CANTON_NAMES[group] || code
 }
 
 export function isValidCanton(code: string | null | undefined): code is string {

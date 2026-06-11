@@ -4,16 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-
-const CANTON_NAMES: Record<string, string> = {
-  AG: 'Aargau', AI: 'Appenzell I.', AR: 'Appenzell A.', BE: 'Bern',
-  BL: 'Basel-Land', BS: 'Basel-Stadt', FR: 'Fribourg', GE: 'Geneva',
-  FL: 'Liechtenstein',
-  GL: 'Glarus', GR: 'Grisons', JU: 'Jura', LU: 'Lucerne',
-  NE: 'Neuchâtel', NW: 'Nidwalden', OW: 'Obwalden', SG: 'St. Gallen',
-  SH: 'Schaffhausen', SO: 'Solothurn', SZ: 'Schwyz', TG: 'Thurgau',
-  TI: 'Ticino', UR: 'Uri', VD: 'Vaud', VS: 'Valais', ZG: 'Zug', ZH: 'Zürich',
-}
+import { cantonName, cantonGroup } from '@/lib/cantons'
 
 interface ModelDetail {
   city?: string
@@ -117,8 +108,8 @@ export default function CitySelector({
     const counts: Record<string, number> = {}
     models.forEach(m => {
       const codes = new Set<string>()
-      if (m.canton) codes.add(m.canton)
-      if (m.live_location_canton) codes.add(m.live_location_canton)
+      if (m.canton) codes.add(cantonGroup(m.canton))
+      if (m.live_location_canton) codes.add(cantonGroup(m.live_location_canton))
       codes.forEach((code) => {
         counts[code] = (counts[code] || 0) + 1
       })
@@ -162,7 +153,7 @@ export default function CitySelector({
   // Filter models for dynamic category/offer counts
   const modelsForCategory = useMemo(() => {
     return models.filter(m => {
-      if (selectedRegion !== 'all' && m.canton !== selectedRegion && m.live_location_canton !== selectedRegion) {
+      if (selectedRegion !== 'all' && cantonGroup(m.canton) !== selectedRegion && cantonGroup(m.live_location_canton) !== selectedRegion) {
         return false
       }
       if (
@@ -180,7 +171,7 @@ export default function CitySelector({
 
   const modelsForOffer = useMemo(() => {
     return models.filter(m => {
-      if (selectedRegion !== 'all' && m.canton !== selectedRegion && m.live_location_canton !== selectedRegion) {
+      if (selectedRegion !== 'all' && cantonGroup(m.canton) !== selectedRegion && cantonGroup(m.live_location_canton) !== selectedRegion) {
         return false
       }
       if (
@@ -262,7 +253,7 @@ export default function CitySelector({
   const handleCitySelect = (city: CityResult) => {
     setSelectedLiveLocation('all')
     setSelectedCity(city.name)
-    const canton = city.canton?.trim()
+    const canton = cantonGroup(city.canton?.trim())
     setSelectedRegion(canton || 'all')
     setCityQuery(city.postal_code ? `${city.name} (${city.postal_code})` : city.name)
     setCityOpen(false)
@@ -271,7 +262,7 @@ export default function CitySelector({
   const selectLiveFromDropdown = (city: string) => {
     setSelectedLiveLocation(city)
     setSelectedCity('all')
-    const canton = liveLocationToCanton[city]?.trim()
+    const canton = cantonGroup(liveLocationToCanton[city]?.trim())
     setSelectedRegion(canton || 'all')
     setCityQuery(`Live: ${city}`)
     setCityOpen(false)
@@ -291,8 +282,6 @@ export default function CitySelector({
       cityResults.length > 0 ||
       cityLoading ||
       (cityQuery.length >= 1 && !cityLoading))
-
-  const cantonName = (code: string) => CANTON_NAMES[code] || code
 
   const btnBase: React.CSSProperties = {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',

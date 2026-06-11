@@ -76,6 +76,12 @@ export default function PhoneInput({
     setOpen(false)
   }
 
+  const effectivePlaceholder = useMemo(() => {
+    if (!placeholder) return undefined
+    const withoutDialCode = placeholder.replace(/^\+\d{1,4}\s*/, '').trim()
+    return withoutDialCode || placeholder
+  }, [placeholder])
+
   const buttonLabel = selected
     ? `${selected.flag} ${selected.dialCode}`
     : countryCode || DEFAULT_DIAL_CODE
@@ -100,7 +106,7 @@ export default function PhoneInput({
         type="tel"
         value={phoneNumber}
         onChange={e => onPhoneNumberChange(e.target.value)}
-        placeholder={placeholder}
+        placeholder={effectivePlaceholder}
         required={required}
         disabled={disabled}
         className={`w-full min-w-0 flex-1 px-3 py-2 text-sm border-2 border-gray-200 rounded-r-lg focus:outline-none focus:ring-1 focus:ring-pink-200 focus:border-pink-500 transition-all bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed ${inputClassName}`}

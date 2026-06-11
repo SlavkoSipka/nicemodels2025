@@ -11,6 +11,7 @@ import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
 import MobileBannerPopup from './MobileBannerPopup'
 import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
+import { cantonGroup } from '@/lib/cantons'
 import { useVisitorCanton } from '@/lib/useVisitorCanton'
 import CitySelector from './CitySelector'
 import StoriesSection from '@/components/stories/StoriesSection'
@@ -112,7 +113,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     let result = initialModels
     if (selectedRegion !== 'all') {
       result = result.filter(
-        m => m.canton === selectedRegion || m.live_location_canton === selectedRegion,
+        m => cantonGroup(m.canton) === selectedRegion || cantonGroup(m.live_location_canton) === selectedRegion,
       )
     }
     if (selectedCity !== 'all') {

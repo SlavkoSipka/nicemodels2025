@@ -20,7 +20,7 @@ import { type StatusMessage } from './HomePageClient'
 import { ChevronLeft, ChevronRight, ChevronDown, Search, MapPin, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { seededShuffle } from '@/lib/randomShuffle'
-import { CANTON_NAMES } from '@/lib/cantons'
+import { cantonName, cantonGroup } from '@/lib/cantons'
 
 interface Model {
   id: string
@@ -185,7 +185,7 @@ export default function MixedHomeClient({
   const handleCitySelect = (city: CityResult) => {
     setSelectedLiveLocation('all')
     setSelectedCity(city.name)
-    const canton = city.canton?.trim()
+    const canton = cantonGroup(city.canton?.trim())
     setSelectedRegion(canton || 'all')
     setCityQuery(city.postal_code ? `${city.name} (${city.postal_code})` : city.name)
     setCityOpen(false)
@@ -195,7 +195,7 @@ export default function MixedHomeClient({
   const selectLiveFromDropdown = (city: string) => {
     setSelectedLiveLocation(city)
     setSelectedCity('all')
-    const canton = liveLocationToCanton[city]?.trim()
+    const canton = cantonGroup(liveLocationToCanton[city]?.trim())
     setSelectedRegion(canton || 'all')
     setCityQuery(`Live: ${city}`)
     setCityOpen(false)
@@ -242,14 +242,17 @@ export default function MixedHomeClient({
     const counts: Record<string, number> = {}
     models.forEach(m => {
       const codes = new Set<string>()
-      if (m.canton) codes.add(m.canton)
-      if (m.live_location_canton) codes.add(m.live_location_canton)
+      if (m.canton) codes.add(cantonGroup(m.canton))
+      if (m.live_location_canton) codes.add(cantonGroup(m.live_location_canton))
       codes.forEach((code) => {
         counts[code] = (counts[code] || 0) + 1
       })
     })
     clubs.forEach(c => {
-      if (c.canton) counts[c.canton] = (counts[c.canton] || 0) + 1
+      if (c.canton) {
+        const g = cantonGroup(c.canton)
+        counts[g] = (counts[g] || 0) + 1
+      }
     })
     return counts
   }, [models, clubs])
@@ -258,8 +261,6 @@ export default function MixedHomeClient({
     Object.entries(regionCounts).sort((a, b) => b[1] - a[1]),
     [regionCounts]
   )
-
-  const cantonName = (code: string) => CANTON_NAMES[code] || code
 
   // Live location counts from models that have active live locations
   const liveLocationCounts = useMemo(() => {
@@ -302,7 +303,7 @@ export default function MixedHomeClient({
     let result = models
     if (selectedRegion !== 'all') {
       result = result.filter(
-        m => m.canton === selectedRegion || m.live_location_canton === selectedRegion,
+        m => cantonGroup(m.canton) === selectedRegion || cantonGroup(m.live_location_canton) === selectedRegion,
       )
     }
     if (selectedCity !== 'all') {
@@ -329,7 +330,7 @@ export default function MixedHomeClient({
 
   const filteredClubs = useMemo(() => {
     let result = clubs
-    if (selectedRegion !== 'all') result = result.filter(c => c.canton === selectedRegion)
+    if (selectedRegion !== 'all') result = result.filter(c => cantonGroup(c.canton) === selectedRegion)
     if (selectedCity !== 'all') result = result.filter(c => c.city === selectedCity)
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()

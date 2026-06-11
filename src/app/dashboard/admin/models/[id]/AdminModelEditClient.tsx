@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
 import PhoneInput from '@/components/ui/PhoneInput'
+import CitySearch from '@/components/ui/CitySearch'
 import { MODEL_ETHNICITY_SLUGS } from '@/lib/modelEthnicitySlugs'
 
 interface Props {
@@ -561,7 +562,15 @@ export default function AdminModelEditClient({
             <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5 space-y-4 sm:space-y-5">
               <div>
                 <label className={labelCls}>{t('city')}</label>
-                <input value={city} onChange={e => setCity(e.target.value)} placeholder={t('cityPlaceholder')} className={inputCls} />
+                <CitySearch
+                  value={city}
+                  postalCode={zipCode}
+                  onChange={(c) => {
+                    setCity(c?.name || '')
+                    if (c?.postal_code) setZipCode(c.postal_code)
+                  }}
+                  placeholder={t('cityPlaceholder')}
+                />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>

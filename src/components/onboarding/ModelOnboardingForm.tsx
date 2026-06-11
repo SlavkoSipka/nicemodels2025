@@ -179,6 +179,9 @@ export default function ModelOnboardingForm() {
     
     // Area/Location (Step 6)
     city: '',
+    zip_code: '',
+    street: '',
+    street_number: '',
     incall_options: [] as string[],
     outcall_options: [] as string[],
     
@@ -817,6 +820,12 @@ export default function ModelOnboardingForm() {
         ethnicity: formData.ethnicity || null,
         nationality: formData.nationality || null,
         age: ageFromDateOfBirth(profile?.date_of_birth),
+        city: formData.city || null,
+        zip_code: formData.zip_code || null,
+        street: formData.street || null,
+        street_number: formData.street_number || null,
+        incall_options: formData.incall_options.length > 0 ? formData.incall_options : null,
+        outcall_options: formData.outcall_options.length > 0 ? formData.outcall_options : null,
       }
 
       const { error: detailsError } = await supabase
@@ -1418,11 +1427,49 @@ export default function ModelOnboardingForm() {
             <div>
               <CitySearch
                 value={formData.city}
-                onChange={(city) => handleChange('city', city?.name || '')}
+                postalCode={formData.zip_code}
+                onChange={(city) => {
+                  handleChange('city', city?.name || '')
+                  if (city?.postal_code) handleChange('zip_code', city.postal_code)
+                }}
                 label={t('s6.city')}
                 placeholder={t('s6.cityPh')}
                 inputClassName="border-2 border-gray-200 focus:border-pink-500 focus:ring-1 focus:ring-pink-200"
               />
+            </div>
+
+            {/* Address */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">{t('s6.postalCode')}</label>
+                <input
+                  type="text"
+                  value={formData.zip_code}
+                  onChange={(e) => handleChange('zip_code', e.target.value)}
+                  placeholder={t('s6.postalCodePh')}
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">{t('s6.street')}</label>
+                <input
+                  type="text"
+                  value={formData.street}
+                  onChange={(e) => handleChange('street', e.target.value)}
+                  placeholder={t('s6.streetPh')}
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1">{t('s6.streetNumber')}</label>
+                <input
+                  type="text"
+                  value={formData.street_number}
+                  onChange={(e) => handleChange('street_number', e.target.value)}
+                  placeholder={t('s6.streetNumberPh')}
+                  className="w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:border-pink-500 focus:ring-1 focus:ring-pink-200 transition-all bg-gray-50"
+                />
+              </div>
             </div>
 
             {/* Incall Options */}

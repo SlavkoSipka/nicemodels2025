@@ -26,6 +26,9 @@ export type EmailKind =
   | 'welcome'
   | 'fav_digest'
   | 'saved_search_match'
+  // Purchase (sedcard / ad lifecycle)
+  | 'sedcard_expiring'
+  | 'sedcard_expired'
   // Reports
   | 'report_received'
   | 'report_resolved'
@@ -44,6 +47,8 @@ export const KIND_TO_CATEGORY: Record<EmailKind, EmailCategory> = {
   welcome:                 'engagement',
   fav_digest:              'fav_digest',
   saved_search_match:      'saved_search_alerts',
+  sedcard_expiring:        'purchase',
+  sedcard_expired:         'purchase',
   report_received:         'reports',
   report_resolved:         'reports',
 }

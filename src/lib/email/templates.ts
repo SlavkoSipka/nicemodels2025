@@ -283,6 +283,61 @@ function eventLabel(e: FavDigestItem['events'][number]): string {
   return e.description
 }
 
+// ---------- Sedcard / ad lifecycle -------------------------------------------
+
+/**
+ * Reminder sent ~24h before a model's sedcard (ad package) expires.
+ * `expiryLabel` is a human-readable, localized date string.
+ */
+export function sendSedcardExpiringEmail(opts: BaseRecipient & { expiryLabel: string }) {
+  const name = opts.displayName || 'there'
+  return sendEmail({
+    to: opts.email,
+    subject: 'Your NiceModels sedcard expires in 24 hours',
+    kind: 'sedcard_expiring',
+    recipientUserId: opts.userId ?? null,
+    layout: {
+      title: 'Your sedcard expires soon',
+      preheader: `Your ad goes offline on ${opts.expiryLabel}. Renew now to stay visible.`,
+      bodyHtml: `
+        <p>Hi ${escape(name)},</p>
+        <p>Your sedcard (advertisement) on NiceModels.ch is about to expire.</p>
+        <p style="margin:12px 0;padding:10px 12px;background:#fef9c3;border-left:3px solid #facc15;border-radius:4px;color:#854d0e;font-size:13px;">
+          <strong>Expires:</strong> ${escape(opts.expiryLabel)}
+        </p>
+        <p>To keep your profile visible to visitors without interruption, renew your sedcard before it expires.</p>
+      `,
+      ctaLabel: 'Renew my sedcard',
+      ctaUrl: `${APP_URL}/dashboard/model/activate-ad`,
+    },
+  })
+}
+
+/**
+ * Sent once after a model's sedcard (ad package) has expired and they no
+ * longer have an active ad.
+ */
+export function sendSedcardExpiredEmail(opts: BaseRecipient & { expiryLabel: string }) {
+  const name = opts.displayName || 'there'
+  return sendEmail({
+    to: opts.email,
+    subject: 'Your NiceModels sedcard has expired',
+    kind: 'sedcard_expired',
+    recipientUserId: opts.userId ?? null,
+    layout: {
+      title: 'Your sedcard has expired',
+      preheader: 'Your profile is no longer visible to visitors. Reactivate it anytime.',
+      bodyHtml: `
+        <p>Hi ${escape(name)},</p>
+        <p>Your sedcard (advertisement) on NiceModels.ch expired on <strong>${escape(opts.expiryLabel)}</strong>.</p>
+        <p>Your profile is no longer shown to visitors. You can reactivate it anytime — it only takes a minute and your profile details stay saved.</p>
+      `,
+      ctaLabel: 'Reactivate my sedcard',
+      ctaUrl: `${APP_URL}/dashboard/model/activate-ad`,
+    },
+  })
+}
+
 // ---------- Reports ----------------------------------------------------------
 
 /**

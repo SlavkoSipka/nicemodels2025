@@ -4,15 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Loader2, MapPin, X, Radar } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-
-const CANTON_NAMES: Record<string, string> = {
-  AG: 'Aargau', AI: 'Appenzell I.', AR: 'Appenzell A.', BE: 'Bern',
-  BL: 'Basel-Land', BS: 'Basel-Stadt', FR: 'Fribourg', GE: 'Geneva',
-  FL: 'Liechtenstein', GL: 'Glarus', GR: 'Grisons', JU: 'Jura', LU: 'Lucerne',
-  NE: 'Neuchâtel', NW: 'Nidwalden', OW: 'Obwalden', SG: 'St. Gallen',
-  SH: 'Schaffhausen', SO: 'Solothurn', SZ: 'Schwyz', TG: 'Thurgau',
-  TI: 'Ticino', UR: 'Uri', VD: 'Vaud', VS: 'Valais', ZG: 'Zug', ZH: 'Zürich',
-}
+import { cantonName } from '@/lib/cantons'
 
 interface CityResult {
   id: string
@@ -138,7 +130,7 @@ export default function NearbyFilter({ value, onChange, matchCount, className = 
               >
                 <span className="font-medium text-slate-700">{c.name}</span>
                 {c.postal_code && <span className="text-slate-400 ml-1">({c.postal_code})</span>}
-                {c.canton && <span className="text-slate-300 ml-1">· {CANTON_NAMES[c.canton] || c.canton}</span>}
+                {c.canton && <span className="text-slate-300 ml-1">· {cantonName(c.canton)}</span>}
               </button>
             ))}
             {!loading && results.length === 0 && query.length >= 1 && (

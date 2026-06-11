@@ -60,8 +60,9 @@ Sad *svi* email-ovi (auth + transactional) idu iz iste Resend domene → bolja d
 
 ```bash
 # Run each file in order from supabase-docs/
-1. CREATE-email-tables.sql           # email_unsubscribes + email_log
-2. (already deployed)                # CREATE-saved-searches-and-radius.sql etc.
+1. CREATE-email-tables.sql                      # email_unsubscribes + email_log
+2. ALTER-order-items-add-email-reminders.sql    # sedcard expiry email tracking
+3. (already deployed)                           # CREATE-saved-searches-and-radius.sql etc.
 ```
 
 ## 4. Cron za favorite digest
@@ -84,6 +85,30 @@ Koristi jedno od:
               -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
   ```
 - **Netlify Scheduled Functions** ili **Vercel Cron** ako tu hostujemo.
+
+## 4b. Cron za sedcard reminder + expired (OBAVEZNO)
+
+Endpoint: `POST /api/cron/email/sedcard-reminders` sa header-om `x-cron-secret: <CRON_SECRET>`.
+
+Šta radi (idempotentno, preko `order_items.reminder_email_sent_at` / `expired_email_sent_at`):
+
+- **24h pre isteka** sedcard-a (ad_package) → `sedcard_expiring` mejl modelu.
+- **Po isteku** sedcard-a (ako model nema drugi aktivan oglas) → `sedcard_expired` mejl.
+
+Preduslov: pokrenuti `ALTER-order-items-add-email-reminders.sql`.
+
+Preporučeni raspored: **na svaki sat** (npr. GitHub Actions cron `0 * * * *`):
+```yaml
+on:
+  schedule: [{ cron: '0 * * * *' }]
+jobs:
+  sedcard:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          curl -X POST https://www.nicemodels.ch/api/cron/email/sedcard-reminders \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"
+```
 
 ## 5. Šta je u kodu već povezano
 

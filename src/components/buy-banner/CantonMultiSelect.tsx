@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { Check, RotateCcw, Star } from 'lucide-react'
-import { CANTON_CODES, CANTON_NAMES, MAX_BANNER_REGIONS, TOP_CANTONS } from '@/lib/cantons'
+import { SELECTABLE_REGIONS, cantonName, MAX_BANNER_REGIONS, TOP_CANTONS } from '@/lib/cantons'
 
 interface CantonMultiSelectProps {
   value: string[]
@@ -51,7 +51,7 @@ export default function CantonMultiSelect({
   }
 
   const sortedCantons = useMemo(
-    () => [...CANTON_CODES].sort((a, b) => CANTON_NAMES[a].localeCompare(CANTON_NAMES[b])),
+    () => [...SELECTABLE_REGIONS].sort((a, b) => cantonName(a).localeCompare(cantonName(b))),
     [],
   )
 
@@ -106,7 +106,7 @@ export default function CantonMultiSelect({
                     : 'bg-white text-gray-700 border-gray-200 hover:border-violet-400 hover:bg-violet-50'
               }`}
             >
-              <span className="truncate">{CANTON_NAMES[code]}</span>
+              <span className="truncate">{cantonName(code)}</span>
               <span className="flex items-center gap-1 shrink-0">
                 <span className={`text-[10px] font-mono ${isOn ? 'text-violet-100' : 'text-gray-400'}`}>
                   {code}

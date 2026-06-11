@@ -1,3 +1,5 @@
+import { cantonGroup } from '@/lib/cantons'
+
 export type BannerPlacement = 'feed_wide' | 'feed_card' | 'sidebar_left'
 
 export interface BannerSpec {
@@ -65,9 +67,10 @@ export function partitionBannersByPlacement<T extends { placement?: BannerPlacem
 export function filterBannersByCanton<
   T extends { target_cantons?: string[] | null },
 >(list: T[], effectiveCanton: string | null): T[] {
+  const visitor = effectiveCanton ? cantonGroup(effectiveCanton) : null
   return list.filter(b => {
     if (!b.target_cantons || b.target_cantons.length === 0) return true
-    if (!effectiveCanton) return false
-    return b.target_cantons.includes(effectiveCanton)
+    if (!visitor) return false
+    return b.target_cantons.map(cantonGroup).includes(visitor)
   })
 }
