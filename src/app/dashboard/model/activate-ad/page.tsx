@@ -272,7 +272,7 @@ export default function ActivateAdPage() {
         </div>
 
         {/* Profile readiness notice */}
-        <div className="bg-amber-50 border border-amber-300 rounded-xl p-3.5 md:p-5">
+        <div data-tour="ad-info" className="bg-amber-50 border border-amber-300 rounded-xl p-3.5 md:p-5">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
               <AlertTriangle className="w-5 h-5 text-amber-600" />
@@ -317,12 +317,14 @@ export default function ActivateAdPage() {
           </div>
         </div>
 
-        <SitePreview
-          page="home"
-          highlight="ad-card"
-          title={t('previewTitle')}
-          compact
-        />
+        <div data-tour="ad-preview">
+          <SitePreview
+            page="home"
+            highlight="ad-card"
+            title={t('previewTitle')}
+            compact
+          />
+        </div>
 
         {checkoutError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">

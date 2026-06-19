@@ -1882,11 +1882,11 @@
         "done": "Terminer",
         "continue": "Continuer",
         "welcomeTitle": "Bienvenue ! 👋",
-        "welcomeDesc": "Publions rapidement ta première sedcard pour qu'on puisse te trouver. Cela ne prend qu'une minute — suis les étapes.",
+        "welcomeDesc": "Voyons rapidement comment publier ta sedcard. Cela ne prend qu'une minute — suis simplement les étapes.",
         "navSedcardTitle": "Activer la sedcard",
-        "navSedcardDesc": "C'est ici que tu publies ta sedcard. Clique sur Continuer et nous l'ouvrons pour toi.",
+        "navSedcardDesc": "Une fois ton profil complet, touche « Activer la sedcard » pour la publier. Appuie sur Suivant et nous l'ouvrons pour toi.",
         "menuTitle": "Ouvre le menu",
-        "menuDesc": "Sur ton téléphone, touche ce menu pour accéder à toutes les sections. Appuie sur Continuer et nous t'emmenons vers « Activer la sedcard ».",
+        "menuDesc": "Touche ici pour ouvrir le menu où se trouvent toutes tes sections. Appuie sur Suivant.",
         "pkgTitle": "1. Choisis une durée",
         "pkgDesc": "Choisis combien de temps ta sedcard reste en ligne. Après avoir sélectionné une formule, tu peux définir le début et l'ajouter au panier.",
         "activationTitle": "2. Quand doit-elle commencer ?",
@@ -1914,7 +1914,17 @@
         "bannerConfirmTitle": "5. Confirme et paie",
         "bannerConfirmDesc": "Accepte les conditions et paie pour publier ta bannière. Terminé !",
         "bannerDoneTitle": "Tout est prêt ! ✨",
-        "bannerDoneDesc": "Tu sais maintenant publier une sedcard et une bannière. Tu peux relancer cette visite à tout moment depuis ton tableau de bord."
+        "bannerDoneDesc": "Tu sais maintenant publier une sedcard et une bannière. Tu peux relancer cette visite à tout moment depuis ton tableau de bord.",
+        "profileTitle": "Ouvre « Mon profil »",
+        "profileDesc": "Touche « Mon profil » pour le déplier. C'est ici que tu remplis toutes tes informations. Appuie sur Suivant.",
+        "profileTabsTitle": "Complète chaque onglet",
+        "profileTabsDesc": "Avant d'activer ta sedcard, remplis tous ces onglets — biographie, photos, contact, tarifs et le reste. Un profil complet obtient beaucoup plus de vues.",
+        "adInfoTitle": "À lire d'abord",
+        "adInfoDesc": "Lis cet avis avant d'activer ton annonce — il indique ce dont ton profil a besoin pour que ta sedcard soit au top.",
+        "adPreviewTitle": "Aperçu en direct",
+        "adPreviewDesc": "Voici comment ta sedcard apparaîtra aux visiteurs du site.",
+        "durationTitle": "Choisis une durée",
+        "durationDesc": "Une fois tout ce qui précède terminé, choisis la durée d'affichage de ta sedcard et passe au paiement pour la publier. C'est tout !"
       }
     },
     "company": {

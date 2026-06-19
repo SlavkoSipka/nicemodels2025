@@ -138,10 +138,6 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
         writeState(next)
         router.push(routes[next.routeIndex])
         setTick((x) => x + 1)
-      } else if (state.tour === 'sedcard') {
-        // Chain into the short banner walkthrough, preserving the auto flag.
-        writeState(null)
-        startTour('banner', state.auto)
       } else {
         if (state.auto) markComplete()
         writeState(null)
@@ -158,7 +154,10 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
       const usable = segmentDefs.filter((s: TourStepDef) => {
         if (s.device === 'mobile' && !isMobile) return false
         if (s.device === 'desktop' && isMobile) return false
-        if (s.element && !document.querySelector(s.element)) return false
+        // Only drop optional steps when their anchor is genuinely absent
+        // (e.g. the package grid is hidden when an ad is already active).
+        // Steps we open ourselves (submenu) must stay even while collapsed.
+        if (s.optional && s.element && !document.querySelector(s.element)) return false
         return true
       })
 
@@ -174,6 +173,20 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
           description: t(s.descKey),
           side: s.side,
           align: s.align,
+          ...(s.onNext
+            ? {
+                onNextClick: () => {
+                  if (s.onNext === 'openMenu') {
+                    window.dispatchEvent(new Event('nm-tour-open-menu'))
+                  } else if (s.onNext === 'openProfile') {
+                    window.dispatchEvent(new Event('nm-tour-open-profile'))
+                  }
+                  // Wait for the drawer/submenu to render (300ms slide) before
+                  // highlighting the next step's anchor.
+                  window.setTimeout(() => d.moveNext(), 380)
+                },
+              }
+            : {}),
         },
       }))
 
@@ -181,6 +194,7 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
       const d = driver({
         showProgress: false,
         allowClose: true,
+        smoothScroll: true,
         overlayColor: 'rgba(17, 17, 40, 0.72)',
         stagePadding: 6,
         stageRadius: 12,

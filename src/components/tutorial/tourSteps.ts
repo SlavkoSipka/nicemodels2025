@@ -1,4 +1,4 @@
-export type TourName = 'sedcard' | 'banner'
+export type TourName = 'sedcard'
 
 export type TourSide = 'top' | 'bottom' | 'left' | 'right' | 'over'
 export type TourAlign = 'start' | 'center' | 'end'
@@ -14,12 +14,15 @@ export interface TourStepDef {
   align?: TourAlign
   /** Restrict a step to one viewport (e.g. the mobile hamburger). */
   device?: 'mobile' | 'desktop'
+  /** Action to perform when "Next" is pressed (opens UI the next step needs). */
+  onNext?: 'openMenu' | 'openProfile'
+  /** Skip this step if its anchor is not in the DOM (e.g. already-active ad). */
+  optional?: boolean
 }
 
-/** Ordered list of routes each tour walks through (one driver run per route). */
+/** Ordered list of routes the tour walks through (one driver run per route). */
 export const TOUR_ROUTES: Record<TourName, string[]> = {
   sedcard: ['/dashboard/model', '/dashboard/model/activate-ad'],
-  banner: ['/dashboard/model/buy-banner'],
 }
 
 export const TOUR_STEPS: Record<TourName, TourStepDef[]> = {
@@ -30,17 +33,7 @@ export const TOUR_STEPS: Record<TourName, TourStepDef[]> = {
       descKey: 'welcomeDesc',
       side: 'over',
     },
-    // Desktop: the sidebar is always visible -> point straight at the link.
-    {
-      route: '/dashboard/model',
-      element: '[data-tour="nav-sedcard"]',
-      titleKey: 'navSedcardTitle',
-      descKey: 'navSedcardDesc',
-      side: 'right',
-      align: 'center',
-      device: 'desktop',
-    },
-    // Mobile: the sidebar is a drawer -> point at the hamburger first.
+    // Mobile only: the sidebar is a drawer -> open it first.
     {
       route: '/dashboard/model',
       element: '[data-tour="mobile-menu"]',
@@ -49,104 +42,57 @@ export const TOUR_STEPS: Record<TourName, TourStepDef[]> = {
       side: 'bottom',
       align: 'start',
       device: 'mobile',
+      onNext: 'openMenu',
+    },
+    {
+      route: '/dashboard/model',
+      element: '[data-tour="nav-profile"]',
+      titleKey: 'profileTitle',
+      descKey: 'profileDesc',
+      side: 'right',
+      align: 'center',
+      onNext: 'openProfile',
+    },
+    {
+      route: '/dashboard/model',
+      element: '[data-tour="profile-tabs"]',
+      titleKey: 'profileTabsTitle',
+      descKey: 'profileTabsDesc',
+      side: 'right',
+      align: 'center',
+    },
+    {
+      route: '/dashboard/model',
+      element: '[data-tour="nav-sedcard"]',
+      titleKey: 'navSedcardTitle',
+      descKey: 'navSedcardDesc',
+      side: 'right',
+      align: 'center',
     },
     {
       route: '/dashboard/model/activate-ad',
-      element: '[data-tour="ad-packages"]',
-      titleKey: 'pkgTitle',
-      descKey: 'pkgDesc',
+      element: '[data-tour="ad-info"]',
+      titleKey: 'adInfoTitle',
+      descKey: 'adInfoDesc',
+      side: 'bottom',
+      align: 'center',
+    },
+    {
+      route: '/dashboard/model/activate-ad',
+      element: '[data-tour="ad-preview"]',
+      titleKey: 'adPreviewTitle',
+      descKey: 'adPreviewDesc',
       side: 'top',
       align: 'center',
     },
     {
       route: '/dashboard/model/activate-ad',
-      element: '[data-tour="ad-activation"]',
-      titleKey: 'activationTitle',
-      descKey: 'activationDesc',
+      element: '[data-tour="ad-packages"]',
+      titleKey: 'durationTitle',
+      descKey: 'durationDesc',
       side: 'top',
-    },
-    {
-      route: '/dashboard/model/activate-ad',
-      element: '[data-tour="ad-add-to-cart"]',
-      titleKey: 'addCartTitle',
-      descKey: 'addCartDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/activate-ad',
-      element: '[data-tour="ad-cart"]',
-      titleKey: 'cartTitle',
-      descKey: 'cartDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/activate-ad',
-      element: '[data-tour="ad-terms"]',
-      titleKey: 'termsTitle',
-      descKey: 'termsDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/activate-ad',
-      element: '[data-tour="ad-pay"]',
-      titleKey: 'payTitle',
-      descKey: 'payDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/activate-ad',
-      titleKey: 'sedcardDoneTitle',
-      descKey: 'sedcardDoneDesc',
-      side: 'over',
-    },
-  ],
-  banner: [
-    {
-      route: '/dashboard/model/buy-banner',
-      titleKey: 'bannerIntroTitle',
-      descKey: 'bannerIntroDesc',
-      side: 'over',
-    },
-    {
-      route: '/dashboard/model/buy-banner',
-      element: '[data-tour="banner-placement"]',
-      titleKey: 'bannerPlacementTitle',
-      descKey: 'bannerPlacementDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/buy-banner',
-      element: '[data-tour="banner-regions"]',
-      titleKey: 'bannerRegionsTitle',
-      descKey: 'bannerRegionsDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/buy-banner',
-      element: '[data-tour="banner-duration"]',
-      titleKey: 'bannerDurationTitle',
-      descKey: 'bannerDurationDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/buy-banner',
-      element: '[data-tour="banner-upload"]',
-      titleKey: 'bannerUploadTitle',
-      descKey: 'bannerUploadDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/buy-banner',
-      element: '[data-tour="banner-confirm"]',
-      titleKey: 'bannerConfirmTitle',
-      descKey: 'bannerConfirmDesc',
-      side: 'top',
-    },
-    {
-      route: '/dashboard/model/buy-banner',
-      titleKey: 'bannerDoneTitle',
-      descKey: 'bannerDoneDesc',
-      side: 'over',
+      align: 'center',
+      optional: true,
     },
   ],
 }

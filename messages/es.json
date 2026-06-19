@@ -1882,11 +1882,11 @@
         "done": "Finalizar",
         "continue": "Continuar",
         "welcomeTitle": "¡Bienvenida! 👋",
-        "welcomeDesc": "Vamos a publicar rápidamente tu primera sedcard para que puedan encontrarte. Solo toma un minuto — sigue los pasos.",
+        "welcomeDesc": "Veamos rápidamente cómo publicar tu sedcard. Solo toma un minuto — sigue los pasos.",
         "navSedcardTitle": "Activar sedcard",
-        "navSedcardDesc": "Aquí publicas tu sedcard. Haz clic en Continuar y la abriremos por ti.",
+        "navSedcardDesc": "Cuando tu perfil esté completo, toca «Activar sedcard» para publicarla. Pulsa Siguiente y la abriremos por ti.",
         "menuTitle": "Abre el menú",
-        "menuDesc": "En tu móvil, toca este menú para llegar a todas las secciones. Pulsa Continuar y te llevamos a «Activar sedcard».",
+        "menuDesc": "Toca aquí para abrir el menú donde están todas tus secciones. Pulsa Siguiente.",
         "pkgTitle": "1. Elige una duración",
         "pkgDesc": "Elige cuánto tiempo estará en línea tu sedcard. Tras tocar un paquete, puedes definir cuándo empieza y añadirlo al carrito.",
         "activationTitle": "2. ¿Cuándo debe empezar?",
@@ -1914,7 +1914,17 @@
         "bannerConfirmTitle": "5. Confirma y paga",
         "bannerConfirmDesc": "Acepta los términos y paga para publicar tu banner. ¡Listo!",
         "bannerDoneTitle": "¡Todo listo! ✨",
-        "bannerDoneDesc": "Ya sabes cómo publicar una sedcard y un banner. Puedes repetir esta guía cuando quieras desde tu panel."
+        "bannerDoneDesc": "Ya sabes cómo publicar una sedcard y un banner. Puedes repetir esta guía cuando quieras desde tu panel.",
+        "profileTitle": "Abre «Mi perfil»",
+        "profileDesc": "Toca «Mi perfil» para desplegarlo. Aquí completas todos tus datos. Pulsa Siguiente.",
+        "profileTabsTitle": "Completa cada pestaña",
+        "profileTabsDesc": "Antes de activar tu sedcard, rellena todas estas pestañas — biografía, fotos, contacto, tarifas y el resto. Un perfil completo recibe muchas más visitas.",
+        "adInfoTitle": "Lee esto primero",
+        "adInfoDesc": "Revisa este aviso antes de activar tu anuncio — indica lo que tu perfil necesita para que tu sedcard luzca lo mejor posible.",
+        "adPreviewTitle": "Vista previa en vivo",
+        "adPreviewDesc": "Así aparecerá tu sedcard para los visitantes del sitio.",
+        "durationTitle": "Elige una duración",
+        "durationDesc": "Cuando hayas terminado todo lo anterior, elige cuánto tiempo estará en línea tu sedcard y continúa al pago para publicarla. ¡Eso es todo!"
       }
     },
     "company": {

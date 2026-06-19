@@ -1882,11 +1882,11 @@
         "done": "Fertig",
         "continue": "Weiter",
         "welcomeTitle": "Willkommen! 👋",
-        "welcomeDesc": "Lass uns schnell deine erste Sedcard veröffentlichen, damit dich Leute finden. Es dauert nur eine Minute — folge den Schritten.",
+        "welcomeDesc": "Sehen wir uns kurz an, wie du deine Sedcard veröffentlichst. Es dauert nur eine Minute — folge einfach den Schritten.",
         "navSedcardTitle": "Sedcard aktivieren",
-        "navSedcardDesc": "Hier veröffentlichst du deine Sedcard. Klicke auf Weiter und wir öffnen sie für dich.",
+        "navSedcardDesc": "Sobald dein Profil vollständig ist, tippe auf „Sedcard aktivieren“, um sie zu veröffentlichen. Drücke auf Weiter und wir öffnen sie für dich.",
         "menuTitle": "Menü öffnen",
-        "menuDesc": "Auf dem Handy tippst du hier, um alle Bereiche zu erreichen. Drücke Weiter und wir bringen dich zu „Sedcard aktivieren“.",
+        "menuDesc": "Tippe hier, um das Menü mit all deinen Bereichen zu öffnen. Drücke auf Weiter.",
         "pkgTitle": "1. Dauer wählen",
         "pkgDesc": "Wähle, wie lange deine Sedcard online bleibt. Nach dem Antippen eines Pakets kannst du den Start festlegen und es in den Warenkorb legen.",
         "activationTitle": "2. Wann soll sie starten?",
@@ -1914,7 +1914,17 @@
         "bannerConfirmTitle": "5. Bestätigen & bezahlen",
         "bannerConfirmDesc": "Akzeptiere die Bedingungen und bezahle, um dein Banner zu veröffentlichen. Fertig!",
         "bannerDoneTitle": "Alles bereit! ✨",
-        "bannerDoneDesc": "Du weisst jetzt, wie du eine Sedcard und ein Banner veröffentlichst. Du kannst diese Tour jederzeit über dein Dashboard erneut starten."
+        "bannerDoneDesc": "Du weisst jetzt, wie du eine Sedcard und ein Banner veröffentlichst. Du kannst diese Tour jederzeit über dein Dashboard erneut starten.",
+        "profileTitle": "„Mein Profil“ öffnen",
+        "profileDesc": "Tippe auf „Mein Profil“, um es auszuklappen. Hier trägst du alle deine Angaben ein. Drücke auf Weiter.",
+        "profileTabsTitle": "Alle Tabs ausfüllen",
+        "profileTabsDesc": "Bevor du deine Sedcard aktivierst, fülle alle diese Tabs aus — Biografie, Fotos, Kontakt, Preise und den Rest. Ein vollständiges Profil bekommt deutlich mehr Aufrufe.",
+        "adInfoTitle": "Zuerst lesen",
+        "adInfoDesc": "Lies diesen Hinweis, bevor du deine Anzeige aktivierst — er zeigt, was dein Profil braucht, damit deine Sedcard optimal aussieht.",
+        "adPreviewTitle": "Live-Vorschau",
+        "adPreviewDesc": "So erscheint deine Sedcard für Besucher auf der Seite.",
+        "durationTitle": "Dauer wählen",
+        "durationDesc": "Wenn alles oben erledigt ist, wähle, wie lange deine Sedcard online bleibt, und gehe zur Kasse, um sie zu veröffentlichen. Das war's!"
       }
     },
     "company": {

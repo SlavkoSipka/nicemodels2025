@@ -51,6 +51,18 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
     return () => { document.body.style.overflow = '' }
   }, [mobileOpen])
 
+  // Let the guided tour open the drawer / profile submenu on demand.
+  useEffect(() => {
+    const openMenu = () => setMobileOpen(true)
+    const openProfile = () => setMyProfileOpen(true)
+    window.addEventListener('nm-tour-open-menu', openMenu)
+    window.addEventListener('nm-tour-open-profile', openProfile)
+    return () => {
+      window.removeEventListener('nm-tour-open-menu', openMenu)
+      window.removeEventListener('nm-tour-open-profile', openProfile)
+    }
+  }, [])
+
   const navLinkCls = (path: string, extra?: string) =>
     `flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-medium transition-all text-sm ${
       isActive(path)
@@ -164,6 +176,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
 
               <div>
                 <button
+                  data-tour="nav-profile"
                   onClick={() => setMyProfileOpen(!myProfileOpen)}
                   className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg transition-all text-sm ${
                     isProfileActive
@@ -186,7 +199,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 </button>
                 
                 {myProfileOpen && (
-                  <div className="ml-3 md:ml-4 mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 border-l-2 border-pink-200 pl-3 md:pl-4">
+                  <div data-tour="profile-tabs" className="ml-3 md:ml-4 mt-0.5 md:mt-1 space-y-0.5 md:space-y-1 border-l-2 border-pink-200 pl-3 md:pl-4">
                     <Link href="/dashboard/model/profile/biography" className={subLinkCls('/dashboard/model/profile/biography')}>{t('biography')}</Link>
                     <Link href="/dashboard/model/profile/about-me" className={subLinkCls('/dashboard/model/profile/about-me')}>{t('aboutMe')}</Link>
                     <Link href="/dashboard/model/profile/contact-details" className={subLinkCls('/dashboard/model/profile/contact-details')}>{t('contactDetails')}</Link>

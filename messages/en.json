@@ -1882,11 +1882,11 @@
         "done": "Finish",
         "continue": "Continue",
         "welcomeTitle": "Welcome! 👋",
-        "welcomeDesc": "Let's quickly publish your first sedcard so people can find you. It only takes a minute — follow the steps.",
+        "welcomeDesc": "Let's quickly walk through how to publish your sedcard. It only takes a minute — just follow the steps.",
         "navSedcardTitle": "Activate Sedcard",
-        "navSedcardDesc": "This is where you publish your sedcard. Click Continue and we'll open it for you.",
+        "navSedcardDesc": "Once your profile is complete, tap 'Activate Sedcard' to publish it. Press Next and we'll open it for you.",
         "menuTitle": "Open the menu",
-        "menuDesc": "On your phone, tap this menu to reach every section. Press Continue and we'll take you to Activate Sedcard.",
+        "menuDesc": "Tap here to open the menu where all your sections live. Press Next to continue.",
         "pkgTitle": "1. Choose a duration",
         "pkgDesc": "Pick how long your sedcard stays online. After you tap a package, you can set when it starts and add it to your cart.",
         "activationTitle": "2. When should it start?",
@@ -1914,7 +1914,17 @@
         "bannerConfirmTitle": "5. Confirm & pay",
         "bannerConfirmDesc": "Accept the terms and pay to publish your banner. Done!",
         "bannerDoneTitle": "All set! ✨",
-        "bannerDoneDesc": "You now know how to publish a sedcard and a banner. You can replay this tour anytime from your dashboard."
+        "bannerDoneDesc": "You now know how to publish a sedcard and a banner. You can replay this tour anytime from your dashboard.",
+        "profileTitle": "Open 'My Profile'",
+        "profileDesc": "Tap 'My Profile' to expand it. This is where you fill in all your details. Press Next.",
+        "profileTabsTitle": "Complete every tab",
+        "profileTabsDesc": "Before activating your sedcard, fill in all of these tabs — biography, photos, contact, rates and the rest. A complete profile gets far more views.",
+        "adInfoTitle": "Read this first",
+        "adInfoDesc": "Check this notice before activating your ad — it lists what your profile needs so your sedcard looks its best.",
+        "adPreviewTitle": "Live preview",
+        "adPreviewDesc": "This is how your sedcard will appear to visitors on the site.",
+        "durationTitle": "Choose a duration",
+        "durationDesc": "Once everything above is done, pick how long your sedcard stays online and continue to checkout to publish it. That's it!"
       }
     },
     "company": {

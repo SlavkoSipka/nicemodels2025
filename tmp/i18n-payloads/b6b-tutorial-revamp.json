@@ -1,0 +1,118 @@
+{
+  "en": {
+    "dashboard": {
+      "model": {
+        "tutorial": {
+          "startButton": "Start guided tour",
+          "next": "Next",
+          "back": "Back",
+          "done": "Finish",
+          "continue": "Continue",
+          "welcomeTitle": "Welcome! 👋",
+          "welcomeDesc": "Let's quickly walk through how to publish your sedcard. It only takes a minute — just follow the steps.",
+          "menuTitle": "Open the menu",
+          "menuDesc": "Tap here to open the menu where all your sections live. Press Next to continue.",
+          "profileTitle": "Open 'My Profile'",
+          "profileDesc": "Tap 'My Profile' to expand it. This is where you fill in all your details. Press Next.",
+          "profileTabsTitle": "Complete every tab",
+          "profileTabsDesc": "Before activating your sedcard, fill in all of these tabs — biography, photos, contact, rates and the rest. A complete profile gets far more views.",
+          "navSedcardTitle": "Activate Sedcard",
+          "navSedcardDesc": "Once your profile is complete, tap 'Activate Sedcard' to publish it. Press Next and we'll open it for you.",
+          "adInfoTitle": "Read this first",
+          "adInfoDesc": "Check this notice before activating your ad — it lists what your profile needs so your sedcard looks its best.",
+          "adPreviewTitle": "Live preview",
+          "adPreviewDesc": "This is how your sedcard will appear to visitors on the site.",
+          "durationTitle": "Choose a duration",
+          "durationDesc": "Once everything above is done, pick how long your sedcard stays online and continue to checkout to publish it. That's it!"
+        }
+      }
+    }
+  },
+  "de": {
+    "dashboard": {
+      "model": {
+        "tutorial": {
+          "startButton": "Geführte Tour starten",
+          "next": "Weiter",
+          "back": "Zurück",
+          "done": "Fertig",
+          "continue": "Weiter",
+          "welcomeTitle": "Willkommen! 👋",
+          "welcomeDesc": "Sehen wir uns kurz an, wie du deine Sedcard veröffentlichst. Es dauert nur eine Minute — folge einfach den Schritten.",
+          "menuTitle": "Menü öffnen",
+          "menuDesc": "Tippe hier, um das Menü mit all deinen Bereichen zu öffnen. Drücke auf Weiter.",
+          "profileTitle": "„Mein Profil“ öffnen",
+          "profileDesc": "Tippe auf „Mein Profil“, um es auszuklappen. Hier trägst du alle deine Angaben ein. Drücke auf Weiter.",
+          "profileTabsTitle": "Alle Tabs ausfüllen",
+          "profileTabsDesc": "Bevor du deine Sedcard aktivierst, fülle alle diese Tabs aus — Biografie, Fotos, Kontakt, Preise und den Rest. Ein vollständiges Profil bekommt deutlich mehr Aufrufe.",
+          "navSedcardTitle": "Sedcard aktivieren",
+          "navSedcardDesc": "Sobald dein Profil vollständig ist, tippe auf „Sedcard aktivieren“, um sie zu veröffentlichen. Drücke auf Weiter und wir öffnen sie für dich.",
+          "adInfoTitle": "Zuerst lesen",
+          "adInfoDesc": "Lies diesen Hinweis, bevor du deine Anzeige aktivierst — er zeigt, was dein Profil braucht, damit deine Sedcard optimal aussieht.",
+          "adPreviewTitle": "Live-Vorschau",
+          "adPreviewDesc": "So erscheint deine Sedcard für Besucher auf der Seite.",
+          "durationTitle": "Dauer wählen",
+          "durationDesc": "Wenn alles oben erledigt ist, wähle, wie lange deine Sedcard online bleibt, und gehe zur Kasse, um sie zu veröffentlichen. Das war's!"
+        }
+      }
+    }
+  },
+  "fr": {
+    "dashboard": {
+      "model": {
+        "tutorial": {
+          "startButton": "Démarrer la visite guidée",
+          "next": "Suivant",
+          "back": "Retour",
+          "done": "Terminer",
+          "continue": "Continuer",
+          "welcomeTitle": "Bienvenue ! 👋",
+          "welcomeDesc": "Voyons rapidement comment publier ta sedcard. Cela ne prend qu'une minute — suis simplement les étapes.",
+          "menuTitle": "Ouvre le menu",
+          "menuDesc": "Touche ici pour ouvrir le menu où se trouvent toutes tes sections. Appuie sur Suivant.",
+          "profileTitle": "Ouvre « Mon profil »",
+          "profileDesc": "Touche « Mon profil » pour le déplier. C'est ici que tu remplis toutes tes informations. Appuie sur Suivant.",
+          "profileTabsTitle": "Complète chaque onglet",
+          "profileTabsDesc": "Avant d'activer ta sedcard, remplis tous ces onglets — biographie, photos, contact, tarifs et le reste. Un profil complet obtient beaucoup plus de vues.",
+          "navSedcardTitle": "Activer la sedcard",
+          "navSedcardDesc": "Une fois ton profil complet, touche « Activer la sedcard » pour la publier. Appuie sur Suivant et nous l'ouvrons pour toi.",
+          "adInfoTitle": "À lire d'abord",
+          "adInfoDesc": "Lis cet avis avant d'activer ton annonce — il indique ce dont ton profil a besoin pour que ta sedcard soit au top.",
+          "adPreviewTitle": "Aperçu en direct",
+          "adPreviewDesc": "Voici comment ta sedcard apparaîtra aux visiteurs du site.",
+          "durationTitle": "Choisis une durée",
+          "durationDesc": "Une fois tout ce qui précède terminé, choisis la durée d'affichage de ta sedcard et passe au paiement pour la publier. C'est tout !"
+        }
+      }
+    }
+  },
+  "es": {
+    "dashboard": {
+      "model": {
+        "tutorial": {
+          "startButton": "Iniciar la guía",
+          "next": "Siguiente",
+          "back": "Atrás",
+          "done": "Finalizar",
+          "continue": "Continuar",
+          "welcomeTitle": "¡Bienvenida! 👋",
+          "welcomeDesc": "Veamos rápidamente cómo publicar tu sedcard. Solo toma un minuto — sigue los pasos.",
+          "menuTitle": "Abre el menú",
+          "menuDesc": "Toca aquí para abrir el menú donde están todas tus secciones. Pulsa Siguiente.",
+          "profileTitle": "Abre «Mi perfil»",
+          "profileDesc": "Toca «Mi perfil» para desplegarlo. Aquí completas todos tus datos. Pulsa Siguiente.",
+          "profileTabsTitle": "Completa cada pestaña",
+          "profileTabsDesc": "Antes de activar tu sedcard, rellena todas estas pestañas — biografía, fotos, contacto, tarifas y el resto. Un perfil completo recibe muchas más visitas.",
+          "navSedcardTitle": "Activar sedcard",
+          "navSedcardDesc": "Cuando tu perfil esté completo, toca «Activar sedcard» para publicarla. Pulsa Siguiente y la abriremos por ti.",
+          "adInfoTitle": "Lee esto primero",
+          "adInfoDesc": "Revisa este aviso antes de activar tu anuncio — indica lo que tu perfil necesita para que tu sedcard luzca lo mejor posible.",
+          "adPreviewTitle": "Vista previa en vivo",
+          "adPreviewDesc": "Así aparecerá tu sedcard para los visitantes del sitio.",
+          "durationTitle": "Elige una duración",
+          "durationDesc": "Cuando hayas terminado todo lo anterior, elige cuánto tiempo estará en línea tu sedcard y continúa al pago para publicarla. ¡Eso es todo!"
+        }
+      }
+    }
+  }
+}
