@@ -364,7 +364,7 @@ export default function ActivateAdPage() {
 
         {/* Package cards */}
         {!hasActiveAd && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+          <div data-tour="ad-packages" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-4">{t('selectDuration')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
@@ -430,7 +430,7 @@ export default function ActivateAdPage() {
 
         {/* Activation type */}
         {!hasActiveAd && selectedPackage && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+          <div data-tour="ad-activation" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-3">{t('activationDate')}</p>
             <div className="flex flex-wrap gap-2">
               {[
@@ -469,6 +469,7 @@ export default function ActivateAdPage() {
         {/* Add to cart */}
         {!hasActiveAd && selectedPackage && (
           <button
+            data-tour="ad-add-to-cart"
             onClick={addToCart}
             disabled={activationType === 'at_date' && !activationDate}
             className="px-6 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"
@@ -479,7 +480,7 @@ export default function ActivateAdPage() {
 
         {/* Cart */}
         {!hasActiveAd && cart.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+          <div data-tour="ad-cart" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-3">{t('yourCart')}</p>
             <div className="space-y-2">
               {cart.map((item, index) => (
@@ -514,13 +515,14 @@ export default function ActivateAdPage() {
               </p>
             </div>
 
-            <div className="mt-3">
+            <div data-tour="ad-terms" className="mt-3">
               <TermsAcceptance
                 checked={termsAccepted}
                 onChange={setTermsAccepted}
               />
             </div>
             <button
+              data-tour="ad-pay"
               onClick={goToCheckout}
               disabled={!termsAccepted}
               className="w-full mt-3 py-2.5 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed"

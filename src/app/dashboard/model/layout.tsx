@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import DashboardSidebar from '@/components/layout/DashboardSidebar'
 import LiveLocationGate from '@/components/live-location/LiveLocationGate'
+import TutorialProvider from '@/components/tutorial/TutorialProvider'
 
 export default async function ModelDashboardLayout({
   children,
@@ -28,9 +29,11 @@ export default async function ModelDashboardLayout({
     <>
       <DashboardSidebar userRole="model" />
       <LiveLocationGate />
-      <div className="pt-14 md:pt-0">
-        {children}
-      </div>
+      <TutorialProvider>
+        <div className="pt-14 md:pt-0">
+          {children}
+        </div>
+      </TutorialProvider>
     </>
   )
 }

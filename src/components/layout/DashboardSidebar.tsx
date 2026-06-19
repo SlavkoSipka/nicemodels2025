@@ -202,6 +202,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
 
               <Link
                 href="/dashboard/model/activate-ad"
+                data-tour="nav-sedcard"
                 className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-semibold transition-all shadow-sm text-sm ${
                   isActive('/dashboard/model/activate-ad')
                     ? 'text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-orange-200'
@@ -216,6 +217,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
 
               <Link
                 href="/dashboard/model/buy-banner"
+                data-tour="nav-banner"
                 className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-semibold transition-all shadow-sm text-sm ${
                   isActive('/dashboard/model/buy-banner')
                     ? 'text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-violet-200'
@@ -433,6 +435,7 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
       {/* Mobile top bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 z-50">
         <button
+          data-tour="mobile-menu"
           onClick={() => setMobileOpen(true)}
           className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
         >

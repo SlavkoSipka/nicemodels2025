@@ -18,6 +18,7 @@ export interface AuthProfile {
   role: string | null
   avatar_url: string | null
   onboarding_completed: boolean | null
+  tutorial_completed: boolean | null
   phone: string | null
   date_of_birth: string | null
   is_blocked?: boolean | null
@@ -81,7 +82,7 @@ export default function AuthProvider({
         supabase
           .from('profiles')
           .select(
-            'id, username, role, avatar_url, onboarding_completed, phone, date_of_birth, is_blocked, blocked_reason, blocked_at',
+            'id, username, role, avatar_url, onboarding_completed, tutorial_completed, phone, date_of_birth, is_blocked, blocked_reason, blocked_at',
           )
           .eq('id', uid)
           .maybeSingle(),

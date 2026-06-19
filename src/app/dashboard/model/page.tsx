@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
+import StartTutorialButton from '@/components/tutorial/StartTutorialButton'
 import {
   Building2, CheckCircle, XCircle, BarChart2, Eye, MousePointerClick,
   Heart, Share2, Camera, Lightbulb, Mail, LifeBuoy, ChevronRight, Handshake,
@@ -355,11 +356,14 @@ export default function ModelDashboardPage() {
 
           {/* ── How to get started ── */}
           <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
-            <div className="flex items-center gap-2 mb-3 md:mb-4">
-              <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
-                <Lightbulb className="w-4 h-4 text-brand" />
+            <div className="flex items-center justify-between gap-2 mb-3 md:mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-md bg-brand/10 flex items-center justify-center">
+                  <Lightbulb className="w-4 h-4 text-brand" />
+                </div>
+                <p className="text-sm font-bold text-gray-800">{t('howToStart')}</p>
               </div>
-              <p className="text-sm font-bold text-gray-800">{t('howToStart')}</p>
+              <StartTutorialButton />
             </div>
             <div className="space-y-2.5 md:space-y-3">
               {[

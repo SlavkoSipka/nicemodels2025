@@ -368,7 +368,7 @@ export default function ModelBuyBannerPage() {
           </div>
         )}
 
-        <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
+        <div data-tour="banner-placement" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
           <p className="text-sm font-bold text-gray-800">{t('step1')}</p>
           <PlacementPicker
             value={selectedPlacement}
@@ -386,7 +386,7 @@ export default function ModelBuyBannerPage() {
         {selectedPlacement && (
           <div ref={afterPlacementRef} className="space-y-4">
         {slotFreeForSelection && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
+          <div data-tour="banner-regions" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
             <div>
               <p className="text-sm font-bold text-gray-800">{t('step2')}</p>
               <p className="text-xs text-gray-500 mt-1">{t('step2Hint', { max: MAX_BANNER_REGIONS })}</p>
@@ -400,7 +400,7 @@ export default function ModelBuyBannerPage() {
         )}
 
         {slotFreeForSelection && selectedCantons.length > 0 && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+          <div data-tour="banner-duration" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <p className="text-sm font-bold text-gray-800 mb-4">{t('step3')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
               {packages.map((pkg) => {
@@ -445,7 +445,7 @@ export default function ModelBuyBannerPage() {
         )}
 
         {slotFreeForSelection && selectedPackage && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
+          <div data-tour="banner-upload" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5 space-y-4">
             <p className="text-sm font-bold text-gray-800">{t('step4')}</p>
             <p className="text-xs text-gray-400">{uploadHint}</p>
             {imagePreview ? (
@@ -490,7 +490,7 @@ export default function ModelBuyBannerPage() {
         )}
 
         {slotFreeForSelection && selectedPackage && imageFile && (
-          <div className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
+          <div data-tour="banner-confirm" className="bg-white border border-gray-200 rounded-lg p-3.5 md:p-5">
             <div className="flex items-center justify-between mb-3">
               <p className="text-sm font-bold text-gray-800">{t('step5')}</p>
               <div className="text-right">
