@@ -234,6 +234,7 @@ aside svg { min-width: 1.25rem; min-height: 1.25rem; }
 .driver-popover.nm-tour .driver-popover-arrow {
   color: #fff;
 }
-/* Keep popover/overlay above the dashboard sidebar drawer (z-[70]). */
-.driver-popover.nm-tour,
-.driver-overlay { z-index: 1000000000 !important; }
+/* driver.js defaults already stack the popover (z-index 1e9) above its overlay
+   (z-index 1e4), and both sit above the sidebar drawer (z-[70]). Only nudge the
+   popover a touch higher so nothing can ever paint over its buttons. */
+.driver-popover.nm-tour { z-index: 2000000000 !important; }
