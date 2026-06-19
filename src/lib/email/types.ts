@@ -18,6 +18,7 @@ export type EmailKind =
   | 'admin_listing_blocked'
   | 'admin_listing_unblocked'
   | 'admin_custom_message'
+  | 'admin_new_signup'
   // Verification (KYC)
   | 'verification_submitted'
   | 'verification_approved'
@@ -41,6 +42,7 @@ export const KIND_TO_CATEGORY: Record<EmailKind, EmailCategory> = {
   admin_listing_blocked:   'admin_actions',
   admin_listing_unblocked: 'admin_actions',
   admin_custom_message:    'admin_actions',
+  admin_new_signup:        'admin_actions',
   verification_submitted:  'verification',
   verification_approved:   'verification',
   verification_rejected:   'verification',
@@ -61,6 +63,8 @@ export const NON_OPT_OUT_KINDS: Set<EmailKind> = new Set([
   'admin_account_deleted',
   // One-time welcome after registration.
   'welcome',
+  // Internal notice to the NiceModels team — never carries an unsubscribe link.
+  'admin_new_signup',
 ])
 
 export interface BaseEmailData {

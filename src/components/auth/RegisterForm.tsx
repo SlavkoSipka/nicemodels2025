@@ -132,6 +132,8 @@ export default function RegisterForm() {
       }
 
       if (authData?.session) {
+        // Notify the team of the new registration (best-effort, non-blocking).
+        await fetch('/api/email/new-registration', { method: 'POST', keepalive: true }).catch(() => {})
         window.location.href = safePostAuthRedirect(searchParams.get('redirect'))
         return
       }
@@ -142,6 +144,7 @@ export default function RegisterForm() {
       const message = err instanceof Error ? err.message : ''
       if (message.includes('Refresh Token Not Found')) {
         // Supabase client quirk after signUp — session cookies may still be set.
+        await fetch('/api/email/new-registration', { method: 'POST', keepalive: true }).catch(() => {})
         window.location.href = safePostAuthRedirect(searchParams.get('redirect'))
         return
       }

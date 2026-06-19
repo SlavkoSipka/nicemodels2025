@@ -36,6 +36,39 @@ export default async function AdminModelEditPage({ params }: Props) {
 
   if (!profile) notFound()
 
+  // Ad packages the admin can grant, and the model's current sedcard status.
+  const [{ data: adPackages }, { data: adItems }] = await Promise.all([
+    admin
+      .from('products')
+      .select('id, name, duration_days, duration_hours, price_chf')
+      .eq('product_type', 'ad_package')
+      .eq('is_active', true)
+      .order('display_order'),
+    admin
+      .from('order_items')
+      .select('activation_date, orders!inner(user_id, status, created_at), products!inner(product_type, duration_days, duration_hours)')
+      .eq('orders.user_id', id)
+      .eq('orders.status', 'paid')
+      .eq('products.product_type', 'ad_package'),
+  ])
+
+  const nowMs = Date.now()
+  let currentAdExpiry: string | null = null
+  for (const it of (adItems as any[]) || []) {
+    const order = it.orders
+    const product = it.products
+    if (!order || !product) continue
+    const start = it.activation_date ? new Date(it.activation_date) : new Date(order.created_at)
+    const durationMs =
+      Number(product.duration_days || 0) * 86400000 +
+      Number(product.duration_hours || 0) * 3600000
+    const expiry = new Date(start.getTime() + durationMs)
+    if (start.getTime() <= nowMs && expiry.getTime() > nowMs) {
+      currentAdExpiry = expiry.toISOString()
+      break
+    }
+  }
+
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
   return (
@@ -57,6 +90,8 @@ export default async function AdminModelEditPage({ params }: Props) {
       allServices={allServices || []}
       workingHours={workingHours || []}
       rates={rates || []}
+      adPackages={adPackages || []}
+      currentAdExpiry={currentAdExpiry}
     />
   )
 }

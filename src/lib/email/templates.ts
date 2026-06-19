@@ -236,6 +236,59 @@ export function sendWelcomeEmail(opts: BaseRecipient) {
   })
 }
 
+// ---------- Internal: new registration notice --------------------------------
+
+/**
+ * Notifies the NiceModels team (info@nicemodels.ch) that a new account was
+ * created. `newUserId` is used only for idempotent logging — this email always
+ * goes to the team inbox and never carries an unsubscribe link.
+ */
+export function sendNewSignupAdminEmail(opts: {
+  newUserId: string
+  email: string
+  username?: string | null
+  role?: string | null
+  phone?: string | null
+  dateOfBirth?: string | null
+}) {
+  const role = opts.role || 'user'
+  const name = opts.username || '(no username)'
+  const rows: Array<[string, string]> = [
+    ['Username', name],
+    ['Email', opts.email],
+    ['Role', role],
+    ['Phone', opts.phone || '—'],
+    ['Date of birth', opts.dateOfBirth || '—'],
+  ]
+  const tableHtml = rows
+    .map(
+      ([label, value]) => `<tr>
+        <td style="padding:6px 10px;color:#64748b;font-size:13px;border-bottom:1px solid #f1f5f9;">${escape(label)}</td>
+        <td style="padding:6px 10px;color:#1a1a2e;font-size:13px;font-weight:600;border-bottom:1px solid #f1f5f9;">${escape(value)}</td>
+      </tr>`,
+    )
+    .join('')
+
+  return sendEmail({
+    to: SUPPORT_EMAIL,
+    subject: `New registration: ${name} (${role})`,
+    kind: 'admin_new_signup',
+    recipientUserId: opts.newUserId,
+    force: true,
+    layout: {
+      title: 'New registration',
+      preheader: `${name} just created a ${role} account on NiceModels.ch.`,
+      bodyHtml: `
+        <p>A new account was just created on NiceModels.ch:</p>
+        <table style="width:100%;border-collapse:collapse;margin:12px 0;">${tableHtml}</table>
+      `,
+      ctaLabel: 'Open admin dashboard',
+      ctaUrl: `${APP_URL}/dashboard/admin`,
+      footerNote: 'Internal notification for the NiceModels team.',
+    },
+  })
+}
+
 // ---------- Favorites digest -------------------------------------------------
 
 export interface FavDigestItem {

@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Save, CheckCircle, AlertCircle, User, MapPin, Phone,
   Sparkles, Clock, Languages, ChevronDown, ChevronUp, Trash2, Plus,
-  ShieldCheck, Ban, ImageIcon, Film, DollarSign,
+  ShieldCheck, Ban, ImageIcon, Film, DollarSign, Zap,
 } from 'lucide-react'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
 import PhoneInput from '@/components/ui/PhoneInput'
@@ -28,6 +28,8 @@ interface Props {
   allServices: any[]
   workingHours: any[]
   rates: any[]
+  adPackages: any[]
+  currentAdExpiry: string | null
 }
 
 const AVAILABLE_LANGUAGES = [
@@ -61,6 +63,7 @@ export default function AdminModelEditClient({
   modelId, profile, modelDetails, photos, videos,
   contactDetails, languages: initLangs, modelServices: initServices,
   allServices, workingHours: initWH, rates,
+  adPackages, currentAdExpiry,
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
@@ -73,6 +76,32 @@ export default function AdminModelEditClient({
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [activeTab, setActiveTab] = useState('bio')
+
+  // ── Sedcard admin activation ──
+  const [adPackageId, setAdPackageId] = useState<string>(adPackages[0]?.id || '')
+  const [activatingSedcard, setActivatingSedcard] = useState(false)
+  const [sedcardMsg, setSedcardMsg] = useState('')
+  const [sedcardErr, setSedcardErr] = useState('')
+
+  const activateSedcard = async () => {
+    if (!adPackageId) return
+    setActivatingSedcard(true); setSedcardMsg(''); setSedcardErr('')
+    try {
+      const res = await fetch('/api/admin/activate-sedcard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modelId, productId: adPackageId }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(j?.error || t('sedcardFailed'))
+      setSedcardMsg(t('sedcardActivated'))
+      router.refresh()
+    } catch (e: any) {
+      setSedcardErr(e?.message || t('sedcardFailed'))
+    } finally {
+      setActivatingSedcard(false)
+    }
+  }
 
   const norm = (v: string | null | undefined) =>
     v ? v.toLowerCase().replace(/\s+/g, '_').replace(/[()]/g, '') : ''
@@ -967,6 +996,60 @@ export default function AdminModelEditClient({
                 <p>{t('createdLabel', { date: new Date(profile.created_at).toLocaleString() })}</p>
                 <p>{t('onboardingLabel', { state: profile.onboarding_completed ? t('onboardingCompleted') : t('onboardingIncomplete') })}</p>
                 {profile.blocked_at && <p>{t('blockedAt', { date: new Date(profile.blocked_at).toLocaleString() })}</p>}
+              </div>
+
+              {/* ── Sedcard activation (admin grant) ── */}
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-brand" />
+                  <p className="text-sm font-bold text-gray-900">{t('sedcardSection')}</p>
+                </div>
+                {currentAdExpiry ? (
+                  <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    {t('sedcardActiveUntil', { date: new Date(currentAdExpiry).toLocaleString() })}
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500">{t('sedcardNone')}</p>
+                )}
+                <p className="text-xs text-gray-400">{t('sedcardHint')}</p>
+                {adPackages.length === 0 ? (
+                  <p className="text-xs text-amber-600">{t('sedcardNoPackages')}</p>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={adPackageId}
+                      onChange={e => setAdPackageId(e.target.value)}
+                      className={inputCls + ' sm:w-auto'}
+                    >
+                      {adPackages.map((p: any) => {
+                        const dur = p.duration_days
+                          ? t('sedcardDays', { count: p.duration_days })
+                          : t('sedcardHours', { count: p.duration_hours })
+                        return (
+                          <option key={p.id} value={p.id}>{p.name} — {dur}</option>
+                        )
+                      })}
+                    </select>
+                    <button
+                      onClick={activateSedcard}
+                      disabled={activatingSedcard || !adPackageId}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      {activatingSedcard ? tc('savingDots') : t('activateSedcard')}
+                    </button>
+                  </div>
+                )}
+                {sedcardMsg && (
+                  <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> {sedcardMsg}
+                  </p>
+                )}
+                {sedcardErr && (
+                  <p className="text-xs font-semibold text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {sedcardErr}
+                  </p>
+                )}
               </div>
             </div>
           )}

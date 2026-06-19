@@ -660,7 +660,17 @@
       "onboardingLabel": "Onboarding: {state}",
       "onboardingCompleted": "Abgeschlossen",
       "onboardingIncomplete": "Unvollständig",
-      "blockedAt": "Gesperrt am: {date}"
+      "blockedAt": "Gesperrt am: {date}",
+      "sedcardSection": "Sedcard aktivieren",
+      "sedcardActiveUntil": "Aktive Sedcard bis {date}",
+      "sedcardNone": "Keine aktive Sedcard.",
+      "sedcardHint": "Aktiviere für dieses Model kostenlos eine Sedcard (z. B. wenn sie es nicht selbst kann).",
+      "sedcardNoPackages": "Es sind keine Pakete zum Vergeben verfügbar.",
+      "sedcardDays": "{count, plural, one {# Tag} other {# Tage}}",
+      "sedcardHours": "{count, plural, one {# Stunde} other {# Stunden}}",
+      "activateSedcard": "Sedcard aktivieren",
+      "sedcardActivated": "Sedcard aktiviert.",
+      "sedcardFailed": "Sedcard konnte nicht aktiviert werden."
     },
     "clubEdit": {
       "back": "Zurück zu Clubs",
