@@ -137,7 +137,13 @@ export async function generateMetadata({ params }: ModelPageProps): Promise<Meta
     twitter: {
       card: 'summary_large_image', title, description: desc, images: [ogImage],
     },
-    alternates: { canonical: `${SITE_URL}/models/${id}` },
+    alternates: {
+      canonical: `${SITE_URL}/models/${id}`,
+      languages: {
+        'de-CH': `${SITE_URL}/models/${id}`,
+        'x-default': `${SITE_URL}/models/${id}`,
+      },
+    },
   }
 }
 

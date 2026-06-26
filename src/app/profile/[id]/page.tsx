@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -28,6 +29,14 @@ import { getTranslations } from 'next-intl/server'
 
 interface ProfilePageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
+  const { id } = await params
+  return {
+    alternates: { canonical: `https://www.nicemodels.ch/models/${id}` },
+    robots: { index: false, follow: true },
+  }
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {

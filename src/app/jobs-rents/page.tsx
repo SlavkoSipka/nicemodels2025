@@ -1,18 +1,17 @@
-import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Navbar from '@/components/layout/Navbar'
 import JobsRentsPageClient from './JobsRentsPageClient'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { buildMetadata } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
+  path: '/jobs-rents',
   title: 'Jobs & Miete – Stellenangebote und Mietangebote',
-  description:
-    'Finde aktuelle Job-Angebote und Mietmöglichkeiten in der Schweizer Erotikbranche auf NiceModels.ch.',
-  alternates: { canonical: 'https://www.nicemodels.ch/jobs-rents' },
-}
+  description: 'Finde aktuelle Job-Angebote und Mietmöglichkeiten in der Schweizer Erotikbranche auf NiceModels.ch.',
+})
 
 export default async function JobsRentsPage() {
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''

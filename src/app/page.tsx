@@ -1,10 +1,18 @@
 import { unstable_cache } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MixedHomeClient from '@/components/home/MixedHomeClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { buildMetadata } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata = buildMetadata({
+  path: '/',
+  title: 'NiceModels.ch – Das Erotikportal der Schweiz',
+  description: 'NiceModels.ch – Das führende Erotikportal der Schweiz. Finde verifizierte Escort-Models, Clubs und Agenturen in Zürich, Bern, Basel, Genf und der ganzen Schweiz.',
+})
 
 const CACHE_TTL = 60
 
@@ -356,7 +364,7 @@ const getChatModels = unstable_cache(buildChatModels, ['home-chat-v1'], { revali
 const getStories = unstable_cache(buildStories, ['home-stories-v1'], { revalidate: CACHE_TTL, tags: ['home-stories'] })
 
 export default async function HomePage() {
-  const [models, clubs, banners, listings, statusMessages, chatModels, stories] = await Promise.all([
+  const [models, clubs, banners, listings, statusMessages, chatModels, stories, t] = await Promise.all([
     getModels(),
     getClubs(),
     getBanners(),
@@ -364,12 +372,27 @@ export default async function HomePage() {
     getStatusMessages(),
     getChatModels(),
     getStories(),
+    getTranslations('home.seo'),
   ])
 
   // Per-request seed: rotates the feed each load while keeping SSR and the
   // hydrated client order identical (deterministic seeded shuffle), so cards
   // never jump under the user's finger after hydration.
   const seed = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
+
+  const hero = (
+    <div className="rounded-xl bg-white/70 px-4 py-3 sm:px-5 sm:py-4">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+        {t('homeH1')}
+      </h1>
+      <p className="mt-1 text-sm font-medium text-gray-700 leading-relaxed">
+        {t('homeIntro')}
+      </p>
+      <p className="mt-1 text-xs text-gray-500 leading-relaxed">
+        {t('homeBody')}
+      </p>
+    </div>
+  )
 
   return (
     <MixedHomeClient
@@ -381,6 +404,7 @@ export default async function HomePage() {
       chatModels={chatModels}
       stories={stories}
       seed={seed}
+      hero={hero}
     />
   )
 }

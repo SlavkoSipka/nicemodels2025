@@ -1,16 +1,15 @@
-import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import CommentsPageClient from './CommentsPageClient'
+import { buildMetadata } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
+  path: '/comments',
   title: 'Bewertungen & Kommentare',
-  description:
-    'Lese echte Bewertungen und Kommentare zu Escort-Models auf NiceModels.ch.',
-  alternates: { canonical: 'https://www.nicemodels.ch/comments' },
-}
+  description: 'Lese echte Bewertungen und Kommentare zu Escort-Models auf NiceModels.ch.',
+})
 
 export default async function CommentsPage() {
   const supabase = await createClient()

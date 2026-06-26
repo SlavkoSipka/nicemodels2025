@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     .maybeSingle()
 
   if (!topic) {
-    return { title: 'Discussion | NiceModels', robots: { index: false, follow: false } }
+    return { title: 'Diskussion', robots: { index: false, follow: false } }
   }
 
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     : 'https://www.nicemodels.ch/logo.webp'
 
   return {
-    title: `${topic.title} – Discussion | NiceModels`,
+    title: `${topic.title} – Diskussion`,
     description: desc,
     openGraph: {
       title: topic.title,

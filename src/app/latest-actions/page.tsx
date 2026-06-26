@@ -1,15 +1,14 @@
-import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import LatestActionsClient from './LatestActionsClient'
+import { buildMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
+  path: '/latest-actions',
   title: 'Neueste Aktivitäten',
-  description:
-    'Sieh dir die neuesten Aktivitäten, neue Models, Clubs und Updates auf NiceModels.ch an.',
-  alternates: { canonical: 'https://www.nicemodels.ch/latest-actions' },
-}
+  description: 'Sieh dir die neuesten Aktivitäten, neue Models, Clubs und Updates auf NiceModels.ch an.',
+})
 
 export const dynamic = 'force-dynamic'
 

@@ -2,11 +2,13 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
 import ForceGermanProvider from '@/components/legal/ForceGermanProvider'
+import { buildMetadata } from '@/lib/seo'
 
-export const metadata = {
-  title: 'Datenschutz | nicemodels.ch',
+export const metadata = buildMetadata({
+  path: '/privacy',
+  title: 'Datenschutz',
   description: 'Datenschutzerklärung und Hinweise zum Datenschutz bei nicemodels.ch',
-}
+})
 
 export default function PrivacyPage() {
   return (

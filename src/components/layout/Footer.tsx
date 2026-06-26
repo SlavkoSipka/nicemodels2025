@@ -17,7 +17,7 @@ export default function Footer() {
 
       {/* Main footer */}
       <div className="max-w-7xl mx-auto px-4 pt-8 sm:pt-14 pb-8 sm:pb-10">
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-10">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-10">
 
           {/* Logo + tagline */}
           <div className="col-span-2 sm:col-span-2 md:col-span-1">
@@ -68,6 +68,33 @@ export default function Footer() {
               {[
                 { href: '/privacy', label: t('linkPrivacy') },
                 { href: '/terms',   label: t('linkTerms') },
+              ].map(({ href, label }) => (
+                <li key={href}>
+                  <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Städte */}
+          <div>
+            <h4 className="text-[11px] font-semibold uppercase tracking-widest mb-5" style={{ color: '#f9a8d4' }}>
+              Städte
+            </h4>
+            <ul className="space-y-3 text-sm">
+              {[
+                { href: '/escort/zurich',     label: 'Zürich' },
+                { href: '/escort/bern',       label: 'Bern' },
+                { href: '/escort/basel',      label: 'Basel' },
+                { href: '/escort/genf',       label: 'Genf' },
+                { href: '/escort/lausanne',   label: 'Lausanne' },
+                { href: '/escort/luzern',     label: 'Luzern' },
+                { href: '/escort/winterthur', label: 'Winterthur' },
+                { href: '/escort/zug',        label: 'Zug' },
+                { href: '/escort/st-gallen',  label: 'St. Gallen' },
+                { href: '/escort/lugano',     label: 'Lugano' },
               ].map(({ href, label }) => (
                 <li key={href}>
                   <Link href={href} className="transition-colors duration-200 hover:text-white" style={{ color: 'rgba(255,255,255,0.45)' }}>

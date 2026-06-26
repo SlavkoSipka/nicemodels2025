@@ -1,23 +1,40 @@
 import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { CITIES } from '@/lib/data/cities-seo'
 
 const SITE_URL = 'https://www.nicemodels.ch'
+
+// Last date static page content was meaningfully changed.
+// Update this const (not new Date()) when actually editing static pages,
+// so Googlebot isn't told every regeneration is fresh content.
+const STATIC_LASTMOD = new Date('2026-06-11')
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const admin = createAdminClient()
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: SITE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${SITE_URL}/search`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${SITE_URL}/clubs`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
-    { url: `${SITE_URL}/jobs-rents`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.7 },
-    { url: `${SITE_URL}/models-page`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${SITE_URL}/comments`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
-    { url: `${SITE_URL}/latest-actions`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.6 },
-    { url: `${SITE_URL}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
-    { url: `${SITE_URL}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${SITE_URL}/privacy`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
-    { url: `${SITE_URL}/terms`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.2 },
+    { url: SITE_URL,                        lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 1.0 },
+    { url: `${SITE_URL}/models-page`,       lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${SITE_URL}/search`,            lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.9 },
+    { url: `${SITE_URL}/clubs`,             lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.8 },
+    { url: `${SITE_URL}/jobs-rents`,        lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.7 },
+    { url: `${SITE_URL}/latest-actions`,    lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.6 },
+    { url: `${SITE_URL}/blog`,              lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.6 },
+    { url: `${SITE_URL}/comments`,          lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.5 },
+    { url: `${SITE_URL}/contact`,           lastModified: STATIC_LASTMOD, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${SITE_URL}/privacy`,           lastModified: STATIC_LASTMOD, changeFrequency: 'yearly',  priority: 0.2 },
+    { url: `${SITE_URL}/terms`,             lastModified: STATIC_LASTMOD, changeFrequency: 'yearly',  priority: 0.2 },
+  ]
+
+  // City landing pages (Phase 4). Copy is static; ISR refreshes listing data.
+  const cityPages: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/escort`, lastModified: STATIC_LASTMOD, changeFrequency: 'weekly', priority: 0.8 },
+    ...CITIES.map(city => ({
+      url: `${SITE_URL}/escort/${city.slug}`,
+      lastModified: STATIC_LASTMOD,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    })),
   ]
 
   let blogPages: MetadataRoute.Sitemap = []
@@ -93,5 +110,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   }
 
-  return [...staticPages, ...blogPages, ...modelPages, ...clubPages, ...listingPages]
+  return [...staticPages, ...cityPages, ...blogPages, ...modelPages, ...clubPages, ...listingPages]
 }

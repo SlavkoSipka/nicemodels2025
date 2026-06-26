@@ -7,6 +7,7 @@ import PageTracker from "@/components/analytics/PageTracker";
 import GlobalChat from "@/components/chat/GlobalChat";
 import AuthProvider, { type AuthProfile } from "@/components/auth/AuthProvider";
 import QueryProvider from "@/lib/query/QueryProvider";
+import AgeGate from "@/components/AgeGate";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -194,6 +195,9 @@ export default async function RootLayout({
               </PageLoader>
             </QueryProvider>
           </AuthProvider>
+          {/* Age gate: client-side overlay only. SSR renders null so bots
+              receive full HTML. Cookie is read client-side after hydration. */}
+          <AgeGate />
         </NextIntlClientProvider>
       </body>
     </html>

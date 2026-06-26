@@ -61,7 +61,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     twitter: {
       card: 'summary_large_image', title, description: desc, images: [ogImage],
     },
-    alternates: { canonical: `https://www.nicemodels.ch/clubs/${id}` },
+    alternates: {
+      canonical: `https://www.nicemodels.ch/clubs/${id}`,
+      languages: {
+        'de-CH': `https://www.nicemodels.ch/clubs/${id}`,
+        'x-default': `https://www.nicemodels.ch/clubs/${id}`,
+      },
+    },
   }
 }
 

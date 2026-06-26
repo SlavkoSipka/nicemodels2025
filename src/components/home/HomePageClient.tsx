@@ -65,9 +65,11 @@ interface HomePageClientProps {
   statusMessages?: StatusMessage[]
   chatModels?: ChatModel[]
   stories?: any[]
+  /** Server-rendered H1 + intro strip, passed from the RSC page and inserted before the filter bar. */
+  hero?: React.ReactNode
 }
 
-export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [], stories }: HomePageClientProps) {
+export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [], stories, hero }: HomePageClientProps) {
   const t = useTranslations('home')
   const [selectedRegion,       setSelectedRegion]       = useState<string>('all')
   const [selectedCity,         setSelectedCity]         = useState<string>('all')
@@ -266,6 +268,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
             </aside>
 
             <div className="mx-auto flex w-full min-w-0 max-w-[1100px] flex-col gap-4 xl:max-w-none xl:mx-0">
+              {hero}
               <CitySelector
                 selectedRegion={selectedRegion}             setSelectedRegion={setSelectedRegion}
                 selectedCity={selectedCity}                 setSelectedCity={setSelectedCity}
