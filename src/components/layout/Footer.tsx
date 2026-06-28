@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl'
 export default function Footer() {
   const t = useTranslations('footer')
   const tNav = useTranslations('nav')
+  const tSeo = useTranslations('home.seo')
 
   return (
     <footer style={{ backgroundColor: '#1a1a2e' }}>
@@ -139,6 +140,13 @@ export default function Footer() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Site description */}
+      <div className="max-w-7xl mx-auto px-4 pb-6" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '20px' }}>
+        <p className="text-xs leading-relaxed max-w-2xl" style={{ color: 'rgba(255,255,255,0.25)' }}>
+          {tSeo('homeIntro')} {tSeo('homeBody')}
+        </p>
       </div>
 
       {/* Bottom bar */}

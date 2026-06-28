@@ -385,12 +385,6 @@ export default async function HomePage() {
       <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
         {t('homeH1')}
       </h1>
-      <p className="mt-1 text-sm font-medium text-gray-700 leading-relaxed">
-        {t('homeIntro')}
-      </p>
-      <p className="mt-1 text-xs text-gray-500 leading-relaxed">
-        {t('homeBody')}
-      </p>
     </div>
   )
 
