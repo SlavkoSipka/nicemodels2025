@@ -1,0 +1,28 @@
+{
+  "jobs": {
+    "list": {
+      "title": "Jobs & Rent",
+      "subtitle": "Browse job opportunities and rental listings",
+      "listing": "listing",
+      "listings": "listings",
+      "ofTotal": "of {total}",
+      "filterAll": "All",
+      "filterJobs": "Jobs",
+      "filterRent": "Rent",
+      "noListings": "No listings yet",
+      "noListingsHint": "Check back soon for new opportunities.",
+      "fallbackTitleJob": "Job Listing",
+      "fallbackTitleRent": "Rent Listing",
+      "badgeJob": "Job",
+      "badgeRent": "Rent",
+      "labelJob": "Job Opportunity",
+      "labelRent": "Rental Offer",
+      "openListing": "Open {title}",
+      "website": "Website",
+      "regions": {
+        "all": "All regions",
+        "clear": "Clear region filter"
+      }
+    }
+  }
+}

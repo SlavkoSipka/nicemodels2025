@@ -1,0 +1,353 @@
+{
+  "components": {
+    "nearbyFilter": {
+      "label": "Hledání v okolí",
+      "labelShort": "V okolí",
+      "placeholder": "Město nebo PSČ",
+      "noMatches": "Žádná města neodpovídají „{query}“",
+      "matchCount": "{count} do {radius} km"
+    },
+    "chat": {
+      "widget": {
+        "title": "Chat",
+        "conversations": "Konverzace ({count})",
+        "onlineNow": "Nyní online ({count})",
+        "searchPlaceholder": "Hledat...",
+        "loading": "Načítání...",
+        "noConversationsFound": "Nebyly nalezeny žádné konverzace",
+        "noConversationsYet": "Zatím žádné konverzace",
+        "noOnlineFound": "Nebyli nalezeni žádní online uživatelé",
+        "noOnlineNow": "Právě teď není nikdo online",
+        "availableToChat": "Jste k dispozici pro chat",
+        "roleModel": "💎 Modelka",
+        "roleAgency": "🏢 Agentura",
+        "roleAdmin": "⚙️ Admin",
+        "roleUser": "👤 Uživatel",
+        "roleClub": "🏢 Klub",
+        "startConversation": "Začít konverzaci",
+        "yesterday": "Včera",
+        "modelFallback": "Modelka"
+      },
+      "mini": {
+        "emptyState": "Začněte konverzaci!",
+        "reportTitleAttr": "Nahlásit uživatele",
+        "reportTarget": "Nahlásit {username}",
+        "reasonPlaceholder": "Popište, proč tohoto uživatele nahlašujete...",
+        "screenshotOptional": "Snímek obrazovky (volitelné)",
+        "uploadScreenshot": "Nahrát snímek obrazovky",
+        "screenshotAlt": "Snímek obrazovky"
+      },
+      "startButton": {
+        "label": "💬 Odeslat zprávu",
+        "failedAlert": "Zahájení chatu se nezdařilo. Zkuste to prosím znovu."
+      }
+    },
+    "discussion": {
+      "thread": {
+        "edited": "(upraveno)",
+        "moreReplies": "{count} dalších",
+        "collapse": "sbalit",
+        "save": "Uložit",
+        "cancel": "Zrušit",
+        "reply": "Odpovědět",
+        "edit": "Upravit",
+        "delete": "Smazat",
+        "deleteConfirm": "Smazat tento příspěvek? Bude skryt z veřejného zobrazení.",
+        "replyPlaceholder": "Odpovědět uživateli {author}...",
+        "justNow": "právě teď",
+        "minAgo": "před {n} min",
+        "hourAgo": "před {n} h",
+        "dayAgo": "před {n} dny"
+      },
+      "replyForm": {
+        "checkingSession": "Kontrola relace...",
+        "signIn": "Přihlaste se",
+        "joinDiscussion": "pro zapojení do diskuze.",
+        "errSignIn": "Pro přispívání se prosím přihlaste.",
+        "errEmpty": "Zpráva nemůže být prázdná.",
+        "errTooLong": "Zpráva je příliš dlouhá (max {max} znaků).",
+        "errPost": "Nepodařilo se přispět",
+        "posting": "Odesílání...",
+        "post": "Přispět",
+        "placeholderDefault": "Napište odpověď..."
+      }
+    },
+    "savedSearchForm": {
+      "saveFailed": "Uložení hledání se nezdařilo. Zkuste to prosím znovu.",
+      "deleteConfirm": "Smazat toto uložené hledání? Přestanete pro něj dostávat upozornění.",
+      "nameLabel": "Název",
+      "namePlaceholder": "např. „Africké modelky v Curychu“",
+      "searchForLabel": "Hledat",
+      "entityModel": "Modelky",
+      "entityClub": "Kluby",
+      "entityListing": "Nabídky práce / pronájmu",
+      "alertMatches": "Upozornit mě, když se objeví nové shody",
+      "criteriaTitle": "Kritéria",
+      "cityLabel": "Město (přesná shoda)",
+      "cityPlaceholder": "např. Curych",
+      "nearbyLabel": "V okolí (výchozí bod + poloměr)",
+      "ethnicityLabel": "Původ",
+      "hairLabel": "Barva vlasů",
+      "genderLabel": "Pohlaví",
+      "nationalityLabel": "Národnost",
+      "nationalityPlaceholder": "např. brazilská",
+      "any": "Jakékoli",
+      "minAge": "Min. věk",
+      "maxAge": "Max. věk",
+      "servicesLabel": "Služby (všechny vyžadovány)",
+      "languagesLabel": "Jazyky (všechny vyžadovány)",
+      "clubAreaLabel": "Oblast klubu",
+      "clubAreaPlaceholder": "např. Zürich West",
+      "listingTypeLabel": "Typ nabídky",
+      "listingAny": "Jakýkoli",
+      "listingJobsOnly": "Pouze práce",
+      "listingRentOnly": "Pouze pronájem",
+      "testSearch": "Vyzkoušet hledání",
+      "previewOne": "Aktuálně {count} {entity} odpovídá těmto kritériím.",
+      "previewMany": "Aktuálně {count} {entity} odpovídá těmto kritériím.",
+      "saveChanges": "Uložit změny",
+      "create": "Vytvořit uložené hledání",
+      "cancel": "Zrušit",
+      "delete": "Smazat",
+      "deleting": "Mazání…",
+      "entityModelOne": "modelka",
+      "entityModelOther": "modelek",
+      "entityClubOne": "klub",
+      "entityClubOther": "klubů",
+      "entityListingOne": "nabídka",
+      "entityListingOther": "nabídek"
+    },
+    "createJobRentForm": {
+      "subtitleFallback": "Vytvořte novou nabídku práce nebo pronájmu",
+      "title": "Vytvořit nabídku",
+      "back": "Zpět",
+      "errNeedActiveAd": "Před zveřejněním nabídky potřebujete aktivní reklamu",
+      "errTitleRequired": "Název je povinný",
+      "errCityRequired": "Město je povinné",
+      "errDescriptionRequired": "Popis je povinný",
+      "errContactRequired": "Přidejte alespoň telefonní číslo nebo e-mail, aby vás lidé mohli kontaktovat",
+      "errSelectPackage": "Vyberte prosím balíček doby trvání",
+      "errTermsRequired": "Přijměte prosím obchodní podmínky",
+      "errPackageUnavailable": "Tento balíček není k dispozici ke koupi. Obnovte stránku a zkuste to znovu.",
+      "errCreateFailed": "Vytvoření nabídky se nezdařilo",
+      "errCheckoutFailed": "Zahájení platby se nezdařilo",
+      "activateAdTitle": "Nejprve aktivujte svou reklamu",
+      "activateAdBody": "Nabídku práce nebo pronájmu můžete zveřejnit pouze tehdy, když máte aktivní reklamu. Aktivujte ji a vraťte se ke zveřejnění.",
+      "activateSedcardCta": "Aktivovat sedcard",
+      "sectionAbout": "O nabídce",
+      "typeLabel": "Typ",
+      "typeJob": "Práce",
+      "typeRent": "Pronájem",
+      "titleLabel": "Název *",
+      "titlePlaceholder": "např. Hledáme zkušené tanečnice, Studio k pronájmu v Curychu...",
+      "cityLabel": "Město *",
+      "cityPlaceholder": "Hledat město nebo PSČ...",
+      "streetLabel": "Ulice",
+      "numberLabel": "Číslo",
+      "optionalTag": "(volitelné)",
+      "streetPlaceholder": "Bahnhofstrasse",
+      "numberPlaceholder": "42",
+      "sectionVisibility": "Kde zobrazit",
+      "visibilityHint": "— vyberte regiony",
+      "previewTitleJob": "Kde se vaše pracovní nabídka objeví",
+      "previewTitleRent": "Kde se vaše nabídka pronájmu objeví",
+      "sectionRentDetails": "Detaily pronájmu",
+      "pricingChf": "Ceník (CHF)",
+      "perDay": "Za den",
+      "perWeek": "Za týden",
+      "perMonth": "Za měsíc",
+      "roomSizeLabel": "Velikost pokoje",
+      "roomSizePlaceholder": "např. 25 m², Velký, Studio...",
+      "workPermitLabel": "Pracovní povolení",
+      "workPermitToggle": "Povoleno pracovat v prostoru",
+      "amenitiesLabel": "Vybavení",
+      "amenityFurnished": "Zařízeno",
+      "amenityKitchen": "Kuchyně",
+      "amenityBathroom": "Sprcha + WC",
+      "amenityAc": "Klimatizace",
+      "amenityTowels": "Ručníky",
+      "sectionDescription": "Popis *",
+      "descriptionPlaceholder": "Podrobně popište pracovní pozici nebo nemovitost k pronájmu...",
+      "sectionPhotos": "Fotky",
+      "choosePhotos": "Vybrat fotky",
+      "photosHint": "JPG, PNG nebo WEBP - max 10 MB na soubor",
+      "dragReorderHint": "Přetažením fotek nastavte pořadí zobrazené v nabídce.",
+      "sectionContact": "Kontakt",
+      "contactRequiredBadge": "* povinné",
+      "contactHint": "Přidejte alespoň telefonní číslo nebo e-mail — bez kontaktních údajů vás nikdo nezastihne.",
+      "codeLabel": "Předvolba",
+      "phoneLabel": "Telefonní číslo",
+      "phonePlaceholder": "Telefonní číslo",
+      "reachYouHint": "Jak vás mohou zájemci kontaktovat (stejné číslo jako výše u telefonních možností):",
+      "channelSms": "SMS",
+      "channelWhatsapp": "WhatsApp",
+      "channelViber": "Viber",
+      "channelTelegram": "Telegram",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "kontakt@example.com",
+      "websiteLabel": "Web",
+      "websitePlaceholder": "https://...",
+      "sectionServices": "Služby",
+      "selectedCount": "{count} vybráno",
+      "sectionDuration": "Doba trvání",
+      "whenToStart": "Kdy začít:",
+      "activationImmediately": "Okamžitě",
+      "activationAtDate": "K datu",
+      "cancel": "Zrušit",
+      "submitRedirecting": "Přesměrování na platbu...",
+      "submitPay": "Zaplatit bezpečně {amount} CHF",
+      "submitContinue": "Pokračovat k platbě"
+    },
+    "home": {
+      "modelCard": {
+        "viewProfileAria": "Zobrazit profil: {title}",
+        "premium": "Premium",
+        "ageYears": "{age} let",
+        "liveCity": "Živě: {city}",
+        "liveCityPostal": "Živě: {city} ({postal})",
+        "timeSec": "{n} s",
+        "timeMin": "{n} min",
+        "timeHour": "{n} h",
+        "timeDay": "{n} d"
+      },
+      "clubCard": {
+        "fallbackName": "Klub",
+        "typeClub": "Klub",
+        "typeAgency": "Agentura"
+      },
+      "latestStatus": {
+        "title": "Nejnovější stavové zprávy",
+        "justNow": "právě teď",
+        "minutesAgo": "před {count} min",
+        "oneHourAgo": "před 1 hodinou",
+        "hoursAgo": "před {count} hodinami",
+        "oneDayAgo": "před 1 dnem",
+        "daysAgo": "před {count} dny"
+      },
+      "availableForChat": {
+        "title": "K dispozici pro chat 1:1",
+        "viewAll": "Zobrazit všechny chaty"
+      },
+      "stories": {
+        "addStory": "Přidat story"
+      },
+      "inYourArea": {
+        "title": "Ve vašem okolí",
+        "noCityHint": "Nastavte si město v profilu, abyste viděli modelky, kluby a nabídky v okolí.",
+        "setCity": "Nastavit město",
+        "around": "V okolí",
+        "updating": "aktualizace…",
+        "modelsLabel": "Modelky",
+        "clubsLabel": "Kluby",
+        "listingsLabel": "Nabídky"
+      }
+    },
+    "sitePreview": {
+      "livePreview": "Živý náhled",
+      "desktop": "Počítač",
+      "mobile": "Mobil",
+      "defaultTitle": "Náhled",
+      "sidebarNote": "Na telefonech se stejná kreativa z levého sloupce zobrazuje v pevném pruhu u spodního okraje obrazovky (jako na živé domovské stránce)."
+    },
+    "bannerPreviewMock": {
+      "navHome": "Domů",
+      "navGirls": "Dívky",
+      "navClubs": "Kluby",
+      "navJobsRent": "Práce a pronájem",
+      "navJobsShort": "Práce",
+      "searchPlaceholder": "Hledat",
+      "filterAll": "Vše",
+      "filterZurich": "Curych",
+      "filterGeneva": "Ženeva",
+      "filterBasel": "Basilej",
+      "filterVerified": "Ověřené",
+      "verifiedShort": "OVĚŘ",
+      "live": "živě",
+      "yourCardBadge": "VAŠE KARTA",
+      "serviceOutcall": "Outcall",
+      "serviceMassage": "Masáž",
+      "serviceMore": "+3",
+      "bannerWideLabel": "VÁŠ ŠIROKÝ BANNER",
+      "bannerWideSubtitle": "Na celou šířku · 4:1 · Nahoře ve výpisu",
+      "bannerCardLabel": "VAŠE KARTA",
+      "bannerCardTitle": "VÁŠ KARTOVÝ BANNER",
+      "bannerCardSubtitle": "Stejná velikost jako profil",
+      "bannerYourAd": "VAŠE REKLAMA",
+      "adBadge": "REKLAMA",
+      "bannerYoursLabel": "VAŠE",
+      "bannerLeftTitle": "VÁŠ LEVÝ SLOUPEC",
+      "bannerLeftLine1": "VÁŠ LEVÝ",
+      "bannerLeftLine2": "SLOUPEC",
+      "bannerLeftDesktopHint": "Pouze na počítači",
+      "leftColumnMobileCaption": "Stejné umístění — přilepený pruh dole na telefonech",
+      "wideBannerRepeat": "… další široký banner se opakuje po každých 6 kartách",
+      "placeholderNameAge": "Jméno, 24",
+      "youProfileName": "Vy",
+      "youProfileCity": "Vaše město"
+    },
+    "placementMock": {
+      "desktop": "Počítač",
+      "mobile": "Mobil",
+      "livePreviewTitle": "Přesně tak, jak to vypadá na webu",
+      "livePreviewHint": "Váš celý obrázek se vždy zobrazuje — nikdy není oříznut.",
+      "yourBanner": "Váš banner"
+    },
+    "placementPicker": {
+      "activeInSlot": "Aktivní v tomto slotu",
+      "feed_wide": {
+        "title": "Široký banner",
+        "zone": "Přes oba sloupce",
+        "desc": "Pruh na celou šířku ve výpisu — opakuje se po každých 6 kartách profilů (4:1)."
+      },
+      "feed_card": {
+        "title": "Kartový slot",
+        "zone": "Uvnitř mřížky",
+        "desc": "Stejná velikost buňky jako karta profilu — zobrazuje se po každých 4 kartách (3:4)."
+      },
+      "sidebar_left": {
+        "title": "Levý sloupec",
+        "zone": "Vedle výpisu",
+        "desc": "Svislý slot vedle výpisu na počítači/notebooku. Na telefonech se stejná kreativa zobrazuje ve spodním promo pruhu (ne vedle mřížky). Pořadí slotů je při každém načtení náhodné."
+      }
+    },
+    "bannerPlacementGuide": {
+      "title": "Jak umístění fungují",
+      "badge": "Umístění",
+      "introModel": "Při nákupu si vyberte <type>typ umístění</type>: <wide>široký</wide> (celá řada), <card>karta</card> (jedna buňka mřížky) nebo <left>levý sloupec</left> (lišta vedle výpisu na počítači — na telefonech se zobrazuje dole). Šedé bloky jsou jiné profily; <violet>fialová</violet> zóna je vaše reklama.",
+      "introClub": "Při nákupu si vyberte <type>typ umístění</type>: <wide>široký</wide> (celá řada), <card>karta</card> (jedna buňka mřížky) nebo <left>levý sloupec</left> (lišta vedle výpisu na počítači — na telefonech se zobrazuje dole). Šedé bloky jsou jiné profily; <violet>fialová</violet> zóna je vaše reklama.",
+      "introPagesModel": "Vaše umístění se mohou zobrazovat na <home>Domů</home>, <girls>Dívky</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Kluby</clubs>, <jobs>Práce a pronájem</jobs> a v podobných zobrazeních pro procházení.",
+      "introPagesClub": "Umístění vašeho klubu se mohou zobrazovat na <home>Domů</home>, <girls>Dívky</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Kluby</clubs>, <jobs>Práce a pronájem</jobs> a v podobných zobrazeních pro procházení.",
+      "fairRotationBody": "<semibold>Spravedlivá rotace:</semibold> U <wideLabel>širokých</wideLabel> a <cardLabel>kartových</cardLabel> umístění, když je aktivních několik bannerů, <emphasis>je při každém načtení náhodně vybráno, který se zobrazí, aby zůstala expozice spravedlivá.</emphasis> Inventář <leftCol>levého sloupce</leftCol> zobrazuje na počítači jednu rotovanou lištu vedle výpisu; na mobilu se inventář zobrazuje ve spodním pruhu."
+    },
+    "viewCount": {
+      "tooltip": "{formatted} {count, plural, one {zobrazení} few {zobrazení} many {zobrazení} other {zobrazení}}"
+    },
+    "richTextEditor": {
+      "defaultPlaceholder": "Začněte psát..."
+    },
+    "citySearch": {
+      "defaultPlaceholder": "Hledat město nebo PSČ...",
+      "noResults": "Nebyla nalezena žádná města"
+    },
+    "termsAcceptance": {
+      "accept": "Přijímám <terms>obchodní podmínky (AGB)</terms> a <privacy>zásady ochrany osobních údajů</privacy>."
+    },
+    "profile": {
+      "contactButtons": {
+        "showContact": "Zobrazit kontakt",
+        "noPhone": "Žádné telefonní číslo",
+        "noWithheld": "Žádná skrytá čísla, prosím"
+      }
+    },
+    "notificationBell": {
+      "title": "Oznámení",
+      "unread": "{count} nepřečtených",
+      "loading": "Načítání…",
+      "emptyTitle": "Žádná oznámení",
+      "emptySubtitle": "Máte vše přečteno!",
+      "markRead": "Označit jako přečtené",
+      "delete": "Smazat",
+      "viewAll": "Zobrazit všechna oznámení"
+    }
+  }
+}

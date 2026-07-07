@@ -1,0 +1,21 @@
+{
+  "footer": {
+    "tagline": "The premium portal for Switzerland. Discreet, safe and professional.",
+    "pages": "Pages",
+    "legal": "Legal",
+    "support": "Support",
+    "linkModels": "Models",
+    "linkClubs": "Clubs",
+    "linkComments": "Comments",
+    "linkBlog": "Blog",
+    "linkContact": "Contact",
+    "linkPrivacy": "Privacy / Datenschutz",
+    "linkTerms": "AGB (Terms)",
+    "whatsapp": "WhatsApp",
+    "contactForm": "Contact form",
+    "bottomPrivacy": "Privacy",
+    "bottomTerms": "AGB",
+    "bottomImprint": "Imprint",
+    "copyright": "© {year} nicemodels.ch"
+  }
+}

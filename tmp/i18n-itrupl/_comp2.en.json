@@ -1,0 +1,109 @@
+{
+  "sitePreview": {
+    "livePreview": "Live preview",
+    "desktop": "Desktop",
+    "mobile": "Mobile",
+    "defaultTitle": "Preview",
+    "sidebarNote": "On phones, the same left-column creative appears in a fixed strip at the bottom of the screen (like the live homepage)."
+  },
+  "bannerPreviewMock": {
+    "navHome": "Home",
+    "navGirls": "Girls",
+    "navClubs": "Clubs",
+    "navJobsRent": "Jobs & Rent",
+    "navJobsShort": "Jobs",
+    "searchPlaceholder": "Search",
+    "filterAll": "All",
+    "filterZurich": "Zurich",
+    "filterGeneva": "Geneva",
+    "filterBasel": "Basel",
+    "filterVerified": "Verified",
+    "verifiedShort": "VER",
+    "live": "live",
+    "yourCardBadge": "YOUR CARD",
+    "serviceOutcall": "Outcall",
+    "serviceMassage": "Massage",
+    "serviceMore": "+3",
+    "bannerWideLabel": "YOUR WIDE BANNER",
+    "bannerWideSubtitle": "Full-width · 4:1 · Top of feed",
+    "bannerCardLabel": "YOUR CARD",
+    "bannerCardTitle": "YOUR CARD BANNER",
+    "bannerCardSubtitle": "Same size as profile",
+    "bannerYourAd": "YOUR AD",
+    "adBadge": "AD",
+    "bannerYoursLabel": "YOURS",
+    "bannerLeftTitle": "YOUR LEFT COLUMN",
+    "bannerLeftLine1": "YOUR LEFT",
+    "bannerLeftLine2": "COLUMN",
+    "bannerLeftDesktopHint": "Desktop only",
+    "leftColumnMobileCaption": "Same placement — sticky strip at the bottom on phones",
+    "wideBannerRepeat": "… another wide banner repeats every 6 cards",
+    "placeholderNameAge": "Name, 24",
+    "youProfileName": "You",
+    "youProfileCity": "Your city"
+  },
+  "placementMock": {
+    "desktop": "Desktop",
+    "mobile": "Mobile",
+    "livePreviewTitle": "Exactly how it looks on the site",
+    "livePreviewHint": "Your whole image is always shown — nothing is ever cropped.",
+    "yourBanner": "Your banner"
+  },
+  "placementPicker": {
+    "activeInSlot": "Active in this slot",
+    "feed_wide": {
+      "title": "Wide banner",
+      "zone": "Spans both columns",
+      "desc": "Full-width strip in the listing — repeats every 6 profile cards (4:1)."
+    },
+    "feed_card": {
+      "title": "Card slot",
+      "zone": "Inside the grid",
+      "desc": "Same cell size as a profile card — appears every 4 cards (3:4)."
+    },
+    "sidebar_left": {
+      "title": "Left column",
+      "zone": "Beside the feed",
+      "desc": "Vertical slot beside the listing on desktop/laptop. On phones the same creative appears in the bottom promo strip (not beside the grid). Slot order is random on each load."
+    }
+  },
+  "bannerPlacementGuide": {
+    "title": "How placements work",
+    "badge": "Placements",
+    "introModel": "Choose a <type>placement type</type> when you buy: <wide>wide</wide> (full row), <card>card</card> (one grid cell), or <left>left column</left> (rail beside the feed on desktop — on phones it appears at the bottom). Grey blocks are other profiles; the <violet>violet</violet> zone is your ad.",
+    "introClub": "Choose a <type>placement type</type> when you buy: <wide>wide</wide> (full row), <card>card</card> (one grid cell), or <left>left column</left> (rail beside the feed on desktop — on phones it appears at the bottom). Grey blocks are other profiles; the <violet>violet</violet> zone is your ad.",
+    "introPagesModel": "Your placements can appear on <home>Home</home>, <girls>Girls</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Clubs</clubs>, <jobs>Jobs & Rent</jobs>, and similar browse views.",
+    "introPagesClub": "Your club’s placements can appear on <home>Home</home>, <girls>Girls</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Clubs</clubs>, <jobs>Jobs & Rent</jobs>, and similar browse views.",
+    "fairRotationBody": "<semibold>Fair rotation:</semibold> For <wideLabel>wide</wideLabel> and <cardLabel>card</cardLabel> placements, when several banners are active, <emphasis>which one appears is randomised each load so exposure stays fair.</emphasis> <leftCol>Left-column</leftCol> inventory shows one rotated rail beside the feed on desktop; on mobile the inventory appears in the bottom strip."
+  },
+  "viewCount": {
+    "tooltip": "{formatted} {count, plural, one {view} other {views}}"
+  },
+  "richTextEditor": {
+    "defaultPlaceholder": "Start writing..."
+  },
+  "citySearch": {
+    "defaultPlaceholder": "Search city or postal code...",
+    "noResults": "No cities found"
+  },
+  "termsAcceptance": {
+    "accept": "I accept the <terms>terms and conditions (AGB)</terms> and the <privacy>privacy policy</privacy>."
+  },
+  "profile": {
+    "contactButtons": {
+      "showContact": "Show Contact",
+      "noPhone": "No phone number",
+      "noWithheld": "No withheld numbers please"
+    }
+  },
+  "notificationBell": {
+    "title": "Notifications",
+    "unread": "{count} unread",
+    "loading": "Loading…",
+    "emptyTitle": "No notifications",
+    "emptySubtitle": "You're all caught up!",
+    "markRead": "Mark as read",
+    "delete": "Delete",
+    "viewAll": "View all notifications"
+  }
+}

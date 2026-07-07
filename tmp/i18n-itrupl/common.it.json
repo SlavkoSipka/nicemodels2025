@@ -1,0 +1,33 @@
+{
+  "common": {
+    "loading": "Caricamento...",
+    "save": "Salva",
+    "saving": "Salvataggio...",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "deleting": "Eliminazione...",
+    "edit": "Modifica",
+    "back": "Indietro",
+    "close": "Chiudi",
+    "search": "Cerca",
+    "yes": "Sì",
+    "no": "No",
+    "confirm": "Conferma",
+    "next": "Avanti",
+    "previous": "Precedente",
+    "submit": "Invia",
+    "sending": "Invio...",
+    "saved": "Salvato",
+    "error": "Errore",
+    "success": "Operazione riuscita",
+    "required": "Obbligatorio",
+    "optional": "Facoltativo",
+    "all": "Tutti",
+    "none": "Nessuno",
+    "active": "Attivo",
+    "inactive": "Inattivo",
+    "pending": "In attesa",
+    "approved": "Approvato",
+    "rejected": "Rifiutato"
+  }
+}

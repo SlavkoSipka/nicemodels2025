@@ -1,0 +1,30 @@
+{
+  "jobs": {
+    "jobs": {
+      "list": {
+        "title": "Práce a pronájem",
+        "subtitle": "Procházejte pracovní nabídky a nabídky pronájmu",
+        "listing": "nabídka",
+        "listings": "nabídek",
+        "ofTotal": "z {total}",
+        "filterAll": "Vše",
+        "filterJobs": "Práce",
+        "filterRent": "Pronájem",
+        "noListings": "Zatím žádné nabídky",
+        "noListingsHint": "Brzy se podívejte na nové příležitosti.",
+        "fallbackTitleJob": "Pracovní nabídka",
+        "fallbackTitleRent": "Nabídka pronájmu",
+        "badgeJob": "Práce",
+        "badgeRent": "Pronájem",
+        "labelJob": "Pracovní příležitost",
+        "labelRent": "Nabídka pronájmu",
+        "openListing": "Otevřít {title}",
+        "website": "Web",
+        "regions": {
+          "all": "Všechny regiony",
+          "clear": "Vymazat filtr regionu"
+        }
+      }
+    }
+  }
+}

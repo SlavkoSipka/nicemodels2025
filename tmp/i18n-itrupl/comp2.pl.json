@@ -1,0 +1,111 @@
+{
+  "components": {
+    "sitePreview": {
+      "livePreview": "Podgląd na żywo",
+      "desktop": "Komputer",
+      "mobile": "Telefon",
+      "defaultTitle": "Podgląd",
+      "sidebarNote": "Na telefonach ta sama kreacja z lewej kolumny pojawia się w stałym pasku na dole ekranu (jak na stronie głównej na żywo)."
+    },
+    "bannerPreviewMock": {
+      "navHome": "Strona główna",
+      "navGirls": "Dziewczyny",
+      "navClubs": "Kluby",
+      "navJobsRent": "Praca i wynajem",
+      "navJobsShort": "Praca",
+      "searchPlaceholder": "Szukaj",
+      "filterAll": "Wszystkie",
+      "filterZurich": "Zurych",
+      "filterGeneva": "Genewa",
+      "filterBasel": "Bazylea",
+      "filterVerified": "Zweryfikowane",
+      "verifiedShort": "WER",
+      "live": "na żywo",
+      "yourCardBadge": "TWOJA KARTA",
+      "serviceOutcall": "Outcall",
+      "serviceMassage": "Masaż",
+      "serviceMore": "+3",
+      "bannerWideLabel": "TWÓJ SZEROKI BANER",
+      "bannerWideSubtitle": "Pełna szerokość · 4:1 · Góra kanału",
+      "bannerCardLabel": "TWOJA KARTA",
+      "bannerCardTitle": "TWÓJ BANER KARTY",
+      "bannerCardSubtitle": "Ten sam rozmiar co profil",
+      "bannerYourAd": "TWOJA REKLAMA",
+      "adBadge": "REKLAMA",
+      "bannerYoursLabel": "TWÓJ",
+      "bannerLeftTitle": "TWOJA LEWA KOLUMNA",
+      "bannerLeftLine1": "TWOJA LEWA",
+      "bannerLeftLine2": "KOLUMNA",
+      "bannerLeftDesktopHint": "Tylko na komputerze",
+      "leftColumnMobileCaption": "To samo miejsce — przyklejony pasek na dole na telefonach",
+      "wideBannerRepeat": "… kolejny szeroki baner powtarza się co 6 kart",
+      "placeholderNameAge": "Imię, 24",
+      "youProfileName": "Ty",
+      "youProfileCity": "Twoje miasto"
+    },
+    "placementMock": {
+      "desktop": "Komputer",
+      "mobile": "Telefon",
+      "livePreviewTitle": "Dokładnie tak, jak wygląda na stronie",
+      "livePreviewHint": "Twój cały obraz jest zawsze wyświetlany — nic nigdy nie jest przycinane.",
+      "yourBanner": "Twój baner"
+    },
+    "placementPicker": {
+      "activeInSlot": "Aktywne w tym miejscu",
+      "feed_wide": {
+        "title": "Szeroki baner",
+        "zone": "Obejmuje obie kolumny",
+        "desc": "Pasek na pełną szerokość w ogłoszeniach — powtarza się co 6 kart profili (4:1)."
+      },
+      "feed_card": {
+        "title": "Miejsce karty",
+        "zone": "Wewnątrz siatki",
+        "desc": "Ten sam rozmiar komórki co karta profilu — pojawia się co 4 karty (3:4)."
+      },
+      "sidebar_left": {
+        "title": "Lewa kolumna",
+        "zone": "Obok kanału",
+        "desc": "Pionowe miejsce obok ogłoszeń na komputerze/laptopie. Na telefonach ta sama kreacja pojawia się w dolnym pasku promocyjnym (nie obok siatki). Kolejność miejsc jest losowa przy każdym załadowaniu."
+      }
+    },
+    "bannerPlacementGuide": {
+      "title": "Jak działają miejsca reklamowe",
+      "badge": "Miejsca reklamowe",
+      "introModel": "Wybierz <type>typ miejsca</type> przy zakupie: <wide>szeroki</wide> (pełny rząd), <card>karta</card> (jedna komórka siatki) lub <left>lewa kolumna</left> (pasek obok kanału na komputerze — na telefonach pojawia się na dole). Szare bloki to inne profile; strefa <violet>fioletowa</violet> to Twoja reklama.",
+      "introClub": "Wybierz <type>typ miejsca</type> przy zakupie: <wide>szeroki</wide> (pełny rząd), <card>karta</card> (jedna komórka siatki) lub <left>lewa kolumna</left> (pasek obok kanału na komputerze — na telefonach pojawia się na dole). Szare bloki to inne profile; strefa <violet>fioletowa</violet> to Twoja reklama.",
+      "introPagesModel": "Twoje miejsca reklamowe mogą pojawiać się na stronach <home>Strona główna</home>, <girls>Dziewczyny</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Kluby</clubs>, <jobs>Praca i wynajem</jobs> oraz podobnych widokach przeglądania.",
+      "introPagesClub": "Miejsca reklamowe Twojego klubu mogą pojawiać się na stronach <home>Strona główna</home>, <girls>Dziewczyny</girls> (<modelsPath>/models-page</modelsPath>), <clubs>Kluby</clubs>, <jobs>Praca i wynajem</jobs> oraz podobnych widokach przeglądania.",
+      "fairRotationBody": "<semibold>Sprawiedliwa rotacja:</semibold> W przypadku miejsc <wideLabel>szerokich</wideLabel> i <cardLabel>kart</cardLabel>, gdy aktywnych jest kilka banerów, <emphasis>to, który się wyświetli, jest losowane przy każdym załadowaniu, aby ekspozycja pozostała sprawiedliwa.</emphasis> Zasób <leftCol>lewej kolumny</leftCol> pokazuje jeden rotowany pasek obok kanału na komputerze; na telefonie zasób pojawia się w dolnym pasku."
+    },
+    "viewCount": {
+      "tooltip": "{formatted} {count, plural, one {wyświetlenie} few {wyświetlenia} many {wyświetleń} other {wyświetlenia}}"
+    },
+    "richTextEditor": {
+      "defaultPlaceholder": "Zacznij pisać..."
+    },
+    "citySearch": {
+      "defaultPlaceholder": "Szukaj miasta lub kodu pocztowego...",
+      "noResults": "Nie znaleziono miast"
+    },
+    "termsAcceptance": {
+      "accept": "Akceptuję <terms>regulamin (AGB)</terms> oraz <privacy>politykę prywatności</privacy>."
+    },
+    "profile": {
+      "contactButtons": {
+        "showContact": "Pokaż kontakt",
+        "noPhone": "Brak numeru telefonu",
+        "noWithheld": "Bez numerów zastrzeżonych"
+      }
+    },
+    "notificationBell": {
+      "title": "Powiadomienia",
+      "unread": "{count} nieprzeczytanych",
+      "loading": "Ładowanie…",
+      "emptyTitle": "Brak powiadomień",
+      "emptySubtitle": "Wszystko na bieżąco!",
+      "markRead": "Oznacz jako przeczytane",
+      "delete": "Usuń",
+      "viewAll": "Zobacz wszystkie powiadomienia"
+    }
+  }
+}

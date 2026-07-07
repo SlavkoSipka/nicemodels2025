@@ -1,0 +1,37 @@
+{
+  "latestActions": {
+    "title": "Ultime attività",
+    "subtitle": "Tutto ciò che accade su nicemodels.ch",
+    "stats": {
+      "models": "Modelle",
+      "clubs": "Club",
+      "photos": "Foto",
+      "videos": "Video",
+      "reviews": "Recensioni",
+      "banners": "Banner"
+    },
+    "filters": {
+      "all": "Tutti",
+      "newModels": "Nuove modelle",
+      "newClubs": "Nuovi club",
+      "photos": "Foto",
+      "videos": "Video",
+      "comments": "Commenti",
+      "banners": "Banner",
+      "verified": "Verificate"
+    },
+    "empty": {
+      "title": "Ancora nessuna attività",
+      "subtitle": "Le attività appariranno qui man mano che accadono sul sito"
+    },
+    "by": "di {name}",
+    "time": {
+      "justNow": "Proprio ora",
+      "minutesAgo": "{n} min fa",
+      "hoursAgo": "{n} h fa",
+      "daysAgo": "{n} g fa"
+    },
+    "loadMore": "Carica altro ({remaining} rimanenti)",
+    "showing": "Visualizzati {visible} di {total} attività"
+  }
+}

@@ -9,6 +9,12 @@ const OPTIONS = [
   { code: 'en', label: 'EN', flag: '🇬🇧', name: 'English' },
   { code: 'fr', label: 'FR', flag: '🇫🇷', name: 'Français' },
   { code: 'es', label: 'ES', flag: '🇪🇸', name: 'Español' },
+  { code: 'hu', label: 'HU', flag: '🇭🇺', name: 'Magyar' },
+  { code: 'ro', label: 'RO', flag: '🇷🇴', name: 'Română' },
+  { code: 'it', label: 'IT', flag: '🇮🇹', name: 'Italiano' },
+  { code: 'ru', label: 'RU', flag: '🇷🇺', name: 'Русский' },
+  { code: 'pl', label: 'PL', flag: '🇵🇱', name: 'Polski' },
+  { code: 'cs', label: 'CS', flag: '🇨🇿', name: 'Čeština' },
 ] as const
 
 type Variant = 'navbar' | 'sidebar' | 'sidebar-collapsed' | 'mobile'
@@ -71,7 +77,7 @@ export default function LanguageSwitcher({ variant = 'navbar' }: { variant?: Var
 
   if (variant === 'mobile') {
     return (
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {OPTIONS.map(opt => (
           <button
             key={opt.code}

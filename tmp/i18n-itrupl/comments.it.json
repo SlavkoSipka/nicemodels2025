@@ -1,0 +1,19 @@
+{
+  "comments": {
+    "list": {
+      "loginRequired": "Accesso richiesto",
+      "loginPrompt": "Accedi per visualizzare recensioni e commenti.",
+      "logIn": "Accedi",
+      "createAccount": "Crea un account",
+      "title": "Recensioni e commenti",
+      "subtitle": "Esperienze della community",
+      "review": "recensione",
+      "reviews": "recensioni",
+      "noReviews": "Ancora nessuna recensione",
+      "noReviewsHint": "Sii il primo a condividere la tua esperienza.",
+      "replied": "{modelName} ha risposto",
+      "anonymous": "Anonimo",
+      "viewProfile": "Vedi profilo"
+    }
+  }
+}

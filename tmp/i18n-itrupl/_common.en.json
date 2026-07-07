@@ -1,0 +1,33 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "edit": "Edit",
+    "back": "Back",
+    "close": "Close",
+    "search": "Search",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "sending": "Sending...",
+    "saved": "Saved",
+    "error": "Error",
+    "success": "Success",
+    "required": "Required",
+    "optional": "Optional",
+    "all": "All",
+    "none": "None",
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  }
+}

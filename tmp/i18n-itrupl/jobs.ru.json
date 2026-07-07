@@ -1,0 +1,28 @@
+{
+  "jobs": {
+    "list": {
+      "title": "Работа и аренда",
+      "subtitle": "Просматривайте вакансии и объявления об аренде",
+      "listing": "объявление",
+      "listings": "объявлений",
+      "ofTotal": "из {total}",
+      "filterAll": "Все",
+      "filterJobs": "Работа",
+      "filterRent": "Аренда",
+      "noListings": "Пока нет объявлений",
+      "noListingsHint": "Загляните позже за новыми предложениями.",
+      "fallbackTitleJob": "Вакансия",
+      "fallbackTitleRent": "Объявление об аренде",
+      "badgeJob": "Работа",
+      "badgeRent": "Аренда",
+      "labelJob": "Вакансия",
+      "labelRent": "Предложение аренды",
+      "openListing": "Открыть {title}",
+      "website": "Веб-сайт",
+      "regions": {
+        "all": "Все регионы",
+        "clear": "Очистить фильтр по региону"
+      }
+    }
+  }
+}

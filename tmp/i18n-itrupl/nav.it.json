@@ -1,0 +1,20 @@
+{
+  "nav": {
+    "models": "Modelle",
+    "clubsAgency": "Club / Agenzia",
+    "jobsRent": "Lavoro / Affitto",
+    "latestActions": "Ultime attività",
+    "comments": "Commenti",
+    "contact": "Contatti",
+    "blog": "Blog",
+    "register": "Registrati",
+    "login": "Accedi",
+    "logout": "Esci",
+    "dashboard": "Dashboard",
+    "user": "Utente",
+    "loggedInAs": "Connesso come {username}",
+    "logoAlt": "nicemodels.ch",
+    "home": "Home",
+    "search": "Cerca"
+  }
+}

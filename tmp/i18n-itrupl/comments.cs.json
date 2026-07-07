@@ -1,0 +1,21 @@
+{
+  "comments": {
+    "comments": {
+      "list": {
+        "loginRequired": "Vyžadováno přihlášení",
+        "loginPrompt": "Přihlaste se pro zobrazení recenzí a komentářů.",
+        "logIn": "Přihlásit se",
+        "createAccount": "Vytvořit účet",
+        "title": "Recenze a komentáře",
+        "subtitle": "Zkušenosti komunity",
+        "review": "recenze",
+        "reviews": "recenzí",
+        "noReviews": "Zatím žádné recenze",
+        "noReviewsHint": "Buďte první, kdo se podělí o svou zkušenost.",
+        "replied": "{modelName} odpověděla",
+        "anonymous": "Anonymní",
+        "viewProfile": "Zobrazit profil"
+      }
+    }
+  }
+}

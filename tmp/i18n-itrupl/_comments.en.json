@@ -1,0 +1,19 @@
+{
+  "comments": {
+    "list": {
+      "loginRequired": "Login required",
+      "loginPrompt": "Sign in to view reviews and comments.",
+      "logIn": "Log in",
+      "createAccount": "Create account",
+      "title": "Reviews & Comments",
+      "subtitle": "Community experiences",
+      "review": "review",
+      "reviews": "reviews",
+      "noReviews": "No reviews yet",
+      "noReviewsHint": "Be the first to share your experience.",
+      "replied": "{modelName} replied",
+      "anonymous": "Anonymous",
+      "viewProfile": "View Profile"
+    }
+  }
+}

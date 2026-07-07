@@ -1,0 +1,50 @@
+{
+  "home": {
+    "filters": {
+      "region": "Regione",
+      "allRegions": "Tutte le regioni",
+      "cityPlaceholder": "Città, codice postale o posizione attuale",
+      "live": "In diretta: {city}",
+      "searchCities": "Cerca città",
+      "noCitiesMatch": "Nessuna città corrisponde a “{query}”",
+      "searchAllCards": "Cerca in tutte le schede...",
+      "search": "Cerca",
+      "searchModelsAria": "Cerca modelle per nome",
+      "category": "Categoria",
+      "offer": "Offerta",
+      "all": "Tutte",
+      "allCount": "Tutte ({count})",
+      "allRegionsCount": "Tutte le regioni ({count})",
+      "stripLabel": "Filtri:",
+      "allCities": "Tutte le città",
+      "allAges": "Tutte le età",
+      "age1825": "18-25",
+      "age2630": "26-30",
+      "age3135": "31-35",
+      "age3640": "36-40",
+      "age41plus": "41+",
+      "allEthnicities": "Tutte le origini",
+      "ethnicityEuropean": "Europea",
+      "ethnicityAsian": "Asiatica",
+      "ethnicityLatina": "Latina",
+      "ethnicityAfrican": "Africana",
+      "ethnicityMiddleEastern": "Mediorientale",
+      "ethnicityMixed": "Mista",
+      "resetFilters": "Reimposta filtri"
+    },
+    "feed": {
+      "noResults": "Nessun risultato trovato",
+      "noContent": "Ancora nessun contenuto",
+      "tryChangingFilters": "Prova a modificare i filtri",
+      "tryChangingFiltersShort": "Modifica i filtri",
+      "checkBackSoon": "Torna presto",
+      "prev": "Prec",
+      "next": "Succ",
+      "model": "modella",
+      "models": "modelle",
+      "ofTotal": "di {total}",
+      "noModelsFound": "Nessuna modella trovata",
+      "loadMore": "Carica altro"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "nav": {
+    "models": "Modelky",
+    "clubsAgency": "Kluby / Agentury",
+    "jobsRent": "Práce / Pronájem",
+    "latestActions": "Nejnovější aktivity",
+    "comments": "Komentáře",
+    "contact": "Kontakt",
+    "blog": "Blog",
+    "register": "Registrovat",
+    "login": "Přihlásit se",
+    "logout": "Odhlásit se",
+    "dashboard": "Nástěnka",
+    "user": "Uživatel",
+    "loggedInAs": "Přihlášen jako {username}",
+    "logoAlt": "nicemodels.ch",
+    "home": "Domů",
+    "search": "Hledat"
+  }
+}

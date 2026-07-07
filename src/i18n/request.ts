@@ -1,7 +1,7 @@
 import { cookies, headers } from 'next/headers'
 import { getRequestConfig } from 'next-intl/server'
 
-export const SUPPORTED_LOCALES = ['de', 'en', 'fr', 'es'] as const
+export const SUPPORTED_LOCALES = ['de', 'en', 'fr', 'es', 'hu', 'ro', 'it', 'ru', 'pl', 'cs'] as const
 export type AppLocale = (typeof SUPPORTED_LOCALES)[number]
 export const DEFAULT_LOCALE: AppLocale = 'de'
 export const LOCALE_COOKIE = 'NEXT_LOCALE'
@@ -36,6 +36,12 @@ export default getRequestConfig(async () => {
     en: () => import('../../messages/en.json'),
     fr: () => import('../../messages/fr.json'),
     es: () => import('../../messages/es.json'),
+    hu: () => import('../../messages/hu.json'),
+    ro: () => import('../../messages/ro.json'),
+    it: () => import('../../messages/it.json'),
+    ru: () => import('../../messages/ru.json'),
+    pl: () => import('../../messages/pl.json'),
+    cs: () => import('../../messages/cs.json'),
   }
   const messages = (await loaders[locale]()).default
 
