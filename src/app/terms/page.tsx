@@ -4,10 +4,13 @@ import Link from 'next/link'
 import NicemodelsAgbDe from '@/components/legal/NicemodelsAgbDe'
 import ForceGermanProvider from '@/components/legal/ForceGermanProvider'
 
-export const metadata = {
-  title: 'AGB | nicemodels.ch',
+import { buildMetadata } from '@/lib/seo'
+
+export const metadata = buildMetadata({
+  path: '/terms',
+  title: 'AGB',
   description: 'Allgemeine Geschäftsbedingungen (AGB) für nicemodels.ch',
-}
+})
 
 export default function TermsPage() {
   return (

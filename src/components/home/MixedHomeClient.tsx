@@ -74,6 +74,8 @@ interface MixedHomeClientProps {
    * under the user's finger.
    */
   seed?: number
+  /** Server-rendered H1 + intro strip, passed from the RSC page and inserted before the filter bar. */
+  hero?: React.ReactNode
 }
 
 const WIDE_PER_PAGE = 3
@@ -102,7 +104,7 @@ function buildInitialCards(
 }
 
 export default function MixedHomeClient({
-  models, clubs, banners, listings, statusMessages, chatModels, stories, seed = 1,
+  models, clubs, banners, listings, statusMessages, chatModels, stories, seed = 1, hero,
 }: MixedHomeClientProps) {
   const t = useTranslations('home')
   // Filter state
@@ -688,6 +690,7 @@ export default function MixedHomeClient({
             </aside>
 
             <div className="mx-auto flex w-full min-w-0 max-w-[1100px] flex-col gap-4 xl:max-w-none xl:mx-0">
+              {hero}
               {renderFilterBar()}
               {renderFeed()}
             </div>

@@ -2592,6 +2592,14 @@
     }
   },
   "home": {
+    "seo": {
+      "homeH1": "Escort Models & Clubs in der Schweiz",
+      "homeIntro": "Verifizierte Escort Models, Clubs und Agenturen in Zürich, Bern, Basel, Genf und der ganzen Schweiz.",
+      "homeBody": "NiceModels.ch ist das führende Schweizer Portal für diskrete Begleitung. Alle Profile werden vor der Schaltung geprüft — du siehst nur echte, aktive Inserate. Neben Escort Models findest du hier auch Clubs, Agenturen und aktuelle Stellenangebote aus der Branche.",
+      "modelsH1": "Escort-Models in der Schweiz",
+      "modelsIntro": "Verifizierte Sedcards aus Zürich, Bern, Basel, Genf und der ganzen Schweiz. Jetzt Profile entdecken.",
+      "modelsBody": "Alle hier gezeigten Models haben ein aktives Inserat — keine veralteten Einträge. Filtere nach Region, Alter oder Angebot und finde die passende Begleitung in deiner Nähe. Diskret, sicher und direkt."
+    },
     "filters": {
       "region": "Region",
       "allRegions": "Alle Regionen",

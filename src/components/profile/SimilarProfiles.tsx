@@ -88,7 +88,7 @@ export default async function SimilarProfiles({ currentProfileId, city, supabase
         {(profiles.length > 0 ? profiles : mockProfiles).map((profile) => (
           <Link
             key={profile.id}
-            href={`/profile/${profile.id}`}
+            href={`/models/${profile.id}`}
             className="group bg-white rounded overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 m-3"
           >
             {/* Image */}

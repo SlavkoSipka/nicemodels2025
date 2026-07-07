@@ -1,15 +1,14 @@
-import type { Metadata } from 'next'
 import SearchFilters from '@/components/search/SearchFilters'
 import ProfileGrid from '@/components/search/ProfileGrid'
 import { Suspense } from 'react'
 import { getTranslations } from 'next-intl/server'
+import { buildMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
+  path: '/search',
   title: 'Escort-Models suchen – Schweiz',
-  description:
-    'Finde dein perfektes Escort-Model in der Schweiz. Filtern nach Stadt, Alter, Services und mehr auf NiceModels.ch.',
-  alternates: { canonical: 'https://www.nicemodels.ch/search' },
-}
+  description: 'Finde dein perfektes Escort-Model in der Schweiz. Filtern nach Stadt, Alter, Services und mehr auf NiceModels.ch.',
+})
 
 export default async function SearchPage() {
   const t = await getTranslations('search.page')

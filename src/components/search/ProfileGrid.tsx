@@ -87,7 +87,7 @@ export default function ProfileGrid() {
         {profiles.map((profile, i) => (
           <Link
             key={profile.id}
-            href={`/profile/${profile.id}`}
+            href={`/models/${profile.id}`}
             prefetch={i < 8}
             className="group bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
           >

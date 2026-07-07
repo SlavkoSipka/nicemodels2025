@@ -1,15 +1,14 @@
-import type { Metadata } from 'next'
 import ClubsPageClient from './ClubsPageClient'
 import { loadClubsForPage } from './loadClubsForPage'
+import { buildMetadata } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
 
-export const metadata: Metadata = {
+export const metadata = buildMetadata({
+  path: '/clubs',
   title: 'Clubs & Agenturen in der Schweiz',
-  description:
-    'Entdecke verifizierte Clubs und Agenturen in Zürich, Bern, Basel, Genf und der ganzen Schweiz auf NiceModels.ch.',
-  alternates: { canonical: 'https://www.nicemodels.ch/clubs' },
-}
+  description: 'Entdecke verifizierte Clubs und Agenturen in Zürich, Bern, Basel, Genf und der ganzen Schweiz auf NiceModels.ch.',
+})
 
 export default async function ClubsPage() {
   const initialClubs = await loadClubsForPage()

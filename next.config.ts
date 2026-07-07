@@ -54,6 +54,47 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    // ─── CSP Inventory (as of 2026-06-26) ────────────────────────────────────
+    // script-src : 'self' + Next.js inline hydration scripts ('unsafe-inline')
+    //              + Stripe.js loaded from js.stripe.com by @stripe/stripe-js
+    // style-src  : 'self' + Tailwind/inline styles ('unsafe-inline')
+    // img-src    : self + data:/blob: (Next.js image opt) + Supabase storage
+    //              + images.unsplash.com (next.config remotePatterns)
+    // font-src   : 'self' (next/font self-hosts Google Fonts at build time)
+    //              + data: (base64 font fallbacks)
+    // connect-src: self (API routes, analytics) + Supabase REST + Supabase
+    //              Realtime WebSocket (used in ChatWidget, chat pages)
+    //              + Stripe API/hooks (all *.stripe.com)
+    //              + EmailJS API (contact form via @emailjs/browser)
+    // frame-src  : *.stripe.com (Stripe 3DS / fraud-detection iframes)
+    // object-src : 'none' — no Flash or plugin content
+    // base-uri   : 'self' — block base-tag injection attacks
+    // form-action: 'self' — all HTML form actions post to our own routes
+    //
+    // ⚠️  REPORT-ONLY — this header LOGS violations but does NOT block anything.
+    //     Switch the key to 'Content-Security-Policy' only after testing:
+    //     1. Homepage (fonts, images, analytics)
+    //     2. A model profile (Supabase images)
+    //     3. The Stripe checkout flow (js.stripe.com, Stripe redirect)
+    //     4. The contact form (EmailJS)
+    //     5. The chat page (Supabase Realtime WebSocket)
+    //     6. The TinyMCE-using dashboard pages (AdminListingEditClient etc.)
+    //     Check browser DevTools → Console for "Refused to …" messages.
+    //     See PHASE_6_REPORT.md for the full testing checklist.
+    // ─────────────────────────────────────────────────────────────────────────
+    const CSP = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://ykzqjwqomaeuppubofid.supabase.co https://images.unsplash.com",
+      "font-src 'self' data:",
+      "connect-src 'self' https://ykzqjwqomaeuppubofid.supabase.co wss://ykzqjwqomaeuppubofid.supabase.co https://*.stripe.com https://api.emailjs.com",
+      "frame-src https://*.stripe.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; ')
+
     return [
       {
         source: '/(.*)',
@@ -61,6 +102,8 @@ const nextConfig: NextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // REPORT-ONLY — see comment above before switching to enforcing mode
+          { key: 'Content-Security-Policy-Report-Only', value: CSP },
         ],
       },
       // Aggressive cache for static assets and Next image output.

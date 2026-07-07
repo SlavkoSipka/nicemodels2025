@@ -63,6 +63,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     },
     alternates: {
       canonical: `https://www.nicemodels.ch/jobs-rents/${id}`,
+      languages: {
+        'de-CH': `https://www.nicemodels.ch/jobs-rents/${id}`,
+        'x-default': `https://www.nicemodels.ch/jobs-rents/${id}`,
+      },
     },
   }
 }
@@ -102,8 +106,43 @@ export default async function ListingDetailPage({ params }: PageProps) {
     .map(s => (s as any).services)
     .filter(Boolean)
 
+  // JobPosting JSON-LD — only for actual job listings with all required Google fields.
+  // Rentals use different data fields and don't fit the JobPosting type.
+  const isJob = listing.listing_type === 'job'
+  const plainDescription = listing.description?.replace(/<[^>]*>/g, '').trim()
+  const jobPostingSchema =
+    isJob && listing.title && plainDescription && listing.location && listing.created_at
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'JobPosting',
+          title: listing.title,
+          description: plainDescription.slice(0, 5000),
+          datePosted: listing.created_at,
+          ...(listing.expires_at ? { validThrough: listing.expires_at } : {}),
+          hiringOrganization: {
+            '@type': 'Organization',
+            name: clubDetails?.display_name || clubDetails?.club_name || 'NiceModels.ch',
+            sameAs: 'https://www.nicemodels.ch',
+          },
+          jobLocation: {
+            '@type': 'Place',
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: listing.location,
+              addressCountry: 'CH',
+            },
+          },
+        }
+      : null
+
   return (
     <>
+      {jobPostingSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingSchema) }}
+        />
+      )}
       <Navbar />
       <ListingDetailClient
         listing={{

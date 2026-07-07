@@ -1,11 +1,19 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { buildMetadata } from '@/lib/seo'
 
 const CACHE_TTL = 60
+
+export const metadata = buildMetadata({
+  path: '/models-page',
+  title: 'Escort-Models in der Schweiz – Verifizierte Begleitung',
+  description: 'Entdecke verifizierte Escort-Models in der ganzen Schweiz auf NiceModels.ch. Zürich, Bern, Basel, Genf und mehr – jetzt Profile entdecken.',
+})
 
 async function loadBanners(
   admin: SupabaseClient,
@@ -316,7 +324,25 @@ const getModelsPageData = unstable_cache(
 )
 
 export default async function ModelsPage() {
-  const { models, banners, statusMessages, chatModels, stories } = await getModelsPageData()
+  const [{ models, banners, statusMessages, chatModels, stories }, t] = await Promise.all([
+    getModelsPageData(),
+    getTranslations('home.seo'),
+  ])
+
+  const hero = (
+    <div className="rounded-xl bg-white/70 px-4 py-3 sm:px-5 sm:py-4">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+        {t('modelsH1')}
+      </h1>
+      <p className="mt-1 text-sm font-medium text-gray-700 leading-relaxed">
+        {t('modelsIntro')}
+      </p>
+      <p className="mt-1 text-xs text-gray-500 leading-relaxed">
+        {t('modelsBody')}
+      </p>
+    </div>
+  )
+
   return (
     <HomePageClient
       initialModels={models as any}
@@ -324,6 +350,7 @@ export default async function ModelsPage() {
       statusMessages={statusMessages as any}
       chatModels={chatModels as any}
       stories={stories as any}
+      hero={hero}
     />
   )
 }
