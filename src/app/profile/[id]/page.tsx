@@ -34,7 +34,7 @@ interface ProfilePageProps {
 export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
   const { id } = await params
   return {
-    alternates: { canonical: `https://www.nicemodels.ch/models/${id}` },
+    alternates: { canonical: `https://nicemodels.ch/models/${id}` },
     robots: { index: false, follow: true },
   }
 }

@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CITIES } from '@/lib/data/cities-seo'
 
-const SITE_URL = 'https://www.nicemodels.ch'
+const SITE_URL = 'https://nicemodels.ch'
 
 // Last date static page content was meaningfully changed.
 // Update this const (not new Date()) when actually editing static pages,

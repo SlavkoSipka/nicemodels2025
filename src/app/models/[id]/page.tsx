@@ -35,7 +35,7 @@ async function UnavailableSedcard({ showname }: { showname: string | null }) {
   )
 }
 
-const SITE_URL = 'https://www.nicemodels.ch'
+const SITE_URL = 'https://nicemodels.ch'
 
 interface ModelPageProps {
   params: Promise<{ id: string }>

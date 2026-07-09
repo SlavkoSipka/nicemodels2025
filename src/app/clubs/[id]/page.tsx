@@ -62,10 +62,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       card: 'summary_large_image', title, description: desc, images: [ogImage],
     },
     alternates: {
-      canonical: `https://www.nicemodels.ch/clubs/${id}`,
+      canonical: `https://nicemodels.ch/clubs/${id}`,
       languages: {
-        'de-CH': `https://www.nicemodels.ch/clubs/${id}`,
-        'x-default': `https://www.nicemodels.ch/clubs/${id}`,
+        'de-CH': `https://nicemodels.ch/clubs/${id}`,
+        'x-default': `https://nicemodels.ch/clubs/${id}`,
       },
     },
   }
@@ -131,12 +131,12 @@ export default async function ClubPage({ params }: PageProps) {
   const viewCount = viewCountMap.get(id) ?? 0
 
   const clubName = clubDetails?.display_name || clubDetails?.club_name || profile.username || 'Club'
-  const clubImage = photosWithUrls[0]?.url || 'https://www.nicemodels.ch/logo.webp'
+  const clubImage = photosWithUrls[0]?.url || 'https://nicemodels.ch/logo.webp'
   const clubJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
     name: clubName,
-    url: `https://www.nicemodels.ch/clubs/${id}`,
+    url: `https://nicemodels.ch/clubs/${id}`,
     image: clubImage,
     ...(clubDetails?.about_description
       ? { description: String(clubDetails.about_description).replace(/<[^>]*>/g, '').slice(0, 300) }

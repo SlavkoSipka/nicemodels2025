@@ -37,6 +37,6 @@ export default function robots(): MetadataRoute.Robots {
       },
       ...AI_BOTS.map(bot => ({ userAgent: bot, disallow: '/' })),
     ],
-    sitemap: 'https://www.nicemodels.ch/sitemap.xml',
+    sitemap: 'https://nicemodels.ch/sitemap.xml',
   }
 }

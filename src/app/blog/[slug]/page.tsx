@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     || `Community discussion: ${topic.title}`
   const ogImage = topic.cover_image
     ? `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}`
-    : 'https://www.nicemodels.ch/logo.webp'
+    : 'https://nicemodels.ch/logo.webp'
 
   return {
     title: `${topic.title} – Diskussion`,
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: topic.title,
       description: desc,
       type: 'article',
-      url: `https://www.nicemodels.ch/blog/${slug}`,
+      url: `https://nicemodels.ch/blog/${slug}`,
       images: [{ url: ogImage, alt: topic.title }],
       ...(topic.created_at ? { publishedTime: topic.created_at } : {}),
       ...(topic.updated_at ? { modifiedTime: topic.updated_at } : {}),
@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: desc,
       images: [ogImage],
     },
-    alternates: { canonical: `https://www.nicemodels.ch/blog/${slug}` },
+    alternates: { canonical: `https://nicemodels.ch/blog/${slug}` },
   }
 }
 
@@ -117,7 +117,7 @@ export default async function BlogTopicPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'DiscussionForumPosting',
     headline: topic.title,
-    url: `https://www.nicemodels.ch/blog/${slug}`,
+    url: `https://nicemodels.ch/blog/${slug}`,
     datePublished: topic.created_at,
     dateModified: topic.updated_at || topic.created_at,
     ...(topic.cover_image
@@ -126,8 +126,8 @@ export default async function BlogTopicPage({ params }: PageProps) {
     publisher: {
       '@type': 'Organization',
       name: 'NiceModels.ch',
-      url: 'https://www.nicemodels.ch',
-      logo: { '@type': 'ImageObject', url: 'https://www.nicemodels.ch/logo.webp' },
+      url: 'https://nicemodels.ch',
+      logo: { '@type': 'ImageObject', url: 'https://nicemodels.ch/logo.webp' },
     },
     interactionStatistic: {
       '@type': 'InteractionCounter',

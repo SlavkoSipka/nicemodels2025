@@ -62,10 +62,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       images: [ogImage],
     },
     alternates: {
-      canonical: `https://www.nicemodels.ch/jobs-rents/${id}`,
+      canonical: `https://nicemodels.ch/jobs-rents/${id}`,
       languages: {
-        'de-CH': `https://www.nicemodels.ch/jobs-rents/${id}`,
-        'x-default': `https://www.nicemodels.ch/jobs-rents/${id}`,
+        'de-CH': `https://nicemodels.ch/jobs-rents/${id}`,
+        'x-default': `https://nicemodels.ch/jobs-rents/${id}`,
       },
     },
   }
@@ -122,7 +122,7 @@ export default async function ListingDetailPage({ params }: PageProps) {
           hiringOrganization: {
             '@type': 'Organization',
             name: clubDetails?.display_name || clubDetails?.club_name || 'NiceModels.ch',
-            sameAs: 'https://www.nicemodels.ch',
+            sameAs: 'https://nicemodels.ch',
           },
           jobLocation: {
             '@type': 'Place',

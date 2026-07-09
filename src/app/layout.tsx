@@ -20,7 +20,7 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const SITE_URL = "https://www.nicemodels.ch";
+const SITE_URL = "https://nicemodels.ch";
 const SITE_NAME = "NiceModels.ch";
 
 export const metadata: Metadata = {

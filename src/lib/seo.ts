@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-const SITE_URL = 'https://www.nicemodels.ch'
+const SITE_URL = 'https://nicemodels.ch'
 const DEFAULT_OG_IMAGE = `${SITE_URL}/logo.webp`
 
 interface BuildMetadataOptions {

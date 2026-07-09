@@ -185,7 +185,7 @@ function getCityData(cfg: CityConfig) {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-const SITE_URL = 'https://www.nicemodels.ch'
+const SITE_URL = 'https://nicemodels.ch'
 
 export default async function CityPage({ params }: PageProps) {
   const { city: citySlug } = await params

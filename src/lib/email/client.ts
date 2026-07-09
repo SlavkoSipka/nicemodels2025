@@ -21,6 +21,6 @@ export const EMAIL_REPLY_TO =
   process.env.EMAIL_REPLY_TO ?? 'info@nicemodels.ch'
 
 export const APP_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.nicemodels.ch'
+  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://nicemodels.ch'
 
 export const SUPPORT_EMAIL = 'info@nicemodels.ch'
