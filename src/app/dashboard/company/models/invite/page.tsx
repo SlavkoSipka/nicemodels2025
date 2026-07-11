@@ -218,7 +218,7 @@ export default function InviteModelPage() {
         .eq('club_id', user.id)
         .eq('status', 'accepted')
 
-      if ((currentMembers?.length || 0) >= 10) {
+      if ((currentMembers?.length || 0) >= 50) {
         setError(t('errMaxMembers'))
         setSending(false)
         return

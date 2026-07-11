@@ -29,9 +29,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { modelId, productId } = await request.json()
-    if (!modelId || !productId) {
-      return NextResponse.json({ error: 'Missing modelId or productId' }, { status: 400 })
+    const { modelId, userId, productId } = await request.json()
+    const targetId = modelId ?? userId
+    if (!targetId || !productId) {
+      return NextResponse.json({ error: 'Missing userId or productId' }, { status: 400 })
     }
 
     const admin = createAdminClient()
@@ -39,13 +40,13 @@ export async function POST(request: NextRequest) {
     const { data: target } = await admin
       .from('profiles')
       .select('id, role')
-      .eq('id', modelId)
+      .eq('id', targetId)
       .maybeSingle()
     if (!target) {
-      return NextResponse.json({ error: 'Model not found' }, { status: 404 })
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
-    if (target.role !== 'model') {
-      return NextResponse.json({ error: 'Target is not a model' }, { status: 400 })
+    if (target.role !== 'model' && target.role !== 'company') {
+      return NextResponse.json({ error: 'Target cannot have an ad activated' }, { status: 400 })
     }
 
     const { data: product } = await admin
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     const { data: order, error: orderErr } = await admin
       .from('orders')
       .insert({
-        user_id: modelId,
+        user_id: targetId,
         status: 'paid',
         total_amount: 0,
         payment_method: 'card',

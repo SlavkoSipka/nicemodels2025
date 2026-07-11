@@ -729,7 +729,17 @@
       "noPhotos": "No photos uploaded.",
       "noVideos": "No videos uploaded.",
       "username": "Username",
-      "emailReadOnly": "Email (read-only)"
+      "emailReadOnly": "Email (read-only)",
+      "sedcardSection": "Club ad activation",
+      "sedcardActiveUntil": "Active club ad until {date}",
+      "sedcardNone": "No active club ad.",
+      "sedcardHint": "Activate the club ad for free (e.g. if they can't do it themselves).",
+      "sedcardNoPackages": "No ad packages are available to grant.",
+      "sedcardDays": "{count, plural, one {# day} other {# days}}",
+      "sedcardHours": "{count, plural, one {# hour} other {# hours}}",
+      "activateSedcard": "Activate club ad",
+      "sedcardFailed": "Could not activate the club ad.",
+      "sedcardActivated": "Club ad activated."
     },
     "listingEdit": {
       "back": "Back to Jobs & Rents",
@@ -1205,7 +1215,7 @@
         "step2Desc": "Adaugă cel puțin 3 fotografii de calitate ca clienții să te poată vedea. Cu cât fotografiile sunt mai bune, cu atât vei primi mai mult interes.",
         "step2Action": "Încarcă fotografii",
         "step3Title": "Activează-ți anunțul",
-        "step3Desc": "Mergi la Activează sedcardul și alege o durată (19/29/39 CHF pentru 5/14/30 zile). Odată plătit, profilul tău apare în rezultatele căutării.",
+        "step3Desc": "Mergi la Activează sedcardul și alege o durată. Activarea este gratuită — profilul tău va apărea în rezultatele căutării după activare.",
         "step3Action": "Activează sedcardul",
         "pendingClubInvitations": "{count} invitație de club în așteptare",
         "pendingClubInvitationsPlural": "{count} invitații de club în așteptare",
@@ -1243,7 +1253,7 @@
         "upload": "Încarcă",
         "welcomeNotice": "Bine ai venit pe nicemodels.ch",
         "welcomeNoticeIntro": "Profită la maximum de <strong>nicemodels.ch</strong>. Completează-ți profilul, apoi activează-ți sedcardul ca clienții să te poată găsi.",
-        "tipActivation": "Activare sedcard de la 19 CHF",
+        "tipActivation": "Activarea sedcardului este gratuită",
         "tipPayments": "Bannere și anunțuri plătite prin plata securizată Stripe",
         "tipVisibility": "Un profil complet obține cea mai mare vizibilitate",
         "completeProfileHint": "Completează-ți profilul pentru cea mai bună vizibilitate.",
@@ -1313,7 +1323,7 @@
         "processing": "Se procesează...",
         "accepted": "Invitație acceptată!",
         "declined": "Invitație refuzată",
-        "limitReached": "Acest club a atins deja maximul de 10 modele și nu te poate accepta în acest moment.",
+        "limitReached": "Acest club a atins deja maximul de 50 de modele și nu te poate accepta în acest moment.",
         "respondFailed": "Răspunsul a eșuat. Te rugăm să încerci din nou."
       },
       "comments": {
@@ -1763,7 +1773,7 @@
       },
       "activateAd": {
         "title": "Activează sedcardul",
-        "subtitle": "5 zile 19 CHF · 14 zile 29 CHF · 30 zile 39 CHF",
+        "subtitle": "Activarea sedcardului este gratuită — alege o durată mai jos.",
         "subtitleFree": "Activarea sedcardului este gratuită în acest moment — alege o durată mai jos.",
         "pkg5Title": "5 zile",
         "pkg5Desc": "Profilul tău rămâne vizibil în căutare timp de 5 zile.",
@@ -1902,15 +1912,15 @@
         "activationTitle": "2. Când ar trebui să înceapă?",
         "activationDesc": "Începe-l imediat, după anunțul tău curent sau la o dată aleasă de tine.",
         "addCartTitle": "3. Adaugă în coș",
-        "addCartDesc": "Adaugă pachetul selectat în coș pentru a continua către plată.",
+        "addCartDesc": "Adaugă pachetul selectat în coș pentru a continua.",
         "cartTitle": "4. Verifică-ți comanda",
-        "cartDesc": "Verifică aici pachetul și data de început înainte de a plăti.",
+        "cartDesc": "Verifică pachetul și data de început aici înainte de activare.",
         "termsTitle": "5. Acceptă termenii",
         "termsDesc": "Bifează căsuța pentru a confirma că ești de acord cu termenii.",
         "payTitle": "6. Activează",
-        "payDesc": "Dă clic aici pentru a plăti în siguranță și a-ți publica sedcardul. Asta e tot!",
+        "payDesc": "Dă clic aici pentru a activa sedcardul gratuit. Asta e tot!",
         "sedcardDoneTitle": "Ai reușit! 🎉",
-        "sedcardDoneDesc": "Odată plătit, sedcardul tău devine live. În continuare îți vom arăta cum un banner îți poate aduce și mai multe vizualizări.",
+        "sedcardDoneDesc": "Odată activat, sedcardul tău devine live.",
         "bannerIntroTitle": "Impulsionează cu un banner",
         "bannerIntroDesc": "Bannerele te plasează în locuri premium pe tot site-ul. Iată cum să configurezi unul.",
         "bannerPlacementTitle": "1. Alege o plasare",
@@ -1934,7 +1944,7 @@
         "adPreviewTitle": "Previzualizare live",
         "adPreviewDesc": "Așa va apărea sedcardul tău vizitatorilor de pe site.",
         "durationTitle": "Alege o durată",
-        "durationDesc": "Odată ce totul de mai sus este gata, alege cât timp rămâne sedcardul tău online și continuă către plată pentru a-l publica. Asta e tot!"
+        "durationDesc": "Când totul de mai sus e gata, alege durata și activează gratuit. Asta e tot!"
       }
     },
     "company": {
@@ -2330,7 +2340,7 @@
         "sendBtn": "Trimite invitația",
         "errAlreadyPending": "Ai deja o invitație în așteptare pentru acest model",
         "errAlreadyMember": "Acest model face deja parte din clubul tău",
-        "errMaxMembers": "Clubul tău a atins maximul de 10 modele. Elimină unul mai întâi pentru a invita unul nou.",
+        "errMaxMembers": "Clubul tău a atins maximul de 50 de modele. Elimină unul mai întâi pentru a invita unul nou.",
         "errSendFailed": "Trimiterea invitației a eșuat. Te rugăm să încerci din nou."
       },
       "home": {
@@ -2353,7 +2363,7 @@
         "step3Desc": "Invită sau creează profiluri de modele și asociază-le clubului tău. Mai multe modele înseamnă mai multă vizibilitate în rezultatele căutării.",
         "step3Action": "Gestionează modelele",
         "step4Title": "Activează-ți anunțul",
-        "step4Desc": "Mergi la Activează anunțul clubului și alege o durată (19/29/39 CHF pentru 5/14/30 zile). Odată plătit, clubul tău apare în rezultatele căutării.",
+        "step4Desc": "Mergi la Activează anunțul clubului și alege o durată. Activarea este gratuită — clubul tău va apărea în rezultatele căutării după activare.",
         "step4Action": "Activează anunțul clubului",
         "unreadCount": "{count, plural, =1 {1 notificare necitită} few {# notificări necitite} other {# de notificări necitite}}",
         "viewAll": "Vezi toate",
@@ -2368,7 +2378,7 @@
         "upload": "Încarcă",
         "welcomeTitle": "Bine ai venit pe nicemodels.ch",
         "welcomeBody": "Profită la maximum de <bold>nicemodels.ch</bold>. Completează-ți profilul clubului, adaugă modele, apoi activează-ți anunțul clubului ca vizitatorii să te poată găsi.",
-        "welcomeTip1": "Activare anunț club de la 19 CHF",
+        "welcomeTip1": "Activarea anunțului clubului este gratuită",
         "welcomeTip2": "Bannere și anunțuri plătite prin plata securizată Stripe",
         "welcomeTip3": "Un profil complet obține cea mai mare vizibilitate",
         "welcomeFooterHint": "Completează-ți profilul clubului și adaugă modele pentru a maximiza vizibilitatea.",
@@ -2396,7 +2406,7 @@
       },
       "activateAd": {
         "title": "Activează anunțul clubului",
-        "subtitle": "5 zile 19 CHF · 14 zile 29 CHF · 30 zile 39 CHF",
+        "subtitle": "Activarea anunțului clubului este gratuită — alege o durată mai jos.",
         "subtitleFree": "Activarea anunțului clubului este gratuită în acest moment — alege o durată mai jos.",
         "priceFree": "Gratuit",
         "noPaymentRequired": "Nu este necesară nicio plată",
@@ -2637,6 +2647,14 @@
       "ofTotal": "din {total}",
       "noModelsFound": "Niciun model găsit",
       "loadMore": "Încarcă mai multe"
+    },
+    "seo": {
+      "homeH1": "Modele escort și cluburi în Elveția",
+      "homeIntro": "Modele escort, cluburi și agenții verificate în Zürich, Berna, Basel, Geneva și în toată Elveția.",
+      "homeBody": "NiceModels.ch este portalul elvețian de top pentru companie discretă. Toate profilurile sunt verificate înainte de publicare — vezi doar anunțuri reale și active. Pe lângă modele escort, vei găsi și cluburi, agenții și oferte de muncă actuale din domeniu.",
+      "modelsH1": "Modele escort Elveția",
+      "modelsIntro": "Sedcarduri verificate de la modele escort în Zürich, Berna, Basel, Geneva și în toată Elveția.",
+      "modelsBody": "Fiecare model afișat aici are un anunț activ — fără intrări învechite. Filtrează după regiune, vârstă sau tip de ofertă pentru a găsi compania potrivită lângă tine. Discret, sigur și direct."
     }
   },
   "clubs": {
@@ -3019,7 +3037,7 @@
   "onboarding": {
     "preparing": "Se pregătește configurarea contului tău…",
     "welcome": "Bine ai venit pe ",
-    "subtitle": "Completează-ți profilul ca să putem pregăti pagina ta de <model>model</model> sau <club>club/agenție</club>. Configurarea profilului este gratuită; activarea anunțului, bannerele și listările sunt servicii cu plată.",
+    "subtitle": "Completează-ți profilul ca să putem pregăti pagina ta de <model>model</model> sau <club>club/agenție</club>. Configurarea profilului și activarea anunțului sunt gratuite; bannerele și listările sunt servicii cu plată.",
     "footerCopyright": "© {year} nicemodels.ch · Configurare",
     "footerTagline": "Configurarea profilului și a clubului este gratuită.",
     "common": {

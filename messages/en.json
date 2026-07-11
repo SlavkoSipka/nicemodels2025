@@ -729,7 +729,17 @@
       "noPhotos": "No photos uploaded.",
       "noVideos": "No videos uploaded.",
       "username": "Username",
-      "emailReadOnly": "Email (read-only)"
+      "emailReadOnly": "Email (read-only)",
+      "sedcardSection": "Club ad activation",
+      "sedcardActiveUntil": "Active club ad until {date}",
+      "sedcardNone": "No active club ad.",
+      "sedcardHint": "Activate the club ad for free (e.g. if they can't do it themselves).",
+      "sedcardNoPackages": "No ad packages are available to grant.",
+      "sedcardDays": "{count, plural, one {# day} other {# days}}",
+      "sedcardHours": "{count, plural, one {# hour} other {# hours}}",
+      "activateSedcard": "Activate club ad",
+      "sedcardActivated": "Club ad activated.",
+      "sedcardFailed": "Could not activate the club ad."
     },
     "listingEdit": {
       "back": "Back to Jobs & Rents",
@@ -1205,7 +1215,7 @@
         "step2Desc": "Add at least 3 high-quality photos so clients can see you. The better the photos, the more interest you will get.",
         "step2Action": "Upload photos",
         "step3Title": "Activate your ad",
-        "step3Desc": "Go to Activate Sedcard and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your profile appears in search results.",
+        "step3Desc": "Go to Activate Sedcard and choose a duration. Activation is free — your profile will appear in search results once activated.",
         "step3Action": "Activate Sedcard",
         "pendingClubInvitations": "{count} pending club invitation",
         "pendingClubInvitationsPlural": "{count} pending club invitations",
@@ -1243,7 +1253,7 @@
         "upload": "Upload",
         "welcomeNotice": "Welcome to nicemodels.ch",
         "welcomeNoticeIntro": "Get the most out of <strong>nicemodels.ch</strong>. Complete your profile, then activate your sedcard so clients can find you.",
-        "tipActivation": "Sedcard activation from CHF 19",
+        "tipActivation": "Sedcard activation is free",
         "tipPayments": "Banners and listings paid via secure Stripe checkout",
         "tipVisibility": "A complete profile gets the most visibility",
         "completeProfileHint": "Complete your profile to get the best visibility.",
@@ -1313,7 +1323,7 @@
         "processing": "Processing...",
         "accepted": "Invitation accepted!",
         "declined": "Invitation declined",
-        "limitReached": "This club has already reached its maximum of 10 models and cannot accept you at this time.",
+        "limitReached": "This club has already reached its maximum of 50 models and cannot accept you at this time.",
         "respondFailed": "Failed to respond. Please try again."
       },
       "comments": {
@@ -1763,7 +1773,7 @@
       },
       "activateAd": {
         "title": "Activate Sedcard",
-        "subtitle": "5 days CHF 19 · 14 days CHF 29 · 30 days CHF 39",
+        "subtitle": "Sedcard activation is free — pick a duration below.",
         "subtitleFree": "Sedcard activation is free right now — pick a duration below.",
         "pkg5Title": "5 days",
         "pkg5Desc": "Your profile stays visible in search for 5 days.",
@@ -1902,15 +1912,15 @@
         "activationTitle": "2. When should it start?",
         "activationDesc": "Start it right away, after your current ad, or on a date you choose.",
         "addCartTitle": "3. Add to cart",
-        "addCartDesc": "Add your selected package to the cart to continue to checkout.",
+        "addCartDesc": "Add your selected package to the cart to continue.",
         "cartTitle": "4. Review your order",
-        "cartDesc": "Check the package and start date here before paying.",
+        "cartDesc": "Check the package and start date here before activating.",
         "termsTitle": "5. Accept the terms",
         "termsDesc": "Tick the box to confirm you agree to the terms.",
         "payTitle": "6. Activate",
-        "payDesc": "Click here to pay securely and publish your sedcard. That's it!",
+        "payDesc": "Click here to activate your sedcard for free. That's it!",
         "sedcardDoneTitle": "You've got it! 🎉",
-        "sedcardDoneDesc": "Once paid, your sedcard goes live. Next we'll show you how a banner can get you even more views.",
+        "sedcardDoneDesc": "Once activated, your sedcard goes live.",
         "bannerIntroTitle": "Boost with a banner",
         "bannerIntroDesc": "Banners put you in premium spots across the site. Here's how to set one up.",
         "bannerPlacementTitle": "1. Choose a placement",
@@ -1934,7 +1944,7 @@
         "adPreviewTitle": "Live preview",
         "adPreviewDesc": "This is how your sedcard will appear to visitors on the site.",
         "durationTitle": "Choose a duration",
-        "durationDesc": "Once everything above is done, pick how long your sedcard stays online and continue to checkout to publish it. That's it!"
+        "durationDesc": "Once everything above is done, pick how long your sedcard stays online and activate it for free. That's it!"
       }
     },
     "company": {
@@ -2330,7 +2340,7 @@
         "sendBtn": "Send Invitation",
         "errAlreadyPending": "You already have a pending invite for this model",
         "errAlreadyMember": "This model is already part of your club",
-        "errMaxMembers": "Your club has reached the maximum of 10 models. Remove one first to invite a new one.",
+        "errMaxMembers": "Your club has reached the maximum of 50 models. Remove one first to invite a new one.",
         "errSendFailed": "Failed to send invitation. Please try again."
       },
       "home": {
@@ -2353,7 +2363,7 @@
         "step3Desc": "Invite or create model profiles and link them to your club. More models means more visibility in search results.",
         "step3Action": "Manage models",
         "step4Title": "Activate your ad",
-        "step4Desc": "Go to Activate Club Ad and choose a duration (CHF 19/29/39 for 5/14/30 days). Once paid, your club appears in search results.",
+        "step4Desc": "Go to Activate Club Ad and choose a duration. Activation is free — your club will appear in search results once activated.",
         "step4Action": "Activate Club Ad",
         "unreadCount": "{count, plural, =1 {1 unread notification} other {# unread notifications}}",
         "viewAll": "View all",
@@ -2368,7 +2378,7 @@
         "upload": "Upload",
         "welcomeTitle": "Welcome to nicemodels.ch",
         "welcomeBody": "Get the most out of <bold>nicemodels.ch</bold>. Complete your club profile, add models, then activate your club ad so visitors can find you.",
-        "welcomeTip1": "Club ad activation from CHF 19",
+        "welcomeTip1": "Club ad activation is free",
         "welcomeTip2": "Banners and listings paid via secure Stripe checkout",
         "welcomeTip3": "A complete profile gets the most visibility",
         "welcomeFooterHint": "Complete your club profile and add models to maximize visibility.",
@@ -2396,7 +2406,7 @@
       },
       "activateAd": {
         "title": "Activate Club Ad",
-        "subtitle": "5 days CHF 19 · 14 days CHF 29 · 30 days CHF 39",
+        "subtitle": "Club ad activation is free — pick a duration below.",
         "subtitleFree": "Club ad activation is free right now — pick a duration below.",
         "priceFree": "Free",
         "noPaymentRequired": "No payment required",
@@ -3027,7 +3037,7 @@
   "onboarding": {
     "preparing": "Preparing your onboarding…",
     "welcome": "Welcome to ",
-    "subtitle": "Complete your profile so we can prepare your <model>model</model> or <club>club/agency</club> page. Profile setup is free; ad activation, banners and listings are paid services.",
+    "subtitle": "Complete your profile so we can prepare your <model>model</model> or <club>club/agency</club> page. Profile setup and ad activation are free; banners and listings are paid services.",
     "footerCopyright": "© {year} nicemodels.ch · Onboarding",
     "footerTagline": "Profile and club onboarding are free.",
     "common": {

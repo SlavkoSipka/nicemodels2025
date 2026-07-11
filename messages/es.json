@@ -729,7 +729,17 @@
       "noPhotos": "No photos uploaded.",
       "noVideos": "No videos uploaded.",
       "username": "Username",
-      "emailReadOnly": "Email (read-only)"
+      "emailReadOnly": "Email (read-only)",
+      "sedcardSection": "Activación del anuncio del club",
+      "sedcardActiveUntil": "Anuncio del club activo hasta {date}",
+      "sedcardNone": "Sin anuncio del club activo.",
+      "sedcardHint": "Activa el anuncio del club de forma gratuita (p. ej. si no puede hacerlo solo).",
+      "sedcardNoPackages": "No hay paquetes disponibles para otorgar.",
+      "sedcardDays": "{count, plural, one {# día} other {# días}}",
+      "sedcardHours": "{count, plural, one {# hora} other {# horas}}",
+      "activateSedcard": "Activar anuncio del club",
+      "sedcardActivated": "Anuncio del club activado.",
+      "sedcardFailed": "No se pudo activar el anuncio del club."
     },
     "listingEdit": {
       "back": "Back to Jobs & Rents",
@@ -1205,7 +1215,7 @@
         "step2Desc": "Añade al menos 3 fotos de calidad para que los clientes te vean. Cuanto mejores las fotos, más interés recibirás.",
         "step2Action": "Subir fotos",
         "step3Title": "Activa tu anuncio",
-        "step3Desc": "Ve a Activar Sedcard y elige una duración (CHF 19/29/39 para 5/14/30 días). Una vez pagado, tu perfil aparecerá en los resultados.",
+        "step3Desc": "Ve a Activar Sedcard y elige una duración. La activación es gratuita — tu perfil aparecerá en los resultados una vez activado.",
         "step3Action": "Activar Sedcard",
         "pendingClubInvitations": "{count} invitación de club pendiente",
         "pendingClubInvitationsPlural": "{count} invitaciones de club pendientes",
@@ -1243,7 +1253,7 @@
         "upload": "Subir",
         "welcomeNotice": "Bienvenida a nicemodels.ch",
         "welcomeNoticeIntro": "Saca el máximo partido a <strong>nicemodels.ch</strong>. Completa tu perfil y luego activa tu sedcard para que los clientes te encuentren.",
-        "tipActivation": "Activación de Sedcard desde CHF 19",
+        "tipActivation": "La activación de Sedcard es gratuita",
         "tipPayments": "Banners y anuncios pagados de forma segura con Stripe",
         "tipVisibility": "Un perfil completo obtiene la mayor visibilidad",
         "completeProfileHint": "Completa tu perfil para la mejor visibilidad.",
@@ -1313,7 +1323,7 @@
         "processing": "Procesando...",
         "accepted": "¡Invitación aceptada!",
         "declined": "Invitación rechazada",
-        "limitReached": "Este club ya ha alcanzado su máximo de 10 modelos y no puede aceptarte en este momento.",
+        "limitReached": "Este club ya ha alcanzado su máximo de 50 modelos y no puede aceptarte en este momento.",
         "respondFailed": "Error al responder. Inténtalo de nuevo."
       },
       "comments": {
@@ -1763,7 +1773,7 @@
       },
       "activateAd": {
         "title": "Activar sedcard",
-        "subtitle": "5 días CHF 19 · 14 días CHF 29 · 30 días CHF 39",
+        "subtitle": "La activación de la sedcard es gratuita — elige una duración abajo.",
         "subtitleFree": "La activación de la sedcard es gratis ahora — elige una duración abajo.",
         "pkg5Title": "5 días",
         "pkg5Desc": "Tu perfil sigue visible en la búsqueda durante 5 días.",
@@ -1902,15 +1912,15 @@
         "activationTitle": "2. ¿Cuándo debe empezar?",
         "activationDesc": "De inmediato, después de tu anuncio actual o en una fecha que elijas.",
         "addCartTitle": "3. Añadir al carrito",
-        "addCartDesc": "Añade el paquete elegido al carrito para continuar al pago.",
+        "addCartDesc": "Añade el paquete seleccionado al carrito para continuar.",
         "cartTitle": "4. Revisa tu pedido",
-        "cartDesc": "Comprueba el paquete y la fecha de inicio aquí antes de pagar.",
+        "cartDesc": "Revisa el paquete y la fecha de inicio aquí antes de activar.",
         "termsTitle": "5. Acepta los términos",
         "termsDesc": "Marca la casilla para confirmar que aceptas los términos.",
         "payTitle": "6. Activar",
-        "payDesc": "Haz clic aquí para pagar de forma segura y publicar tu sedcard. ¡Eso es todo!",
+        "payDesc": "Haz clic aquí para activar tu sedcard gratis. ¡Eso es todo!",
         "sedcardDoneTitle": "¡Lo lograste! 🎉",
-        "sedcardDoneDesc": "Una vez pagada, tu sedcard se publica. Ahora te mostramos cómo un banner puede darte aún más visitas.",
+        "sedcardDoneDesc": "Una vez activada, tu sedcard se publica.",
         "bannerIntroTitle": "Impulsa con un banner",
         "bannerIntroDesc": "Los banners te colocan en lugares premium por todo el sitio. Así se configura uno.",
         "bannerPlacementTitle": "1. Elige una ubicación",
@@ -1934,7 +1944,7 @@
         "adPreviewTitle": "Vista previa en vivo",
         "adPreviewDesc": "Así aparecerá tu sedcard para los visitantes del sitio.",
         "durationTitle": "Elige una duración",
-        "durationDesc": "Cuando hayas terminado todo lo anterior, elige cuánto tiempo estará en línea tu sedcard y continúa al pago para publicarla. ¡Eso es todo!"
+        "durationDesc": "Cuando todo lo anterior esté listo, elige la duración y actívala gratis. ¡Eso es todo!"
       }
     },
     "company": {
@@ -2330,7 +2340,7 @@
         "sendBtn": "Enviar invitación",
         "errAlreadyPending": "Ya tienes una invitación pendiente para esta modelo",
         "errAlreadyMember": "Esta modelo ya forma parte de tu club",
-        "errMaxMembers": "Tu club ha alcanzado el máximo de 10 modelos. Quita una primero para invitar a otra.",
+        "errMaxMembers": "Tu club ha alcanzado el máximo de 50 modelos. Quita una primero para invitar a otra.",
         "errSendFailed": "Error al enviar la invitación. Inténtalo de nuevo."
       },
       "home": {
@@ -2353,7 +2363,7 @@
         "step3Desc": "Invita o crea perfiles de modelos y vincúlalas a tu club. Más modelos = más visibilidad en la búsqueda.",
         "step3Action": "Gestionar modelos",
         "step4Title": "Activa tu anuncio",
-        "step4Desc": "Ve a Activar anuncio del club y elige duración (CHF 19/29/39 para 5/14/30 días). Una vez pagado, tu club aparece en los resultados.",
+        "step4Desc": "Ve a Activar anuncio del club y elige una duración. La activación es gratuita — tu club aparecerá en los resultados una vez activado.",
         "step4Action": "Activar anuncio del club",
         "unreadCount": "{count, plural, =1 {1 notificación sin leer} other {# notificaciones sin leer}}",
         "viewAll": "Ver todas",
@@ -2368,7 +2378,7 @@
         "upload": "Subir",
         "welcomeTitle": "Bienvenido a nicemodels.ch",
         "welcomeBody": "Saca el máximo provecho de <bold>nicemodels.ch</bold>. Completa el perfil, añade modelos y activa tu anuncio para que los visitantes te encuentren.",
-        "welcomeTip1": "Activación de anuncios desde CHF 19",
+        "welcomeTip1": "La activación de anuncios es gratuita",
         "welcomeTip2": "Banners y anuncios pagados mediante Stripe seguro",
         "welcomeTip3": "Un perfil completo obtiene la mayor visibilidad",
         "welcomeFooterHint": "Completa el perfil del club y añade modelos para maximizar la visibilidad.",
@@ -2396,7 +2406,7 @@
       },
       "activateAd": {
         "title": "Activar anuncio del club",
-        "subtitle": "5 días CHF 19 · 14 días CHF 29 · 30 días CHF 39",
+        "subtitle": "La activación del anuncio del club es gratuita — elige una duración abajo.",
         "subtitleFree": "La activación del anuncio del club es gratis ahora — elige una duración abajo.",
         "priceFree": "Gratis",
         "noPaymentRequired": "Sin pago",
@@ -3027,7 +3037,7 @@
   "onboarding": {
     "preparing": "Preparando tu incorporación…",
     "welcome": "Bienvenida a ",
-    "subtitle": "Completa tu perfil para que podamos preparar tu página de <model>modelo</model> o <club>club/agencia</club>. La configuración del perfil es gratuita; la activación de anuncios, banners y publicaciones son servicios de pago.",
+    "subtitle": "Completa tu perfil para que podamos preparar tu página de <model>modelo</model> o <club>club/agencia</club>. La configuración del perfil y la activación de anuncios son gratuitas; los banners y las publicaciones son servicios de pago.",
     "footerCopyright": "© {year} nicemodels.ch · Incorporación",
     "footerTagline": "La incorporación de perfiles y clubs es gratuita.",
     "common": {

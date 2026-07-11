@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Save, CheckCircle, AlertCircle, Building2, MapPin, Phone,
-  Clock, ShieldCheck, Ban, ImageIcon, Film,
+  Clock, ShieldCheck, Ban, ImageIcon, Film, Zap,
 } from 'lucide-react'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
 import PhoneInput from '@/components/ui/PhoneInput'
@@ -21,6 +21,8 @@ interface Props {
   photos: any[]
   videos: any[]
   workingHours: any[]
+  adPackages: any[]
+  currentAdExpiry: string | null
 }
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -33,6 +35,7 @@ type DayHours = { from: string; to: string }
 
 export default function AdminClubEditClient({
   clubId, profile, clubDetails, contactDetails, photos, videos, workingHours: initWH,
+  adPackages, currentAdExpiry,
 }: Props) {
   const router = useRouter()
   const supabase = createClient()
@@ -43,6 +46,32 @@ export default function AdminClubEditClient({
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [activeTab, setActiveTab] = useState('basic')
+
+  // ── Club ad admin activation ──
+  const [adPackageId, setAdPackageId] = useState<string>(adPackages[0]?.id || '')
+  const [activatingAd, setActivatingAd] = useState(false)
+  const [adMsg, setAdMsg] = useState('')
+  const [adErr, setAdErr] = useState('')
+
+  const activateClubAd = async () => {
+    if (!adPackageId) return
+    setActivatingAd(true); setAdMsg(''); setAdErr('')
+    try {
+      const res = await fetch('/api/admin/activate-sedcard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: clubId, productId: adPackageId }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(j?.error || t('sedcardFailed'))
+      setAdMsg(t('sedcardActivated'))
+      router.refresh()
+    } catch (e: any) {
+      setAdErr(e?.message || t('sedcardFailed'))
+    } finally {
+      setActivatingAd(false)
+    }
+  }
 
   // ── Profile ──
   const [profileData, setProfileData] = useState({
@@ -594,6 +623,60 @@ export default function AdminClubEditClient({
                 <p>Created: {new Date(profile.created_at).toLocaleString()}</p>
                 <p>Onboarding: {profile.onboarding_completed ? 'Completed' : 'Incomplete'}</p>
                 {profile.blocked_at && <p>Blocked at: {new Date(profile.blocked_at).toLocaleString()}</p>}
+              </div>
+
+              {/* ── Club ad activation (admin grant) ── */}
+              <div className="border-t border-gray-100 pt-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-brand" />
+                  <p className="text-sm font-bold text-gray-900">{t('sedcardSection')}</p>
+                </div>
+                {currentAdExpiry ? (
+                  <p className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                    {t('sedcardActiveUntil', { date: new Date(currentAdExpiry).toLocaleString() })}
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500">{t('sedcardNone')}</p>
+                )}
+                <p className="text-xs text-gray-400">{t('sedcardHint')}</p>
+                {adPackages.length === 0 ? (
+                  <p className="text-xs text-amber-600">{t('sedcardNoPackages')}</p>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={adPackageId}
+                      onChange={e => setAdPackageId(e.target.value)}
+                      className={inputCls + ' sm:w-auto'}
+                    >
+                      {adPackages.map((p: any) => {
+                        const dur = p.duration_days
+                          ? t('sedcardDays', { count: p.duration_days })
+                          : t('sedcardHours', { count: p.duration_hours })
+                        return (
+                          <option key={p.id} value={p.id}>{p.name} — {dur}</option>
+                        )
+                      })}
+                    </select>
+                    <button
+                      onClick={activateClubAd}
+                      disabled={activatingAd || !adPackageId}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-brand text-white rounded-lg text-sm font-bold hover:bg-brand/90 disabled:opacity-50 transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      {activatingAd ? tc('savingDots') : t('activateSedcard')}
+                    </button>
+                  </div>
+                )}
+                {adMsg && (
+                  <p className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5" /> {adMsg}
+                  </p>
+                )}
+                {adErr && (
+                  <p className="text-xs font-semibold text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {adErr}
+                  </p>
+                )}
               </div>
             </div>
           )}

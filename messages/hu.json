@@ -729,7 +729,17 @@
       "noPhotos": "No photos uploaded.",
       "noVideos": "No videos uploaded.",
       "username": "Username",
-      "emailReadOnly": "Email (read-only)"
+      "emailReadOnly": "Email (read-only)",
+      "sedcardSection": "Club ad activation",
+      "sedcardActiveUntil": "Active club ad until {date}",
+      "sedcardNone": "No active club ad.",
+      "sedcardHint": "Activate the club ad for free (e.g. if they can't do it themselves).",
+      "sedcardNoPackages": "No ad packages are available to grant.",
+      "sedcardDays": "{count, plural, one {# day} other {# days}}",
+      "sedcardHours": "{count, plural, one {# hour} other {# hours}}",
+      "activateSedcard": "Activate club ad",
+      "sedcardFailed": "Could not activate the club ad.",
+      "sedcardActivated": "Club ad activated."
     },
     "listingEdit": {
       "back": "Back to Jobs & Rents",
@@ -1205,7 +1215,7 @@
         "step2Desc": "Adj hozzá legalább 3 jó minőségű fotót, hogy az ügyfelek lássanak. Minél jobbak a fotók, annál nagyobb az érdeklődés.",
         "step2Action": "Fotók feltöltése",
         "step3Title": "Aktiváld a hirdetésed",
-        "step3Desc": "Menj a Sedcard aktiválása részhez és válassz időtartamot (19/29/39 CHF 5/14/30 napra). Fizetés után a profilod megjelenik a keresési eredmények között.",
+        "step3Desc": "Menj a Sedcard aktiválása részhez és válassz időtartamot. Az aktiválás ingyenes — a profilod az aktiválás után megjelenik a keresési eredmények között.",
         "step3Action": "Sedcard aktiválása",
         "pendingClubInvitations": "{count} függőben lévő klubmeghívó",
         "pendingClubInvitationsPlural": "{count} függőben lévő klubmeghívó",
@@ -1243,7 +1253,7 @@
         "upload": "Feltöltés",
         "welcomeNotice": "Üdvözlünk a nicemodels.ch oldalon",
         "welcomeNoticeIntro": "Hozd ki a legtöbbet a <strong>nicemodels.ch</strong> oldalból. Töltsd ki a profilodat, majd aktiváld a sedcardodat, hogy az ügyfelek megtaláljanak.",
-        "tipActivation": "Sedcard aktiválás 19 CHF-től",
+        "tipActivation": "A sedcard aktiválás ingyenes",
         "tipPayments": "Bannerek és hirdetések biztonságos Stripe fizetéssel",
         "tipVisibility": "A teljes profil kapja a legnagyobb láthatóságot",
         "completeProfileHint": "Töltsd ki a profilodat a legjobb láthatóságért.",
@@ -1313,7 +1323,7 @@
         "processing": "Feldolgozás...",
         "accepted": "Meghívó elfogadva!",
         "declined": "Meghívó elutasítva",
-        "limitReached": "Ez a klub már elérte a maximális 10 modellt, és jelenleg nem tud felvenni.",
+        "limitReached": "Ez a klub már elérte a maximális 50 modellt, és jelenleg nem tud felvenni.",
         "respondFailed": "A válaszadás sikertelen. Kérjük, próbáld újra."
       },
       "comments": {
@@ -1763,7 +1773,7 @@
       },
       "activateAd": {
         "title": "Sedcard aktiválása",
-        "subtitle": "5 nap 19 CHF · 14 nap 29 CHF · 30 nap 39 CHF",
+        "subtitle": "A sedcard aktiválása ingyenes — válassz időtartamot alább.",
         "subtitleFree": "A sedcard aktiválása jelenleg ingyenes — válassz időtartamot alább.",
         "pkg5Title": "5 nap",
         "pkg5Desc": "A profilod 5 napig látható marad a keresésben.",
@@ -1902,15 +1912,15 @@
         "activationTitle": "2. Mikor kezdődjön?",
         "activationDesc": "Indítsd el azonnal, a jelenlegi hirdetésed után, vagy egy általad választott dátumon.",
         "addCartTitle": "3. Kosárba",
-        "addCartDesc": "Add a kiválasztott csomagot a kosárhoz a fizetéshez való továbblépéshez.",
+        "addCartDesc": "Add hozzá a kiválasztott csomagot a kosárhoz a folytatáshoz.",
         "cartTitle": "4. Ellenőrizd a rendelésed",
-        "cartDesc": "Ellenőrizd itt a csomagot és a kezdési dátumot, mielőtt fizetsz.",
+        "cartDesc": "Aktiválás előtt itt ellenőrizd a csomagot és a kezdő dátumot.",
         "termsTitle": "5. Fogadd el a feltételeket",
         "termsDesc": "Jelöld be a négyzetet, hogy megerősítsd a feltételek elfogadását.",
         "payTitle": "6. Aktiválás",
-        "payDesc": "Kattints ide a biztonságos fizetéshez és a sedcardod közzétételéhez. Ennyi!",
+        "payDesc": "Kattints ide a sedcard ingyenes aktiválásához. Ennyi!",
         "sedcardDoneTitle": "Megvan! 🎉",
-        "sedcardDoneDesc": "Fizetés után a sedcardod élővé válik. Ezután megmutatjuk, hogyan szerezhet neked egy banner még több megtekintést.",
+        "sedcardDoneDesc": "Aktiválás után a sedcardod élővé válik.",
         "bannerIntroTitle": "Növeld egy bannerrel",
         "bannerIntroDesc": "A bannerek prémium helyekre tesznek az oldalon. Íme, hogyan állíts be egyet.",
         "bannerPlacementTitle": "1. Válassz elhelyezést",
@@ -1934,7 +1944,7 @@
         "adPreviewTitle": "Élő előnézet",
         "adPreviewDesc": "Így fog megjelenni a sedcardod a látogatóknak az oldalon.",
         "durationTitle": "Válassz időtartamot",
-        "durationDesc": "Miután minden fenti kész, válaszd ki, meddig maradjon online a sedcardod, és lépj tovább a fizetéshez a közzétételhez. Ennyi!"
+        "durationDesc": "Ha minden fent kész, válaszd ki az időtartamot és aktiváld ingyen. Ennyi!"
       }
     },
     "company": {
@@ -2330,7 +2340,7 @@
         "sendBtn": "Meghívó küldése",
         "errAlreadyPending": "Már van függőben lévő meghívód ehhez a modellhez",
         "errAlreadyMember": "Ez a modell már a klubod tagja",
-        "errMaxMembers": "A klubod elérte a maximális 10 modellt. Először távolíts el egyet egy új meghívásához.",
+        "errMaxMembers": "A klubod elérte a maximális 50 modellt. Először távolíts el egyet egy új meghívásához.",
         "errSendFailed": "A meghívó küldése sikertelen. Kérjük, próbáld újra."
       },
       "home": {
@@ -2353,7 +2363,7 @@
         "step3Desc": "Hívj meg vagy hozz létre modellprofilokat és kapcsold őket a klubodhoz. Több modell nagyobb láthatóságot jelent a keresési eredmények között.",
         "step3Action": "Modellek kezelése",
         "step4Title": "Aktiváld a hirdetésed",
-        "step4Desc": "Menj a Klubhirdetés aktiválása részhez és válassz időtartamot (19/29/39 CHF 5/14/30 napra). Fizetés után a klubod megjelenik a keresési eredmények között.",
+        "step4Desc": "Menj a Klubhirdetés aktiválása részhez és válassz időtartamot. Az aktiválás ingyenes — a klubod az aktiválás után megjelenik a keresési eredmények között.",
         "step4Action": "Klubhirdetés aktiválása",
         "unreadCount": "{count, plural, =1 {1 olvasatlan értesítés} other {# olvasatlan értesítés}}",
         "viewAll": "Összes megtekintése",
@@ -2368,7 +2378,7 @@
         "upload": "Feltöltés",
         "welcomeTitle": "Üdvözlünk a nicemodels.ch oldalon",
         "welcomeBody": "Hozd ki a legtöbbet a <bold>nicemodels.ch</bold> oldalból. Töltsd ki a klubprofilodat, adj hozzá modelleket, majd aktiváld a klubhirdetésed, hogy a látogatók megtaláljanak.",
-        "welcomeTip1": "Klubhirdetés aktiválás 19 CHF-től",
+        "welcomeTip1": "A klubhirdetés aktiválás ingyenes",
         "welcomeTip2": "Bannerek és hirdetések biztonságos Stripe fizetéssel",
         "welcomeTip3": "A teljes profil kapja a legnagyobb láthatóságot",
         "welcomeFooterHint": "Töltsd ki a klubprofilodat és adj hozzá modelleket a láthatóság maximalizálásához.",
@@ -2396,7 +2406,7 @@
       },
       "activateAd": {
         "title": "Klubhirdetés aktiválása",
-        "subtitle": "5 nap 19 CHF · 14 nap 29 CHF · 30 nap 39 CHF",
+        "subtitle": "A klubhirdetés aktiválása ingyenes — válassz időtartamot alább.",
         "subtitleFree": "A klubhirdetés aktiválása jelenleg ingyenes — válassz időtartamot alább.",
         "priceFree": "Ingyenes",
         "noPaymentRequired": "Nincs szükség fizetésre",
@@ -2637,6 +2647,14 @@
       "ofTotal": "összesen {total}",
       "noModelsFound": "Nem található modell",
       "loadMore": "Több betöltése"
+    },
+    "seo": {
+      "homeH1": "Escort modellek és klubok Svájcban",
+      "homeIntro": "Ellenőrzött escort modellek, klubok és ügynökségek Zürichben, Bernben, Bázelben, Genfben és egész Svájcban.",
+      "homeBody": "A NiceModels.ch Svájc vezető portálja a diszkrét kíséret terén. Minden profilt ellenőrzünk a megjelenés előtt — csak valódi, aktív hirdetéseket látsz. Az escort modellek mellett klubokat, ügynökségeket és aktuális szakmai álláshirdetéseket is találsz.",
+      "modelsH1": "Escort modellek Svájc",
+      "modelsIntro": "Ellenőrzött sedcardok escort modellektől Zürichben, Bernben, Bázelben, Genfben és egész Svájcban.",
+      "modelsBody": "Minden itt megjelenő modellnek aktív hirdetése van — nincsenek elavult bejegyzések. Szűrj régió, életkor vagy ajánlat típusa szerint, hogy megtaláld a megfelelő kíséretet a közeledben. Diszkrét, biztonságos és közvetlen."
     }
   },
   "clubs": {
@@ -3019,7 +3037,7 @@
   "onboarding": {
     "preparing": "A regisztrációd előkészítése…",
     "welcome": "Üdvözlünk a ",
-    "subtitle": "Töltsd ki a profilodat, hogy elkészíthessük a <model>modell</model> vagy <club>klub/ügynökség</club> oldaladat. A profil beállítása ingyenes; a hirdetés aktiválása, a bannerek és a hirdetések fizetős szolgáltatások.",
+    "subtitle": "Töltsd ki a profilodat, hogy elkészíthessük a <model>modell</model> vagy <club>klub/ügynökség</club> oldaladat. A profil beállítása és a hirdetés aktiválása ingyenes; a bannerek és hirdetések fizetős szolgáltatások.",
     "footerCopyright": "© {year} nicemodels.ch · Regisztráció",
     "footerTagline": "A profil és a klub regisztrációja ingyenes.",
     "common": {

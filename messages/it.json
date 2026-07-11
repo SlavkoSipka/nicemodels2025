@@ -729,7 +729,17 @@
       "noPhotos": "No photos uploaded.",
       "noVideos": "No videos uploaded.",
       "username": "Username",
-      "emailReadOnly": "Email (read-only)"
+      "emailReadOnly": "Email (read-only)",
+      "sedcardSection": "Club ad activation",
+      "sedcardActiveUntil": "Active club ad until {date}",
+      "sedcardNone": "No active club ad.",
+      "sedcardHint": "Activate the club ad for free (e.g. if they can't do it themselves).",
+      "sedcardNoPackages": "No ad packages are available to grant.",
+      "sedcardDays": "{count, plural, one {# day} other {# days}}",
+      "sedcardHours": "{count, plural, one {# hour} other {# hours}}",
+      "activateSedcard": "Activate club ad",
+      "sedcardFailed": "Could not activate the club ad.",
+      "sedcardActivated": "Club ad activated."
     },
     "listingEdit": {
       "back": "Back to Jobs & Rents",
@@ -1205,7 +1215,7 @@
         "step2Desc": "Aggiungi almeno 3 foto di alta qualità così i clienti possono vederti. Migliori sono le foto, maggiore sarà l'interesse.",
         "step2Action": "Carica foto",
         "step3Title": "Attiva il tuo annuncio",
-        "step3Desc": "Vai su Attiva sedcard e scegli una durata (CHF 19/29/39 per 5/14/30 giorni). Una volta pagato, il tuo profilo appare nei risultati di ricerca.",
+        "step3Desc": "Vai su Attiva sedcard e scegli una durata. L'attivazione è gratuita — il tuo profilo apparirà nei risultati di ricerca una volta attivato.",
         "step3Action": "Attiva sedcard",
         "pendingClubInvitations": "{count} invito da un club in attesa",
         "pendingClubInvitationsPlural": "{count} inviti da club in attesa",
@@ -1243,7 +1253,7 @@
         "upload": "Carica",
         "welcomeNotice": "Benvenuta su nicemodels.ch",
         "welcomeNoticeIntro": "Sfrutta al massimo <strong>nicemodels.ch</strong>. Completa il tuo profilo, poi attiva la tua sedcard così i clienti possono trovarti.",
-        "tipActivation": "Attivazione sedcard da CHF 19",
+        "tipActivation": "L'attivazione sedcard è gratuita",
         "tipPayments": "Banner e annunci pagati con pagamento sicuro Stripe",
         "tipVisibility": "Un profilo completo ottiene la massima visibilità",
         "completeProfileHint": "Completa il tuo profilo per ottenere la migliore visibilità.",
@@ -1313,7 +1323,7 @@
         "processing": "Elaborazione...",
         "accepted": "Invito accettato!",
         "declined": "Invito rifiutato",
-        "limitReached": "Questo club ha già raggiunto il massimo di 10 modelle e non può accettarti al momento.",
+        "limitReached": "Questo club ha già raggiunto il massimo di 50 modelle e non può accettarti al momento.",
         "respondFailed": "Risposta non riuscita. Riprova."
       },
       "comments": {
@@ -1763,7 +1773,7 @@
       },
       "activateAd": {
         "title": "Attiva sedcard",
-        "subtitle": "5 giorni CHF 19 · 14 giorni CHF 29 · 30 giorni CHF 39",
+        "subtitle": "L'attivazione della sedcard è gratuita — scegli una durata qui sotto.",
         "subtitleFree": "L'attivazione della sedcard è gratuita in questo momento — scegli una durata qui sotto.",
         "pkg5Title": "5 giorni",
         "pkg5Desc": "Il tuo profilo resta visibile nella ricerca per 5 giorni.",
@@ -1902,15 +1912,15 @@
         "activationTitle": "2. Quando deve iniziare?",
         "activationDesc": "Inizia subito, dopo il tuo annuncio attuale o in una data a tua scelta.",
         "addCartTitle": "3. Aggiungi al carrello",
-        "addCartDesc": "Aggiungi il pacchetto selezionato al carrello per continuare al pagamento.",
+        "addCartDesc": "Aggiungi il pacchetto selezionato al carrello per continuare.",
         "cartTitle": "4. Rivedi il tuo ordine",
-        "cartDesc": "Controlla qui il pacchetto e la data di inizio prima di pagare.",
+        "cartDesc": "Controlla pacchetto e data di inizio qui prima di attivare.",
         "termsTitle": "5. Accetta i termini",
         "termsDesc": "Spunta la casella per confermare di accettare i termini.",
         "payTitle": "6. Attiva",
-        "payDesc": "Clicca qui per pagare in sicurezza e pubblicare la tua sedcard. Tutto qui!",
+        "payDesc": "Clicca qui per attivare la tua sedcard gratuitamente. Tutto qui!",
         "sedcardDoneTitle": "Ci sei riuscita! 🎉",
-        "sedcardDoneDesc": "Una volta pagata, la tua sedcard va online. Ora ti mostreremo come un banner può darti ancora più visualizzazioni.",
+        "sedcardDoneDesc": "Una volta attivata, la tua sedcard va online.",
         "bannerIntroTitle": "Potenzia con un banner",
         "bannerIntroDesc": "I banner ti mettono in posizioni premium in tutto il sito. Ecco come configurarne uno.",
         "bannerPlacementTitle": "1. Scegli un posizionamento",
@@ -1934,7 +1944,7 @@
         "adPreviewTitle": "Anteprima dal vivo",
         "adPreviewDesc": "Ecco come apparirà la tua sedcard ai visitatori del sito.",
         "durationTitle": "Scegli una durata",
-        "durationDesc": "Una volta completato tutto quanto sopra, scegli per quanto tempo la tua sedcard resta online e continua al pagamento per pubblicarla. Tutto qui!"
+        "durationDesc": "Quando tutto sopra è pronto, scegli la durata e attivala gratuitamente. Tutto qui!"
       }
     },
     "company": {
@@ -2330,7 +2340,7 @@
         "sendBtn": "Invia invito",
         "errAlreadyPending": "Hai già un invito in attesa per questa modella",
         "errAlreadyMember": "Questa modella fa già parte del tuo club",
-        "errMaxMembers": "Il tuo club ha raggiunto il massimo di 10 modelle. Rimuovine una prima di invitarne una nuova.",
+        "errMaxMembers": "Il tuo club ha raggiunto il massimo di 50 modelle. Rimuovine una prima di invitarne una nuova.",
         "errSendFailed": "Invio dell'invito non riuscito. Riprova."
       },
       "home": {
@@ -2353,7 +2363,7 @@
         "step3Desc": "Invita o crea profili di modelle e collegali al tuo club. Più modelle significa più visibilità nei risultati di ricerca.",
         "step3Action": "Gestisci modelle",
         "step4Title": "Attiva il tuo annuncio",
-        "step4Desc": "Vai su Attiva annuncio del club e scegli una durata (CHF 19/29/39 per 5/14/30 giorni). Una volta pagato, il tuo club appare nei risultati di ricerca.",
+        "step4Desc": "Vai su Attiva annuncio del club e scegli una durata. L'attivazione è gratuita — il tuo club apparirà nei risultati di ricerca una volta attivato.",
         "step4Action": "Attiva annuncio del club",
         "unreadCount": "{count, plural, =1 {1 notifica non letta} other {# notifiche non lette}}",
         "viewAll": "Vedi tutte",
@@ -2368,7 +2378,7 @@
         "upload": "Carica",
         "welcomeTitle": "Benvenuto su nicemodels.ch",
         "welcomeBody": "Sfrutta al massimo <bold>nicemodels.ch</bold>. Completa il profilo del tuo club, aggiungi modelle, poi attiva l'annuncio del tuo club così i visitatori possono trovarti.",
-        "welcomeTip1": "Attivazione annuncio del club da CHF 19",
+        "welcomeTip1": "L'attivazione dell'annuncio del club è gratuita",
         "welcomeTip2": "Banner e annunci pagati con pagamento sicuro Stripe",
         "welcomeTip3": "Un profilo completo ottiene la massima visibilità",
         "welcomeFooterHint": "Completa il profilo del tuo club e aggiungi modelle per massimizzare la visibilità.",
@@ -2396,7 +2406,7 @@
       },
       "activateAd": {
         "title": "Attiva annuncio del club",
-        "subtitle": "5 giorni CHF 19 · 14 giorni CHF 29 · 30 giorni CHF 39",
+        "subtitle": "L'attivazione dell'annuncio del club è gratuita — scegli una durata qui sotto.",
         "subtitleFree": "L'attivazione dell'annuncio del club è gratuita in questo momento — scegli una durata qui sotto.",
         "priceFree": "Gratuito",
         "noPaymentRequired": "Nessun pagamento richiesto",
@@ -2637,6 +2647,14 @@
       "ofTotal": "di {total}",
       "noModelsFound": "Nessuna modella trovata",
       "loadMore": "Carica altro"
+    },
+    "seo": {
+      "homeH1": "Escort Model e Club in Svizzera",
+      "homeIntro": "Escort model, club e agenzie verificati a Zurigo, Berna, Basilea, Ginevra e in tutta la Svizzera.",
+      "homeBody": "NiceModels.ch è il portale svizzero leader per l'accompagnamento discreto. Tutti i profili vengono verificati prima della pubblicazione — vedi solo annunci reali e attivi. Oltre alle escort model troverai anche club, agenzie e offerte di lavoro attuali del settore.",
+      "modelsH1": "Escort Model Svizzera",
+      "modelsIntro": "Sedcard verificate di escort model a Zurigo, Berna, Basilea, Ginevra e in tutta la Svizzera.",
+      "modelsBody": "Ogni model mostrata qui ha un annuncio attivo — nessuna voce obsoleta. Filtra per regione, età o tipo di offerta per trovare l'accompagnamento giusto vicino a te. Discreto, sicuro e diretto."
     }
   },
   "clubs": {
@@ -3019,7 +3037,7 @@
   "onboarding": {
     "preparing": "Preparazione della configurazione…",
     "welcome": "Benvenuto in ",
-    "subtitle": "Completa il tuo profilo così possiamo preparare la tua pagina <model>modella</model> o <club>club/agenzia</club>. La configurazione del profilo è gratuita; attivazione degli annunci, banner e inserzioni sono servizi a pagamento.",
+    "subtitle": "Completa il tuo profilo così possiamo preparare la tua pagina <model>modella</model> o <club>club/agenzia</club>. La configurazione del profilo e l'attivazione degli annunci sono gratuite; banner e inserzioni sono servizi a pagamento.",
     "footerCopyright": "© {year} nicemodels.ch · Configurazione",
     "footerTagline": "La configurazione del profilo e del club è gratuita.",
     "common": {

@@ -73,7 +73,7 @@ export default function ModelInvitesPage() {
           .eq('club_id', clubId)
           .eq('status', 'accepted')
 
-        if ((currentMembers?.length || 0) >= 10) {
+        if ((currentMembers?.length || 0) >= 50) {
           setError(t('limitReached'))
           setResponding(null)
           return

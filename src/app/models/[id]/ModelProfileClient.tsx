@@ -344,8 +344,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
         .eq('club_id', currentUserId)
         .eq('status', 'accepted')
 
-      if ((currentMembers?.length || 0) >= 10) {
-        setInviteError('Your club has reached the maximum of 10 models. Remove one first to invite a new one.')
+      if ((currentMembers?.length || 0) >= 50) {
+        setInviteError('Your club has reached the maximum of 50 models. Remove one first to invite a new one.')
         setTimeout(() => setInviteError(''), 5000)
         setSendingInvite(false)
         return
