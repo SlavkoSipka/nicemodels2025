@@ -844,6 +844,30 @@
       "publishedSuccess": "Photo published on site!",
       "removedSuccess": "Photo removed from site!",
       "club": "Club"
+    },
+    "mediaManager": {
+      "photos": "Fotos ({count})",
+      "videos": "Vídeos ({count})",
+      "uploadPhotos": "Subir fotos",
+      "uploadVideo": "Subir vídeo",
+      "uploading": "Subiendo...",
+      "noPhotos": "Aún no hay fotos",
+      "noVideos": "Aún no hay vídeos",
+      "dragReorderHint": "Arrastra las fotos para reordenarlas.",
+      "published": "Publicado",
+      "hidden": "Oculto",
+      "publish": "Publicar",
+      "hide": "Ocultar",
+      "confirmDeletePhoto": "¿Eliminar esta foto? Esta acción no se puede deshacer.",
+      "confirmDeleteVideo": "¿Eliminar este vídeo? Esta acción no se puede deshacer.",
+      "tooLarge": "«{name}» es demasiado grande (máx. 10 MB).",
+      "videoTooLarge": "«{name}» es demasiado grande (máx. 200 MB).",
+      "invalidVideo": "«{name}» no es un formato de vídeo compatible.",
+      "uploadPhotoFailed": "No se pudo subir la foto.",
+      "uploadVideoFailed": "No se pudo subir el vídeo.",
+      "deleteFailed": "No se pudo eliminar el archivo.",
+      "updateFailed": "No se pudo actualizar el archivo.",
+      "reorderFailed": "No se pudo guardar el nuevo orden."
     }
   },
   "common": {

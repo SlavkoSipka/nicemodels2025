@@ -844,6 +844,30 @@
       "publishedSuccess": "Photo published on site!",
       "removedSuccess": "Photo removed from site!",
       "club": "Club"
+    },
+    "mediaManager": {
+      "photos": "Photos ({count})",
+      "videos": "Videos ({count})",
+      "uploadPhotos": "Upload photos",
+      "uploadVideo": "Upload video",
+      "uploading": "Uploading...",
+      "noPhotos": "No photos yet",
+      "noVideos": "No videos yet",
+      "dragReorderHint": "Drag photos to reorder them.",
+      "published": "Published",
+      "hidden": "Hidden",
+      "publish": "Publish",
+      "hide": "Hide",
+      "confirmDeletePhoto": "Delete this photo? This cannot be undone.",
+      "confirmDeleteVideo": "Delete this video? This cannot be undone.",
+      "tooLarge": "\"{name}\" is too large (max 10MB).",
+      "videoTooLarge": "\"{name}\" is too large (max 200MB).",
+      "invalidVideo": "\"{name}\" is not a supported video format.",
+      "uploadPhotoFailed": "Failed to upload photo.",
+      "uploadVideoFailed": "Failed to upload video.",
+      "deleteFailed": "Failed to delete media.",
+      "updateFailed": "Failed to update media.",
+      "reorderFailed": "Failed to save new order."
     }
   },
   "common": {

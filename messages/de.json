@@ -844,6 +844,30 @@
       "publishedSuccess": "Foto auf Seite veröffentlicht!",
       "removedSuccess": "Foto von Seite entfernt!",
       "club": "Club"
+    },
+    "mediaManager": {
+      "photos": "Fotos ({count})",
+      "videos": "Videos ({count})",
+      "uploadPhotos": "Fotos hochladen",
+      "uploadVideo": "Video hochladen",
+      "uploading": "Wird hochgeladen...",
+      "noPhotos": "Noch keine Fotos",
+      "noVideos": "Noch keine Videos",
+      "dragReorderHint": "Fotos ziehen, um die Reihenfolge zu ändern.",
+      "published": "Veröffentlicht",
+      "hidden": "Ausgeblendet",
+      "publish": "Veröffentlichen",
+      "hide": "Ausblenden",
+      "confirmDeletePhoto": "Dieses Foto löschen? Dies kann nicht rückgängig gemacht werden.",
+      "confirmDeleteVideo": "Dieses Video löschen? Dies kann nicht rückgängig gemacht werden.",
+      "tooLarge": "\"{name}\" ist zu groß (max. 10 MB).",
+      "videoTooLarge": "\"{name}\" ist zu groß (max. 200 MB).",
+      "invalidVideo": "\"{name}\" ist kein unterstütztes Videoformat.",
+      "uploadPhotoFailed": "Foto konnte nicht hochgeladen werden.",
+      "uploadVideoFailed": "Video konnte nicht hochgeladen werden.",
+      "deleteFailed": "Medium konnte nicht gelöscht werden.",
+      "updateFailed": "Medium konnte nicht aktualisiert werden.",
+      "reorderFailed": "Neue Reihenfolge konnte nicht gespeichert werden."
     }
   },
   "common": {

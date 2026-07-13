@@ -3,15 +3,15 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Save, CheckCircle, AlertCircle, User, MapPin, Phone,
   Sparkles, Clock, Languages, ChevronDown, ChevronUp, Trash2, Plus,
-  ShieldCheck, Ban, ImageIcon, Film, DollarSign, Zap,
+  ShieldCheck, Ban, ImageIcon, DollarSign, Zap,
 } from 'lucide-react'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
+import AdminMediaManager from '@/components/admin/AdminMediaManager'
 import PhoneInput from '@/components/ui/PhoneInput'
 import CitySearch from '@/components/ui/CitySearch'
 import { MODEL_ETHNICITY_SLUGS } from '@/lib/modelEthnicitySlugs'
@@ -877,58 +877,15 @@ export default function AdminModelEditClient({
             </div>
           )}
 
-          {/* ════════ MEDIA (read-only gallery) ════════ */}
+          {/* ════════ MEDIA ════════ */}
           {activeTab === 'media' && (
-            <div className="space-y-4">
-              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
-                <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-brand" /> {t('photos', { count: photos.length })}
-                </p>
-                {photos.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t('noPhotos')}</p>
-                ) : (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                    {photos.map((p: any) => (
-                      <div key={p.id} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-100">
-                        {p.url && (
-                          <Image src={p.url} alt="" fill className="object-cover" sizes="120px" />
-                        )}
-                        <div className="absolute bottom-1 right-1">
-                          {p.is_approved ? (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">{t('ok')}</span>
-                          ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">{tc('pending')}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="bg-white border border-gray-200 rounded-lg p-3 sm:p-5">
-                <p className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <Film className="w-4 h-4 text-brand" /> {t('videos', { count: videos.length })}
-                </p>
-                {videos.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t('noVideos')}</p>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {videos.map((v: any) => (
-                      <div key={v.id} className="relative aspect-video rounded-lg overflow-hidden bg-gray-900">
-                        {v.url && <video src={v.url} className="w-full h-full object-cover" />}
-                        <div className="absolute bottom-1 right-1">
-                          {v.is_approved ? (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500 text-white">{t('ok')}</span>
-                          ) : (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">{tc('pending')}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+            <AdminMediaManager
+              ownerType="model"
+              ownerId={modelId}
+              ownerEmail={profile.email || ''}
+              photos={photos}
+              videos={videos}
+            />
           )}
 
           {/* ════════ RATES (read-only) ════════ */}
