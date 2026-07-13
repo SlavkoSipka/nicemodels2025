@@ -11,7 +11,9 @@ import AgeGate from "@/components/AgeGate";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 const playfair = Playfair_Display({
@@ -22,6 +24,32 @@ const playfair = Playfair_Display({
 
 const SITE_URL = "https://nicemodels.ch";
 const SITE_NAME = "NiceModels.ch";
+
+// Profile row for the navbar/auth context, cached per user for 30s so repeat
+// navigations skip a Supabase round trip. Uses the service-role client because
+// unstable_cache callbacks cannot read request cookies. Client-side
+// refreshProfile() still provides immediate updates inside dashboards.
+const getCachedProfile = unstable_cache(
+  async (uid: string): Promise<AuthProfile | null> => {
+    try {
+      const admin = createAdminClient();
+      const { data } = await admin
+        .from("profiles")
+        .select(
+          "id, username, role, avatar_url, onboarding_completed, tutorial_completed, phone, date_of_birth, is_blocked, blocked_reason, blocked_at",
+        )
+        .eq("id", uid)
+        .maybeSingle();
+      return (data as AuthProfile | null) ?? null;
+    } catch {
+      // On any failure return null — AuthProvider fetches the profile
+      // client-side when initialProfile is missing.
+      return null;
+    }
+  },
+  ["layout-auth-profile"],
+  { revalidate: 30 },
+);
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -114,23 +142,18 @@ export default async function RootLayout({
     getMessages(),
   ]);
 
+  // The proxy middleware (updateSession) already validated and refreshed the
+  // auth token via getUser() on this same request, so reading the session from
+  // cookies here is safe and avoids a second Supabase Auth round trip.
   const supabase = await createClient();
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    data: { session },
+  } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
 
   let initialProfile: AuthProfile | null = null;
   if (user) {
-    const { data: profileRow } = await supabase
-      .from("profiles")
-      .select(
-        "id, username, role, avatar_url, onboarding_completed, tutorial_completed, phone, date_of_birth, is_blocked, blocked_reason, blocked_at",
-      )
-      .eq("id", user.id)
-      .maybeSingle();
-    if (profileRow) {
-      initialProfile = profileRow as AuthProfile;
-    }
+    initialProfile = await getCachedProfile(user.id);
   }
 
   const supabaseOrigin = (() => {

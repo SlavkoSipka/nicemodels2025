@@ -141,16 +141,23 @@ export default function AuthProvider({
 
   useEffect(() => {
     const supabase = createClient()
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null
-      setUser(u)
 
-      if (!u) {
+      if (event === 'SIGNED_OUT') {
+        setUser(null)
         setProfile(null)
         fetchedFor.current = null
         return
       }
 
+      // INITIAL_SESSION can fire with a null session while an expired token is
+      // still being refreshed over the network (slow mobile connections). Never
+      // let it clobber the SSR-provided user — a real logout arrives as
+      // SIGNED_OUT, and a successful refresh arrives as TOKEN_REFRESHED.
+      if (!u) return
+
+      setUser(u)
       if (fetchedFor.current !== u.id) {
         fetchedFor.current = u.id
         loadProfile(u.id).catch(() => {})
