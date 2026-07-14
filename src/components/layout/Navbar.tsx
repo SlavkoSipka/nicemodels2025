@@ -181,11 +181,7 @@ export default function Navbar() {
               </Link>
             ))}
 
-            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} className="pt-4 mt-4">
-              <LanguageSwitcher variant="mobile" />
-            </div>
-
-            <div className="space-y-2">
+            <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }} className="pt-4 mt-4 space-y-2">
               {user ? (
                 <>
                   <div className="px-4 py-2 text-sm" style={{ color: '#94a3b8' }}>
