@@ -17,7 +17,7 @@ const OPTIONS = [
   { code: 'cs', label: 'CS', flag: '🇨🇿', name: 'Čeština' },
 ] as const
 
-type Variant = 'navbar' | 'sidebar' | 'sidebar-collapsed' | 'mobile'
+type Variant = 'navbar' | 'sidebar' | 'sidebar-collapsed' | 'mobile' | 'mobile-compact'
 
 export default function LanguageSwitcher({ variant = 'navbar' }: { variant?: Variant }) {
   const locale = useLocale()
@@ -93,6 +93,43 @@ export default function LanguageSwitcher({ variant = 'navbar' }: { variant?: Var
             <span>{opt.label}</span>
           </button>
         ))}
+      </div>
+    )
+  }
+
+  if (variant === 'mobile-compact') {
+    return (
+      <div ref={ref} className="relative">
+        <button
+          onClick={() => setOpen(v => !v)}
+          disabled={pending}
+          aria-label="Language"
+          className="flex items-center gap-1 p-2 rounded-lg"
+          style={{ color: '#94a3b8' }}
+        >
+          <span className="text-xl leading-none">{current.flag}</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+        {open && (
+          <div className="absolute right-0 top-full mt-1 bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden z-50 min-w-[170px]">
+            {OPTIONS.map(opt => (
+              <button
+                key={opt.code}
+                onClick={() => change(opt.code)}
+                disabled={pending}
+                className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors ${
+                  locale === opt.code
+                    ? 'bg-pink-50 text-pink-700'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                <span className="text-base leading-none">{opt.flag}</span>
+                <span className="flex-1 text-left">{opt.name}</span>
+                <span className="text-xs text-gray-400 font-bold">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     )
   }
