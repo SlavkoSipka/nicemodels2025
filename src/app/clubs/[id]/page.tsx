@@ -81,19 +81,36 @@ export default async function ClubPage({ params }: PageProps) {
     { data: profile },
     { data: clubDetails },
     { data: contactDetails },
-    { data: workingHours },
+    { data: workingHoursRows },
     { data: photos },
     { data: accepted },
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', id).eq('role', 'company').single(),
     supabase.from('club_details').select('*').eq('club_id', id).single(),
     supabase.from('club_contact_details').select('*').eq('club_id', id).maybeSingle(),
-    supabase.from('club_working_hours').select('*').eq('club_id', id).maybeSingle(),
+    supabase.from('club_working_hours').select('*').eq('club_id', id),
     supabase.from('club_photos').select('*').eq('club_id', id).eq('is_approved', true).order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     admin.from('club_invites').select('invited_model_id').eq('club_id', id).eq('status', 'accepted'),
   ])
 
   if (!profile) notFound()
+
+  // club_working_hours is stored as one row per day (day_of_week, opens_at,
+  // closes_at, is_closed). Fold it into the flat shape ClubProfileClient reads.
+  const rows = workingHoursRows ?? []
+  let workingHours: Record<string, string | boolean | null> | null = null
+  if (rows.length > 0) {
+    const hhmm = (v: string | null) => (v ? v.slice(0, 5) : null)
+    const is24_7 = rows.length === 7 && rows.every(
+      (r: any) => !r.is_closed && r.opens_at === '00:00:00' && r.closes_at === '23:59:59',
+    )
+    workingHours = { always_available: is24_7 }
+    for (const r of rows as any[]) {
+      const day = r.day_of_week
+      workingHours[`${day}_open`] = r.is_closed ? null : hhmm(r.opens_at)
+      workingHours[`${day}_close`] = r.is_closed ? null : hhmm(r.closes_at)
+    }
+  }
 
   const photosWithUrls = (photos ?? []).map(photo => ({
     ...photo,

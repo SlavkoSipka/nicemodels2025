@@ -34,7 +34,6 @@ export default function ClubProfileClient({
   viewCount = 0,
 }: ClubProfileClientProps) {
   const t = useTranslations('clubs.profile')
-  const [showContact, setShowContact] = useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
   const [idCopied, setIdCopied] = useState(false)
 
@@ -64,20 +63,17 @@ export default function ClubProfileClient({
     track()
   }, [profile.id])
 
-  const handleShowContact = async () => {
-    setShowContact(v => !v)
-    if (!showContact) {
-      try {
-        const supabase = createClient()
-        const { data: { user } } = await supabase.auth.getUser()
-        await supabase.from('club_analytics').insert({
-          club_id: profile.id,
-          event_type: 'contact_click',
-          viewer_id: user?.id || null,
-          viewer_role: user ? 'authenticated' : 'guest'
-        })
-      } catch {}
-    }
+  const trackCall = async () => {
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      await supabase.from('club_analytics').insert({
+        club_id: profile.id,
+        event_type: 'contact_click',
+        viewer_id: user?.id || null,
+        viewer_role: user ? 'authenticated' : 'guest'
+      })
+    } catch {}
   }
 
   const days = [
@@ -265,29 +261,6 @@ export default function ClubProfileClient({
                 </div>
               )}
 
-              {/* Address */}
-              {(clubDetails?.street || clubDetails?.city) && (
-                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
-                      <MapPin className="w-4 h-4 text-rose-600" />
-                    </div>
-                    <p className="text-sm font-bold text-gray-800">{t('address')}</p>
-                  </div>
-                  <div className="space-y-1 text-sm text-gray-700">
-                    {clubDetails.street && (
-                      <p className="font-medium">{clubDetails.street} {clubDetails.street_number}</p>
-                    )}
-                    {clubDetails.city && (
-                      <p className="text-gray-500">{clubDetails.zip_code && `${clubDetails.zip_code} `}{clubDetails.city}</p>
-                    )}
-                    {clubDetails.additional_info && (
-                      <p className="text-gray-400 text-xs mt-1">{clubDetails.additional_info}</p>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Club Models */}
               {clubModels.length > 0 && (
                 <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
@@ -352,14 +325,7 @@ export default function ClubProfileClient({
                   <p className="text-sm font-bold text-white">{t('contact')}</p>
                 </div>
                 <div className="p-5">
-                  {!showContact ? (
-                    <button
-                      onClick={handleShowContact}
-                      className="w-full py-2.5 bg-gradient-to-r from-brand to-rose-500 hover:from-brand-hover hover:to-rose-600 text-white font-bold rounded-md transition-all shadow-sm flex items-center justify-center gap-2 text-sm"
-                    >
-                      <Phone className="w-4 h-4" /> {t('showContactInfo')}
-                    </button>
-                  ) : contactDetails && !contactDetails.hide_contact_info ? (
+                  {contactDetails && !contactDetails.hide_contact_info ? (
                     (() => {
                       const phone = (contactDetails.phone_number || '').trim()
                       const phoneE164 = phone
@@ -452,6 +418,7 @@ export default function ClubProfileClient({
                           {phone && (
                             <a
                               href={methods.has('call') ? `tel:${phoneE164}` : undefined}
+                              onClick={methods.has('call') ? trackCall : undefined}
                               className={`block text-xl font-bold ${methods.has('call') ? 'text-emerald-700 hover:text-emerald-800' : 'text-gray-800'}`}
                             >
                               {contactDetails.country_code} {phone}
@@ -464,6 +431,7 @@ export default function ClubProfileClient({
                                 <a
                                   key={b.id}
                                   href={b.href}
+                                  onClick={b.id === 'call' ? trackCall : undefined}
                                   target={b.id === 'whatsapp' || b.id === 'telegram' ? '_blank' : undefined}
                                   rel="noopener noreferrer"
                                   className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-bold shadow-sm transition-colors ${b.cls}`}
@@ -516,6 +484,29 @@ export default function ClubProfileClient({
                   )}
                 </div>
               </div>
+
+              {/* Address */}
+              {(clubDetails?.street || clubDetails?.city) && (
+                <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-md bg-rose-100 flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-rose-600" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-800">{t('address')}</p>
+                  </div>
+                  <div className="space-y-1 text-sm text-gray-700">
+                    {clubDetails.street && (
+                      <p className="font-medium">{clubDetails.street} {clubDetails.street_number}</p>
+                    )}
+                    {clubDetails.city && (
+                      <p className="text-gray-500">{clubDetails.zip_code && `${clubDetails.zip_code} `}{clubDetails.city}</p>
+                    )}
+                    {clubDetails.additional_info && (
+                      <p className="text-gray-400 text-xs mt-1">{clubDetails.additional_info}</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Working Hours */}
               <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-5">
