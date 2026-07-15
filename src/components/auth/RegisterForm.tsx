@@ -68,13 +68,7 @@ export default function RegisterForm() {
       return
     }
 
-    if (!formData.dateOfBirth) {
-      setError(t('errorDobRequired'))
-      setLoading(false)
-      return
-    }
-
-    if (getAge(formData.dateOfBirth) < 18) {
+    if (formData.dateOfBirth && getAge(formData.dateOfBirth) < 18) {
       setError(t('errorAge18'))
       setLoading(false)
       return
@@ -109,7 +103,7 @@ export default function RegisterForm() {
             username: formData.username,
             role: formData.userType === 'model' ? 'model' : formData.userType === 'company' ? 'company' : 'user',
             phone: fullPhone,
-            date_of_birth: formData.dateOfBirth,
+            date_of_birth: formData.dateOfBirth || null,
           },
         },
       })
@@ -237,14 +231,13 @@ export default function RegisterForm() {
       {/* Date of Birth */}
       <div>
         <label htmlFor="dateOfBirth" className="block text-xs font-bold text-gray-700 mb-1">
-          {t('dobLabel')}<span className="text-pink-600">*</span>
+          {t('dobLabel')}
           <span className="font-normal text-gray-400 ml-1">{t('dobHint')}</span>
         </label>
         <DobInput
           id="dateOfBirth"
           value={formData.dateOfBirth}
           onChange={(iso) => setFormData({ ...formData, dateOfBirth: iso })}
-          required
           minYearsAgo={18}
           className={inputCls}
         />
