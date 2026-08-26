@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import BlogTopicClient, { type TopicPayload } from '../BlogTopicClient'
 import { resolveAuthorLabels } from '@/lib/discussion/resolveAuthors'
 import type { DiscussionPostNode } from '@/lib/discussion/tree'
+import { stripMarkdownToText } from '@/lib/markdown'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -28,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
   const desc =
-    (topic.body || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155)
+    stripMarkdownToText(topic.body || '').slice(0, 155)
     || `Community discussion: ${topic.title}`
   const ogImage = topic.cover_image
     ? `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}`

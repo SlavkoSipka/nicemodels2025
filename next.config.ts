@@ -67,6 +67,7 @@ const nextConfig: NextConfig = {
     //              + Stripe API/hooks (all *.stripe.com)
     //              + EmailJS API (contact form via @emailjs/browser)
     // frame-src  : *.stripe.com (Stripe 3DS / fraud-detection iframes)
+    //              + youtube.com (blog post YouTube embeds)
     // object-src : 'none' — no Flash or plugin content
     // base-uri   : 'self' — block base-tag injection attacks
     // form-action: 'self' — all HTML form actions post to our own routes
@@ -89,7 +90,7 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https://ykzqjwqomaeuppubofid.supabase.co https://images.unsplash.com",
       "font-src 'self' data:",
       "connect-src 'self' https://ykzqjwqomaeuppubofid.supabase.co wss://ykzqjwqomaeuppubofid.supabase.co https://*.stripe.com https://api.emailjs.com",
-      "frame-src https://*.stripe.com",
+      "frame-src https://*.stripe.com https://www.youtube.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

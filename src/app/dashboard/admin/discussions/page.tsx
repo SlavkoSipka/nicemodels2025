@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, MessageSquarePlus, Pin, Trash2, ExternalLink, ImagePlus, X, Pencil } from 'lucide-react'
-import RichTextEditor from '@/components/ui/RichTextEditor'
+import BlogMarkdownEditor from '@/components/admin/BlogMarkdownEditor'
 import { isDiscussionSchemaMissing } from '@/lib/discussion/supabaseErrors'
 
 interface TopicRow {
@@ -84,6 +84,18 @@ export default function AdminDiscussionsPage() {
     const { error: upErr } = await supabase.storage.from('discussion-images').upload(path, file, { upsert: true })
     if (upErr) { setError(t('imageUploadFailed', { message: upErr.message })); return null }
     return path
+  }
+
+  // Used by the block editor's image block — returns a full public URL
+  // (unlike uploadCover's bucket-relative path) since it's embedded directly
+  // in the stored markdown body.
+  const uploadBodyImage = async (file: File): Promise<string | null> => {
+    const supabase = createClient()
+    const ext = file.name.split('.').pop() || 'jpg'
+    const path = `body/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+    const { error: upErr } = await supabase.storage.from('discussion-images').upload(path, file, { upsert: true })
+    if (upErr) { setError(t('imageUploadFailed', { message: upErr.message })); return null }
+    return coverUrl(path)
   }
 
   const handleCoverFile = (file: File | null) => {
@@ -255,7 +267,7 @@ export default function AdminDiscussionsPage() {
                 placeholder={t('slugPlaceholder')}
               />
             </div>
-            <RichTextEditor label={t('openingPost')} value={body} onChange={setBody} height={220} />
+            <BlogMarkdownEditor label={t('openingPost')} value={body} onChange={setBody} height={220} onUploadImage={uploadBodyImage} />
 
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">{t('coverImage')}</label>
@@ -436,7 +448,7 @@ export default function AdminDiscussionsPage() {
                             placeholder={t('slugPlaceholder')}
                           />
                         </div>
-                        <RichTextEditor label={t('editBody')} value={editBody} onChange={setEditBody} height={220} />
+                        <BlogMarkdownEditor label={t('editBody')} value={editBody} onChange={setEditBody} height={220} onUploadImage={uploadBodyImage} />
                         <div className="flex flex-wrap gap-2 justify-end">
                           <button
                             type="button"

@@ -9,6 +9,7 @@ import DiscussionThread from '@/components/discussion/DiscussionThread'
 import ReplyForm from '@/components/discussion/ReplyForm'
 import { buildPostTree } from '@/lib/discussion/tree'
 import type { DiscussionPostNode } from '@/lib/discussion/tree'
+import { renderSimpleMarkdown } from '@/lib/markdown'
 
 export interface TopicPayload {
   id: string
@@ -100,7 +101,7 @@ export default function BlogTopicClient({
               {topic.body && (
                 <div
                   className="mt-6 prose prose-sm sm:prose-base max-w-none text-gray-700 prose-headings:text-gray-900 prose-a:text-pink-600 prose-img:rounded-lg"
-                  dangerouslySetInnerHTML={{ __html: topic.body }}
+                  dangerouslySetInnerHTML={{ __html: renderSimpleMarkdown(topic.body) }}
                 />
               )}
             </div>
