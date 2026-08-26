@@ -84,6 +84,8 @@ export default function BlogTopicClient({
               </h1>
 
               <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-400">
+                <span>{t('byline')}</span>
+                <span className="text-gray-300">·</span>
                 <span>{t('posted', { time: timeAgo(topic.created_at, t) })}</span>
                 {topic.updated_at !== topic.created_at && (
                   <>

@@ -3611,7 +3611,8 @@
       "discussion": "Dyskusja",
       "noRepliesYet": "Brak odpowiedzi. Skomentuj jako pierwszy.",
       "leaveReply": "Zostaw odpowiedź",
-      "memberFallback": "Członek"
+      "memberFallback": "Członek",
+      "byline": "Autor: zespół NiceModels.ch"
     },
     "chat": {
       "back": "Wstecz",

@@ -191,6 +191,12 @@ export default async function RootLayout({
                   "@type": "ImageObject",
                   url: `${SITE_URL}/logo.webp`,
                 },
+                contactPoint: {
+                  "@type": "ContactPoint",
+                  contactType: "customer service",
+                  email: "info@nicemodels.ch",
+                  telephone: "+41783339396",
+                },
               },
             }),
           }}

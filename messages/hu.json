@@ -3611,7 +3611,8 @@
       "discussion": "Beszélgetés",
       "noRepliesYet": "Még nincsenek válaszok. Legyél te az első!",
       "leaveReply": "Hagyj választ",
-      "memberFallback": "Tag"
+      "memberFallback": "Tag",
+      "byline": "A NiceModels.ch csapata írta"
     },
     "chat": {
       "back": "Vissza",

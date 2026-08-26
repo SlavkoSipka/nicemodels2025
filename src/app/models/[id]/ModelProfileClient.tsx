@@ -28,6 +28,7 @@ import {
 } from '@/lib/modelDisplaySlugs'
 import { usePageLoader } from '@/components/layout/PageLoader'
 import StartChatButton from '@/components/chat/StartChatButton'
+import { getCityByDbCityName } from '@/lib/data/cities-seo'
 import {
   MapPin,
   Heart,
@@ -612,7 +613,10 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   // Keep photoUrls for backward compat (stats display)
   const photoUrls = mediaItems.filter(m => m.type === 'photo').map(m => m.url)
 
-  // Preload photos adjacent to the current one so flipping feels instant
+  // Preload photos adjacent to the current one so flipping feels instant.
+  // Goes through the same /_next/image optimizer + width/quality the
+  // lightbox <Image> itself uses, instead of fetching the full-resolution
+  // original — that was pulling down ~1.5MB per navigation unconditionally.
   useEffect(() => {
     const toPreload = [
       mediaItems[selectedPhotoIndex + 1],
@@ -621,7 +625,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     toPreload.forEach(item => {
       if (item?.type === 'photo') {
         const img = new window.Image()
-        img.src = item.url
+        img.src = `/_next/image?url=${encodeURIComponent(item.url)}&w=750&q=82`
       }
     })
   }, [selectedPhotoIndex, mediaItems])
@@ -876,9 +880,22 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     </span>
                   )}
                   {modelDetails?.city && (
-                    <span className="text-sm font-medium" style={{ color: '#64748b' }}>
-                      {modelDetails.city}
-                    </span>
+                    (() => {
+                      const cityConfig = getCityByDbCityName(modelDetails.city)
+                      return cityConfig ? (
+                        <Link
+                          href={`/escort/${cityConfig.slug}`}
+                          className="text-sm font-medium hover:underline"
+                          style={{ color: '#64748b' }}
+                        >
+                          {modelDetails.city}
+                        </Link>
+                      ) : (
+                        <span className="text-sm font-medium" style={{ color: '#64748b' }}>
+                          {modelDetails.city}
+                        </span>
+                      )
+                    })()
                   )}
                   {modelDetails?.age && modelDetails?.city && (
                     <span style={{ color: '#cbd5e1' }}>·</span>

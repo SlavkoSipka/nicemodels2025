@@ -197,3 +197,18 @@ Auf NiceModels.ch findest du verifizierte Escort Models in Lugano und dem Tessin
 export function getCityBySlug(slug: string): CityConfig | undefined {
   return CITIES.find(c => c.slug === slug)
 }
+
+// Reverse lookup for profile pages linking back to their city's landing
+// page. Returns undefined for real towns outside the 10 curated cities
+// (e.g. "Aarwangen") — callers should render nothing in that case rather
+// than guess a nearby city.
+export function getCityByDbCityName(dbCityName: string | null | undefined): CityConfig | undefined {
+  if (!dbCityName) return undefined
+  return CITIES.find(c => c.dbCityName === dbCityName)
+}
+
+export function getCityByDbAreaName(dbAreaName: string | null | undefined): CityConfig | undefined {
+  if (!dbAreaName) return undefined
+  const normalized = dbAreaName.toLowerCase()
+  return CITIES.find(c => c.dbAreaName === normalized)
+}

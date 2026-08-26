@@ -3611,7 +3611,8 @@
       "discussion": "Discuție",
       "noRepliesYet": "Încă nu există răspunsuri. Fii primul care comentează.",
       "leaveReply": "Lasă un răspuns",
-      "memberFallback": "Membru"
+      "memberFallback": "Membru",
+      "byline": "De echipa NiceModels.ch"
     },
     "chat": {
       "back": "Înapoi",

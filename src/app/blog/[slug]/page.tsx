@@ -114,16 +114,25 @@ export default async function BlogTopicPage({ params }: PageProps) {
   }))
 
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  // Posts are single-author editorial content written through the admin
+  // block editor, not organic multi-author discussion threads — BlogPosting
+  // is the correct type (DiscussionForumPosting undersold it for citation
+  // purposes and is missing here entirely).
   const articleJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'DiscussionForumPosting',
+    '@type': 'BlogPosting',
     headline: topic.title,
     url: `https://nicemodels.ch/blog/${slug}`,
     datePublished: topic.created_at,
     dateModified: topic.updated_at || topic.created_at,
-    ...(topic.cover_image
-      ? { image: `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}` }
-      : {}),
+    image: topic.cover_image
+      ? `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}`
+      : 'https://nicemodels.ch/logo.webp',
+    author: {
+      '@type': 'Organization',
+      name: 'NiceModels.ch',
+      url: 'https://nicemodels.ch',
+    },
     publisher: {
       '@type': 'Organization',
       name: 'NiceModels.ch',

@@ -13,6 +13,7 @@ import {
   Clock, CheckCircle, Coffee, Waves, Trees, DollarSign,
   ChevronLeft, ChevronRight, Users, Sparkles, Eye, Send
 } from 'lucide-react'
+import { getCityByDbAreaName } from '@/lib/data/cities-seo'
 
 interface ClubProfileClientProps {
   profile: any
@@ -190,11 +191,26 @@ export default function ClubProfileClient({
                   {clubDetails?.club_name && clubDetails?.display_name && clubDetails.club_name !== clubDetails.display_name && (
                     <p className="text-sm text-gray-400 mb-2">({clubDetails.club_name})</p>
                   )}
-                  {clubDetails?.area && (
-                    <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1 mt-1">
-                      <MapPin className="w-3.5 h-3.5 text-brand" /> {clubDetails.area}
-                    </span>
-                  )}
+                  {clubDetails?.area && (() => {
+                    const cityConfig = getCityByDbAreaName(clubDetails.area)
+                    const content = (
+                      <>
+                        <MapPin className="w-3.5 h-3.5 text-brand" /> {clubDetails.area}
+                      </>
+                    )
+                    return cityConfig ? (
+                      <Link
+                        href={`/escort/${cityConfig.slug}`}
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1 mt-1 hover:bg-gray-200"
+                      >
+                        {content}
+                      </Link>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-full px-3 py-1 mt-1">
+                        {content}
+                      </span>
+                    )
+                  })()}
                 </div>
               </div>
 
