@@ -11,6 +11,7 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ModelProfileClient from './ModelProfileClient'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { buildBreadcrumbJsonLd } from '@/lib/seo'
 
 async function UnavailableSedcard({ showname }: { showname: string | null }) {
   const t = await getTranslations('models.profile.unavailable')
@@ -389,6 +390,11 @@ export default async function ModelPage({ params }: ModelPageProps) {
     ...(md?.about_me ? { description: md.about_me.replace(/<[^>]*>/g, '').slice(0, 300) } : {}),
     ...(md?.city ? { address: { '@type': 'PostalAddress', addressLocality: md.city, addressCountry: 'CH' } } : {}),
   }
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Startseite', path: '/' },
+    { name: 'Models', path: '/models-page' },
+    { name: personName, path: `/models/${id}` },
+  ])
 
   return (
     <>
@@ -396,6 +402,10 @@ export default async function ModelPage({ params }: ModelPageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <ModelProfileClient
         modelData={modelData}

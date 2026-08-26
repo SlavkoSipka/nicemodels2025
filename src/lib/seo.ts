@@ -3,6 +3,29 @@ import type { Metadata } from 'next'
 const SITE_URL = 'https://nicemodels.ch'
 const DEFAULT_OG_IMAGE = `${SITE_URL}/logo.webp`
 
+export interface BreadcrumbSegment {
+  name: string
+  path: string
+}
+
+/**
+ * Builds a schema.org BreadcrumbList JSON-LD object. Pass segments in order
+ * from the homepage down to (but not including — see `current`) the current
+ * page, then `current`'s own name/path as the final segment.
+ */
+export function buildBreadcrumbJsonLd(segments: BreadcrumbSegment[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: segments.map((segment, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: segment.name,
+      item: `${SITE_URL}${segment.path}`,
+    })),
+  }
+}
+
 interface BuildMetadataOptions {
   path: string
   title: string

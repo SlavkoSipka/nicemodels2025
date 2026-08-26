@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import ListingDetailClient from './ListingDetailClient'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { buildBreadcrumbJsonLd } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -135,6 +136,12 @@ export default async function ListingDetailPage({ params }: PageProps) {
         }
       : null
 
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Startseite', path: '/' },
+    { name: 'Jobs & Miete', path: '/jobs-rents' },
+    { name: listing.title || 'Inserat', path: `/jobs-rents/${id}` },
+  ])
+
   return (
     <>
       {jobPostingSchema && (
@@ -143,6 +150,10 @@ export default async function ListingDetailPage({ params }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingSchema) }}
         />
       )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <Navbar />
       <ListingDetailClient
         listing={{

@@ -8,6 +8,7 @@ import BlogTopicClient, { type TopicPayload } from '../BlogTopicClient'
 import { resolveAuthorLabels } from '@/lib/discussion/resolveAuthors'
 import type { DiscussionPostNode } from '@/lib/discussion/tree'
 import { stripMarkdownToText } from '@/lib/markdown'
+import { buildBreadcrumbJsonLd } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -145,6 +146,11 @@ export default async function BlogTopicPage({ params }: PageProps) {
       userInteractionCount: flatPosts.length,
     },
   }
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Startseite', path: '/' },
+    { name: 'Blog', path: '/blog' },
+    { name: topic.title, path: `/blog/${slug}` },
+  ])
 
   return (
     <>
@@ -152,6 +158,10 @@ export default async function BlogTopicPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <BlogTopicClient topic={topic} flatPosts={flatPosts} isAdmin={isAdmin} />
       <Footer />

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import ClubProfileClient from './ClubProfileClient'
 import { cache } from 'react'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { buildBreadcrumbJsonLd } from '@/lib/seo'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -149,6 +150,18 @@ export default async function ClubPage({ params }: PageProps) {
 
   const clubName = clubDetails?.display_name || clubDetails?.club_name || profile.username || 'Club'
   const clubImage = photosWithUrls[0]?.url || 'https://nicemodels.ch/logo.webp'
+
+  const openingHoursSpecification = rows.length > 0
+    ? rows
+        .filter((r) => !r.is_closed)
+        .map((r) => ({
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: `https://schema.org/${r.day_of_week.charAt(0).toUpperCase()}${r.day_of_week.slice(1)}`,
+          opens: (r.opens_at as string).slice(0, 5),
+          closes: (r.closes_at as string).slice(0, 5),
+        }))
+    : undefined
+
   const clubJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'LocalBusiness',
@@ -158,20 +171,34 @@ export default async function ClubPage({ params }: PageProps) {
     ...(clubDetails?.about_description
       ? { description: String(clubDetails.about_description).replace(/<[^>]*>/g, '').slice(0, 300) }
       : {}),
-    address: {
-      '@type': 'PostalAddress',
-      ...(contactDetails?.city ? { addressLocality: contactDetails.city } : {}),
-      ...(contactDetails?.street ? { streetAddress: contactDetails.street } : {}),
-      addressCountry: 'CH',
-    },
+    ...(contactDetails?.city || contactDetails?.street
+      ? {
+          address: {
+            '@type': 'PostalAddress',
+            ...(contactDetails?.city ? { addressLocality: contactDetails.city } : {}),
+            ...(contactDetails?.street ? { streetAddress: contactDetails.street } : {}),
+            addressCountry: 'CH',
+          },
+        }
+      : {}),
     ...(contactDetails?.phone_number ? { telephone: contactDetails.phone_number } : {}),
+    ...(openingHoursSpecification ? { openingHoursSpecification } : {}),
   }
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Startseite', path: '/' },
+    { name: 'Clubs', path: '/clubs' },
+    { name: clubName, path: `/clubs/${id}` },
+  ])
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(clubJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <ClubProfileClient
         profile={profile}
