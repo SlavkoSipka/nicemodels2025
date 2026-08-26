@@ -22,7 +22,9 @@ export default async function SearchPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Filters Sidebar */}
           <aside className="lg:col-span-1">
-            <SearchFilters />
+            <Suspense fallback={<div>Loading...</div>}>
+              <SearchFilters />
+            </Suspense>
           </aside>
 
           {/* Results Grid */}

@@ -1,23 +1,49 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Filter, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 
 export default function SearchFilters() {
   const t = useTranslations('search.filters')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [isOpen, setIsOpen] = useState(true)
   const [filters, setFilters] = useState({
     category: '',
-    city: '',
-    minAge: '',
-    maxAge: '',
+    city: searchParams.get('city') || '',
+    minAge: searchParams.get('minAge') || '',
+    maxAge: searchParams.get('maxAge') || '',
     minPrice: '',
     maxPrice: '',
     services: [] as string[],
-    verified: false,
+    verified: searchParams.get('verified') === 'true',
   })
+
+  // Only city/minAge/maxAge/verified actually filter results (see
+  // searchProfiles' SearchFilters doc for why category/services/price
+  // aren't wired yet). Applying/resetting writes just those to the URL so
+  // results are shareable/bookmarkable and ProfileGrid can react to them.
+  const applyFilters = () => {
+    const params = new URLSearchParams()
+    if (filters.city) params.set('city', filters.city)
+    if (filters.minAge) params.set('minAge', filters.minAge)
+    if (filters.maxAge) params.set('maxAge', filters.maxAge)
+    if (filters.verified) params.set('verified', 'true')
+    const qs = params.toString()
+    router.push(qs ? `${pathname}?${qs}` : pathname)
+  }
+
+  const resetFilters = () => {
+    setFilters({
+      category: '', city: '', minAge: '', maxAge: '',
+      minPrice: '', maxPrice: '', services: [], verified: false,
+    })
+    router.push(pathname)
+  }
 
   const categories = [
     { value: 'escort', label: t('categories.escort') },
@@ -173,10 +199,18 @@ export default function SearchFilters() {
 
           {/* Apply Buttons */}
           <div className="space-y-2 pt-4 border-t">
-            <button className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition">
+            <button
+              type="button"
+              onClick={applyFilters}
+              className="w-full bg-gradient-to-r from-pink-500 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-pink-600 hover:to-purple-700 transition"
+            >
               {t('applyFilters')}
             </button>
-            <button className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition">
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
               {t('resetAll')}
             </button>
           </div>

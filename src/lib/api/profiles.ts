@@ -136,43 +136,44 @@ export async function searchProfiles(filters: SearchFilters, page: number = 1, p
   const supabase = client
   const offset = (page - 1) * pageSize
 
+  // model_details has two FK relationships to profiles (model_id and club_id),
+  // so the embed below must be disambiguated with an explicit FK hint —
+  // otherwise Postgrest rejects every query with an ambiguous-embed error.
+  // Embedded-resource dot-path filters (e.g. .eq('model_details.city', ...))
+  // don't reliably apply once disambiguated, so city/age filters are resolved
+  // via a direct model_details query first instead, mirroring the pattern
+  // already used in src/app/page.tsx and src/app/escort/[city]/page.tsx.
+  //
+  // country/minPrice/maxPrice are intentionally not applied: model_details
+  // has no location_country or price_per_hour column — pricing lives in a
+  // separate model_rates table keyed by rate_type/duration, with no single
+  // "price" figure to filter on without a product decision on which rate
+  // represents "the" price.
+  let matchingModelIds: string[] | null = null
+  if (filters.city || filters.minAge || filters.maxAge) {
+    let detailsQuery = supabase.from('model_details').select('model_id')
+    if (filters.city) detailsQuery = detailsQuery.eq('city', filters.city)
+    if (filters.minAge) detailsQuery = detailsQuery.gte('age', filters.minAge)
+    if (filters.maxAge) detailsQuery = detailsQuery.lte('age', filters.maxAge)
+    const { data: matchingDetails } = await detailsQuery
+    matchingModelIds = (matchingDetails ?? []).map((d) => d.model_id)
+  }
+
   let query = supabase
     .from('profiles')
     .select(`
       *,
-      model_details(*)
+      model_details!model_details_model_id_fkey(*)
     `, { count: 'exact' })
     .eq('role', 'model')
     .eq('is_blocked', false)
 
-  // Apply filters
   if (filters.verified) {
     query = query.eq('is_verified', true)
   }
 
-  // Filter by model_details
-  if (filters.city) {
-    query = query.eq('model_details.location_city', filters.city)
-  }
-
-  if (filters.country) {
-    query = query.eq('model_details.location_country', filters.country)
-  }
-
-  if (filters.minAge) {
-    query = query.gte('model_details.age', filters.minAge)
-  }
-
-  if (filters.maxAge) {
-    query = query.lte('model_details.age', filters.maxAge)
-  }
-
-  if (filters.minPrice) {
-    query = query.gte('model_details.price_per_hour', filters.minPrice)
-  }
-
-  if (filters.maxPrice) {
-    query = query.lte('model_details.price_per_hour', filters.maxPrice)
+  if (matchingModelIds !== null) {
+    query = query.in('id', matchingModelIds)
   }
 
   // Pagination and ordering

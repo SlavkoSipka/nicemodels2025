@@ -5,13 +5,15 @@ import Image from 'next/image'
 import { MapPin, Star, CheckCircle } from 'lucide-react'
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
-import { searchProfiles, getPrimaryPhoto, getModelRatingsBatch, type Profile } from '@/lib/api/profiles'
+import { useSearchParams } from 'next/navigation'
+import { searchProfiles, getPrimaryPhoto, getModelRatingsBatch, type Profile, type SearchFilters } from '@/lib/api/profiles'
 import { createClient } from '@/lib/supabase/client'
 
 const PAGE_SIZE = 24
 
 export default function ProfileGrid() {
   const t = useTranslations('search.grid')
+  const searchParams = useSearchParams()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -19,8 +21,19 @@ export default function ProfileGrid() {
   const [page, setPage] = useState(1)
   const supabase = createClient()
 
+  // category/services aren't passed here: they have no unambiguous DB mapping
+  // yet (see searchProfiles' SearchFilters doc), so wiring them would silently
+  // filter on the wrong thing rather than genuinely not filter at all.
+  const filters: SearchFilters = {
+    city: searchParams.get('city') || undefined,
+    minAge: searchParams.get('minAge') ? Number(searchParams.get('minAge')) : undefined,
+    maxAge: searchParams.get('maxAge') ? Number(searchParams.get('maxAge')) : undefined,
+    verified: searchParams.get('verified') === 'true' || undefined,
+  }
+  const filtersKey = JSON.stringify(filters)
+
   const loadPage = useCallback(async (pageNum: number) => {
-    const result = await searchProfiles({}, pageNum, PAGE_SIZE, supabase)
+    const result = await searchProfiles(filters, pageNum, PAGE_SIZE, supabase)
     // One batched ratings query for the whole page instead of N round-trips.
     const ratings = await getModelRatingsBatch(result.profiles.map(p => p.id), supabase)
     const withRatings = result.profiles.map(p => {
@@ -28,7 +41,10 @@ export default function ProfileGrid() {
       return { ...p, rating: r?.rating ?? 0, reviewCount: r?.count ?? 0 }
     })
     return { profiles: withRatings as Profile[], total: result.total }
-  }, [supabase])
+    // filtersKey mirrors filters' content so this only changes when a real
+    // filter value changes, not on every render (filters is a fresh object).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [supabase, filtersKey])
 
   useEffect(() => {
     let active = true
