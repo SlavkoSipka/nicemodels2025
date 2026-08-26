@@ -62,11 +62,17 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-700">
+                <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-700 space-y-2">
                   <p className="text-xs text-gray-500">
                     {t('haveAccount')}{' '}
                     <Link href="/login" className="text-brand hover:text-brand-hover font-semibold transition-colors">
                       {t('signInHere')}
+                    </Link>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Model oder Agentur?{' '}
+                    <Link href="/werden-model" className="text-brand hover:text-brand-hover font-semibold transition-colors">
+                      Mehr über Verifizierung & Ablauf erfahren
                     </Link>
                   </p>
                 </div>
