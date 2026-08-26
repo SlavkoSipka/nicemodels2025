@@ -692,6 +692,7 @@ export default function MixedHomeClient({
             <div className="mx-auto flex w-full min-w-0 max-w-[1100px] flex-col gap-4 xl:max-w-none xl:mx-0">
               {hero}
               {renderFilterBar()}
+              <h2 className="sr-only">{t('feed.sectionHeading')}</h2>
               {renderFeed()}
             </div>
 

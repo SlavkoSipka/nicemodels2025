@@ -2678,7 +2678,8 @@
       "models": "Models",
       "ofTotal": "von {total}",
       "noModelsFound": "Keine Models gefunden",
-      "loadMore": "Mehr laden"
+      "loadMore": "Mehr laden",
+      "sectionHeading": "Aktuelle Profile in der Schweiz"
     }
   },
   "clubs": {

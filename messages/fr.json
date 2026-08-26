@@ -2678,7 +2678,8 @@
       "models": "modèles",
       "ofTotal": "sur {total}",
       "noModelsFound": "Aucun modèle trouvé",
-      "loadMore": "Voir plus"
+      "loadMore": "Voir plus",
+      "sectionHeading": "Profils récents en Suisse"
     }
   },
   "clubs": {

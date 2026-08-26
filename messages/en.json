@@ -2678,7 +2678,8 @@
       "models": "models",
       "ofTotal": "of {total}",
       "noModelsFound": "No models found",
-      "loadMore": "Load more"
+      "loadMore": "Load more",
+      "sectionHeading": "Latest Profiles in Switzerland"
     }
   },
   "clubs": {
