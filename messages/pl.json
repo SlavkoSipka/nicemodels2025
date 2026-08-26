@@ -1456,7 +1456,9 @@
         "placeholder": "Napisz o sobie, swoich usługach, tym, co czyni Cię wyjątkową...",
         "saving": "Zapisywanie...",
         "save": "Zapisz",
-        "cancel": "Anuluj"
+        "cancel": "Anuluj",
+        "minLengthHint": "Napisz co najmniej {min} znaków, aby odwiedzający mogli Cię lepiej poznać ({count}/{min}).",
+        "minLengthError": "Napisz co najmniej {min} znaków przed zapisaniem."
       },
       "contact": {
         "title": "Dane kontaktowe",

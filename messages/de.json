@@ -1456,7 +1456,9 @@
         "placeholder": "Schreibe über dich, deine Dienstleistungen, was dich besonders macht...",
         "saving": "Speichern...",
         "save": "Speichern",
-        "cancel": "Abbrechen"
+        "cancel": "Abbrechen",
+        "minLengthHint": "Schreibe mindestens {min} Zeichen, damit Besucher dich besser kennenlernen können ({count}/{min}).",
+        "minLengthError": "Bitte schreibe mindestens {min} Zeichen, bevor du speicherst."
       },
       "contact": {
         "title": "Kontaktdaten",

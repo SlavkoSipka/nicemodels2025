@@ -1456,7 +1456,9 @@
         "placeholder": "Write about yourself, your services, what makes you special...",
         "saving": "Saving...",
         "save": "Save",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "minLengthHint": "Write at least {min} characters so visitors get a real sense of you ({count}/{min}).",
+        "minLengthError": "Please write at least {min} characters before saving."
       },
       "contact": {
         "title": "Contact Details",

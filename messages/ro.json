@@ -1456,7 +1456,9 @@
         "placeholder": "Scrie despre tine, despre serviciile tale, despre ce te face specială...",
         "saving": "Se salvează...",
         "save": "Salvează",
-        "cancel": "Anulează"
+        "cancel": "Anulează",
+        "minLengthHint": "Scrie cel puțin {min} caractere pentru ca vizitatorii să te cunoască mai bine ({count}/{min}).",
+        "minLengthError": "Te rugăm să scrii cel puțin {min} caractere înainte de a salva."
       },
       "contact": {
         "title": "Date de contact",

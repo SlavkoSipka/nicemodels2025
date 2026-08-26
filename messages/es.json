@@ -1456,7 +1456,9 @@
         "placeholder": "Escribe sobre ti, tus servicios, lo que te hace especial...",
         "saving": "Guardando...",
         "save": "Guardar",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "minLengthHint": "Escribe al menos {min} caracteres para que los visitantes te conozcan mejor ({count}/{min}).",
+        "minLengthError": "Escribe al menos {min} caracteres antes de guardar."
       },
       "contact": {
         "title": "Datos de contacto",

@@ -1456,7 +1456,9 @@
         "placeholder": "Écrivez sur vous, vos services, ce qui vous rend spécial...",
         "saving": "Enregistrement...",
         "save": "Enregistrer",
-        "cancel": "Annuler"
+        "cancel": "Annuler",
+        "minLengthHint": "Écris au moins {min} caractères pour que les visiteurs te connaissent mieux ({count}/{min}).",
+        "minLengthError": "Merci d'écrire au moins {min} caractères avant d'enregistrer."
       },
       "contact": {
         "title": "Coordonnées",

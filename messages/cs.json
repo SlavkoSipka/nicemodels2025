@@ -1456,7 +1456,9 @@
         "placeholder": "Napište něco o sobě, o svých službách, o tom, co vás dělá výjimečnou...",
         "saving": "Ukládání...",
         "save": "Uložit",
-        "cancel": "Zrušit"
+        "cancel": "Zrušit",
+        "minLengthHint": "Napiš alespoň {min} znaků, aby tě návštěvníci lépe poznali ({count}/{min}).",
+        "minLengthError": "Před uložením prosím napiš alespoň {min} znaků."
       },
       "contact": {
         "title": "Kontaktní údaje",

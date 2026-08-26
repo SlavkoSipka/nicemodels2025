@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { FileText, Save, CheckCircle, AlertCircle } from 'lucide-react'
 import RichTextEditor from '@/components/ui/RichTextEditor'
+import { htmlToPlainText } from '@/lib/plainText'
 
 export default function AboutMePage() {
   const router = useRouter()
@@ -18,6 +19,8 @@ export default function AboutMePage() {
   const [aboutMe, setAboutMe] = useState('')
   const [user, setUser] = useState<any>(null)
   const MAX_CHARS = 25000
+  const MIN_CHARS = 150
+  const plainTextLength = htmlToPlainText(aboutMe).trim().length
 
   useEffect(() => {
     const loadData = async () => {
@@ -36,6 +39,10 @@ export default function AboutMePage() {
 
   const handleSave = async () => {
     setError(''); setSuccess('')
+    if (plainTextLength < MIN_CHARS) {
+      setError(t('minLengthError', { min: MIN_CHARS }))
+      return
+    }
     setSaving(true)
     try {
       const supabase = createClient()
@@ -101,6 +108,9 @@ export default function AboutMePage() {
             maxLength={MAX_CHARS}
             height={350}
           />
+          <p className={`mt-2 text-xs ${plainTextLength < MIN_CHARS ? 'text-amber-600' : 'text-gray-400'}`}>
+            {t('minLengthHint', { min: MIN_CHARS, count: plainTextLength })}
+          </p>
         </div>
 
         <div className="flex items-center justify-end gap-3 pb-2">

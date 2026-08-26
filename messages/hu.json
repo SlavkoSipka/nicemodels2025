@@ -1456,7 +1456,9 @@
         "placeholder": "Írj magadról, a szolgáltatásaidról, arról, ami különlegessé tesz...",
         "saving": "Mentés...",
         "save": "Mentés",
-        "cancel": "Mégse"
+        "cancel": "Mégse",
+        "minLengthHint": "Írj legalább {min} karaktert, hogy a látogatók jobban megismerhessenek ({count}/{min}).",
+        "minLengthError": "Kérjük, írj legalább {min} karaktert mentés előtt."
       },
       "contact": {
         "title": "Kapcsolattartási adatok",
