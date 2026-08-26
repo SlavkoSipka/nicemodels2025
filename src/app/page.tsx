@@ -6,7 +6,7 @@ import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
 import { buildMetadata } from '@/lib/seo'
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 60
 
 export const metadata = buildMetadata({
   path: '/',

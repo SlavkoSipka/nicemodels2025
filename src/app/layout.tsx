@@ -183,14 +183,6 @@ export default async function RootLayout({
               url: SITE_URL,
               description:
                 "Das führende Erotikportal der Schweiz – verifizierte Escort-Models, Clubs und Agenturen.",
-              potentialAction: {
-                "@type": "SearchAction",
-                target: {
-                  "@type": "EntryPoint",
-                  urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
-                },
-                "query-input": "required name=search_term_string",
-              },
               publisher: {
                 "@type": "Organization",
                 name: SITE_NAME,

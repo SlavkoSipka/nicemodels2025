@@ -17,9 +17,9 @@ const getClubMeta = cache(async (id: string) => {
   const [{ data: club }, { data: photo }] = await Promise.all([
     admin
       .from('club_details')
-      .select('club_name, display_name, area, description')
+      .select('club_name, display_name, area, about_description')
       .eq('club_id', id)
-      .single(),
+      .maybeSingle(),
     admin
       .from('club_photos')
       .select('file_path')
@@ -28,7 +28,7 @@ const getClubMeta = cache(async (id: string) => {
       .order('display_order', { ascending: true })
       .order('uploaded_at', { ascending: false })
       .limit(1)
-      .single(),
+      .maybeSingle(),
   ])
 
   return { club, photo, SUPA_URL }
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const area = club.area || 'Schweiz'
   const title = `${name} – Club in ${area}`
   const desc =
-    club.description?.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd() ||
+    club.about_description?.replace(/<[^>]*>/g, '').slice(0, 155).trimEnd() ||
     `${name} – Club & Agentur in ${area}. Jetzt Profil ansehen auf NiceModels.ch`
 
   const ogImage = photo?.file_path
