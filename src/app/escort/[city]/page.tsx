@@ -22,11 +22,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { city } = await params
   const cfg = getCityBySlug(city)
   if (!cfg) return { title: 'Nicht gefunden' }
-  return buildMetadata({
+  const { models, clubs } = await getCityData(cfg)
+  const metadata = buildMetadata({
     path: `/escort/${cfg.slug}`,
     title: `Escort ${cfg.labelDe} – Verifizierte Models & Begleitung`,
     description: `Verifizierte Escort Models und Clubs in ${cfg.labelDe} (${cfg.canton}). Diskrete Begleitung auf NiceModels.ch – alle Profile geprüft.`,
   })
+  // Thin/empty city pages are a doorway-page risk flagged in the SEO audit —
+  // noindex until real inventory exists, without removing the page itself
+  // (still reachable/linked, and re-indexes automatically once listings
+  // appear since this re-evaluates on every ISR revalidation).
+  if (models.length === 0 && clubs.length === 0) {
+    return { ...metadata, robots: { index: false, follow: true } }
+  }
+  return metadata
 }
 
 // ─── Data loading ────────────────────────────────────────────────────────────
@@ -241,6 +250,11 @@ export default async function CityPage({ params }: PageProps) {
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
             Escort {cfg.labelDe} – Verifizierte Models & Begleitung
           </h1>
+          {(models.length > 0 || clubs.length > 0) && (
+            <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 rounded-full px-3 py-1">
+              {models.length + clubs.length} geprüfte Profile in {cfg.labelDe}
+            </p>
+          )}
           <div className="mt-2 space-y-2">
             {introParagraphs.map((para, i) => (
               <p
