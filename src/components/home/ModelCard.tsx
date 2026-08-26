@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { Sparkles } from 'lucide-react'
+import { Sparkles, CheckCircle } from 'lucide-react'
 import { trackProfileView } from '@/lib/tracking'
 import ViewCount from '@/components/ui/ViewCount'
 
@@ -16,6 +16,7 @@ interface ModelCardProps {
     photoUrl?: string | null
     public_id?: number | null
     view_count?: number
+    is_verified?: boolean
     model_details: {
       showname: string
       city: string
@@ -126,6 +127,17 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           <span className="absolute top-2 left-2">
             <ViewCount count={model.view_count ?? 0} />
           </span>
+
+          {/* Verified badge */}
+          {model.is_verified && (
+            <span
+              className="absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500 shadow"
+              title={t('verified')}
+              aria-label={t('verified')}
+            >
+              <CheckCircle className="w-3 h-3 text-white" />
+            </span>
+          )}
 
           {/* Mobile: name + meta overlay */}
           <div

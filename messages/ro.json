@@ -4264,7 +4264,8 @@
         "timeSec": "{n} s",
         "timeMin": "{n} min",
         "timeHour": "{n} h",
-        "timeDay": "{n} z"
+        "timeDay": "{n} z",
+        "verified": "Verificat"
       },
       "clubCard": {
         "fallbackName": "Club",

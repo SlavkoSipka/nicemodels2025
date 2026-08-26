@@ -4264,7 +4264,8 @@
         "timeSec": "{n} mp",
         "timeMin": "{n} p",
         "timeHour": "{n} ó",
-        "timeDay": "{n} n"
+        "timeDay": "{n} n",
+        "verified": "Ellenőrizve"
       },
       "clubCard": {
         "fallbackName": "Klub",

@@ -95,7 +95,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const sitemapNowIso = new Date().toISOString()
   const { data: listings } = await admin
     .from('job_listings')
-    .select('id, created_at')
+    .select('id, created_at, updated_at')
     .eq('status', 'active')
     .eq('is_blocked', false)
     .or(`expires_at.is.null,expires_at.gt.${sitemapNowIso}`)
@@ -105,7 +105,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (listings?.length) {
     listingPages = listings.map(l => ({
       url: `${SITE_URL}/jobs-rents/${l.id}`,
-      lastModified: l.created_at ? new Date(l.created_at) : new Date(),
+      lastModified: l.updated_at ? new Date(l.updated_at) : (l.created_at ? new Date(l.created_at) : new Date()),
       changeFrequency: 'weekly' as const,
       priority: 0.6,
     }))

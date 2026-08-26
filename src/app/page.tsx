@@ -26,7 +26,7 @@ async function buildModels() {
 
   let models: any[] = []
   if (modelIds.length > 0) {
-    const [{ data: allDetails }, { data: allServices }, { data: allPhotos }] = await Promise.all([
+    const [{ data: allDetails }, { data: allServices }, { data: allPhotos }, { data: allProfiles }] = await Promise.all([
       admin.from('model_details')
         .select('model_id, showname, city, age, ethnicity, hair_color, about_me, services_for, share_live_location, live_location_city, live_location_postal_code, live_location_updated_at')
         .in('model_id', modelIds),
@@ -40,7 +40,12 @@ async function buildModels() {
         .order('model_id')
         .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false }),
+      // models_with_active_ads doesn't return is_verified — fetch it directly.
+      admin.from('profiles').select('id, is_verified').in('id', modelIds),
     ])
+    const verifiedMap = new Map(
+      (allProfiles ?? []).map((p: { id: string; is_verified: boolean }) => [p.id, p.is_verified]),
+    )
 
     const TWO_HOURS = 2 * 60 * 60 * 1000
     const detailsMap = new Map<string, any>()
@@ -70,6 +75,7 @@ async function buildModels() {
       model_details: detailsMap.get(m.id) ?? null,
       model_services_list: servicesMap.get(m.id) ?? [],
       photoUrl: photosMap.get(m.id) ?? null,
+      is_verified: verifiedMap.get(m.id) ?? false,
     }))
 
     const modelCityNames = [...new Set(

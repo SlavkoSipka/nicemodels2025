@@ -44,6 +44,7 @@ interface ModelRow {
   id: string
   username: string
   photoUrl: string | null
+  is_verified: boolean
   model_details: {
     showname: string
     city: string
@@ -79,7 +80,7 @@ async function buildCityData(cfg: CityConfig) {
             .limit(24),
           admin
             .from('profiles')
-            .select('id, username')
+            .select('id, username, is_verified')
             .in('id', modelIds)
             .eq('is_blocked', false),
         ])
@@ -138,6 +139,7 @@ async function buildCityData(cfg: CityConfig) {
         id: d.model_id,
         username: profileMap.get(d.model_id)?.username ?? '',
         photoUrl: photoMap.get(d.model_id) ?? null,
+        is_verified: profileMap.get(d.model_id)?.is_verified ?? false,
         model_details: {
           showname: d.showname,
           city: d.city,

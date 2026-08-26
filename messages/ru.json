@@ -4264,7 +4264,8 @@
         "timeSec": "{n} с",
         "timeMin": "{n} мин",
         "timeHour": "{n} ч",
-        "timeDay": "{n} дн"
+        "timeDay": "{n} дн",
+        "verified": "Проверено"
       },
       "clubCard": {
         "fallbackName": "Клуб",

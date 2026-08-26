@@ -177,6 +177,7 @@ async function buildModelsPageData() {
       { data: allDetails },
       { data: allServices },
       { data: allPhotos },
+      { data: allProfiles },
     ] = await Promise.all([
       admin
         .from('model_details')
@@ -194,7 +195,12 @@ async function buildModelsPageData() {
         .order('model_id')
         .order('display_order', { ascending: true })
         .order('uploaded_at', { ascending: false }),
+      // models_with_active_ads doesn't return is_verified — fetch it directly.
+      admin.from('profiles').select('id, is_verified').in('id', modelIds),
     ])
+    const verifiedMap = new Map(
+      (allProfiles ?? []).map((p) => [(p as { id: string }).id, (p as { is_verified: boolean }).is_verified]),
+    )
 
     const TWO_HOURS = 2 * 60 * 60 * 1000
     const detailsMap = new Map<string, Record<string, unknown>>()
@@ -236,6 +242,7 @@ async function buildModelsPageData() {
       model_details: detailsMap.get((model as { id: string }).id) ?? null,
       model_services_list: servicesMap.get((model as { id: string }).id) ?? [],
       photoUrl: photosMap.get((model as { id: string }).id) ?? null,
+      is_verified: verifiedMap.get((model as { id: string }).id) ?? false,
     }))
 
     const modelCityNames = [...new Set(
