@@ -4412,7 +4412,8 @@
       "removeBlock": "Usuń blok",
       "noBlocksYet": "Brak jeszcze bloków. Dodaj jeden poniżej.",
       "uploadImage": "Prześlij",
-      "uploading": "Przesyłanie…"
+      "uploading": "Przesyłanie…",
+      "insertLink": "Wstaw link"
     },
     "citySearch": {
       "defaultPlaceholder": "Szukaj miasta lub kodu pocztowego...",

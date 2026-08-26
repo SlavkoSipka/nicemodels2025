@@ -17,6 +17,7 @@ import {
   Quote,
   Minus,
   Upload,
+  Link2,
 } from 'lucide-react'
 import {
   renderSimpleMarkdown,
@@ -91,10 +92,13 @@ function AutoTextarea({
   value,
   onChange,
   placeholder,
+  linkLabel,
 }: {
   value: string
   onChange: (v: string) => void
   placeholder?: string
+  /** Shows an "insert link" affordance above the textarea when provided. */
+  linkLabel?: string
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
@@ -103,15 +107,48 @@ function AutoTextarea({
       ref.current.style.height = `${ref.current.scrollHeight}px`
     }
   }, [value])
+
+  const insertLink = () => {
+    const el = ref.current
+    if (!el) return
+    const url = window.prompt('Link-URL (z.B. https://... oder /blog/anderer-beitrag):')
+    if (!url) return
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const before = value.slice(0, start)
+    const selected = value.slice(start, end) || 'Linktext'
+    const after = value.slice(end)
+    const inserted = `[${selected}](${url})`
+    onChange(`${before}${inserted}${after}`)
+    requestAnimationFrame(() => {
+      el.focus()
+      const cursor = before.length + inserted.length
+      el.setSelectionRange(cursor, cursor)
+    })
+  }
+
   return (
-    <textarea
-      ref={ref}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      rows={1}
-      className="w-full resize-none overflow-hidden rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand"
-    />
+    <div>
+      {linkLabel && (
+        <div className="mb-1 flex justify-end">
+          <button
+            type="button"
+            onClick={insertLink}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+          >
+            <Link2 className="h-3 w-3" /> {linkLabel}
+          </button>
+        </div>
+      )}
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={1}
+        className="w-full resize-none overflow-hidden rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand"
+      />
+    </div>
   )
 }
 
@@ -222,6 +259,7 @@ function BlockCard({
             value={block.text}
             onChange={(v) => onChange({ ...block, text: v })}
             placeholder={t('paragraphPlaceholder')}
+            linkLabel={t('insertLink')}
           />
         )
 

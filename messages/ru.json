@@ -4412,7 +4412,8 @@
       "removeBlock": "Удалить блок",
       "noBlocksYet": "Пока нет блоков. Добавьте один ниже.",
       "uploadImage": "Загрузить",
-      "uploading": "Загрузка…"
+      "uploading": "Загрузка…",
+      "insertLink": "Вставить ссылку"
     },
     "citySearch": {
       "defaultPlaceholder": "Поиск города или почтового индекса...",

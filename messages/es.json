@@ -4412,7 +4412,8 @@
       "removeBlock": "Eliminar bloque",
       "noBlocksYet": "Todavía no hay bloques. Añade uno abajo.",
       "uploadImage": "Subir",
-      "uploading": "Subiendo…"
+      "uploading": "Subiendo…",
+      "insertLink": "Insertar enlace"
     },
     "citySearch": {
       "defaultPlaceholder": "Buscar ciudad o código postal…",

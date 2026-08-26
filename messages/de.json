@@ -4412,7 +4412,8 @@
       "removeBlock": "Block entfernen",
       "noBlocksYet": "Noch keine Blöcke. Füge unten einen hinzu.",
       "uploadImage": "Hochladen",
-      "uploading": "Wird hochgeladen…"
+      "uploading": "Wird hochgeladen…",
+      "insertLink": "Link einfügen"
     },
     "citySearch": {
       "defaultPlaceholder": "Stadt oder PLZ suchen …",

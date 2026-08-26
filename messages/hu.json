@@ -4412,7 +4412,8 @@
       "removeBlock": "Blokk eltávolítása",
       "noBlocksYet": "Még nincs blokk. Adj hozzá egyet alább.",
       "uploadImage": "Feltöltés",
-      "uploading": "Feltöltés…"
+      "uploading": "Feltöltés…",
+      "insertLink": "Hivatkozás beszúrása"
     },
     "citySearch": {
       "defaultPlaceholder": "Város vagy irányítószám keresése...",

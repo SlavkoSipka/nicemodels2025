@@ -4412,7 +4412,8 @@
       "removeBlock": "Rimuovi blocco",
       "noBlocksYet": "Nessun blocco ancora. Aggiungine uno qui sotto.",
       "uploadImage": "Carica",
-      "uploading": "Caricamento…"
+      "uploading": "Caricamento…",
+      "insertLink": "Inserisci link"
     },
     "citySearch": {
       "defaultPlaceholder": "Cerca città o codice postale...",

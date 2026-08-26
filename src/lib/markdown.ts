@@ -164,8 +164,18 @@ function escapeHtml(s: string): string {
     .replace(/'/g, '&#39;')
 }
 
+// Only http(s)/mailto/tel and site-relative paths — never a bare
+// "javascript:"/data: scheme reaching an href.
+const LINK_HREF_RE = /^(https?:\/\/|mailto:|tel:|\/)[^\s)]*$/i
+
 function inlineFormat(s: string): string {
   return escapeHtml(s)
+    .replace(/\[([^\]]+)\]\(([^\s)]+)\)/g, (match, text, url) => {
+      if (!LINK_HREF_RE.test(url)) return match
+      const external = /^https?:\/\//i.test(url)
+      const attrs = external ? ' target="_blank" rel="noopener noreferrer"' : ''
+      return `<a href="${url}"${attrs}>${text}</a>`
+    })
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>')
     .replace(/(?<!_)_(?!_)(.+?)(?<!_)_(?!_)/g, '<em>$1</em>')
@@ -313,6 +323,7 @@ export function stripMarkdownToText(text: string): string {
     })
     .join(' ')
     .replace(/<[^>]*>/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/\*(.+?)\*/g, '$1')
     .replace(/_(.+?)_/g, '$1')

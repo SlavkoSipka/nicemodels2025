@@ -4412,7 +4412,8 @@
       "removeBlock": "Elimină blocul",
       "noBlocksYet": "Niciun bloc încă. Adaugă unul mai jos.",
       "uploadImage": "Încarcă",
-      "uploading": "Se încarcă…"
+      "uploading": "Se încarcă…",
+      "insertLink": "Inserează link"
     },
     "citySearch": {
       "defaultPlaceholder": "Caută oraș sau cod poștal...",
