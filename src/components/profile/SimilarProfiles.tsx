@@ -115,7 +115,7 @@ export default async function SimilarProfiles({ currentProfileId, city, supabase
               </h3>
               <p className="text-[10px] text-gray-600 mt-0.5 truncate flex items-center">
                 <MapPin className="w-3 h-3 mr-0.5" />
-                {'city' in profile ? profile.city : profile.model_details?.location_city || 'Unknown'}
+                {'city' in profile ? profile.city : profile.model_details?.city || 'Unknown'}
               </p>
               {('rating' in profile ? profile.rating : (profile as any).rating) && (
                 <div className="flex items-center text-[10px] text-gray-600 mt-0.5">

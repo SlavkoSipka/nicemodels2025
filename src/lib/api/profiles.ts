@@ -13,24 +13,24 @@ export interface Profile {
   reviews?: Review[]
 }
 
+// Mirrors the real model_details columns actually used by this file
+// (getProfileById/getSimilarProfiles/getCitiesWithCounts). Contact info
+// (phone/address) lives in a separate model_contact_details table, pricing
+// in model_rates — neither has a scalar column here, so they're
+// intentionally not declared. Older fields this interface previously
+// claimed (location_city, price_per_hour, bio, height, weight, services,
+// speaks_languages, working_hours*, custom_schedule) don't exist on the
+// table at all; every one of this file's queries against them was
+// silently returning null/empty or erroring.
 export interface ModelDetails {
   id: string
-  location_city: string | null
-  location_country: string | null
-  postal_code: string | null
-  address: string | null
-  phone_number: string | null
-  bio: string | null
-  height: number | null
-  weight: number | null
+  model_id: string
+  showname: string | null
+  city: string | null
   age: number | null
-  services: string[] | null
-  price_per_hour: number | null
-  price_per_night: number | null
-  speaks_languages: string[] | null // Languages as array
-  working_hours: string | null
-  working_hours_type: 'custom' | 'same' | '24/7' | null
-  custom_schedule: any | null // JSONB for custom schedule
+  about_me: string | null
+  services_for: string[] | null
+  height_cm: number | null
 }
 
 export interface Photo {
@@ -258,19 +258,20 @@ export async function getProfileById(id: string, client: SupabaseClient) {
       return null
     }
 
-    // Get model_details
+    // Get model_details (keyed by model_id, not its own id column — that was
+    // matching against the wrong id space and always returning nothing)
     const { data: modelDetails } = await supabase
       .from('model_details')
       .select('*')
-      .eq('id', id)
-      .single()
+      .eq('model_id', id)
+      .maybeSingle()
 
     // Get contact details
     const { data: contactDetails } = await supabase
       .from('model_contact_details')
       .select('*')
       .eq('model_id', id)
-      .single()
+      .maybeSingle()
 
     // Get photos from model_photos table
     const { data: photosData } = await supabase
@@ -298,28 +299,21 @@ export async function getProfileById(id: string, client: SupabaseClient) {
       }
     })
 
-    // Get reviews
-    const { data: reviews } = await supabase
-      .from('reviews')
-      .select('*, reviewer:profiles!reviews_reviewer_id_fkey(full_name, username)')
-      .eq('model_id', id)
-      .eq('is_approved', true)
+    // There is no `reviews` table — ratings/comments live in model_comments
+    // (same source getModelRating reads). This legacy route never surfaced
+    // real review text, only a rating average elsewhere on the page.
+    const reviews: Review[] = []
 
-    // Get languages from model_details.speaks_languages array
-    // Languages are now stored as text[] array in model_details
-    const languages = modelDetails?.speaks_languages?.map((lang: string) => ({
-      language_code: lang,
-      language_name: lang,
-      proficiency_level: 'fluent' // Default, since we don't store proficiency in array
-    })) || []
-
-    // Get availability from model_details (working_hours, working_hours_type, custom_schedule)
-    // Availability is now stored in model_details instead of separate table
-    const availability = modelDetails?.working_hours_type === 'custom' && modelDetails?.custom_schedule
-      ? modelDetails.custom_schedule
-      : modelDetails?.working_hours
-        ? [{ working_hours: modelDetails.working_hours, type: modelDetails.working_hours_type }]
-        : []
+    // languages/availability previously read model_details.speaks_languages /
+    // .working_hours*, none of which exist on that table — they live in
+    // separate model_languages / model_working_hours tables (see
+    // src/app/models/[id]/page.tsx for the query shape). Left empty here
+    // rather than silently reading a nonexistent column, since this route
+    // is a deprecated, noindex, internally-unlinked duplicate of
+    // /models/[id] (see generateMetadata above) — not worth wiring a second
+    // copy of that query for a page nothing links to.
+    const languages: { language_code: string; language_name: string }[] = []
+    const availability: { day_of_week: number; start_time: string; end_time: string; is_available: boolean }[] = []
 
     return {
       ...profile,
@@ -350,15 +344,27 @@ export async function getProfileById(id: string, client: SupabaseClient) {
 export async function getSimilarProfiles(profileId: string, city: string, limit: number = 4, client: SupabaseClient) {
   const supabase = client
 
+  // Same two constraints as searchProfiles: model_details needs an explicit
+  // FK hint (profiles has two relationships to it), and embedded-resource
+  // dot-path filters don't reliably apply once disambiguated — so city is
+  // resolved via a direct model_details query first.
+  const { data: matchingDetails } = await supabase
+    .from('model_details')
+    .select('model_id')
+    .eq('city', city)
+  const matchingModelIds = (matchingDetails ?? []).map((d) => d.model_id)
+
+  if (matchingModelIds.length === 0) return []
+
   const { data, error } = await supabase
     .from('profiles')
     .select(`
       *,
-      model_details(*)
+      model_details!model_details_model_id_fkey(*)
     `)
     .eq('role', 'model')
     .eq('is_blocked', false)
-    .eq('model_details.location_city', city)
+    .in('id', matchingModelIds)
     .neq('id', profileId)
     .limit(limit)
 
@@ -477,46 +483,25 @@ export async function getAllProfiles(page: number = 1, pageSize: number = 24, cl
 export async function getCitiesWithCounts(client: SupabaseClient) {
   const supabase = client
 
-  // Get all model profiles with their cities
+  // model_details.city is the real column (there's no location_city, and
+  // no need for the profiles/model_details embed at all — the ambiguous
+  // two-FK relationship between them makes that embed error outright, see
+  // searchProfiles for the same issue).
   const { data, error } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      model_details!inner(location_city)
-    `)
-    .eq('role', 'model')
-    .not('model_details.location_city', 'is', null)
+    .from('model_details')
+    .select('city')
+    .not('city', 'is', null)
 
   if (error) {
     console.error('Error fetching cities:', error)
-    // Fallback: try without inner join
-    const { data: fallbackData } = await supabase
-      .from('model_details')
-      .select('location_city')
-      .not('location_city', 'is', null)
-    
-    if (!fallbackData) return []
-    
-    const cityCounts: Record<string, number> = {}
-    fallbackData.forEach((detail: any) => {
-      if (detail.location_city) {
-        cityCounts[detail.location_city] = (cityCounts[detail.location_city] || 0) + 1
-      }
-    })
-    
-    return Object.entries(cityCounts)
-      .map(([city, count]) => ({ city, count }))
-      .sort((a, b) => b.count - a.count)
+    return []
   }
 
   // Count profiles per city
   const cityCounts: Record<string, number> = {}
-  data?.forEach((item: any) => {
-    const city = item.model_details?.location_city
-    if (city) {
-      cityCounts[city] = (cityCounts[city] || 0) + 1
-    }
-  })
+  for (const row of data ?? []) {
+    if (row.city) cityCounts[row.city] = (cityCounts[row.city] || 0) + 1
+  }
 
   // Convert to array and sort
   const cities = Object.entries(cityCounts)

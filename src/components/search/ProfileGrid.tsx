@@ -132,11 +132,11 @@ export default function ProfileGrid() {
             {/* Content */}
             <div className="p-2">
               <h3 className="font-semibold text-gray-800 text-[13px] truncate">
-                {profile.full_name || t('model')}
+                {profile.model_details?.showname || profile.full_name || t('model')}
               </h3>
               <p className="text-[11px] text-gray-600 mt-0.5 truncate flex items-center">
                 <MapPin className="w-3 h-3 mr-0.5 shrink-0" />
-                {profile.model_details?.location_city || t('unknown')}
+                {profile.model_details?.city || t('unknown')}
               </p>
               {!!(profile as any).rating && (
                 <div className="flex items-center text-[11px] text-gray-600 mt-0.5">

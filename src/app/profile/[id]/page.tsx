@@ -92,28 +92,34 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     }
   })
 
+  // Pricing has no home on model_details — real rates live in a separate
+  // model_rates table (rate_type x duration x amount), with no single
+  // "price" figure to read without picking a specific rate/duration
+  // combination. This legacy route never actually read real pricing (the
+  // field it used to reference didn't exist on model_details either), so
+  // the breakdown below stays at 0 rather than guessing which rate to show.
   const profile = {
     id,
     name: profileData.full_name || tModel('fallbackModel'),
-    age: profileData.model_details.age || 0,
-    city: profileData.model_details.location_city || tProfile('unknown'),
-    country: profileData.model_details.location_country || tProfile('unknown'),
-    price: profileData.model_details.price_per_hour || 0,
+    age: profileData.model_details?.age || 0,
+    city: profileData.model_details?.city || tProfile('unknown'),
+    country: 'Schweiz',
+    price: 0,
     rating: rating.rating,
     reviews: rating.count,
     verified: profileData.is_verified,
     online: false, // TODO: implement online status
-    height: profileData.model_details.height || 0,
-    languages: profileData.model_details?.speaks_languages || [],
-    bio: profileData.model_details.bio || tProfile('noBio'),
-    services: profileData.model_details.services || [],
+    height: profileData.model_details?.height_cm || 0,
+    languages: profileData.languages || [],
+    bio: profileData.model_details?.about_me || tProfile('noBio'),
+    services: profileData.model_details?.services_for || [],
     availability,
     photos: profileData.photos?.map(p => p.photo_url) || [],
     pricing: {
-      '30min': Math.round((profileData.model_details.price_per_hour || 0) * 0.6),
-      '1hour': profileData.model_details.price_per_hour || 0,
-      '2hours': Math.round((profileData.model_details.price_per_hour || 0) * 1.8),
-      'overnight': Math.round((profileData.model_details.price_per_hour || 0) * 4.5),
+      '30min': 0,
+      '1hour': 0,
+      '2hours': 0,
+      'overnight': 0,
     },
   }
 
@@ -242,10 +248,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               <div className="flex flex-wrap gap-3">
                 {profile.languages.map((lang) => (
                   <div
-                    key={lang}
+                    key={lang.language_code}
                     className="px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-bold shadow-md hover:shadow-lg hover:scale-105 transition-all"
                   >
-                    {lang}
+                    {lang.language_name}
                   </div>
                 ))}
               </div>
