@@ -86,8 +86,10 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${SITE_URL}/logo.webp`,
-        width: 512,
-        height: 512,
+        // Stvarne dimenzije fajla. Ranije je ovde pisalo 512x512, pa su
+        // platforme rezervisale kvadrat za natpis odnosa 4.8:1.
+        width: 1333,
+        height: 278,
         alt: "NiceModels.ch Logo",
       },
     ],
@@ -117,12 +119,17 @@ export const metadata: Metadata = {
     canonical: SITE_URL,
   },
 
+  // Ikone su kvadratni monogram "n" iz logotipa (beli potez na #BE185D).
+  // Ranije je ovde stajao /logo.webp — natpis 1333x278, koji iOS i Android
+  // razvlače u kvadrat. favicon.ico nosi 16/32/48 (generisano skriptom
+  // scripts/generate-icons.mjs).
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
-      { url: "/logo.webp", type: "image/webp" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    apple: "/logo.webp",
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180" },
   },
 
   verification: {
