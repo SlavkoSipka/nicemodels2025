@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     const { error: uploadError } = await admin.storage
       .from('job-listing-photos')
-      .upload(filePath, buffer, { contentType: photo.type, upsert: false })
+      .upload(filePath, buffer, { contentType: photo.type, cacheControl: '31536000', upsert: false })
 
     if (uploadError) {
       return NextResponse.json({ error: uploadError.message }, { status: 500 })

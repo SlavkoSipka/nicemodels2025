@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { X, Plus, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
-import { processImage } from '@/lib/imageProcessor'
+import { processImage, extensionFor, IMMUTABLE_CACHE_CONTROL } from '@/lib/imageProcessor'
 import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
@@ -576,12 +576,12 @@ export default function ModelOnboardingForm() {
 
         // Compress + watermark
         const file = await processImage(rawFile)
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extensionFor(file)}`
         const filePath = `${user.email}/photos/${fileName}`
 
         const { error: uploadError } = await supabase.storage
           .from('model-photos')
-          .upload(filePath, file)
+          .upload(filePath, file, { contentType: file.type, cacheControl: IMMUTABLE_CACHE_CONTROL })
 
         if (uploadError) throw uploadError
 

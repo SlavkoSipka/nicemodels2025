@@ -72,16 +72,38 @@ export async function processImage(
         ctx.restore()
       }
 
-      // 4. Eksportuj kao WebP (fallback JPEG)
-      const mimeType = 'image/webp'
+      // 4. Eksportuj kao WebP — ali NIKAD ne veruj imenu tipa.
+      //
+      // canvas.toBlob(cb, 'image/webp', q) je po spec-u dozvoljeno da padne
+      // nazad na image/png kada enkoder nije dostupan (stariji Safari / iOS
+      // < 16.4). Kvalitet se tada ignoriše i dobijamo RGBA PNG od 2–5 MB koji
+      // smo ranije slepo imenovali `.webp`. Supabase onda servira PNG sa
+      // `content-type: image/webp`, a Netlify image CDN mora da povuče i
+      // dekodira te megabajte na svaki cache miss — što je direktno rušilo LCP.
+      //
+      // Zato proveravamo šta je enkoder STVARNO vratio i, ako to nije WebP,
+      // reenkodujemo u JPEG (podržan svuda) i imenujemo fajl po pravom tipu.
+      const baseName = file.name.replace(/\.[^.]+$/, '')
+
+      const finish = (blob: Blob | null, mime: string, ext: string) => {
+        if (!blob) { reject(new Error('Canvas toBlob failed')); return }
+        resolve(new File([blob], `${baseName}.${ext}`, { type: mime }))
+      }
+
       canvas.toBlob(
         (blob) => {
-          if (!blob) { reject(new Error('Canvas toBlob failed')); return }
-          const baseName = file.name.replace(/\.[^.]+$/, '')
-          const processed = new File([blob], `${baseName}.webp`, { type: mimeType })
-          resolve(processed)
+          if (blob && blob.type === 'image/webp') {
+            finish(blob, 'image/webp', 'webp')
+            return
+          }
+          // WebP enkoder nedostupan (ili je vratio PNG) — idemo na JPEG.
+          canvas.toBlob(
+            (jpeg) => finish(jpeg, 'image/jpeg', 'jpg'),
+            'image/jpeg',
+            quality
+          )
         },
-        mimeType,
+        'image/webp',
         quality
       )
     }
@@ -94,3 +116,21 @@ export async function processImage(
     img.src = objectUrl
   })
 }
+
+/**
+ * Ekstenzija koja odgovara stvarnom tipu fajla koji je vratio `processImage`.
+ * Pozivna mesta grade putanju za Supabase storage — ako bi hardkodovala
+ * `.webp`, JPEG fallback bi opet završio pod pogrešnim imenom i pogrešnim
+ * `content-type`-om.
+ */
+export function extensionFor(file: File): string {
+  return file.type === 'image/webp' ? 'webp' : 'jpg'
+}
+
+/**
+ * Putanje za galerijske slike su content-adresirane (timestamp + random) i
+ * nikad se ne prepisuju, pa smeju da se keširaju zauvek. Ranije `3600` je
+ * značilo da Netlify image CDN svakog sata iznova povlači original iz
+ * Supabase storage-a pre nego što ga transkodira.
+ */
+export const IMMUTABLE_CACHE_CONTROL = '31536000'

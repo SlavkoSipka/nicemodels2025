@@ -87,14 +87,22 @@ export async function POST(request: NextRequest) {
     const { table, bucket, idColumn, folder } = resolve(ownerType, mediaType)
     const admin = createAdminClient()
 
-    const ext = mediaType === 'photo' ? 'webp' : (file.name.split('.').pop() || 'mp4')
+    // Ne pretpostavljaj 'webp' — klijent šalje ono što je njegov canvas
+    // enkoder stvarno proizveo (WebP ili JPEG fallback). Pogrešna ekstenzija
+    // je ranije značila PNG/JPEG serviran kao `image/webp`.
+    const photoExt = file.type === 'image/webp'
+      ? 'webp'
+      : file.type === 'image/png'
+        ? 'png'
+        : 'jpg'
+    const ext = mediaType === 'photo' ? photoExt : (file.name.split('.').pop() || 'mp4')
     const prefix = ownerEmail || ownerId
     const filePath = `${prefix}/${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
     const buffer = await file.arrayBuffer()
 
     const { error: uploadError } = await admin.storage
       .from(bucket)
-      .upload(filePath, buffer, { contentType: file.type || undefined, upsert: false })
+      .upload(filePath, buffer, { contentType: file.type || undefined, cacheControl: '31536000', upsert: false })
     if (uploadError) {
       return NextResponse.json({ error: uploadError.message }, { status: 500 })
     }

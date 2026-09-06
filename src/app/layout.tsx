@@ -11,6 +11,7 @@ import AgeGate from "@/components/AgeGate";
 import { Suspense } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { publicMessages } from "@/lib/i18n/messageScopes";
 import { unstable_cache } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -203,7 +204,10 @@ export default async function RootLayout({
         />
       </head>
       <body className={inter.className} style={{ margin: 0, padding: 0 }}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
+        {/* Javne rute dobijaju samo javne namespace-ove — `dashboard` i
+            `admin` prevodi (≈61% kataloga) idu iz sopstvenih providera pod
+            /dashboard i /register. */}
+        <NextIntlClientProvider locale={locale} messages={publicMessages(messages)}>
           <AuthProvider initialUser={user} initialProfile={initialProfile}>
             <QueryProvider>
               <PageLoader>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { processImage } from '@/lib/imageProcessor'
+import { processImage, extensionFor, IMMUTABLE_CACHE_CONTROL } from '@/lib/imageProcessor'
 import CitySearch, { CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import PhoneInput from '@/components/ui/PhoneInput'
@@ -296,12 +296,12 @@ export default function EditJobRentPage() {
           } catch {
             continue
           }
-          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extensionFor(processed)}`
           const filePath = `${user.id}/${listingId}/${fileName}`
 
           const { error: upErr } = await supabase.storage
             .from('job-listing-photos')
-            .upload(filePath, processed, { contentType: 'image/webp', cacheControl: '3600', upsert: false })
+            .upload(filePath, processed, { contentType: processed.type, cacheControl: IMMUTABLE_CACHE_CONTROL, upsert: false })
 
           if (upErr) {
             console.error('Photo upload error:', upErr)

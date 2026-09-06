@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Image as ImageIcon, Upload, Trash2, AlertCircle, CheckCircle, GripVertical } from 'lucide-react'
-import { processImage } from '@/lib/imageProcessor'
+import { processImage, extensionFor, IMMUTABLE_CACHE_CONTROL } from '@/lib/imageProcessor'
 import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 
 interface Photo {
@@ -88,12 +88,12 @@ export default function ClubPhotosPage() {
         }
 
         const file = await processImage(rawFile)
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extensionFor(file)}`
         const filePath = `${user.email}/photos/${fileName}`
 
         const { error: uploadError } = await supabase.storage
           .from('club-photos')
-          .upload(filePath, file)
+          .upload(filePath, file, { contentType: file.type, cacheControl: IMMUTABLE_CACHE_CONTROL })
 
         if (uploadError) throw uploadError
 

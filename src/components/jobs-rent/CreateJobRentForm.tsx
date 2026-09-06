@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { processImage } from '@/lib/imageProcessor'
+import { processImage, extensionFor, IMMUTABLE_CACHE_CONTROL } from '@/lib/imageProcessor'
 import CitySearch, { CityResult } from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
@@ -311,11 +311,11 @@ export default function CreateJobRentForm({
         const raw = photos[i].file
         let processed: File
         try { processed = await processImage(raw) } catch { continue }
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${extensionFor(processed)}`
         const filePath = `${user.id}/${listing.id}/${fileName}`
         const { error: upErr } = await supabase.storage
           .from('job-listing-photos')
-          .upload(filePath, processed, { contentType: 'image/webp', cacheControl: '3600', upsert: false })
+          .upload(filePath, processed, { contentType: processed.type, cacheControl: IMMUTABLE_CACHE_CONTROL, upsert: false })
         if (upErr) continue
         uploadedPhotoPaths.push(filePath)
         await supabase.from('job_listing_photos').insert({

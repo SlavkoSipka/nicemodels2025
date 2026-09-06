@@ -70,8 +70,15 @@ async function buildModels() {
         photosMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
     }
 
+    // Projektuj samo polja koja `MixedHomeClient`/`ModelCard` zaista koriste.
+    // `models_with_active_ads` vraća i `email` i `role`, a `...m` ih je slao u
+    // RSC payload — dakle u HTML svake posete. To je bilo i nepotrebnih ~KB po
+    // modelu i curenje mejl adresa modela u javni izvorni kod stranice.
     models = modelsData.map((m: any) => ({
-      ...m,
+      id: m.id,
+      username: m.username,
+      created_at: m.created_at,
+      public_id: m.public_id ?? null,
       model_details: detailsMap.get(m.id) ?? null,
       model_services_list: servicesMap.get(m.id) ?? [],
       photoUrl: photosMap.get(m.id) ?? null,
@@ -361,25 +368,38 @@ async function buildChatModels() {
   return chatModels
 }
 
-const getModels = unstable_cache(buildModels, ['home-models-v1'], { revalidate: CACHE_TTL, tags: ['home-models'] })
-const getClubs = unstable_cache(buildClubs, ['home-clubs-v1'], { revalidate: CACHE_TTL, tags: ['home-clubs'] })
-const getBanners = unstable_cache(buildBanners, ['home-banners-v1'], { revalidate: CACHE_TTL, tags: ['home-banners'] })
-const getListings = unstable_cache(buildListings, ['home-listings-v1'], { revalidate: CACHE_TTL, tags: ['home-listings'] })
-const getStatusMessages = unstable_cache(buildStatusMessages, ['home-status-v1'], { revalidate: CACHE_TTL, tags: ['home-status'] })
-const getChatModels = unstable_cache(buildChatModels, ['home-chat-v1'], { revalidate: CACHE_TTL, tags: ['home-chat'] })
-const getStories = unstable_cache(buildStories, ['home-stories-v1'], { revalidate: CACHE_TTL, tags: ['home-stories'] })
+// Jedan cache unos umesto sedam.
+//
+// Ranije je svaki blok imao svoj `unstable_cache` ključ, pa je render
+// homepage-a radio 7 čitanja iz cache store-a (na Netlify-u je to 7 mrežnih
+// poziva ka Blobs-u) pre nego što uopšte krene HTML. Svi su delili isti
+// 60s TTL i istekli bi zajedno, a `revalidateTag` se nigde ne poziva —
+// pa odvojeni ključevi nisu donosili ništa. Builderi i dalje idu paralelno
+// unutar jednog `Promise.all`, tako da broj upita ka bazi ostaje isti.
+const getHomeData = unstable_cache(
+  async () => {
+    const [models, clubs, banners, listings, statusMessages, chatModels, stories] =
+      await Promise.all([
+        buildModels(),
+        buildClubs(),
+        buildBanners(),
+        buildListings(),
+        buildStatusMessages(),
+        buildChatModels(),
+        buildStories(),
+      ])
+    return { models, clubs, banners, listings, statusMessages, chatModels, stories }
+  },
+  ['home-data-v1'],
+  { revalidate: CACHE_TTL, tags: ['home'] },
+)
 
 export default async function HomePage() {
-  const [models, clubs, banners, listings, statusMessages, chatModels, stories, t] = await Promise.all([
-    getModels(),
-    getClubs(),
-    getBanners(),
-    getListings(),
-    getStatusMessages(),
-    getChatModels(),
-    getStories(),
+  const [data, t] = await Promise.all([
+    getHomeData(),
     getTranslations('home.seo'),
   ])
+  const { models, clubs, banners, listings, statusMessages, chatModels, stories } = data
 
   // Per-request seed: rotates the feed each load while keeping SSR and the
   // hydrated client order identical (deterministic seeded shuffle), so cards

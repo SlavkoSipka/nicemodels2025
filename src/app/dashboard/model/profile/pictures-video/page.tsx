@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { Camera, Upload, Trash2, AlertCircle, Film, GripVertical } from 'lucide-react'
-import { processImage } from '@/lib/imageProcessor'
+import { processImage, extensionFor, IMMUTABLE_CACHE_CONTROL } from '@/lib/imageProcessor'
 import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
 
 interface Photo { id: string; file_name: string; file_path: string; is_verified: boolean; display_order?: number }
@@ -62,8 +62,8 @@ export default function PicturesVideoPage() {
       for (const rawFile of files) {
         if (rawFile.size > 10 * 1024 * 1024) { setError(t('tooLarge', { name: rawFile.name })); continue }
         const file = await processImage(rawFile)
-        const path = `${user.email}/photos/${Date.now()}_${Math.random().toString(36).substring(7)}.webp`
-        const { error: ue } = await supabase.storage.from('model-photos').upload(path, file)
+        const path = `${user.email}/photos/${Date.now()}_${Math.random().toString(36).substring(7)}.${extensionFor(file)}`
+        const { error: ue } = await supabase.storage.from('model-photos').upload(path, file, { contentType: file.type, cacheControl: IMMUTABLE_CACHE_CONTROL })
         if (ue) throw ue
         const display_order = nextOrd++
         const { data: pd, error: de } = await supabase.from('model_photos').insert({ model_id: user.id, file_path: path, file_name: file.name, is_approved: true, display_order }).select().single()

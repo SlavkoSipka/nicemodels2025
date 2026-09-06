@@ -46,3 +46,4 @@ data-snapshot/
 *.csv
 *.dump
 *-snapshot.json
+.photo-backup/
