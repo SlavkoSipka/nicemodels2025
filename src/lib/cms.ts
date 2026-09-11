@@ -10,7 +10,7 @@
 const CMS_URL = process.env.CMS_BASE_URL ?? ''
 const SITE_ID = process.env.CMS_SITE_ID ?? ''
 
-export const MAGAZINE_PATH = '/magazine'
+export const BLOG_PATH = '/blog'
 export const REVALIDATE_SECONDS = 300
 
 export interface CmsBlock {
@@ -72,17 +72,17 @@ async function fetchPosts(): Promise<CmsPost[]> {
   }
 }
 
-export async function getMagazinePosts(): Promise<CmsPost[]> {
+export async function getBlogPosts(): Promise<CmsPost[]> {
   return fetchPosts()
 }
 
-export async function getMagazinePost(slug: string): Promise<CmsPost | null> {
+export async function getBlogPost(slug: string): Promise<CmsPost | null> {
   const posts = await fetchPosts()
   return posts.find(p => p.slug === slug) ?? null
 }
 
-export function magazineUrl(slug: string): string {
-  return `https://nicemodels.ch${MAGAZINE_PATH}/${slug}`
+export function blogUrl(slug: string): string {
+  return `https://nicemodels.ch${BLOG_PATH}/${slug}`
 }
 
 /** Only http(s) may become a live link; the CMS allows inline [text](url). */

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CITIES } from '@/lib/data/cities-seo'
-import { getMagazinePosts, MAGAZINE_PATH } from '@/lib/cms'
+import { getBlogPosts, BLOG_PATH } from '@/lib/cms'
 
 const SITE_URL = 'https://nicemodels.ch'
 
@@ -21,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/jobs-rents`,        lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.7 },
     { url: `${SITE_URL}/latest-actions`,    lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.6 },
     { url: `${SITE_URL}/blog`,              lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.6 },
-    { url: `${SITE_URL}${MAGAZINE_PATH}`,   lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.7 },
+    { url: `${SITE_URL}${BLOG_PATH}`,   lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${SITE_URL}/werden-model`,      lastModified: STATIC_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE_URL}/comments`,          lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.5 },
     { url: `${SITE_URL}/contact`,           lastModified: STATIC_LASTMOD, changeFrequency: 'monthly', priority: 0.4 },
@@ -40,22 +40,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]
 
-  let blogPages: MetadataRoute.Sitemap = []
-  const { data: discussionTopics, error: discussionErr } = await admin
-    .from('discussion_topics')
-    .select('slug, updated_at')
-    .eq('status', 'active')
-    .order('updated_at', { ascending: false })
-    .limit(500)
-
-  if (!discussionErr && discussionTopics?.length) {
-    blogPages = discussionTopics.map(t => ({
-      url: `${SITE_URL}/blog/${t.slug}`,
-      lastModified: t.updated_at ? new Date(t.updated_at) : new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.5,
-    }))
-  }
+  // /blog is served from the CMS now; the old discussion topics were imported
+  // there under their original slugs, so listing them from discussion_topics
+  // would duplicate the CMS entries below.
 
   let modelPages: MetadataRoute.Sitemap = []
   const { data: models } = await admin
@@ -113,15 +100,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   }
 
-  // Magazine articles come from the CMS over HTTP; a failure there must not
-  // take down the whole sitemap, so getMagazinePosts already returns [] on error.
-  const magazinePosts = await getMagazinePosts()
-  const magazinePages: MetadataRoute.Sitemap = magazinePosts.map(post => ({
-    url: `${SITE_URL}${MAGAZINE_PATH}/${post.slug}`,
+  // Blog articles come from the CMS over HTTP; a failure there must not take
+  // down the whole sitemap, so getBlogPosts already returns [] on error.
+  const cmsPosts = await getBlogPosts()
+  const cmsBlogPages: MetadataRoute.Sitemap = cmsPosts.map(post => ({
+    url: `${SITE_URL}${BLOG_PATH}/${post.slug}`,
     lastModified: post.published_at ? new Date(post.published_at) : new Date(post.created_at),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
   }))
 
-  return [...staticPages, ...cityPages, ...blogPages, ...magazinePages, ...modelPages, ...clubPages, ...listingPages]
+  return [...staticPages, ...cityPages, ...cmsBlogPages, ...modelPages, ...clubPages, ...listingPages]
 }

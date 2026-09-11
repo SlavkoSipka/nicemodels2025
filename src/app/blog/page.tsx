@@ -1,143 +1,80 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { MessageSquare, Pin } from 'lucide-react'
+import { excerptOf, getBlogPosts, leadImageOf, BLOG_PATH, REVALIDATE_SECONDS } from '@/lib/cms'
 
-function excerptFromHtml(html: string, n = 180): string {
-  const t = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-  return t.length > n ? `${t.slice(0, n)}...` : t
-}
+export const revalidate = REVALIDATE_SECONDS
 
-export const dynamic = 'force-dynamic'
-
-function timeAgo(dateStr: string, t: (k: string, vars?: any) => string) {
-  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (seconds < 60) return t('justNow')
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return t('minutesAgo', { n: minutes })
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return t('hoursAgo', { n: hours })
-  const days = Math.floor(hours / 24)
-  if (days < 30) return t('daysAgo', { n: days })
-  return new Date(dateStr).toLocaleDateString(undefined, { dateStyle: 'medium' })
+function formatDate(value: string | null): string {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('de-CH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
 }
 
 export default async function BlogPage() {
-  const supabase = await createClient()
-  const t = await getTranslations('publicPages.blog')
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-
-  const { data: topics, error: topicsErr } = await supabase
-    .from('discussion_topics')
-    .select('id, slug, title, body, cover_image, is_pinned, updated_at, created_at')
-    .eq('status', 'active')
-    .order('is_pinned', { ascending: false })
-    .order('updated_at', { ascending: false })
-
-  const list = topicsErr ? [] : topics || []
-  const topicIds = list.map(t => t.id)
-
-  const countMap = new Map<string, number>()
-  if (topicIds.length > 0) {
-    const { data: countRows, error: countErr } = await supabase
-      .from('discussion_posts')
-      .select('topic_id')
-      .in('topic_id', topicIds)
-      .eq('is_deleted', false)
-
-    if (!countErr) {
-      for (const r of countRows || []) {
-        countMap.set(r.topic_id, (countMap.get(r.topic_id) || 0) + 1)
-      }
-    }
-  }
-
-  const coverUrl = (path: string | null) =>
-    path ? `${supabaseUrl}/storage/v1/object/public/discussion-images/${path}` : null
+  const posts = await getBlogPosts()
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50">
-        <div className="border-b border-gray-200 bg-white">
-          <div className="max-w-4xl mx-auto px-4 py-8 sm:px-6 sm:py-14">
-            <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-              {t('communityLabel')}
-            </p>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
-              {t('discussionsTitle')}
-            </h1>
-            <p className="mt-2 text-gray-500 text-base sm:text-lg max-w-xl">
-              {t('discussionsSubtitle')}
-            </p>
-          </div>
-        </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-          {list.length === 0 ? (
-            <div className="rounded-xl border border-gray-200 bg-white px-6 py-14 text-center shadow-sm">
-              <MessageSquare className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-600 font-medium">{t('noTopics')}</p>
-              <p className="text-sm text-gray-400 mt-1">{t('noTopicsHint')}</p>
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {list.map(topic => {
-                const imgUrl = coverUrl(topic.cover_image)
-                const replyCount = countMap.get(topic.id) || 0
+      <main className="mx-auto w-full max-w-4xl px-4 py-10">
+        <header className="mb-10">
+          <h1 className="mb-3 text-3xl font-bold text-gray-900 sm:text-4xl">Blog</h1>
+          <p className="text-gray-600">
+            Ratgeber und Hintergrundartikel rund um Inserate, Sicherheit und das Nachtleben in der Schweiz.
+          </p>
+        </header>
 
-                return (
-                  <li key={topic.id}>
-                    <Link
-                      href={`/blog/${topic.slug}`}
-                      className="group block rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:border-pink-200 transition-all overflow-hidden"
-                    >
-                      <div className="flex">
-                        {imgUrl && (
-                          <div className="relative w-28 sm:w-40 shrink-0 bg-gray-100">
-                            <Image
-                              src={imgUrl}
-                              alt=""
-                              fill
-                              className="object-cover"
-                              sizes="160px"
-                            />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0 p-4 sm:p-5">
-                          <div className="flex items-start gap-2">
-                            {topic.is_pinned && (
-                              <Pin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" aria-hidden />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <h2 className="text-base sm:text-lg font-bold text-gray-900 group-hover:text-pink-600 transition-colors leading-snug">
-                                {topic.title}
-                              </h2>
-                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                                {excerptFromHtml(topic.body || '')}
-                              </p>
-                              <div className="flex flex-wrap items-center gap-3 mt-3 text-xs text-gray-400">
-                                <span className="inline-flex items-center gap-1">
-                                  <MessageSquare className="w-3.5 h-3.5" />
-                                  {t('replies', { count: replyCount })}
-                                </span>
-                                <span>{timeAgo(topic.updated_at, t)}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+        {posts.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-gray-300 p-10 text-center text-gray-500">
+            Zurzeit sind keine Artikel verfügbar.
+          </p>
+        ) : (
+          <div className="space-y-8">
+            {posts.map(post => {
+              const image = leadImageOf(post)
+              return (
+                <article key={post.id} className="border-b border-gray-100 pb-8 last:border-0">
+                  <Link href={`${BLOG_PATH}/${post.slug}`} className="group block sm:flex sm:gap-5">
+                    {image ? (
+                      <Image
+                        src={image}
+                        alt=""
+                        width={320}
+                        height={180}
+                        className="mb-3 w-full rounded-lg object-cover sm:mb-0 sm:w-56 sm:shrink-0"
+                      />
+                    ) : null}
+
+                    <div>
+                      <h2 className="mb-2 text-xl font-semibold text-gray-900 group-hover:text-rose-600">
+                        {post.title}
+                      </h2>
+                      <p className="mb-2 text-gray-600">{excerptOf(post)}</p>
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
+                        {post.published_at ? (
+                          <time dateTime={post.published_at}>{formatDate(post.published_at)}</time>
+                        ) : null}
+                        {(post.tags ?? []).slice(0, 3).map(tag => (
+                          <span key={tag} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                            {tag}
+                          </span>
+                        ))}
                       </div>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          )}
-        </div>
-      </div>
+                    </div>
+                  </Link>
+                </article>
+              )
+            })}
+          </div>
+        )}
+      </main>
+
       <Footer />
     </>
   )

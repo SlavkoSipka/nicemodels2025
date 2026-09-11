@@ -1,170 +1,160 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import BlogTopicClient, { type TopicPayload } from '../BlogTopicClient'
-import { resolveAuthorLabels } from '@/lib/discussion/resolveAuthors'
-import type { DiscussionPostNode } from '@/lib/discussion/tree'
-import { stripMarkdownToText } from '@/lib/markdown'
+import ArticleBody from '@/components/blog/ArticleBody'
 import { buildBreadcrumbJsonLd } from '@/lib/seo'
+import {
+  excerptOf,
+  getBlogPost,
+  getBlogPosts,
+  leadImageOf,
+  blogUrl,
+  BLOG_PATH,
+  REVALIDATE_SECONDS,
+} from '@/lib/cms'
+
+export const revalidate = REVALIDATE_SECONDS
 
 interface PageProps {
   params: Promise<{ slug: string }>
 }
 
+export async function generateStaticParams() {
+  const posts = await getBlogPosts()
+  return posts.map(post => ({ slug: post.slug as string }))
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
-  const supabase = await createClient()
-  const { data: topic } = await supabase
-    .from('discussion_topics')
-    .select('title, body, cover_image, status, created_at, updated_at')
-    .eq('slug', slug)
-    .eq('status', 'active')
-    .maybeSingle()
+  const post = await getBlogPost(slug)
 
-  if (!topic) {
-    return { title: 'Diskussion', robots: { index: false, follow: false } }
+  if (!post) {
+    return { title: 'Blog', robots: { index: false, follow: false } }
   }
 
-  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const desc =
-    stripMarkdownToText(topic.body || '').slice(0, 155)
-    || `Community discussion: ${topic.title}`
-  const ogImage = topic.cover_image
-    ? `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}`
-    : 'https://nicemodels.ch/logo.webp'
+  const url = blogUrl(slug)
+  const title = post.seo_meta?.meta_title?.trim() || post.title
+  const description = excerptOf(post, 155)
+  const image = leadImageOf(post) ?? 'https://nicemodels.ch/logo.webp'
 
   return {
-    title: `${topic.title} – Diskussion`,
-    description: desc,
+    title,
+    description,
+    alternates: {
+      canonical: url,
+      languages: { 'de-CH': url, 'x-default': url },
+    },
     openGraph: {
-      title: topic.title,
-      description: desc,
+      title,
+      description,
       type: 'article',
-      url: `https://nicemodels.ch/blog/${slug}`,
-      images: [{ url: ogImage, alt: topic.title }],
-      ...(topic.created_at ? { publishedTime: topic.created_at } : {}),
-      ...(topic.updated_at ? { modifiedTime: topic.updated_at } : {}),
+      url,
+      siteName: 'NiceModels.ch',
+      locale: 'de_CH',
+      images: [{ url: image, alt: post.title }],
+      ...(post.published_at ? { publishedTime: post.published_at } : {}),
     },
     twitter: {
-      card: 'summary_large_image',
-      title: topic.title,
-      description: desc,
-      images: [ogImage],
+      card: image ? 'summary_large_image' : 'summary',
+      title,
+      description,
+      images: [image],
     },
-    alternates: { canonical: `https://nicemodels.ch/blog/${slug}` },
   }
 }
 
-export default async function BlogTopicPage({ params }: PageProps) {
+function formatDate(value: string | null): string {
+  if (!value) return ''
+  return new Date(value).toLocaleDateString('de-CH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+export default async function BlogArticle({ params }: PageProps) {
   const { slug } = await params
-  const supabase = await createClient()
+  const post = await getBlogPost(slug)
 
-  const { data: row, error: topicErr } = await supabase
-    .from('discussion_topics')
-    .select('id, slug, title, body, cover_image, created_at, updated_at, status')
-    .eq('slug', slug)
-    .eq('status', 'active')
-    .maybeSingle()
+  if (!post) notFound()
 
-  if (topicErr || !row) {
-    notFound()
-  }
-
-  const topic: TopicPayload = {
-    id: row.id,
-    slug: row.slug,
-    title: row.title,
-    body: row.body || '',
-    cover_image: row.cover_image || null,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-  }
-
-  const [{ data: posts }, { data: { user } }] = await Promise.all([
-    supabase
-      .from('discussion_posts')
-      .select('id, topic_id, parent_id, author_id, body, created_at, updated_at')
-      .eq('topic_id', topic.id)
-      .eq('is_deleted', false)
-      .order('created_at', { ascending: true }),
-    supabase.auth.getUser(),
-  ])
-
-  let isAdmin = false
-  if (user) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    isAdmin = profile?.role === 'admin'
-  }
-
-  const authorIds = (posts || []).map(p => p.author_id)
-  const labelMap = await resolveAuthorLabels(supabase, authorIds)
-  const tBlog = await getTranslations('publicPages.blog')
-
-  const flatPosts: Omit<DiscussionPostNode, 'children'>[] = (posts || []).map(p => ({
-    id: p.id,
-    topic_id: p.topic_id,
-    parent_id: p.parent_id,
-    author_id: p.author_id,
-    body: p.body,
-    created_at: p.created_at,
-    updated_at: p.updated_at,
-    author_label: labelMap.get(p.author_id) || tBlog('memberFallback'),
-  }))
-
-  const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  // Posts are single-author editorial content written through the admin
-  // block editor, not organic multi-author discussion threads — BlogPosting
-  // is the correct type (DiscussionForumPosting undersold it for citation
-  // purposes and is missing here entirely).
-  const articleJsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'BlogPosting',
-    headline: topic.title,
-    url: `https://nicemodels.ch/blog/${slug}`,
-    datePublished: topic.created_at,
-    dateModified: topic.updated_at || topic.created_at,
-    image: topic.cover_image
-      ? `${SUPA_URL}/storage/v1/object/public/discussion-images/${topic.cover_image}`
-      : 'https://nicemodels.ch/logo.webp',
-    author: {
-      '@type': 'Organization',
-      name: 'NiceModels.ch',
-      url: 'https://nicemodels.ch',
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'NiceModels.ch',
-      url: 'https://nicemodels.ch',
-      logo: { '@type': 'ImageObject', url: 'https://nicemodels.ch/logo.webp' },
-    },
-    interactionStatistic: {
-      '@type': 'InteractionCounter',
-      interactionType: 'https://schema.org/CommentAction',
-      userInteractionCount: flatPosts.length,
-    },
-  }
-  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
-    { name: 'Startseite', path: '/' },
-    { name: 'Blog', path: '/blog' },
-    { name: topic.title, path: `/blog/${slug}` },
+  const breadcrumbs = buildBreadcrumbJsonLd([
+    { name: 'Startseite', path: '' },
+    { name: 'Blog', path: BLOG_PATH },
+    { name: post.title, path: `${BLOG_PATH}/${slug}` },
   ])
 
   return (
     <>
       <Navbar />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
-      />
-      <BlogTopicClient topic={topic} flatPosts={flatPosts} isAdmin={isAdmin} />
+
+      <main className="mx-auto w-full max-w-3xl px-4 py-10">
+        <nav className="mb-6 text-sm text-gray-500">
+          <Link href={BLOG_PATH} className="hover:text-rose-600">
+            Blog
+          </Link>
+        </nav>
+
+        <h1 className="mb-3 text-3xl font-bold leading-tight text-gray-900 sm:text-4xl">
+          {post.title}
+        </h1>
+
+        {post.published_at ? (
+          <time dateTime={post.published_at} className="mb-8 block text-sm text-gray-400">
+            {formatDate(post.published_at)}
+          </time>
+        ) : null}
+
+        <ArticleBody blocks={post.content_json ?? []} />
+
+        {(post.tags ?? []).length > 0 ? (
+          <div className="mt-10 flex flex-wrap gap-2 border-t border-gray-100 pt-6">
+            {(post.tags ?? []).map(tag => (
+              <span key={tag} className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {(post.sources ?? []).length > 0 ? (
+          <section className="mt-8 border-t border-gray-100 pt-6">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+              Quellen
+            </h2>
+            <ul className="space-y-1.5 text-sm">
+              {(post.sources ?? []).map((source, i) => (
+                <li key={i}>
+                  <a
+                    href={source.url}
+                    rel="nofollow noopener noreferrer"
+                    target="_blank"
+                    className="text-rose-600 underline underline-offset-2 hover:text-rose-700"
+                  >
+                    {source.publisher}
+                  </a>
+                  <span className="text-gray-500"> — {source.claim}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </main>
+
       <Footer />
+
+      {post.schema_markup ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(post.schema_markup) }}
+        />
+      ) : null}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
+      />
     </>
   )
 }
