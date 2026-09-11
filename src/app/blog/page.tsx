@@ -2,9 +2,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
-import { excerptOf, getBlogPosts, leadImageOf, BLOG_PATH, REVALIDATE_SECONDS } from '@/lib/cms'
+import { excerptOf, getBlogPosts, leadImageOf, BLOG_PATH } from '@/lib/cms'
 
-export const revalidate = REVALIDATE_SECONDS
+// Next requires a literal here; it cannot statically read an imported const.
+export const revalidate = 300
 
 function formatDate(value: string | null): string {
   if (!value) return ''

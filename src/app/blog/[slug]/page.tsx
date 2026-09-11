@@ -12,10 +12,10 @@ import {
   leadImageOf,
   blogUrl,
   BLOG_PATH,
-  REVALIDATE_SECONDS,
 } from '@/lib/cms'
 
-export const revalidate = REVALIDATE_SECONDS
+// Next requires a literal here; it cannot statically read an imported const.
+export const revalidate = 300
 
 interface PageProps {
   params: Promise<{ slug: string }>
