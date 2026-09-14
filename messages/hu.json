@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard rejtve",
+      "sedcardOff": "Nincs sedcard",
+      "sedcardUntil": "Sedcard online eddig: {date}",
+      "sedcardHiddenHint": "A csomag {date}-ig tart, de a modell privátra állította a sedcardot.",
+      "sedcardHiddenBlocked": "Fiók letiltva — a csomag {date}-ig tart, de a sedcard nem nyilvános."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Failed to upload video.",
       "deleteFailed": "Failed to delete media.",
       "updateFailed": "Failed to update media.",
-      "reorderFailed": "Failed to save new order."
+      "reorderFailed": "Failed to save new order.",
+      "censor": "Cenzúrázás"
+    },
+    "photoCensor": {
+      "title": "Fotó cenzúrázása",
+      "subtitle": "Jelöld ki a felismerhetetlenné teendő területeket",
+      "loading": "Fotó betöltése…",
+      "loadFailed": "A fotót nem sikerült betölteni.",
+      "blur": "Elmosás",
+      "pixelate": "Pixelesítés",
+      "blackBar": "Fekete sáv",
+      "rectangle": "Téglalap",
+      "brush": "Ecset",
+      "strength": "Erősség",
+      "brushSize": "Ecsetméret",
+      "undo": "Visszavonás",
+      "clear": "Összes törlése",
+      "restore": "Eredeti",
+      "save": "Mentés",
+      "saving": "Mentés…",
+      "saveFailed": "A mentés nem sikerült.",
+      "restoreFailed": "Az eredetit nem sikerült visszaállítani.",
+      "confirmRestore": "Visszaállítod az érintetlen eredetit? A cenzúrázott változat törlődik.",
+      "hintEmpty": "Húzd végig az elrejtendő területen.",
+      "hintCount": "{count, plural, one {# terület kijelölve} other {# terület kijelölve}}"
     }
   },
   "common": {

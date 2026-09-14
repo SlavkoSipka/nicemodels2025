@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard ascunsă",
+      "sedcardOff": "Fără sedcard",
+      "sedcardUntil": "Sedcard online până la {date}",
+      "sedcardHiddenHint": "Pachetul este valabil până la {date}, dar modelul a setat sedcardul ca privat.",
+      "sedcardHiddenBlocked": "Cont blocat — pachetul este valabil până la {date}, dar sedcardul nu este public."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Failed to upload video.",
       "deleteFailed": "Failed to delete media.",
       "updateFailed": "Failed to update media.",
-      "reorderFailed": "Failed to save new order."
+      "reorderFailed": "Failed to save new order.",
+      "censor": "Cenzurează"
+    },
+    "photoCensor": {
+      "title": "Cenzurează fotografia",
+      "subtitle": "Marchează zonele care trebuie făcute de nerecunoscut",
+      "loading": "Se încarcă fotografia…",
+      "loadFailed": "Fotografia nu a putut fi încărcată.",
+      "blur": "Estompare",
+      "pixelate": "Pixelare",
+      "blackBar": "Bară neagră",
+      "rectangle": "Dreptunghi",
+      "brush": "Pensulă",
+      "strength": "Intensitate",
+      "brushSize": "Dimensiunea pensulei",
+      "undo": "Anulează",
+      "clear": "Șterge tot",
+      "restore": "Original",
+      "save": "Salvează",
+      "saving": "Se salvează…",
+      "saveFailed": "Salvarea a eșuat.",
+      "restoreFailed": "Originalul nu a putut fi restaurat.",
+      "confirmRestore": "Restaurezi originalul neatins? Versiunea cenzurată va fi ștearsă.",
+      "hintEmpty": "Trage peste zona pe care vrei să o ascunzi.",
+      "hintCount": "{count, plural, one {# zonă marcată} few {# zone marcate} other {# de zone marcate}}"
     }
   },
   "common": {

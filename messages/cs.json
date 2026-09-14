@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard skrytá",
+      "sedcardOff": "Žádná sedcard",
+      "sedcardUntil": "Sedcard online do {date}",
+      "sedcardHiddenHint": "Balíček běží do {date}, ale modelka nastavila sedcard jako soukromou.",
+      "sedcardHiddenBlocked": "Účet zablokován — balíček běží do {date}, ale sedcard není veřejná."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Failed to upload video.",
       "deleteFailed": "Failed to delete media.",
       "updateFailed": "Failed to update media.",
-      "reorderFailed": "Failed to save new order."
+      "reorderFailed": "Failed to save new order.",
+      "censor": "Cenzurovat"
+    },
+    "photoCensor": {
+      "title": "Cenzura fotky",
+      "subtitle": "Označ oblasti, které mají být nerozpoznatelné",
+      "loading": "Načítání fotky…",
+      "loadFailed": "Fotku se nepodařilo načíst.",
+      "blur": "Rozostřit",
+      "pixelate": "Pixelovat",
+      "blackBar": "Černý pruh",
+      "rectangle": "Obdélník",
+      "brush": "Štětec",
+      "strength": "Síla",
+      "brushSize": "Velikost štětce",
+      "undo": "Zpět",
+      "clear": "Smazat vše",
+      "restore": "Originál",
+      "save": "Uložit",
+      "saving": "Ukládání…",
+      "saveFailed": "Uložení se nezdařilo.",
+      "restoreFailed": "Originál se nepodařilo obnovit.",
+      "confirmRestore": "Obnovit nedotčený originál? Cenzurovaná verze bude smazána.",
+      "hintEmpty": "Přetáhni přes oblast, kterou chceš skrýt.",
+      "hintCount": "{count, plural, one {# označená oblast} few {# označené oblasti} other {# označených oblastí}}"
     }
   },
   "common": {

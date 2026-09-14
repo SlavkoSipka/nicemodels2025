@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Upload, Trash2, AlertCircle, Film, GripVertical, Image as ImageIcon, CheckCircle, XCircle } from 'lucide-react'
+import { Upload, Trash2, AlertCircle, Film, GripVertical, Image as ImageIcon, CheckCircle, XCircle, Eraser } from 'lucide-react'
+import AdminPhotoCensorModal from './AdminPhotoCensorModal'
 import { processImage } from '@/lib/imageProcessor'
 import { reorderArray } from '@/lib/reorderArray'
 
@@ -34,6 +35,7 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
   const [uploadingVideos, setUploadingVideos] = useState(false)
   const [error, setError] = useState('')
   const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [censorTarget, setCensorTarget] = useState<MediaItem | null>(null)
 
   const uploadOne = async (file: File, mediaType: 'photo' | 'video'): Promise<MediaItem | null> => {
     const fd = new FormData()
@@ -109,6 +111,15 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
     } catch { setError(t('updateFailed')) }
   }
 
+  // A censored save swaps the storage object, so the <img> needs the new path —
+  // the old URL keeps serving the uncensored frame from cache.
+  const onCensorSaved = (url: string, filePath: string) => {
+    const id = censorTarget?.id
+    setCensorTarget(null)
+    if (!id) return
+    setPhotos(prev => prev.map(p => (p.id === id ? { ...p, url, file_path: filePath } : p)))
+  }
+
   const onDrop = (index: number) => async (e: React.DragEvent) => {
     e.preventDefault()
     const from = dragIndex
@@ -176,16 +187,22 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
                     {p.url && <img src={p.url} alt={p.file_name} className="w-full h-full object-cover pointer-events-none" />}
                   </div>
                   <div className="absolute bottom-1 right-1">{badge(p.is_approved)}</div>
-                  <div className="p-1.5 flex gap-1">
-                    <button type="button" onClick={() => toggleApproval(p, 'photo')}
-                      className="flex-1 px-1 py-1 text-[11px] rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold flex items-center justify-center gap-1">
-                      {p.is_approved ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-                      {p.is_approved ? t('hide') : t('publish')}
+                  <div className="p-1.5 space-y-1">
+                    <button type="button" onClick={() => setCensorTarget(p)}
+                      className="w-full px-1 py-1 text-[11px] rounded bg-brand/10 text-brand hover:bg-brand/20 font-semibold flex items-center justify-center gap-1">
+                      <Eraser className="w-3 h-3" /> {t('censor')}
                     </button>
-                    <button type="button" onClick={() => deleteMedia(p, 'photo')}
-                      className="px-1.5 py-1 text-[11px] bg-red-50 text-red-600 rounded hover:bg-red-100 font-semibold flex items-center justify-center">
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button type="button" onClick={() => toggleApproval(p, 'photo')}
+                        className="flex-1 px-1 py-1 text-[11px] rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold flex items-center justify-center gap-1">
+                        {p.is_approved ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                        {p.is_approved ? t('hide') : t('publish')}
+                      </button>
+                      <button type="button" onClick={() => deleteMedia(p, 'photo')}
+                        className="px-1.5 py-1 text-[11px] bg-red-50 text-red-600 rounded hover:bg-red-100 font-semibold flex items-center justify-center">
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -232,6 +249,16 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
           </div>
         )}
       </div>
+
+      {censorTarget && (
+        <AdminPhotoCensorModal
+          ownerType={ownerType}
+          mediaId={censorTarget.id}
+          fileName={censorTarget.file_name}
+          onClose={() => setCensorTarget(null)}
+          onSaved={onCensorSaved}
+        />
+      )}
     </div>
   )
 }

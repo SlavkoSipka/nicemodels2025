@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard nascosta",
+      "sedcardOff": "Nessuna sedcard",
+      "sedcardUntil": "Sedcard online fino al {date}",
+      "sedcardHiddenHint": "Il pacchetto è valido fino al {date}, ma la modella ha impostato la sedcard su privata.",
+      "sedcardHiddenBlocked": "Account bloccato — il pacchetto è valido fino al {date}, ma la sedcard non è pubblica."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Failed to upload video.",
       "deleteFailed": "Failed to delete media.",
       "updateFailed": "Failed to update media.",
-      "reorderFailed": "Failed to save new order."
+      "reorderFailed": "Failed to save new order.",
+      "censor": "Censura"
+    },
+    "photoCensor": {
+      "title": "Censura foto",
+      "subtitle": "Segna le aree da rendere irriconoscibili",
+      "loading": "Caricamento della foto…",
+      "loadFailed": "Impossibile caricare la foto.",
+      "blur": "Sfoca",
+      "pixelate": "Pixela",
+      "blackBar": "Barra nera",
+      "rectangle": "Rettangolo",
+      "brush": "Pennello",
+      "strength": "Intensità",
+      "brushSize": "Dimensione pennello",
+      "undo": "Annulla",
+      "clear": "Cancella tutto",
+      "restore": "Originale",
+      "save": "Salva",
+      "saving": "Salvataggio…",
+      "saveFailed": "Salvataggio non riuscito.",
+      "restoreFailed": "Impossibile ripristinare l’originale.",
+      "confirmRestore": "Ripristinare l’originale intatto? La versione censurata verrà eliminata.",
+      "hintEmpty": "Trascina sull’area da nascondere.",
+      "hintCount": "{count, plural, one {# area segnata} other {# aree segnate}}"
     }
   },
   "common": {

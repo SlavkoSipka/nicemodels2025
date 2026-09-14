@@ -118,6 +118,38 @@ export async function processImage(
 }
 
 /**
+ * Enkoduj canvas u WebP, sa JPEG fallback-om.
+ *
+ * `canvas.toBlob(cb, 'image/webp', q)` po spec-u sme da vrati PNG kada WebP
+ * enkoder ne postoji (stariji Safari / iOS < 16.4) — tada se kvalitet ignoriše
+ * i dobijamo višemegabajtni RGBA PNG. Zato uvek proveravamo šta je enkoder
+ * stvarno vratio i imenujemo fajl po pravom tipu.
+ */
+export function encodeCanvas(
+  canvas: HTMLCanvasElement,
+  baseName: string,
+  quality = 0.82,
+): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const finish = (blob: Blob | null, mime: string, ext: string) => {
+      if (!blob) { reject(new Error('Canvas toBlob failed')); return }
+      resolve(new File([blob], `${baseName}.${ext}`, { type: mime }))
+    }
+    canvas.toBlob(
+      (blob) => {
+        if (blob && blob.type === 'image/webp') {
+          finish(blob, 'image/webp', 'webp')
+          return
+        }
+        canvas.toBlob((jpeg) => finish(jpeg, 'image/jpeg', 'jpg'), 'image/jpeg', quality)
+      },
+      'image/webp',
+      quality,
+    )
+  })
+}
+
+/**
  * Ekstenzija koja odgovara stvarnom tipu fajla koji je vratio `processImage`.
  * Pozivna mesta grade putanju za Supabase storage — ako bi hardkodovala
  * `.webp`, JPEG fallback bi opet završio pod pogrešnim imenom i pogrešnim

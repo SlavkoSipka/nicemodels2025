@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard ukryta",
+      "sedcardOff": "Brak sedcard",
+      "sedcardUntil": "Sedcard online do {date}",
+      "sedcardHiddenHint": "Pakiet trwa do {date}, ale modelka ustawiła sedcard jako prywatną.",
+      "sedcardHiddenBlocked": "Konto zablokowane — pakiet trwa do {date}, ale sedcard nie jest publiczna."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Failed to upload video.",
       "deleteFailed": "Failed to delete media.",
       "updateFailed": "Failed to update media.",
-      "reorderFailed": "Failed to save new order."
+      "reorderFailed": "Failed to save new order.",
+      "censor": "Cenzuruj"
+    },
+    "photoCensor": {
+      "title": "Cenzura zdjęcia",
+      "subtitle": "Zaznacz obszary, które mają być nierozpoznawalne",
+      "loading": "Wczytywanie zdjęcia…",
+      "loadFailed": "Nie udało się wczytać zdjęcia.",
+      "blur": "Rozmycie",
+      "pixelate": "Pikselizacja",
+      "blackBar": "Czarny pasek",
+      "rectangle": "Prostokąt",
+      "brush": "Pędzel",
+      "strength": "Siła",
+      "brushSize": "Rozmiar pędzla",
+      "undo": "Cofnij",
+      "clear": "Wyczyść",
+      "restore": "Oryginał",
+      "save": "Zapisz",
+      "saving": "Zapisywanie…",
+      "saveFailed": "Zapis nie powiódł się.",
+      "restoreFailed": "Nie udało się przywrócić oryginału.",
+      "confirmRestore": "Przywrócić nietknięty oryginał? Ocenzurowana wersja zostanie usunięta.",
+      "hintEmpty": "Przeciągnij po obszarze, który chcesz ukryć.",
+      "hintCount": "{count, plural, one {# zaznaczony obszar} few {# zaznaczone obszary} other {# zaznaczonych obszarów}}"
     }
   },
   "common": {

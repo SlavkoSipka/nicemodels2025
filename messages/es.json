@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard en línea",
+      "sedcardHidden": "Sedcard oculta",
+      "sedcardOff": "Sin sedcard",
+      "sedcardUntil": "Sedcard en línea hasta el {date}",
+      "sedcardHiddenHint": "El paquete dura hasta el {date}, pero la modelo puso la sedcard en privado.",
+      "sedcardHiddenBlocked": "Cuenta bloqueada: el paquete dura hasta el {date}, pero la sedcard no es pública."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "No se pudo subir el vídeo.",
       "deleteFailed": "No se pudo eliminar el archivo.",
       "updateFailed": "No se pudo actualizar el archivo.",
-      "reorderFailed": "No se pudo guardar el nuevo orden."
+      "reorderFailed": "No se pudo guardar el nuevo orden.",
+      "censor": "Censurar"
+    },
+    "photoCensor": {
+      "title": "Censurar foto",
+      "subtitle": "Marca las zonas que deben quedar irreconocibles",
+      "loading": "Cargando la foto…",
+      "loadFailed": "No se pudo cargar la foto.",
+      "blur": "Desenfocar",
+      "pixelate": "Pixelar",
+      "blackBar": "Barra negra",
+      "rectangle": "Rectángulo",
+      "brush": "Pincel",
+      "strength": "Intensidad",
+      "brushSize": "Tamaño del pincel",
+      "undo": "Deshacer",
+      "clear": "Borrar todo",
+      "restore": "Original",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "saveFailed": "Error al guardar.",
+      "restoreFailed": "No se pudo restaurar el original.",
+      "confirmRestore": "¿Restaurar el original intacto? Se eliminará la versión censurada.",
+      "hintEmpty": "Arrastra sobre la zona que quieres ocultar.",
+      "hintCount": "{count, plural, one {# zona marcada} other {# zonas marcadas}}"
     }
   },
   "common": {

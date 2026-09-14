@@ -170,6 +170,7 @@
       "colJoined": "Beigetreten",
       "colVerified": "Verifiziert",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Fotos",
       "noModelsFound": "Keine Models gefunden",
       "noUsername": "kein-benutzername",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Dieses Model entsperren?",
       "deleteConfirmPrefix": "DELETE eingeben, um Model endgültig zu entfernen",
       "deleteWarning": "Dies löscht das Konto, alle Fotos und Daten. Dies kann nicht rückgängig gemacht werden.",
-      "deleteFailed": "Model konnte nicht gelöscht werden"
+      "deleteFailed": "Model konnte nicht gelöscht werden",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard versteckt",
+      "sedcardOff": "Keine Sedcard",
+      "sedcardUntil": "Sedcard online bis {date}",
+      "sedcardHiddenHint": "Paket läuft bis {date}, aber das Model hat die Sedcard auf privat gestellt.",
+      "sedcardHiddenBlocked": "Konto gesperrt – Paket läuft bis {date}, die Sedcard ist aber nicht öffentlich."
     },
     "clubs": {
       "title": "Clubs-Verwaltung",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Video konnte nicht hochgeladen werden.",
       "deleteFailed": "Medium konnte nicht gelöscht werden.",
       "updateFailed": "Medium konnte nicht aktualisiert werden.",
-      "reorderFailed": "Neue Reihenfolge konnte nicht gespeichert werden."
+      "reorderFailed": "Neue Reihenfolge konnte nicht gespeichert werden.",
+      "censor": "Zensieren"
+    },
+    "photoCensor": {
+      "title": "Foto zensieren",
+      "subtitle": "Bereiche markieren, die unkenntlich gemacht werden sollen",
+      "loading": "Foto wird geladen…",
+      "loadFailed": "Foto konnte nicht geladen werden.",
+      "blur": "Weichzeichnen",
+      "pixelate": "Verpixeln",
+      "blackBar": "Balken",
+      "rectangle": "Rechteck",
+      "brush": "Pinsel",
+      "strength": "Stärke",
+      "brushSize": "Pinselgrösse",
+      "undo": "Rückgängig",
+      "clear": "Alles löschen",
+      "restore": "Original",
+      "save": "Speichern",
+      "saving": "Wird gespeichert…",
+      "saveFailed": "Speichern fehlgeschlagen.",
+      "restoreFailed": "Original konnte nicht wiederhergestellt werden.",
+      "confirmRestore": "Das unbearbeitete Original wiederherstellen? Die zensierte Fassung wird gelöscht.",
+      "hintEmpty": "Ziehe über den Bereich, den du unkenntlich machen willst.",
+      "hintCount": "{count, plural, one {# Bereich markiert} other {# Bereiche markiert}}"
     }
   },
   "common": {

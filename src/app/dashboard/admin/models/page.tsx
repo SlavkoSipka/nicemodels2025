@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown, Zap, EyeOff } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
 import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
 
@@ -22,9 +22,12 @@ interface Model {
   photoUrl?: string | null
   contact_phone?: string | null
   contact_email?: string | null
+  sedcard_expires_at?: string | null
+  sedcard_visible?: boolean
 }
 
-type SortKey = 'showname' | 'email' | 'city' | 'created_at' | 'is_verified' | 'is_blocked'
+type SortKey = 'showname' | 'email' | 'city' | 'created_at' | 'is_verified' | 'is_blocked' | 'sedcard'
+type SedcardFilter = 'all' | 'online' | 'hidden' | 'off'
 
 export default function AdminModelsPage() {
   const t = useTranslations('admin.models')
@@ -35,6 +38,7 @@ export default function AdminModelsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedModel, setSelectedModel] = useState<Model | null>(null)
   const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [sedcardFilter, setSedcardFilter] = useState<SedcardFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
@@ -53,7 +57,7 @@ export default function AdminModelsPage() {
     if (error) { setLoading(false); return }
 
     const modelIds = (data || []).map((m: any) => m.id)
-    const [{ data: photos }, contactsRes] = await Promise.all([
+    const [{ data: photos }, contactsRes, sedcardsRes] = await Promise.all([
       supabase
         .from('model_photos')
         .select('model_id, file_path')
@@ -65,8 +69,12 @@ export default function AdminModelsPage() {
       fetch('/api/admin/contacts?role=model', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : { contacts: [] })
         .catch(() => ({ contacts: [] })),
+      fetch('/api/admin/active-sedcards?role=model', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : { sedcards: {} })
+        .catch(() => ({ sedcards: {} })),
     ])
     const contacts = contactsRes.contacts as Array<{ model_id: string; country_code: string | null; phone_number: string | null }>
+    const sedcards = (sedcardsRes.sedcards || {}) as Record<string, { expiresAt: string; visible: boolean }>
 
     const photoMap: Record<string, string> = {}
     const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
@@ -88,6 +96,8 @@ export default function AdminModelsPage() {
       photoUrl: photoMap[m.id] || null,
       contact_phone: contactMap[m.id]?.phone || null,
       contact_email: null,
+      sedcard_expires_at: sedcards[m.id]?.expiresAt ?? null,
+      sedcard_visible: sedcards[m.id]?.visible ?? false,
     })))
     setLoading(false)
   }
@@ -127,7 +137,14 @@ export default function AdminModelsPage() {
     }
   }
 
+  // 'online' mirrors models_with_active_ads() exactly: package running, sedcard
+  // not set to private, account not blocked. 'hidden' is paid but off the public
+  // site for one of the latter two reasons — without the split it looks like 'off'.
+  const sedcardState = (m: Model): SedcardFilter =>
+    !m.sedcard_expires_at ? 'off' : m.sedcard_visible && !m.is_blocked ? 'online' : 'hidden'
+
   const filtered = models.filter(m => {
+    if (sedcardFilter !== 'all' && sedcardState(m) !== sedcardFilter) return false
     const q = searchTerm.toLowerCase()
     if (!q) return true
     if (m.public_id && (`#${m.public_id}` === q || String(m.public_id) === q)) return true
@@ -135,6 +152,9 @@ export default function AdminModelsPage() {
       m.username?.toLowerCase().includes(q) ||
       m.model_details?.showname?.toLowerCase().includes(q)
   })
+
+  const onlineCount = models.filter(m => sedcardState(m) === 'online').length
+  const hiddenCount = models.filter(m => sedcardState(m) === 'hidden').length
 
   const sortValue = (m: Model, key: SortKey): string | number => {
     switch (key) {
@@ -144,6 +164,7 @@ export default function AdminModelsPage() {
       case 'created_at': return new Date(m.created_at || 0).getTime()
       case 'is_verified': return m.is_verified ? 1 : 0
       case 'is_blocked': return m.is_blocked ? 1 : 0
+      case 'sedcard': return m.sedcard_expires_at ? new Date(m.sedcard_expires_at).getTime() : 0
     }
   }
 
@@ -157,7 +178,7 @@ export default function AdminModelsPage() {
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
-    else { setSortKey(key); setSortDir(key === 'created_at' ? 'desc' : 'asc') }
+    else { setSortKey(key); setSortDir(key === 'created_at' || key === 'sedcard' ? 'desc' : 'asc') }
   }
 
   const SortIcon = ({ k }: { k: SortKey }) => {
@@ -165,6 +186,26 @@ export default function AdminModelsPage() {
     return sortDir === 'asc'
       ? <ArrowUp className="w-3 h-3 text-gray-700" />
       : <ArrowDown className="w-3 h-3 text-gray-700" />
+  }
+
+  const SedcardBadge = ({ m, compact }: { m: Model; compact?: boolean }) => {
+    const state = sedcardState(m)
+    const pad = compact ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-0.5'
+    const ico = compact ? 'w-2.5 h-2.5' : 'w-3 h-3'
+    const until = m.sedcard_expires_at ? new Date(m.sedcard_expires_at).toLocaleString() : ''
+    if (state === 'off') return <span className="text-xs text-gray-400">{t('sedcardOff')}</span>
+    if (state === 'hidden') return (
+      <span title={m.is_blocked ? t('sedcardHiddenBlocked', { date: until }) : t('sedcardHiddenHint', { date: until })}
+        className={`inline-flex items-center gap-0.5 rounded-full font-medium bg-amber-50 text-amber-700 ${pad}`}>
+        <EyeOff className={ico} /> {t('sedcardHidden')}
+      </span>
+    )
+    return (
+      <span title={t('sedcardUntil', { date: until })}
+        className={`inline-flex items-center gap-0.5 rounded-full font-medium bg-brand/10 text-brand ${pad}`}>
+        <Zap className={ico} /> {t('sedcardOnline')}
+      </span>
+    )
   }
 
   const handleDownloadXlsx = async () => {
@@ -180,6 +221,8 @@ export default function AdminModelsPage() {
       { header: 'Verified', value: m => m.is_verified ? 'Yes' : 'No', width: 10 },
       { header: 'Onboarded', value: m => m.onboarding_completed ? 'Yes' : 'No', width: 12 },
       { header: 'Blocked', value: m => m.is_blocked ? 'Yes' : 'No', width: 10 },
+      { header: 'Sedcard', value: m => sedcardState(m), width: 10 },
+      { header: 'Sedcard Until', value: m => m.sedcard_expires_at ? fmtDateTime(m.sedcard_expires_at) : '', text: true, width: 20 },
       { header: 'User ID', value: m => m.id, text: true, width: 38 },
     ])
   }
@@ -224,6 +267,25 @@ export default function AdminModelsPage() {
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
 
+          {/* Sedcard filter */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {([
+              { key: 'all' as SedcardFilter, label: tc('all'), count: models.length },
+              { key: 'online' as SedcardFilter, label: t('sedcardOnline'), count: onlineCount },
+              { key: 'hidden' as SedcardFilter, label: t('sedcardHidden'), count: hiddenCount },
+              { key: 'off' as SedcardFilter, label: t('sedcardOff'), count: models.length - onlineCount - hiddenCount },
+            ]).map(chip => (
+              <button key={chip.key} onClick={() => setSedcardFilter(chip.key)}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-colors ${
+                  sedcardFilter === chip.key
+                    ? 'bg-brand text-white border-brand'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}>
+                {chip.label} ({chip.count})
+              </button>
+            ))}
+          </div>
+
           {/* Mobile card list */}
           <div className="md:hidden space-y-2.5">
             {sorted.map(model => (
@@ -261,6 +323,7 @@ export default function AdminModelsPage() {
                             <CheckCircle className="w-2.5 h-2.5" /> {tc('verified')}
                           </span>
                         )}
+                        <SedcardBadge m={model} compact />
                       </div>
                     </div>
                     <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
@@ -313,6 +376,7 @@ export default function AdminModelsPage() {
                       { label: t('colJoined'), key: 'created_at' as SortKey },
                       { label: t('colVerified'), key: 'is_verified' as SortKey },
                       { label: t('colStatus'), key: 'is_blocked' as SortKey },
+                      { label: t('colSedcard'), key: 'sedcard' as SortKey },
                     ]).map(col => (
                       <th key={col.key} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                         <button onClick={() => toggleSort(col.key)} className="inline-flex items-center gap-1 hover:text-gray-900">
@@ -377,6 +441,16 @@ export default function AdminModelsPage() {
                           )}
                           {!model.onboarding_completed && (
                             <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">{tc('incomplete')}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-0.5 items-start">
+                          <SedcardBadge m={model} />
+                          {model.sedcard_expires_at && (
+                            <span className="text-[10px] text-gray-400">
+                              {new Date(model.sedcard_expires_at).toLocaleDateString()}
+                            </span>
                           )}
                         </div>
                       </td>

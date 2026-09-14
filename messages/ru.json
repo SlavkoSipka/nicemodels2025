@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Седкарта",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Седкарта онлайн",
+      "sedcardHidden": "Седкарта скрыта",
+      "sedcardOff": "Нет седкарты",
+      "sedcardUntil": "Седкарта онлайн до {date}",
+      "sedcardHiddenHint": "Пакет действует до {date}, но модель скрыла седкарту.",
+      "sedcardHiddenBlocked": "Аккаунт заблокирован — пакет действует до {date}, но седкарта не публичная."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Failed to upload video.",
       "deleteFailed": "Failed to delete media.",
       "updateFailed": "Failed to update media.",
-      "reorderFailed": "Failed to save new order."
+      "reorderFailed": "Failed to save new order.",
+      "censor": "Цензура"
+    },
+    "photoCensor": {
+      "title": "Цензура фото",
+      "subtitle": "Отметьте области, которые нужно скрыть",
+      "loading": "Загрузка фото…",
+      "loadFailed": "Не удалось загрузить фото.",
+      "blur": "Размытие",
+      "pixelate": "Пиксели",
+      "blackBar": "Чёрная полоса",
+      "rectangle": "Прямоугольник",
+      "brush": "Кисть",
+      "strength": "Сила",
+      "brushSize": "Размер кисти",
+      "undo": "Отменить",
+      "clear": "Очистить всё",
+      "restore": "Оригинал",
+      "save": "Сохранить",
+      "saving": "Сохранение…",
+      "saveFailed": "Не удалось сохранить.",
+      "restoreFailed": "Не удалось восстановить оригинал.",
+      "confirmRestore": "Восстановить нетронутый оригинал? Версия с цензурой будет удалена.",
+      "hintEmpty": "Проведите по области, которую нужно скрыть.",
+      "hintCount": "{count, plural, one {отмечена # область} few {отмечено # области} other {отмечено # областей}}"
     }
   },
   "common": {

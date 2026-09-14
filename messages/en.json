@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard hidden",
+      "sedcardOff": "No sedcard",
+      "sedcardUntil": "Sedcard online until {date}",
+      "sedcardHiddenHint": "Package runs until {date}, but the model set the sedcard to private.",
+      "sedcardHiddenBlocked": "Account blocked — package runs until {date}, but the sedcard is not public."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Failed to upload video.",
       "deleteFailed": "Failed to delete media.",
       "updateFailed": "Failed to update media.",
-      "reorderFailed": "Failed to save new order."
+      "reorderFailed": "Failed to save new order.",
+      "censor": "Censor"
+    },
+    "photoCensor": {
+      "title": "Censor photo",
+      "subtitle": "Mark the areas that should be made unrecognisable",
+      "loading": "Loading photo…",
+      "loadFailed": "Could not load the photo.",
+      "blur": "Blur",
+      "pixelate": "Pixelate",
+      "blackBar": "Black bar",
+      "rectangle": "Rectangle",
+      "brush": "Brush",
+      "strength": "Strength",
+      "brushSize": "Brush size",
+      "undo": "Undo",
+      "clear": "Clear all",
+      "restore": "Original",
+      "save": "Save",
+      "saving": "Saving…",
+      "saveFailed": "Saving failed.",
+      "restoreFailed": "Could not restore the original.",
+      "confirmRestore": "Restore the untouched original? The censored version will be deleted.",
+      "hintEmpty": "Drag over the area you want to hide.",
+      "hintCount": "{count, plural, one {# area marked} other {# areas marked}}"
     }
   },
   "common": {

@@ -170,6 +170,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noModelsFound": "No models found",
       "noUsername": "no-username",
@@ -177,7 +178,13 @@
       "confirmUnblock": "Unblock this model?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove model",
       "deleteWarning": "This will delete their account, photos, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete model"
+      "deleteFailed": "Failed to delete model",
+      "sedcardOnline": "Sedcard en ligne",
+      "sedcardHidden": "Sedcard masquée",
+      "sedcardOff": "Pas de sedcard",
+      "sedcardUntil": "Sedcard en ligne jusqu’au {date}",
+      "sedcardHiddenHint": "Le forfait court jusqu’au {date}, mais le modèle a mis la sedcard en privé.",
+      "sedcardHiddenBlocked": "Compte bloqué — le forfait court jusqu’au {date}, mais la sedcard n’est pas publique."
     },
     "clubs": {
       "title": "Clubs Management",
@@ -867,7 +874,31 @@
       "uploadVideoFailed": "Échec de l'envoi de la vidéo.",
       "deleteFailed": "Échec de la suppression du média.",
       "updateFailed": "Échec de la mise à jour du média.",
-      "reorderFailed": "Échec de l'enregistrement du nouvel ordre."
+      "reorderFailed": "Échec de l'enregistrement du nouvel ordre.",
+      "censor": "Censurer"
+    },
+    "photoCensor": {
+      "title": "Censurer la photo",
+      "subtitle": "Marque les zones à rendre méconnaissables",
+      "loading": "Chargement de la photo…",
+      "loadFailed": "Impossible de charger la photo.",
+      "blur": "Flou",
+      "pixelate": "Pixelliser",
+      "blackBar": "Bandeau noir",
+      "rectangle": "Rectangle",
+      "brush": "Pinceau",
+      "strength": "Intensité",
+      "brushSize": "Taille du pinceau",
+      "undo": "Annuler",
+      "clear": "Tout effacer",
+      "restore": "Original",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "saveFailed": "Échec de l’enregistrement.",
+      "restoreFailed": "Impossible de restaurer l’original.",
+      "confirmRestore": "Restaurer l’original intact ? La version censurée sera supprimée.",
+      "hintEmpty": "Fais glisser sur la zone à masquer.",
+      "hintCount": "{count, plural, one {# zone marquée} other {# zones marquées}}"
     }
   },
   "common": {
