@@ -1,10 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { unstable_cache } from 'next/cache'
-import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import HomePageClient from '@/components/home/HomePageClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { fetchActiveAds } from '@/lib/api/activeAds'
 import { buildMetadata } from '@/lib/seo'
 
 const CACHE_TTL = 60
@@ -166,8 +166,7 @@ async function buildModelsPageData() {
   const chatP = loadChatModels(admin, SUPA_URL)
   const storiesP = loadStories(admin)
 
-  const { data: modelsRaw } = await admin.rpc('models_with_active_ads')
-  const modelsData: Record<string, unknown>[] = modelsRaw ?? []
+  const modelsData: Record<string, unknown>[] = await fetchActiveAds(admin, 'models_with_active_ads')
   const modelIds = modelsData.map(m => (m as { id: string }).id)
 
   let models: Record<string, unknown>[] = []
@@ -237,13 +236,23 @@ async function buildModelsPageData() {
       }
     }
 
-    models = modelsData.map(model => ({
-      ...(model as Record<string, unknown>),
-      model_details: detailsMap.get((model as { id: string }).id) ?? null,
-      model_services_list: servicesMap.get((model as { id: string }).id) ?? [],
-      photoUrl: photosMap.get((model as { id: string }).id) ?? null,
-      is_verified: verifiedMap.get((model as { id: string }).id) ?? false,
-    }))
+    // Project only what the cards read. `models_with_active_ads` also returns
+    // `email` and `role`, and spreading the row put every model's private
+    // account address into the RSC payload — i.e. the public page source.
+    // Mirrors the same projection on the homepage.
+    models = modelsData.map(model => {
+      const row = model as { id: string; username?: string; created_at?: string; public_id?: number | null }
+      return {
+        id: row.id,
+        username: row.username,
+        created_at: row.created_at,
+        public_id: row.public_id ?? null,
+        model_details: detailsMap.get(row.id) ?? null,
+        model_services_list: servicesMap.get(row.id) ?? [],
+        photoUrl: photosMap.get(row.id) ?? null,
+        is_verified: verifiedMap.get(row.id) ?? false,
+      }
+    })
 
     const modelCityNames = [...new Set(
       models.map(m => (m.model_details as { city?: string } | null)?.city).filter(Boolean),
@@ -331,24 +340,7 @@ const getModelsPageData = unstable_cache(
 )
 
 export default async function ModelsPage() {
-  const [{ models, banners, statusMessages, chatModels, stories }, t] = await Promise.all([
-    getModelsPageData(),
-    getTranslations('home.seo'),
-  ])
-
-  const hero = (
-    <div className="rounded-xl bg-white/70 px-4 py-3 sm:px-5 sm:py-4">
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
-        {t('modelsH1')}
-      </h1>
-      <p className="mt-1 text-sm font-medium text-gray-700 leading-relaxed">
-        {t('modelsIntro')}
-      </p>
-      <p className="mt-1 text-xs text-gray-500 leading-relaxed">
-        {t('modelsBody')}
-      </p>
-    </div>
-  )
+  const { models, banners, statusMessages, chatModels, stories } = await getModelsPageData()
 
   return (
     <HomePageClient
@@ -357,7 +349,6 @@ export default async function ModelsPage() {
       statusMessages={statusMessages as any}
       chatModels={chatModels as any}
       stories={stories as any}
-      hero={hero}
     />
   )
 }

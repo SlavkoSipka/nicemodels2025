@@ -1,9 +1,9 @@
 import { unstable_cache } from 'next/cache'
-import { getTranslations } from 'next-intl/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import MixedHomeClient from '@/components/home/MixedHomeClient'
 import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
+import { fetchActiveAds } from '@/lib/api/activeAds'
 import { buildMetadata } from '@/lib/seo'
 
 export const revalidate = 60
@@ -20,8 +20,7 @@ const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
 async function buildModels() {
   const admin = createAdminClient()
-  const { data: modelsRaw } = await admin.rpc('models_with_active_ads')
-  const modelsData: any[] = modelsRaw ?? []
+  const modelsData: any[] = await fetchActiveAds(admin, 'models_with_active_ads')
   const modelIds: string[] = modelsData.map((m: any) => m.id)
 
   let models: any[] = []
@@ -140,9 +139,9 @@ async function buildModels() {
 
 async function buildClubs() {
   const admin = createAdminClient()
-  const { data: clubsRaw } = await admin.rpc('clubs_with_active_ads')
+  const clubsRaw: any[] = await fetchActiveAds(admin, 'clubs_with_active_ads')
   let clubs: any[] = []
-  if (clubsRaw?.length) {
+  if (clubsRaw.length) {
     const clubIds = clubsRaw.map((c: any) => c.id)
     const [{ data: clubDetails }, { data: clubContacts }, { data: clubPhotos }] = await Promise.all([
       admin.from('club_details').select('club_id, display_name, club_name, is_club, area, about_description').in('club_id', clubIds),
@@ -395,24 +394,12 @@ const getHomeData = unstable_cache(
 )
 
 export default async function HomePage() {
-  const [data, t] = await Promise.all([
-    getHomeData(),
-    getTranslations('home.seo'),
-  ])
-  const { models, clubs, banners, listings, statusMessages, chatModels, stories } = data
+  const { models, clubs, banners, listings, statusMessages, chatModels, stories } = await getHomeData()
 
   // Per-request seed: rotates the feed each load while keeping SSR and the
   // hydrated client order identical (deterministic seeded shuffle), so cards
   // never jump under the user's finger after hydration.
   const seed = (Date.now() ^ Math.floor(Math.random() * 0xffffffff)) >>> 0
-
-  const hero = (
-    <div className="rounded-xl bg-white/70 px-4 py-3 sm:px-5 sm:py-4">
-      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
-        {t('homeH1')}
-      </h1>
-    </div>
-  )
 
   return (
     <MixedHomeClient
@@ -424,7 +411,6 @@ export default async function HomePage() {
       chatModels={chatModels}
       stories={stories}
       seed={seed}
-      hero={hero}
     />
   )
 }

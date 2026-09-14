@@ -65,12 +65,11 @@ interface HomePageClientProps {
   statusMessages?: StatusMessage[]
   chatModels?: ChatModel[]
   stories?: any[]
-  /** Server-rendered H1 + intro strip, passed from the RSC page and inserted before the filter bar. */
-  hero?: React.ReactNode
 }
 
-export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [], stories, hero }: HomePageClientProps) {
+export default function HomePageClient({ initialModels, initialBanners = [], statusMessages = [], chatModels = [], stories }: HomePageClientProps) {
   const t = useTranslations('home')
+  const tSeo = useTranslations('home.seo')
   const [selectedRegion,       setSelectedRegion]       = useState<string>('all')
   const [selectedCity,         setSelectedCity]         = useState<string>('all')
   const [selectedCategory,     setSelectedCategory]     = useState<string>('all')
@@ -268,7 +267,17 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
             </aside>
 
             <div className="mx-auto flex w-full min-w-0 max-w-[1100px] flex-col gap-4 xl:max-w-none xl:mx-0">
-              {hero}
+              <div className="rounded-xl bg-white/70 px-4 py-3 sm:px-5 sm:py-4">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+                  {tSeo('modelsH1')}
+                </h1>
+                <p className="mt-1 text-sm font-medium text-gray-700 leading-relaxed">
+                  {tSeo('modelsIntro')}
+                </p>
+                <p className="mt-1 text-xs text-gray-500 leading-relaxed">
+                  {tSeo('modelsBody')}
+                </p>
+              </div>
               <CitySelector
                 selectedRegion={selectedRegion}             setSelectedRegion={setSelectedRegion}
                 selectedCity={selectedCity}                 setSelectedCity={setSelectedCity}

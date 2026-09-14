@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { unstable_cache } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { fetchActiveAds } from '@/lib/api/activeAds'
 import { buildMetadata } from '@/lib/seo'
 import { CITIES, getCityBySlug, type CityConfig } from '@/lib/data/cities-seo'
 import ModelCard from '@/components/home/ModelCard'
@@ -60,13 +61,13 @@ async function buildCityData(cfg: CityConfig) {
   const admin = createAdminClient()
   const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
-  const [{ data: activeModelsRaw }, { data: activeClubsRaw }] = await Promise.all([
-    admin.rpc('models_with_active_ads'),
-    admin.rpc('clubs_with_active_ads'),
+  const [activeModelsRaw, activeClubsRaw] = await Promise.all([
+    fetchActiveAds<{ id: string }>(admin, 'models_with_active_ads'),
+    fetchActiveAds<{ id: string }>(admin, 'clubs_with_active_ads'),
   ])
 
-  const modelIds = ((activeModelsRaw ?? []) as { id: string }[]).map(m => m.id)
-  const clubIds = ((activeClubsRaw ?? []) as { id: string }[]).map(c => c.id)
+  const modelIds = activeModelsRaw.map(m => m.id)
+  const clubIds = activeClubsRaw.map(c => c.id)
 
   const [modelsResult, clubsResult] = await Promise.all([
     modelIds.length > 0

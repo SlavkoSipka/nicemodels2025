@@ -74,8 +74,6 @@ interface MixedHomeClientProps {
    * under the user's finger.
    */
   seed?: number
-  /** Server-rendered H1 + intro strip, passed from the RSC page and inserted before the filter bar. */
-  hero?: React.ReactNode
 }
 
 const WIDE_PER_PAGE = 3
@@ -104,9 +102,10 @@ function buildInitialCards(
 }
 
 export default function MixedHomeClient({
-  models, clubs, banners, listings, statusMessages, chatModels, stories, seed = 1, hero,
+  models, clubs, banners, listings, statusMessages, chatModels, stories, seed = 1,
 }: MixedHomeClientProps) {
   const t = useTranslations('home')
+  const tSeo = useTranslations('home.seo')
   // Filter state
   const [selectedRegion, setSelectedRegion] = useState('all')
 
@@ -690,7 +689,11 @@ export default function MixedHomeClient({
             </aside>
 
             <div className="mx-auto flex w-full min-w-0 max-w-[1100px] flex-col gap-4 xl:max-w-none xl:mx-0">
-              {hero}
+              <div className="rounded-xl bg-white/70 px-4 py-3 sm:px-5 sm:py-4">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+                  {tSeo('homeH1')}
+                </h1>
+              </div>
               {renderFilterBar()}
               <h2 className="sr-only">{t('feed.sectionHeading')}</h2>
               {renderFeed()}
