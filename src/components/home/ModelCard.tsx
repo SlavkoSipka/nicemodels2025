@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
+import CardPhoto from './CardPhoto'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Sparkles, CheckCircle } from 'lucide-react'
@@ -32,9 +32,6 @@ interface ModelCardProps {
   priority?: boolean
 }
 
-const BLUR =
-  'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z'
-
 export default function ModelCard({ model, priority = false }: ModelCardProps) {
   const t = useTranslations('components.home.modelCard')
   const [cardHover, setCardHover] = useState(false)
@@ -47,6 +44,12 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
     const raw = (details?.about_me || '').replace(/<[^>]*>/g, '')
     return raw.length > 200 ? raw.slice(0, 200).trimEnd() + '…' : raw
   })()
+
+  const photoFallback = (
+    <div className="w-full h-full flex items-center justify-center">
+      <Sparkles className="w-8 h-8" style={{ color: '#cbd5e1' }} />
+    </div>
+  )
 
   let ago = ''
   if (model.created_at) {
@@ -94,29 +97,22 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
           style={{ aspectRatio: '3/4', background: '#f1f5f9' }}
         >
           {model.photoUrl ? (
-            <Image
+            <CardPhoto
               src={model.photoUrl}
               alt={title}
-              fill
               sizes="(max-width: 640px) 48vw, 22vw"
               priority={priority}
-              fetchPriority={priority ? 'high' : 'auto'}
               quality={75}
-              placeholder="blur"
-              blurDataURL={BLUR}
               className="object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"
+              fallback={photoFallback}
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Sparkles className="w-8 h-8" style={{ color: '#cbd5e1' }} />
-            </div>
-          )}
+          ) : photoFallback}
 
 
           {/* Time badge */}
           {ago && (
             <span
-              className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full sm:bottom-2"
+              className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full hidden sm:inline-block"
               style={{ background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.85)' }}
             >
               {ago}
@@ -144,6 +140,15 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             className="absolute bottom-0 left-0 right-0 sm:hidden p-2 pt-10"
             style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}
           >
+            {/* Stacked above the name: as an absolute badge it sat on top of the city line. */}
+            {ago && (
+              <span
+                className="inline-block mb-1 text-[9px] font-medium px-1.5 py-px rounded-full"
+                style={{ background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.85)' }}
+              >
+                {ago}
+              </span>
+            )}
             <h3 className="text-white font-bold text-[12px] leading-tight truncate">{title}</h3>
             {(city || age) && (
               <p className="text-white/70 text-[10px] mt-0.5 truncate">
