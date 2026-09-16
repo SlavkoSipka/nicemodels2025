@@ -195,6 +195,7 @@
       "colJoined": "Beigetreten",
       "colVerified": "Verifiziert",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Fotos",
       "noClubsFound": "Keine Clubs gefunden",
       "noUsername": "kein-benutzername",
@@ -202,7 +203,13 @@
       "confirmUnblock": "Diesen Club entsperren?",
       "deleteConfirmPrefix": "DELETE eingeben, um Club endgültig zu entfernen",
       "deleteWarning": "Dies löscht das Konto, Fotos, Anzeigen und alle Daten. Dies kann nicht rückgängig gemacht werden.",
-      "deleteFailed": "Club konnte nicht gelöscht werden"
+      "deleteFailed": "Club konnte nicht gelöscht werden",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard versteckt",
+      "sedcardOff": "Keine Sedcard",
+      "sedcardUntil": "Sedcard online bis {date}",
+      "sedcardHiddenBlocked": "Konto gesperrt – Paket läuft bis {date}, die Sedcard ist aber nicht öffentlich.",
+      "sedcardHiddenIncomplete": "Profil unvollständig – Paket läuft bis {date}, aber Onboarding oder Clubdaten fehlen, daher nicht öffentlich."
     },
     "jobsRents": {
       "title": "Jobs & Mieten Verwaltung",

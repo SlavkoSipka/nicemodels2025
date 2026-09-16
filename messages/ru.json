@@ -195,6 +195,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Седкарта",
       "photos": "Photos",
       "noClubsFound": "No clubs found",
       "noUsername": "no-username",
@@ -202,7 +203,13 @@
       "confirmUnblock": "Unblock this club?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove club",
       "deleteWarning": "This will delete the account, photos, listings, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete club"
+      "deleteFailed": "Failed to delete club",
+      "sedcardOnline": "Седкарта онлайн",
+      "sedcardHidden": "Седкарта скрыта",
+      "sedcardOff": "Нет седкарты",
+      "sedcardUntil": "Седкарта онлайн до {date}",
+      "sedcardHiddenBlocked": "Аккаунт заблокирован — пакет действует до {date}, но седкарта не публичная.",
+      "sedcardHiddenIncomplete": "Профиль не заполнен — пакет действует до {date}, но нет онбординга или данных клуба, поэтому не публичная."
     },
     "jobsRents": {
       "title": "Jobs & Rents Management",

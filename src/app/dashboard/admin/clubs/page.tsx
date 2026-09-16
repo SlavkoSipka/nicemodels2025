@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, Building2, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { ArrowLeft, Ban, CheckCircle, Search, Building2, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown, Zap, EyeOff } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
 import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
 
@@ -23,9 +23,12 @@ interface Club {
   contact_phone?: string | null
   contact_email?: string | null
   contact_website?: string | null
+  sedcard_expires_at?: string | null
+  sedcard_visible?: boolean
 }
 
-type SortKey = 'name' | 'email' | 'city' | 'created_at' | 'is_verified' | 'is_blocked'
+type SortKey = 'name' | 'email' | 'city' | 'created_at' | 'is_verified' | 'is_blocked' | 'sedcard'
+type SedcardFilter = 'all' | 'online' | 'hidden' | 'off'
 
 export default function AdminClubsPage() {
   const t = useTranslations('admin.clubs')
@@ -36,6 +39,7 @@ export default function AdminClubsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedClub, setSelectedClub] = useState<Club | null>(null)
   const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [sedcardFilter, setSedcardFilter] = useState<SedcardFilter>('all')
   const [sortKey, setSortKey] = useState<SortKey>('created_at')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
@@ -54,7 +58,7 @@ export default function AdminClubsPage() {
     if (error) { setLoading(false); return }
 
     const clubIds = (data || []).map((c: any) => c.id)
-    const [{ data: photos }, contactsRes] = await Promise.all([
+    const [{ data: photos }, contactsRes, sedcardsRes] = await Promise.all([
       supabase
         .from('club_photos')
         .select('club_id, file_path')
@@ -64,7 +68,11 @@ export default function AdminClubsPage() {
       fetch('/api/admin/contacts?role=company', { cache: 'no-store' })
         .then(r => r.ok ? r.json() : { contacts: [] })
         .catch(() => ({ contacts: [] })),
+      fetch('/api/admin/active-sedcards?role=company', { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : { sedcards: {} })
+        .catch(() => ({ sedcards: {} })),
     ])
+    const sedcards = (sedcardsRes.sedcards || {}) as Record<string, { expiresAt: string; visible: boolean }>
     const contacts = contactsRes.contacts as Array<{ club_id: string; country_code: string | null; phone_number: string | null; email: string | null; website: string | null }>
 
     const photoMap: Record<string, string> = {}
@@ -88,6 +96,8 @@ export default function AdminClubsPage() {
       contact_phone: contactMap[c.id]?.phone || null,
       contact_email: contactMap[c.id]?.email || null,
       contact_website: contactMap[c.id]?.website || null,
+      sedcard_expires_at: sedcards[c.id]?.expiresAt ?? null,
+      sedcard_visible: sedcards[c.id]?.visible ?? false,
     })))
     setLoading(false)
   }
@@ -127,7 +137,13 @@ export default function AdminClubsPage() {
     }
   }
 
+  // 'online' mirrors clubs_with_active_ads(): package running, onboarding done,
+  // club_details present (both folded into sedcard_visible), not blocked.
+  const sedcardState = (c: Club): SedcardFilter =>
+    !c.sedcard_expires_at ? 'off' : c.sedcard_visible && !c.is_blocked ? 'online' : 'hidden'
+
   const filtered = clubs.filter(c => {
+    if (sedcardFilter !== 'all' && sedcardState(c) !== sedcardFilter) return false
     const q = searchTerm.toLowerCase()
     if (!q) return true
     if (c.public_id && (`#${c.public_id}` === q || String(c.public_id) === q)) return true
@@ -137,6 +153,9 @@ export default function AdminClubsPage() {
       c.club_details?.display_name?.toLowerCase().includes(q)
   })
 
+  const onlineCount = clubs.filter(c => sedcardState(c) === 'online').length
+  const hiddenCount = clubs.filter(c => sedcardState(c) === 'hidden').length
+
   const sortValue = (c: Club, key: SortKey): string | number => {
     switch (key) {
       case 'name': return (c.club_details?.club_name || c.club_details?.display_name || c.username || '').toLowerCase()
@@ -145,6 +164,7 @@ export default function AdminClubsPage() {
       case 'created_at': return new Date(c.created_at || 0).getTime()
       case 'is_verified': return c.is_verified ? 1 : 0
       case 'is_blocked': return c.is_blocked ? 1 : 0
+      case 'sedcard': return c.sedcard_expires_at ? new Date(c.sedcard_expires_at).getTime() : 0
     }
   }
 
@@ -158,7 +178,7 @@ export default function AdminClubsPage() {
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
-    else { setSortKey(key); setSortDir(key === 'created_at' ? 'desc' : 'asc') }
+    else { setSortKey(key); setSortDir(key === 'created_at' || key === 'sedcard' ? 'desc' : 'asc') }
   }
 
   const SortIcon = ({ k }: { k: SortKey }) => {
@@ -166,6 +186,26 @@ export default function AdminClubsPage() {
     return sortDir === 'asc'
       ? <ArrowUp className="w-3 h-3 text-gray-700" />
       : <ArrowDown className="w-3 h-3 text-gray-700" />
+  }
+
+  const SedcardBadge = ({ c, compact }: { c: Club; compact?: boolean }) => {
+    const state = sedcardState(c)
+    const pad = compact ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-0.5'
+    const ico = compact ? 'w-2.5 h-2.5' : 'w-3 h-3'
+    const until = c.sedcard_expires_at ? new Date(c.sedcard_expires_at).toLocaleString() : ''
+    if (state === 'off') return <span className="text-xs text-gray-400">{t('sedcardOff')}</span>
+    if (state === 'hidden') return (
+      <span title={c.is_blocked ? t('sedcardHiddenBlocked', { date: until }) : t('sedcardHiddenIncomplete', { date: until })}
+        className={`inline-flex items-center gap-0.5 rounded-full font-medium bg-amber-50 text-amber-700 ${pad}`}>
+        <EyeOff className={ico} /> {t('sedcardHidden')}
+      </span>
+    )
+    return (
+      <span title={t('sedcardUntil', { date: until })}
+        className={`inline-flex items-center gap-0.5 rounded-full font-medium bg-brand/10 text-brand ${pad}`}>
+        <Zap className={ico} /> {t('sedcardOnline')}
+      </span>
+    )
   }
 
   const handleDownloadXlsx = async () => {
@@ -183,6 +223,8 @@ export default function AdminClubsPage() {
       { header: 'Verified', value: c => c.is_verified ? 'Yes' : 'No', width: 10 },
       { header: 'Onboarded', value: c => c.onboarding_completed ? 'Yes' : 'No', width: 12 },
       { header: 'Blocked', value: c => c.is_blocked ? 'Yes' : 'No', width: 10 },
+      { header: 'Sedcard', value: c => sedcardState(c), width: 10 },
+      { header: 'Sedcard Until', value: c => c.sedcard_expires_at ? fmtDateTime(c.sedcard_expires_at) : '', text: true, width: 20 },
       { header: 'User ID', value: c => c.id, text: true, width: 38 },
     ])
   }
@@ -227,6 +269,25 @@ export default function AdminClubsPage() {
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
 
+          {/* Sedcard filter */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            {([
+              { key: 'all' as SedcardFilter, label: tc('all'), count: clubs.length },
+              { key: 'online' as SedcardFilter, label: t('sedcardOnline'), count: onlineCount },
+              { key: 'hidden' as SedcardFilter, label: t('sedcardHidden'), count: hiddenCount },
+              { key: 'off' as SedcardFilter, label: t('sedcardOff'), count: clubs.length - onlineCount - hiddenCount },
+            ]).map(chip => (
+              <button key={chip.key} onClick={() => setSedcardFilter(chip.key)}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-full border transition-colors ${
+                  sedcardFilter === chip.key
+                    ? 'bg-brand text-white border-brand'
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                }`}>
+                {chip.label} ({chip.count})
+              </button>
+            ))}
+          </div>
+
           {/* Mobile card list */}
           <div className="md:hidden space-y-2.5">
             {sorted.map(club => (
@@ -264,6 +325,7 @@ export default function AdminClubsPage() {
                             <CheckCircle className="w-2.5 h-2.5" /> {tc('verified')}
                           </span>
                         )}
+                        <SedcardBadge c={club} compact />
                       </div>
                     </div>
                     <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
@@ -316,6 +378,7 @@ export default function AdminClubsPage() {
                       { label: t('colJoined'), key: 'created_at' as SortKey },
                       { label: t('colVerified'), key: 'is_verified' as SortKey },
                       { label: t('colStatus'), key: 'is_blocked' as SortKey },
+                      { label: t('colSedcard'), key: 'sedcard' as SortKey },
                     ]).map(col => (
                       <th key={col.key} className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
                         <button onClick={() => toggleSort(col.key)} className="inline-flex items-center gap-1 hover:text-gray-900">
@@ -374,6 +437,16 @@ export default function AdminClubsPage() {
                           )}
                           {!club.onboarding_completed && (
                             <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">{tc('incomplete')}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-col gap-0.5 items-start">
+                          <SedcardBadge c={club} />
+                          {club.sedcard_expires_at && (
+                            <span className="text-[10px] text-gray-400">
+                              {new Date(club.sedcard_expires_at).toLocaleDateString()}
+                            </span>
                           )}
                         </div>
                       </td>

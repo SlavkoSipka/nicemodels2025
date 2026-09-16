@@ -195,6 +195,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noClubsFound": "No clubs found",
       "noUsername": "no-username",
@@ -202,7 +203,13 @@
       "confirmUnblock": "Unblock this club?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove club",
       "deleteWarning": "This will delete the account, photos, listings, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete club"
+      "deleteFailed": "Failed to delete club",
+      "sedcardOnline": "Sedcard en ligne",
+      "sedcardHidden": "Sedcard masquée",
+      "sedcardOff": "Pas de sedcard",
+      "sedcardUntil": "Sedcard en ligne jusqu’au {date}",
+      "sedcardHiddenBlocked": "Compte bloqué — le forfait court jusqu’au {date}, mais la sedcard n’est pas publique.",
+      "sedcardHiddenIncomplete": "Profil incomplet — le forfait court jusqu’au {date}, mais l’onboarding ou les infos du club manquent : non public."
     },
     "jobsRents": {
       "title": "Jobs & Rents Management",

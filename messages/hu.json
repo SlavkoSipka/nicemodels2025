@@ -195,6 +195,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noClubsFound": "No clubs found",
       "noUsername": "no-username",
@@ -202,7 +203,13 @@
       "confirmUnblock": "Unblock this club?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove club",
       "deleteWarning": "This will delete the account, photos, listings, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete club"
+      "deleteFailed": "Failed to delete club",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard rejtve",
+      "sedcardOff": "Nincs sedcard",
+      "sedcardUntil": "Sedcard online eddig: {date}",
+      "sedcardHiddenBlocked": "Fiók letiltva — a csomag {date}-ig tart, de a sedcard nem nyilvános.",
+      "sedcardHiddenIncomplete": "Hiányos profil — a csomag {date}-ig tart, de hiányzik az onboarding vagy a klub adatai, így nem nyilvános."
     },
     "jobsRents": {
       "title": "Jobs & Rents Management",

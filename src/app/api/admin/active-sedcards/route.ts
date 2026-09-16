@@ -9,10 +9,9 @@ type SedcardState = { expiresAt: string; visible: boolean }
 
 /**
  * Which models/clubs currently have a running ad package ("sedcard online").
- * Mirrors the expiry math in models_with_active_ads(), but also reports rows
- * whose owner switched the sedcard to private — those are paid yet invisible
- * on the public site, which is exactly the case the admin list has to tell
- * apart from "no package at all".
+ * Mirrors the expiry math in models_with_active_ads() / clubs_with_active_ads(),
+ * but also reports rows that are paid yet invisible on the public site — the
+ * case the admin list has to tell apart from "no package at all".
  */
 export async function GET(request: NextRequest) {
   try {
@@ -75,6 +74,18 @@ export async function GET(request: NextRequest) {
       // models_with_active_ads() INNER JOINs model_details, so a model without
       // that row never reaches the public listing either.
       for (const id of ids) if (!seen.has(id)) hiddenIds.add(id)
+    }
+    if (ids.length > 0 && role === 'company') {
+      // Clubs have no private switch, but clubs_with_active_ads() JOINs
+      // club_details and requires onboarding_completed — a club missing either
+      // pays for a package nobody can see. Blocking is judged client-side.
+      const [{ data: details }, { data: profiles }] = await Promise.all([
+        admin.from('club_details').select('club_id').in('club_id', ids),
+        admin.from('profiles').select('id, onboarding_completed').in('id', ids),
+      ])
+      const withDetails = new Set(((details as any[]) || []).map(d => d.club_id))
+      const onboarded = new Set(((profiles as any[]) || []).filter(p => p.onboarding_completed).map(p => p.id))
+      for (const id of ids) if (!withDetails.has(id) || !onboarded.has(id)) hiddenIds.add(id)
     }
 
     const sedcards: Record<string, SedcardState> = {}

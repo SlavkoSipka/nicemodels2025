@@ -195,6 +195,7 @@
       "colJoined": "Joined",
       "colVerified": "Verified",
       "colStatus": "Status",
+      "colSedcard": "Sedcard",
       "photos": "Photos",
       "noClubsFound": "No clubs found",
       "noUsername": "no-username",
@@ -202,7 +203,13 @@
       "confirmUnblock": "Unblock this club?",
       "deleteConfirmPrefix": "Type DELETE to permanently remove club",
       "deleteWarning": "This will delete the account, photos, listings, and all data. This cannot be undone.",
-      "deleteFailed": "Failed to delete club"
+      "deleteFailed": "Failed to delete club",
+      "sedcardOnline": "Sedcard online",
+      "sedcardHidden": "Sedcard ascunsă",
+      "sedcardOff": "Fără sedcard",
+      "sedcardUntil": "Sedcard online până la {date}",
+      "sedcardHiddenBlocked": "Cont blocat — pachetul este valabil până la {date}, dar sedcardul nu este public.",
+      "sedcardHiddenIncomplete": "Profil incomplet — pachetul este valabil până la {date}, dar lipsesc onboardingul sau datele clubului, deci nu este public."
     },
     "jobsRents": {
       "title": "Jobs & Rents Management",
