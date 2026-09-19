@@ -8,8 +8,22 @@
 -- bottom promo strip, so this migration only widens the allowed values and
 -- seeds prices. No data is rewritten.
 --
+-- ⚠️  The placement lists below MUST keep every value already in the tables,
+-- not just the ones this migration cares about. 'interstitial' comes from
+-- INSERT-banner-package-interstitial.sql, which seeded 12 inactive pricing
+-- rows for a placement that has not shipped in the UI yet; dropping it from
+-- the CHECK makes ALTER TABLE fail with
+--   "check constraint ... is violated by some row".
+-- If this script still fails, run DIAGNOSE below to see which value is new.
+--
 -- Run in Supabase SQL Editor. Safe to re-run.
 -- ============================================================================
+
+-- DIAGNOSE (run on its own if the script errors) ------------------------------
+-- SELECT 'banners' AS tbl, placement, count(*) FROM public.banners GROUP BY 1, 2
+-- UNION ALL
+-- SELECT 'pricing', placement, count(*) FROM public.banner_region_pricing GROUP BY 1, 2
+-- ORDER BY 1, 2;
 
 -- 1) Allow the new value on banners.placement ---------------------------------
 ALTER TABLE public.banners
@@ -17,10 +31,10 @@ ALTER TABLE public.banners
 
 ALTER TABLE public.banners
   ADD CONSTRAINT banners_placement_check
-  CHECK (placement IN ('feed_wide', 'feed_card', 'sidebar_left', 'sidebar_right'));
+  CHECK (placement IN ('feed_wide', 'feed_card', 'sidebar_left', 'sidebar_right', 'interstitial'));
 
 COMMENT ON COLUMN public.banners.placement IS
-  'Where the banner renders: wide row in feed, single grid cell, left rail, or right rail';
+  'Where the banner renders: wide row in feed, single grid cell, left rail, right rail, or interstitial (prepared, not shipped)';
 
 -- 2) Allow the new value on banner_region_pricing.placement -------------------
 ALTER TABLE public.banner_region_pricing
@@ -28,7 +42,7 @@ ALTER TABLE public.banner_region_pricing
 
 ALTER TABLE public.banner_region_pricing
   ADD CONSTRAINT banner_region_pricing_placement_check
-  CHECK (placement IN ('feed_wide', 'feed_card', 'sidebar_left', 'sidebar_right'));
+  CHECK (placement IN ('feed_wide', 'feed_card', 'sidebar_left', 'sidebar_right', 'interstitial'));
 
 -- 3) Seed the 3 durations x 4 region counts for the right rail ----------------
 -- Seeded at 0 first so the rows always exist, then priced to match the left
@@ -52,8 +66,8 @@ UPDATE public.banner_region_pricing SET price_chf = 29.00, updated_at = now()
 UPDATE public.banner_region_pricing SET price_chf = 39.00, updated_at = now()
   WHERE placement = 'sidebar_right' AND duration_days = 30;
 
--- Verify:
--- SELECT placement, duration_days, region_count, price_chf
--- FROM banner_region_pricing
--- WHERE placement = 'sidebar_right'
--- ORDER BY duration_days, region_count;
+-- Verify (this is the result the SQL Editor will show):
+SELECT placement, duration_days, region_count, price_chf, is_active
+FROM public.banner_region_pricing
+WHERE placement = 'sidebar_right'
+ORDER BY duration_days, region_count;
