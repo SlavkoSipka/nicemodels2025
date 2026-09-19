@@ -44,30 +44,35 @@ ALTER TABLE public.banner_region_pricing
   ADD CONSTRAINT banner_region_pricing_placement_check
   CHECK (placement IN ('feed_wide', 'feed_card', 'sidebar_left', 'sidebar_right', 'interstitial'));
 
--- 3) Seed the 3 durations x 4 region counts for the right rail ----------------
--- Seeded at 0 first so the rows always exist, then priced to match the left
--- rail (19 / 29 / 39 CHF for 5 / 14 / 30 days). Buyers always pay the
--- 4-region price, so every region_count row carries the same value — see
--- UPDATE-banner-region-pricing.sql for the reasoning.
-INSERT INTO public.banner_region_pricing (placement, duration_days, region_count, price_chf)
-SELECT 'sidebar_right', duration_days, region_count, 0
-FROM (
-  SELECT unnest(ARRAY[5, 14, 30]) AS duration_days
-) d
-CROSS JOIN (
-  SELECT generate_series(1, 4) AS region_count
-) r
+-- 3) Mirror the left rail's pricing onto the right rail -----------------------
+-- Derived from sidebar_left rather than a hardcoded duration/region list, for
+-- two reasons: the right rail is priced identically to the left one by design,
+-- and the live table does NOT have the 3x4 shape the repo's seed scripts
+-- suggest (it carries ~81 rows per placement). Copying guarantees a matching
+-- row for every (duration_days, region_count) the buy flow can ask for —
+-- checkout looks the price up as an exact hit on
+-- (placement, duration_days, region_count) and throws "Banner pricing not
+-- configured" on a miss.
+--
+-- DO NOTHING, not DO UPDATE: re-running must not clobber prices an admin has
+-- since changed for the right rail on its own.
+INSERT INTO public.banner_region_pricing
+  (placement, duration_days, region_count, price_chf, is_active)
+SELECT 'sidebar_right', duration_days, region_count, price_chf, is_active
+FROM public.banner_region_pricing
+WHERE placement = 'sidebar_left'
 ON CONFLICT (placement, duration_days, region_count) DO NOTHING;
 
-UPDATE public.banner_region_pricing SET price_chf = 19.00, updated_at = now()
-  WHERE placement = 'sidebar_right' AND duration_days = 5;
-UPDATE public.banner_region_pricing SET price_chf = 29.00, updated_at = now()
-  WHERE placement = 'sidebar_right' AND duration_days = 14;
-UPDATE public.banner_region_pricing SET price_chf = 39.00, updated_at = now()
-  WHERE placement = 'sidebar_right' AND duration_days = 30;
-
--- Verify (this is the result the SQL Editor will show):
-SELECT placement, duration_days, region_count, price_chf, is_active
+-- Verify (this is the result the SQL Editor will show). The two rails should
+-- report the same row count, and the 4-region prices are the ones buyers pay.
+SELECT
+  placement,
+  count(*)                                        AS rows,
+  count(*) FILTER (WHERE is_active)               AS active_rows,
+  count(DISTINCT duration_days)                   AS durations,
+  min(price_chf)                                  AS price_min,
+  max(price_chf)                                  AS price_max
 FROM public.banner_region_pricing
-WHERE placement = 'sidebar_right'
-ORDER BY duration_days, region_count;
+WHERE placement IN ('sidebar_left', 'sidebar_right')
+GROUP BY placement
+ORDER BY placement;

@@ -13,7 +13,7 @@ Sve promene u Supabase bazi podataka.
 - `banners_placement_check` proširen na `('feed_wide','feed_card','sidebar_left','sidebar_right','interstitial')`
 - `banner_region_pricing_placement_check` proširen isto tako
 - ⚠️ `interstitial` MORA da ostane u obe liste: `INSERT-banner-package-interstitial.sql` je već seedovao 12 neaktivnih pricing redova sa tim placement-om. Bez njega `ALTER TABLE` puca sa `check constraint ... is violated by some row`.
-- Seedovano 3 trajanja × 4 regiona za `sidebar_right`, cene 19 / 29 / 39 CHF (5 / 14 / 30 dana) — iste kao leva kolona
+- Pricing za `sidebar_right` se KOPIRA iz `sidebar_left` (`INSERT ... SELECT`), ne iz hardkodovane liste — živa tabela ima ~81 red po placement-u, a ne 3×4 kao seed skripte; checkout traži tačan pogodak na `(placement, duration_days, region_count)` pa bi rupa oborila kupovinu
 - Fajl: `ALTER-banners-add-sidebar-right-placement.sql`
 
 ### ⚠️ Breaking Changes
