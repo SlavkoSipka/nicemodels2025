@@ -115,3 +115,28 @@ export function leadImageOf(post: CmsPost): string | null {
   const withUrl = (post.content_json ?? []).find(b => b.type === 'image' && b.url)
   return withUrl?.url ?? null
 }
+
+/**
+ * Hosts `next/image` is allowed to optimise, mirroring `remotePatterns` in
+ * next.config.ts.
+ *
+ * Editors pick image URLs in the CMS, so nothing on our side guarantees the
+ * host is one Next knows about — and `next/image` THROWS on an unconfigured
+ * host rather than degrading, which would take down /blog and every article
+ * that embeds such an image. Callers use this to fall back to a plain <img>
+ * (or a placeholder) instead of crashing the route. Add a host here only
+ * together with next.config.ts and the CSP img-src list.
+ */
+const OPTIMIZABLE_IMAGE_HOSTS = new Set([
+  'images.unsplash.com',
+  'ykzqjwqomaeuppubofid.supabase.co',
+])
+
+export function isOptimizableImage(url: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(url)
+    return protocol === 'https:' && OPTIMIZABLE_IMAGE_HOSTS.has(hostname)
+  } catch {
+    return false
+  }
+}

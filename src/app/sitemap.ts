@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CITIES } from '@/lib/data/cities-seo'
 import { getBlogPosts, BLOG_PATH } from '@/lib/cms'
+import { HELP_PATH, HELP_TOPICS, helpUrl } from '@/lib/helpTopics'
 
 const SITE_URL = 'https://nicemodels.ch'
 
@@ -20,9 +21,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/clubs`,             lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${SITE_URL}/jobs-rents`,        lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.7 },
     { url: `${SITE_URL}/latest-actions`,    lastModified: STATIC_LASTMOD, changeFrequency: 'daily',   priority: 0.6 },
-    { url: `${SITE_URL}/blog`,              lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.6 },
-    { url: `${SITE_URL}${BLOG_PATH}`,   lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.7 },
+    { url: `${SITE_URL}${BLOG_PATH}`,       lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.7 },
     { url: `${SITE_URL}/werden-model`,      lastModified: STATIC_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${SITE_URL}${HELP_PATH}`,       lastModified: STATIC_LASTMOD, changeFrequency: 'monthly', priority: 0.6 },
+    ...HELP_TOPICS.map(topic => ({
+      url: `${SITE_URL}${helpUrl(topic.slug)}`,
+      lastModified: STATIC_LASTMOD,
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    })),
     { url: `${SITE_URL}/comments`,          lastModified: STATIC_LASTMOD, changeFrequency: 'weekly',  priority: 0.5 },
     { url: `${SITE_URL}/contact`,           lastModified: STATIC_LASTMOD, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${SITE_URL}/privacy`,           lastModified: STATIC_LASTMOD, changeFrequency: 'yearly',  priority: 0.2 },

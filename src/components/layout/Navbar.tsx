@@ -135,6 +135,7 @@ export default function Navbar() {
               { href: '/comments',       label: t('comments') },
               { href: '/contact',        label: t('contact') },
               { href: '/blog',           label: t('blog') },
+              { href: '/hilfe',          label: t('help') },
             ].map(({ href, label }) => (
               <Link
                 key={href}
@@ -167,6 +168,7 @@ export default function Navbar() {
               { href: '/comments',       label: t('comments') },
               { href: '/contact',        label: t('contact') },
               { href: '/blog',           label: t('blog') },
+              { href: '/hilfe',          label: t('help') },
             ].map(({ href, label }) => (
               <Link
                 key={href}

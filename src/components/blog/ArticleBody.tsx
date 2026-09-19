@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { INLINE_LINK_RE, isSafeHref, type CmsBlock } from '@/lib/cms'
+import { INLINE_LINK_RE, isOptimizableImage, isSafeHref, type CmsBlock } from '@/lib/cms'
 
 const INTERNAL_ORIGIN = 'https://nicemodels.ch'
 
@@ -114,15 +114,28 @@ function Block({ block }: { block: CmsBlock }) {
 
     case 'image': {
       if (!block.url) return null
+      // An editor-supplied host that next.config.ts doesn't know makes
+      // next/image throw and 500s the whole article, so serve those plainly.
+      const optimizable = isOptimizableImage(block.url)
       return (
         <figure className="mb-8">
-          <Image
-            src={block.url}
-            alt={block.alt ?? ''}
-            width={1200}
-            height={675}
-            className="w-full rounded-lg object-cover"
-          />
+          {optimizable ? (
+            <Image
+              src={block.url}
+              alt={block.alt ?? ''}
+              width={1200}
+              height={675}
+              className="w-full rounded-lg object-cover"
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={block.url}
+              alt={block.alt ?? ''}
+              loading="lazy"
+              className="w-full rounded-lg object-cover"
+            />
+          )}
           {block.caption ? (
             <figcaption className="mt-2 text-center text-sm text-gray-500">{block.caption}</figcaption>
           ) : null}

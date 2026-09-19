@@ -49,6 +49,7 @@ export default function Footer() {
                 { href: '/clubs',   label: t('linkClubs') },
                 { href: '/comments',label: t('linkComments') },
                 { href: '/blog',    label: t('linkBlog') },
+                { href: '/hilfe',   label: t('linkHelp') },
                 { href: '/contact', label: t('linkContact') },
               ].map((item) => (
                 <li key={item.href}>
