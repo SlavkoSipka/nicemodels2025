@@ -86,24 +86,30 @@ function CardPreview({ src, isMobile }: { src: string; isMobile: boolean }) {
   )
 }
 
-/** sidebar_left desktop — tall 2:3 rail beside the grid. */
-function SidebarDesktopPreview({ src }: { src: string }) {
+/** sidebar_left / sidebar_right desktop — tall 2:3 rail beside the grid. */
+function SidebarDesktopPreview({ src, side }: { src: string; side: 'left' | 'right' }) {
+  const rail = (
+    <div className="w-[32%] max-w-[160px] shrink-0">
+      <div className="relative w-full overflow-hidden rounded-xl border border-black/10 bg-slate-100 aspect-[2/3]">
+        <YourBannerBadge />
+        <BannerImage src={src} alt="" plain />
+      </div>
+    </div>
+  )
+  const grid = (
+    <div className="flex-1 grid grid-cols-2 gap-2">
+      {TONES.map((tone, i) => <PlaceholderCard key={i} tone={tone} />)}
+    </div>
+  )
   return (
     <div className="flex gap-3">
-      <div className="w-[32%] max-w-[160px] shrink-0">
-        <div className="relative w-full overflow-hidden rounded-xl border border-black/10 bg-slate-100 aspect-[2/3]">
-          <YourBannerBadge />
-          <BannerImage src={src} alt="" plain />
-        </div>
-      </div>
-      <div className="flex-1 grid grid-cols-2 gap-2">
-        {TONES.map((tone, i) => <PlaceholderCard key={i} tone={tone} />)}
-      </div>
+      {side === 'left' ? rail : grid}
+      {side === 'left' ? grid : rail}
     </div>
   )
 }
 
-/** sidebar_left mobile — bottom promo strip (2:3 thumbs). */
+/** Side rails on mobile — bottom promo strip (2:3 thumbs), same for both sides. */
 function SidebarMobilePreview({ src }: { src: string }) {
   const t = useTranslations('components.placementMock')
   return (
@@ -180,7 +186,8 @@ export default function BannerLivePreview({ placement, previewUrl }: BannerLiveP
   const body = (mobile: boolean) => {
     if (placement === 'feed_wide') return <WidePreview src={previewUrl} />
     if (placement === 'feed_card') return <CardPreview src={previewUrl} isMobile={mobile} />
-    return mobile ? <SidebarMobilePreview src={previewUrl} /> : <SidebarDesktopPreview src={previewUrl} />
+    if (mobile) return <SidebarMobilePreview src={previewUrl} />
+    return <SidebarDesktopPreview src={previewUrl} side={placement === 'sidebar_right' ? 'right' : 'left'} />
   }
 
   return (

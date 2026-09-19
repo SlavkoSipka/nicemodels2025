@@ -947,6 +947,7 @@
     "comments": "Komentáře",
     "contact": "Kontakt",
     "blog": "Blog",
+    "help": "Nápověda",
     "register": "Registrovat",
     "login": "Přihlásit se",
     "logout": "Odhlásit se",
@@ -966,6 +967,7 @@
     "linkClubs": "Kluby",
     "linkComments": "Komentáře",
     "linkBlog": "Blog",
+    "linkHelp": "Nápověda",
     "linkContact": "Kontakt",
     "linkPrivacy": "Soukromí / Datenschutz",
     "linkTerms": "AGB (Obchodní podmínky)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Zamítnuto",
         "placementCard": "Kartový slot",
         "placementSidebar": "Levý sloupec",
+        "placementSidebarRight": "Pravý sloupec",
         "placementWide": "Široký výpis"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Pozice karty",
         "placementSidebar": "Levý sloupec",
+        "placementSidebarRight": "Pravý sloupec",
         "placementWide": "Široký banner",
         "statusActive": "Aktivní",
         "statusPending": "Čeká",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Zamítnut",
         "placementCard": "Pozice karty",
         "placementSidebar": "Levý sloupec",
+        "placementSidebarRight": "Pravý sloupec",
         "placementWide": "Široký výpis"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "VÁŠ LEVÝ SLOUPEC",
       "bannerLeftLine1": "VÁŠ LEVÝ",
       "bannerLeftLine2": "SLOUPEC",
+      "bannerRightLine1": "VÁŠ PRAVÝ",
+      "bannerRightLine2": "SLOUPEC",
       "bannerLeftDesktopHint": "Pouze na počítači",
       "leftColumnMobileCaption": "Stejné umístění — přilepený pruh dole na telefonech",
       "wideBannerRepeat": "… další široký banner se opakuje po každých 6 kartách",
@@ -4403,6 +4410,11 @@
         "title": "Levý sloupec",
         "zone": "Vedle výpisu",
         "desc": "Svislý slot vedle výpisu na počítači/notebooku. Na telefonech se stejná kreativa zobrazuje ve spodním promo pruhu (ne vedle mřížky). Pořadí slotů je při každém načtení náhodné."
+      },
+      "sidebar_right": {
+        "title": "Pravý sloupec",
+        "zone": "Vedle výpisu",
+        "desc": "Svislý slot vpravo od výpisu na počítači/notebooku – nad widgety chatu a stavů. Na telefonech se stejná kreativa zobrazuje ve spodním promo pruhu. Pořadí slotů je při každém načtení náhodné."
       }
     },
     "bannerPlacementGuide": {

@@ -6,6 +6,7 @@ import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
 import { fetchActiveAds } from '@/lib/api/activeAds'
 import { buildMetadata } from '@/lib/seo'
+import { normalizePlacement } from '@/lib/bannerPlacement'
 
 const CACHE_TTL = 60
 
@@ -40,12 +41,14 @@ async function loadBanners(
     blockedBannerOwners = new Set((ownerProfiles ?? []).filter(p => p.is_blocked).map(p => p.id))
   }
 
-  const seenOwners = new Set<string>()
+  // One banner per advertiser PER PLACEMENT — see the same note in src/app/page.tsx.
+  const seenSlots = new Set<string>()
   return (bannersRaw ?? [])
     .filter((b: { owner_id: string }) => !blockedBannerOwners.has(b.owner_id))
-    .filter((b: { owner_id: string }) => {
-      if (seenOwners.has(b.owner_id)) return false
-      seenOwners.add(b.owner_id)
+    .filter((b: { owner_id: string; placement: string | null }) => {
+      const key = `${b.owner_id}:${normalizePlacement(b.placement)}`
+      if (seenSlots.has(key)) return false
+      seenSlots.add(key)
       return true
     })
     .map((b: {

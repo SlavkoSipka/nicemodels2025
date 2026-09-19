@@ -947,6 +947,7 @@
     "comments": "Commentaires",
     "contact": "Contact",
     "blog": "Blog",
+    "help": "Aide",
     "register": "S'inscrire",
     "login": "Connexion",
     "logout": "Déconnexion",
@@ -966,6 +967,7 @@
     "linkClubs": "Clubs",
     "linkComments": "Commentaires",
     "linkBlog": "Blog",
+    "linkHelp": "Aide",
     "linkContact": "Contact",
     "linkPrivacy": "Confidentialité / Datenschutz",
     "linkTerms": "AGB (CGV)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Refusée",
         "placementCard": "Emplacement carte",
         "placementSidebar": "Colonne gauche",
+        "placementSidebarRight": "Colonne droite",
         "placementWide": "Bandeau large"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR : {value}",
         "placementCard": "Emplacement carte",
         "placementSidebar": "Colonne gauche",
+        "placementSidebarRight": "Colonne droite",
         "placementWide": "Bannière large",
         "statusActive": "Actif",
         "statusPending": "En attente",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Refusée",
         "placementCard": "Emplacement carte",
         "placementSidebar": "Colonne gauche",
+        "placementSidebarRight": "Colonne droite",
         "placementWide": "Bandeau large"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "COLONNE GAUCHE",
       "bannerLeftLine1": "À GAUCHE",
       "bannerLeftLine2": "(COLONNE)",
+      "bannerRightLine1": "À DROITE",
+      "bannerRightLine2": "(COLONNE)",
       "bannerLeftDesktopHint": "Bureau uniquement",
       "leftColumnMobileCaption": "Même emplacement — bande en bas sur mobile",
       "wideBannerRepeat": "… un autre bandeau large se réaffiche toutes les 6 cartes",
@@ -4403,6 +4410,11 @@
         "title": "Colonne gauche",
         "zone": "À côté du fil",
         "desc": "Emplacement vertical à côté de la liste sur ordinateur ; sur téléphone la même créative s’affiche en bas (hors grille). Ordre aléatoire à chaque chargement."
+      },
+      "sidebar_right": {
+        "title": "Colonne droite",
+        "zone": "À côté du fil",
+        "desc": "Emplacement vertical à droite de la liste sur ordinateur, au-dessus des widgets chat et statut ; sur téléphone la même créative s’affiche en bas. Ordre aléatoire à chaque chargement."
       }
     },
     "bannerPlacementGuide": {

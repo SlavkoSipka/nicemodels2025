@@ -947,6 +947,7 @@
     "comments": "Comments",
     "contact": "Contact",
     "blog": "Blog",
+    "help": "Help",
     "register": "Register",
     "login": "Log in",
     "logout": "Logout",
@@ -966,6 +967,7 @@
     "linkClubs": "Clubs",
     "linkComments": "Comments",
     "linkBlog": "Blog",
+    "linkHelp": "Help",
     "linkContact": "Contact",
     "linkPrivacy": "Privacy / Datenschutz",
     "linkTerms": "AGB (Terms)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Rejected",
         "placementCard": "Card slot",
         "placementSidebar": "Left column",
+        "placementSidebarRight": "Right column",
         "placementWide": "Wide feed"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Card slot",
         "placementSidebar": "Left column",
+        "placementSidebarRight": "Right column",
         "placementWide": "Wide banner",
         "statusActive": "Active",
         "statusPending": "Pending",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Rejected",
         "placementCard": "Card slot",
         "placementSidebar": "Left column",
+        "placementSidebarRight": "Right column",
         "placementWide": "Wide feed"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "YOUR LEFT COLUMN",
       "bannerLeftLine1": "YOUR LEFT",
       "bannerLeftLine2": "COLUMN",
+      "bannerRightLine1": "YOUR RIGHT",
+      "bannerRightLine2": "COLUMN",
       "bannerLeftDesktopHint": "Desktop only",
       "leftColumnMobileCaption": "Same placement — sticky strip at the bottom on phones",
       "wideBannerRepeat": "… another wide banner repeats every 6 cards",
@@ -4403,6 +4410,11 @@
         "title": "Left column",
         "zone": "Beside the feed",
         "desc": "Vertical slot beside the listing on desktop/laptop. On phones the same creative appears in the bottom promo strip (not beside the grid). Slot order is random on each load."
+      },
+      "sidebar_right": {
+        "title": "Right column",
+        "zone": "Beside the feed",
+        "desc": "Vertical slot to the right of the listing on desktop/laptop — above the chat and status widgets. On phones the same creative appears in the bottom promo strip. Slot order is random on each load."
       }
     },
     "bannerPlacementGuide": {

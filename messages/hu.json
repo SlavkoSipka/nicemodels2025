@@ -947,6 +947,7 @@
     "comments": "Vélemények",
     "contact": "Kapcsolat",
     "blog": "Blog",
+    "help": "Súgó",
     "register": "Regisztráció",
     "login": "Bejelentkezés",
     "logout": "Kijelentkezés",
@@ -966,6 +967,7 @@
     "linkClubs": "Klubok",
     "linkComments": "Vélemények",
     "linkBlog": "Blog",
+    "linkHelp": "Súgó",
     "linkContact": "Kapcsolat",
     "linkPrivacy": "Adatvédelem / Datenschutz",
     "linkTerms": "ÁSZF (AGB)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Elutasítva",
         "placementCard": "Kártyahely",
         "placementSidebar": "Bal oszlop",
+        "placementSidebarRight": "Jobb oszlop",
         "placementWide": "Széles feed"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Kártyahely",
         "placementSidebar": "Bal oszlop",
+        "placementSidebarRight": "Jobb oszlop",
         "placementWide": "Széles banner",
         "statusActive": "Aktív",
         "statusPending": "Függőben",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Elutasítva",
         "placementCard": "Kártyahely",
         "placementSidebar": "Bal oszlop",
+        "placementSidebarRight": "Jobb oszlop",
         "placementWide": "Széles feed"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "A TE BAL OSZLOPOD",
       "bannerLeftLine1": "A TE BAL",
       "bannerLeftLine2": "OSZLOPOD",
+      "bannerRightLine1": "A TE JOBB",
+      "bannerRightLine2": "OSZLOPOD",
       "bannerLeftDesktopHint": "Csak asztali gépen",
       "leftColumnMobileCaption": "Ugyanaz az elhelyezés — ragadós sáv az alján telefonon",
       "wideBannerRepeat": "… egy másik széles banner minden 6 kártya után ismétlődik",
@@ -4403,6 +4410,11 @@
         "title": "Bal oszlop",
         "zone": "A feed mellett",
         "desc": "Függőleges hely a lista mellett asztali gépen/laptopon. Telefonon ugyanez a kreatív az alsó promóciós sávban jelenik meg (nem a rács mellett). A helyek sorrendje minden betöltéskor véletlenszerű."
+      },
+      "sidebar_right": {
+        "title": "Jobb oszlop",
+        "zone": "A feed mellett",
+        "desc": "Függőleges hely a lista jobb oldalán asztali gépen/laptopon – a chat és státusz widgetek felett. Telefonon ugyanez a kreatív az alsó promóciós sávban jelenik meg. A helyek sorrendje minden betöltéskor véletlenszerű."
       }
     },
     "bannerPlacementGuide": {

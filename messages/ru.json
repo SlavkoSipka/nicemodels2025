@@ -947,6 +947,7 @@
     "comments": "Отзывы",
     "contact": "Контакты",
     "blog": "Блог",
+    "help": "Помощь",
     "register": "Регистрация",
     "login": "Войти",
     "logout": "Выйти",
@@ -966,6 +967,7 @@
     "linkClubs": "Клубы",
     "linkComments": "Отзывы",
     "linkBlog": "Блог",
+    "linkHelp": "Помощь",
     "linkContact": "Контакты",
     "linkPrivacy": "Конфиденциальность / Datenschutz",
     "linkTerms": "AGB (Условия)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Отклонено",
         "placementCard": "Слот карточки",
         "placementSidebar": "Левая колонка",
+        "placementSidebarRight": "Правая колонка",
         "placementWide": "Широкая лента"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Слот карточки",
         "placementSidebar": "Левая колонка",
+        "placementSidebarRight": "Правая колонка",
         "placementWide": "Широкий баннер",
         "statusActive": "Активно",
         "statusPending": "В ожидании",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Отклонено",
         "placementCard": "Слот карточки",
         "placementSidebar": "Левая колонка",
+        "placementSidebarRight": "Правая колонка",
         "placementWide": "Широкая лента"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "ВАША ЛЕВАЯ КОЛОНКА",
       "bannerLeftLine1": "ВАША ЛЕВАЯ",
       "bannerLeftLine2": "КОЛОНКА",
+      "bannerRightLine1": "ВАША ПРАВАЯ",
+      "bannerRightLine2": "КОЛОНКА",
       "bannerLeftDesktopHint": "Только десктоп",
       "leftColumnMobileCaption": "То же размещение — закреплённая полоса внизу на телефонах",
       "wideBannerRepeat": "… ещё один широкий баннер повторяется каждые 6 карточек",
@@ -4403,6 +4410,11 @@
         "title": "Левая колонка",
         "zone": "Рядом с лентой",
         "desc": "Вертикальный слот рядом с лентой на десктопе/ноутбуке. На телефонах то же оформление появляется в нижней рекламной полосе (не рядом с сеткой). Порядок слотов случайный при каждой загрузке."
+      },
+      "sidebar_right": {
+        "title": "Правая колонка",
+        "zone": "Рядом с лентой",
+        "desc": "Вертикальный слот справа от ленты на десктопе/ноутбуке — над виджетами чата и статусов. На телефонах то же оформление появляется в нижней рекламной полосе. Порядок слотов случайный при каждой загрузке."
       }
     },
     "bannerPlacementGuide": {

@@ -947,6 +947,7 @@
     "comments": "Comentarii",
     "contact": "Contact",
     "blog": "Blog",
+    "help": "Ajutor",
     "register": "Înregistrare",
     "login": "Autentificare",
     "logout": "Deconectare",
@@ -966,6 +967,7 @@
     "linkClubs": "Cluburi",
     "linkComments": "Comentarii",
     "linkBlog": "Blog",
+    "linkHelp": "Ajutor",
     "linkContact": "Contact",
     "linkPrivacy": "Confidențialitate / Datenschutz",
     "linkTerms": "Termeni (AGB)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Respins",
         "placementCard": "Slot de tip card",
         "placementSidebar": "Coloana din stânga",
+        "placementSidebarRight": "Coloana din dreapta",
         "placementWide": "Feed lat"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Slot de tip card",
         "placementSidebar": "Coloana din stânga",
+        "placementSidebarRight": "Coloana din dreapta",
         "placementWide": "Banner lat",
         "statusActive": "Activ",
         "statusPending": "În așteptare",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Respins",
         "placementCard": "Slot de tip card",
         "placementSidebar": "Coloana din stânga",
+        "placementSidebarRight": "Coloana din dreapta",
         "placementWide": "Feed lat"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "COLOANA TA DIN STÂNGA",
       "bannerLeftLine1": "COLOANA TA",
       "bannerLeftLine2": "DIN STÂNGA",
+      "bannerRightLine1": "COLOANA TA",
+      "bannerRightLine2": "DIN DREAPTA",
       "bannerLeftDesktopHint": "Doar pe desktop",
       "leftColumnMobileCaption": "Aceeași plasare — bandă fixă în partea de jos pe telefoane",
       "wideBannerRepeat": "… un alt banner lat se repetă la fiecare 6 carduri",
@@ -4403,6 +4410,11 @@
         "title": "Coloana din stânga",
         "zone": "Lângă feed",
         "desc": "Slot vertical lângă listă pe desktop/laptop. Pe telefoane aceeași reclamă apare în banda promoțională de jos (nu lângă grilă). Ordinea sloturilor este aleatorie la fiecare încărcare."
+      },
+      "sidebar_right": {
+        "title": "Coloana din dreapta",
+        "zone": "Lângă feed",
+        "desc": "Slot vertical în dreapta listei pe desktop/laptop – deasupra widgeturilor de chat și status. Pe telefoane aceeași reclamă apare în banda promoțională de jos. Ordinea sloturilor este aleatorie la fiecare încărcare."
       }
     },
     "bannerPlacementGuide": {

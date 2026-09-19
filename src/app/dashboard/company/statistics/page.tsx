@@ -20,7 +20,7 @@ interface BannerStat {
   id: string
   title: string
   image_path: string | null
-  placement: 'feed_wide' | 'feed_card' | 'sidebar_left' | string
+  placement: 'feed_wide' | 'feed_card' | 'sidebar_left' | 'sidebar_right' | string
   status: string
   expires_at: string | null
   impressions: PeriodCounts
@@ -92,6 +92,7 @@ function bucketizeByCreatedAt(
 function placementLabel(p: string, t: (k: string) => string): { label: string; color: string } {
   if (p === 'feed_card') return { label: t('placementCard'), color: 'bg-blue-100 text-blue-700' }
   if (p === 'sidebar_left') return { label: t('placementSidebar'), color: 'bg-amber-100 text-amber-700' }
+  if (p === 'sidebar_right') return { label: t('placementSidebarRight'), color: 'bg-teal-100 text-teal-700' }
   return { label: t('placementWide'), color: 'bg-purple-100 text-purple-700' }
 }
 

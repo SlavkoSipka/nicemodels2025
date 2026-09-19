@@ -17,8 +17,9 @@ interface MobileBannerPopupProps {
 }
 
 /**
- * Mobile-only fixed bottom popup that auto-scrolls horizontally through
- * all purchased `sidebar_left` banners. Hidden at xl+ (desktop rail takes over).
+ * Mobile-only fixed bottom popup that auto-scrolls horizontally through all
+ * purchased side-rail banners (`sidebar_left` + `sidebar_right`), since mobile
+ * has no room for the rails themselves. Hidden at xl+ (the rails take over).
  */
 export default function MobileBannerPopup({ banners }: MobileBannerPopupProps) {
   const list = banners.filter(b => b.image_url)

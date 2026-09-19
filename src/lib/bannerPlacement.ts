@@ -1,6 +1,14 @@
 import { cantonGroup } from '@/lib/cantons'
 
-export type BannerPlacement = 'feed_wide' | 'feed_card' | 'sidebar_left'
+export type BannerPlacement = 'feed_wide' | 'feed_card' | 'sidebar_left' | 'sidebar_right'
+
+/** The two vertical ad rails that flank the feed on desktop. */
+export const SIDEBAR_PLACEMENTS = ['sidebar_left', 'sidebar_right'] as const
+export type SidebarPlacement = (typeof SIDEBAR_PLACEMENTS)[number]
+
+export function isSidebarPlacement(p: string | undefined | null): p is SidebarPlacement {
+  return p === 'sidebar_left' || p === 'sidebar_right'
+}
 
 export interface BannerSpec {
   /** CSS aspect-ratio value, e.g. "4 / 1". */
@@ -28,6 +36,11 @@ export const BANNER_SPECS: Record<BannerPlacement, BannerSpec> = {
     aspectClass: 'aspect-[2/3]',
     recommended: { width: 500, height: 750 },
   },
+  sidebar_right: {
+    aspectRatio: '2 / 3',
+    aspectClass: 'aspect-[2/3]',
+    recommended: { width: 500, height: 750 },
+  },
 }
 
 export function bannerSpec(p: string | undefined | null): BannerSpec {
@@ -35,23 +48,25 @@ export function bannerSpec(p: string | undefined | null): BannerSpec {
 }
 
 export function normalizePlacement(p: string | undefined | null): BannerPlacement {
-  if (p === 'feed_card' || p === 'sidebar_left') return p
+  if (p === 'feed_card' || p === 'sidebar_left' || p === 'sidebar_right') return p
   return 'feed_wide'
 }
 
 export function partitionBannersByPlacement<T extends { placement?: BannerPlacement | string | null }>(
   list: T[],
-): { feedWide: T[]; feedCard: T[]; sidebarLeft: T[] } {
+): { feedWide: T[]; feedCard: T[]; sidebarLeft: T[]; sidebarRight: T[] } {
   const feedWide: T[] = []
   const feedCard: T[] = []
   const sidebarLeft: T[] = []
+  const sidebarRight: T[] = []
   for (const b of list) {
     const pl = normalizePlacement(b.placement as string | null)
     if (pl === 'feed_card') feedCard.push(b)
     else if (pl === 'sidebar_left') sidebarLeft.push(b)
+    else if (pl === 'sidebar_right') sidebarRight.push(b)
     else feedWide.push(b)
   }
-  return { feedWide, feedCard, sidebarLeft }
+  return { feedWide, feedCard, sidebarLeft, sidebarRight }
 }
 
 /**

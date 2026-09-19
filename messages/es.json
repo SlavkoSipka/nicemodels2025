@@ -947,6 +947,7 @@
     "comments": "Comentarios",
     "contact": "Contacto",
     "blog": "Blog",
+    "help": "Ayuda",
     "register": "Registrarse",
     "login": "Iniciar sesión",
     "logout": "Cerrar sesión",
@@ -966,6 +967,7 @@
     "linkClubs": "Clubes",
     "linkComments": "Comentarios",
     "linkBlog": "Blog",
+    "linkHelp": "Ayuda",
     "linkContact": "Contacto",
     "linkPrivacy": "Privacidad / Datenschutz",
     "linkTerms": "AGB (Términos)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Rechazado",
         "placementCard": "Espacio tarjeta",
         "placementSidebar": "Columna izquierda",
+        "placementSidebarRight": "Columna derecha",
         "placementWide": "Banner ancho"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Espacio tarjeta",
         "placementSidebar": "Columna izquierda",
+        "placementSidebarRight": "Columna derecha",
         "placementWide": "Banner ancho",
         "statusActive": "Activo",
         "statusPending": "Pendiente",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Rechazado",
         "placementCard": "Espacio tarjeta",
         "placementSidebar": "Columna izquierda",
+        "placementSidebarRight": "Columna derecha",
         "placementWide": "Banner ancho"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "COLUMNA IZQUIERDA",
       "bannerLeftLine1": "TU COLUMNA",
       "bannerLeftLine2": "IZQUIERDA",
+      "bannerRightLine1": "TU COLUMNA",
+      "bannerRightLine2": "DERECHA",
       "bannerLeftDesktopHint": "Solo escritorio",
       "leftColumnMobileCaption": "Misma ubicación — franja inferior en móvil",
       "wideBannerRepeat": "… otro banner ancho se repite cada 6 tarjetas",
@@ -4403,6 +4410,11 @@
         "title": "Columna izquierda",
         "zone": "Junto al listado",
         "desc": "Espacio vertical junto a la cuadrícula en escritorio; en el móvil la misma creatividad va en la franja inferior. Orden aleatorio en cada carga."
+      },
+      "sidebar_right": {
+        "title": "Columna derecha",
+        "zone": "Junto al listado",
+        "desc": "Espacio vertical a la derecha de la cuadrícula en escritorio, encima de los widgets de chat y estado; en el móvil la misma creatividad va en la franja inferior. Orden aleatorio en cada carga."
       }
     },
     "bannerPlacementGuide": {

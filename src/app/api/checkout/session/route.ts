@@ -5,7 +5,7 @@ import { getStripe } from '@/lib/stripe/server'
 import { validateStripeEnv } from '@/lib/stripe/validate-env'
 import { findBannerPrice, fetchBannerRegionPricing } from '@/lib/bannerPricing'
 import { isValidCanton, cantonGroup, MAX_BANNER_REGIONS } from '@/lib/cantons'
-import { normalizePlacement } from '@/lib/bannerPlacement'
+import { normalizePlacement, type BannerPlacement } from '@/lib/bannerPlacement'
 import { activateOrderItems } from '@/lib/orders/activateOrderItems'
 import { isModelSedcardFreePeriod } from '@/lib/modelSedcardFree'
 import { isClubAdFreePeriod } from '@/lib/clubAdFree'
@@ -462,8 +462,9 @@ function resolveItem(
   throw new Error('Unknown cart item kind')
 }
 
-function labelForPlacement(p: 'feed_wide' | 'feed_card' | 'sidebar_left'): string {
+function labelForPlacement(p: BannerPlacement): string {
   if (p === 'feed_card') return 'Card slot'
   if (p === 'sidebar_left') return 'Left column'
+  if (p === 'sidebar_right') return 'Right column'
   return 'Wide'
 }

@@ -15,7 +15,7 @@ import BannerImage from '@/components/home/BannerImage'
 import CantonMultiSelect from '@/components/buy-banner/CantonMultiSelect'
 import TermsAcceptance from '@/components/ui/TermsAcceptance'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
-import { normalizePlacement } from '@/lib/bannerPlacement'
+import { isSidebarPlacement, normalizePlacement } from '@/lib/bannerPlacement'
 import { checkActiveAd } from '@/lib/activeAd'
 import {
   type BannerRegionPriceRow,
@@ -97,19 +97,19 @@ export default function BuyBannerPage() {
 
   const uploadHint = useMemo(() => {
     if (selectedPlacement === 'feed_card') return t('uploadHintFeedCard')
-    if (selectedPlacement === 'sidebar_left') return t('uploadHintSidebar')
+    if (isSidebarPlacement(selectedPlacement)) return t('uploadHintSidebar')
     return t('uploadHintWide')
   }, [selectedPlacement, t])
 
   const previewAspectClass = useMemo(() => {
     if (selectedPlacement === 'feed_card') return 'aspect-[3/4] max-w-xs mx-auto'
-    if (selectedPlacement === 'sidebar_left') return 'aspect-[2/3] max-w-xs mx-auto'
+    if (isSidebarPlacement(selectedPlacement)) return 'aspect-[2/3] max-w-xs mx-auto'
     return 'aspect-[4/1]'
   }, [selectedPlacement])
 
   const uploadAspectClass = useMemo(() => {
     if (selectedPlacement === 'feed_card') return 'aspect-[3/4] max-w-xs mx-auto'
-    if (selectedPlacement === 'sidebar_left') return 'aspect-[2/3] max-w-xs mx-auto'
+    if (isSidebarPlacement(selectedPlacement)) return 'aspect-[2/3] max-w-xs mx-auto'
     return 'aspect-[4/1] max-w-lg mx-auto'
   }, [selectedPlacement])
 
@@ -290,6 +290,7 @@ export default function BuyBannerPage() {
     const pl = normalizePlacement(p)
     if (pl === 'feed_card') return t('placementCard')
     if (pl === 'sidebar_left') return t('placementSidebar')
+    if (pl === 'sidebar_right') return t('placementSidebarRight')
     return t('placementWide')
   }
 
@@ -551,7 +552,7 @@ export default function BuyBannerPage() {
                       className={`relative w-full bg-slate-100 ${
                         normalizePlacement(banner.placement) === 'feed_wide'
                           ? 'aspect-[4/1]'
-                          : normalizePlacement(banner.placement) === 'sidebar_left'
+                          : isSidebarPlacement(normalizePlacement(banner.placement))
                             ? 'aspect-[2/3] max-h-96 mx-auto'
                             : 'aspect-[3/4] max-h-80 mx-auto'
                       }`}

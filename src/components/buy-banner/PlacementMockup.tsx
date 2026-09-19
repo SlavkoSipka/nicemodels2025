@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Heart, MapPin, Megaphone, Menu, Monitor, Search, Smartphone, Star } from 'lucide-react'
 import MobileLeftBannerBottomPreview from '@/components/preview/MobileLeftBannerBottomPreview'
-import type { BannerPlacement } from '@/lib/bannerPlacement'
+import { isSidebarPlacement, type BannerPlacement } from '@/lib/bannerPlacement'
 
 const TONES = [
   'from-rose-300 via-pink-300 to-fuchsia-300',
@@ -117,8 +117,16 @@ function CardBannerCell({ previewUrl }: { previewUrl?: string | null }) {
   )
 }
 
-function SidebarBannerCell({ previewUrl }: { previewUrl?: string | null }) {
+function SidebarBannerCell({
+  previewUrl,
+  side = 'left',
+}: {
+  previewUrl?: string | null
+  side?: 'left' | 'right'
+}) {
   const t = useTranslations('components.bannerPreviewMock')
+  const line1 = side === 'right' ? t('bannerRightLine1') : t('bannerLeftLine1')
+  const line2 = side === 'right' ? t('bannerRightLine2') : t('bannerLeftLine2')
   if (previewUrl) {
     return (
       <div className={`relative w-full h-full rounded overflow-hidden bg-slate-100 ${HIGHLIGHT_RING} min-h-[120px]`}>
@@ -142,10 +150,10 @@ function SidebarBannerCell({ previewUrl }: { previewUrl?: string | null }) {
       />
       <Megaphone className="relative w-2.5 h-2.5" />
       <span className="relative font-extrabold text-center leading-tight" style={{ fontSize: 5 }}>
-        {t('bannerLeftLine1')}
+        {line1}
       </span>
       <span className="relative font-extrabold text-center leading-tight" style={{ fontSize: 5 }}>
-        {t('bannerLeftLine2')}
+        {line2}
       </span>
       <span className="relative opacity-90 text-center" style={{ fontSize: 4 }}>
         {t('bannerLeftDesktopHint')}
@@ -225,19 +233,26 @@ function FeedBody({
   previewUrl?: string | null
   isMobile: boolean
 }) {
-  if (placement === 'sidebar_left' && isMobile) return null
+  if (isSidebarPlacement(placement) && isMobile) return null
 
-  if (placement === 'sidebar_left') {
+  if (isSidebarPlacement(placement)) {
+    const side = placement === 'sidebar_right' ? 'right' : 'left'
+    const rail = (
+      <div className="w-[32%] shrink-0 flex">
+        <SidebarBannerCell previewUrl={previewUrl} side={side} />
+      </div>
+    )
+    const grid = (
+      <div className="flex-1 grid grid-cols-2 gap-0.5">
+        {TONES.slice(0, 4).map((tone, i) => (
+          <MiniModelCell key={i} tone={tone} />
+        ))}
+      </div>
+    )
     return (
       <div className="p-1 flex gap-1">
-        <div className="w-[32%] shrink-0 flex">
-          <SidebarBannerCell previewUrl={previewUrl} />
-        </div>
-        <div className="flex-1 grid grid-cols-2 gap-0.5">
-          {TONES.slice(0, 4).map((tone, i) => (
-            <MiniModelCell key={i} tone={tone} />
-          ))}
-        </div>
+        {side === 'left' ? rail : grid}
+        {side === 'left' ? grid : rail}
       </div>
     )
   }
@@ -323,7 +338,7 @@ export default function PlacementMockup({ placement, previewUrl }: PlacementMock
             </div>
             <div
               className="relative bg-white overflow-hidden flex flex-col"
-              style={{ height: placement === 'sidebar_left' ? 200 : undefined, minHeight: placement === 'sidebar_left' ? undefined : 170 }}
+              style={{ height: isSidebarPlacement(placement) ? 200 : undefined, minHeight: isSidebarPlacement(placement) ? undefined : 170 }}
             >
               <div className="h-2.5 flex items-center justify-between px-1.5 text-slate-900 font-semibold shrink-0" style={{ fontSize: 4 }}>
                 <span>9:41</span>
@@ -331,7 +346,7 @@ export default function PlacementMockup({ placement, previewUrl }: PlacementMock
               </div>
               <SiteHeader isMobile />
               <FilterChips />
-              {placement === 'sidebar_left' ? (
+              {isSidebarPlacement(placement) ? (
                 <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                   <div className="flex-1 overflow-y-auto min-h-0 p-1">
                     <div className="grid grid-cols-2 gap-0.5">

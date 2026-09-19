@@ -85,7 +85,7 @@ function buildInitialCards(
   banners: BannerData[],
   listings: ListingBannerData[],
 ) {
-  const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(banners)
+  const { feedWide, feedCard, sidebarLeft, sidebarRight } = partitionBannersByPlacement(banners)
   return {
     cards: [
       ...models.map(m => ({ type: 'model' as const, data: m })),
@@ -97,7 +97,9 @@ function buildInitialCards(
       ...listings.map(l => ({ type: 'listing' as const, data: l })),
     ] as CardItem[],
     sidebarRail: sidebarLeft.slice(0, 1),
-    mobileSidebarRail: sidebarLeft,
+    sidebarRightRail: sidebarRight.slice(0, 1),
+    // Mobile has no rails, so both columns collapse into the bottom promo strip.
+    mobileSidebarRail: [...sidebarLeft, ...sidebarRight],
   }
 }
 
@@ -128,6 +130,9 @@ export default function MixedHomeClient({
   const [wideSlots, setWideSlots] = useState<CardItem[]>(() => seededShuffle(initial.wideSlots, seed))
   const [sidebarRail, setSidebarRail] = useState<BannerData[]>(
     () => (initial.sidebarRail.length <= 1 ? initial.sidebarRail : seededShuffle(initial.sidebarRail, seed).slice(0, 1)),
+  )
+  const [sidebarRightRail, setSidebarRightRail] = useState<BannerData[]>(
+    () => (initial.sidebarRightRail.length <= 1 ? initial.sidebarRightRail : seededShuffle(initial.sidebarRightRail, seed).slice(0, 1)),
   )
   const [mobileSidebarRail, setMobileSidebarRail] = useState<BannerData[]>(
     () => (initial.mobileSidebarRail.length <= 1 ? initial.mobileSidebarRail : seededShuffle(initial.mobileSidebarRail, seed)),
@@ -366,6 +371,9 @@ export default function MixedHomeClient({
     setSidebarRail(
       fresh.sidebarRail.length <= 1 ? fresh.sidebarRail : seededShuffle(fresh.sidebarRail, seed).slice(0, 1),
     )
+    setSidebarRightRail(
+      fresh.sidebarRightRail.length <= 1 ? fresh.sidebarRightRail : seededShuffle(fresh.sidebarRightRail, seed).slice(0, 1),
+    )
     setMobileSidebarRail(
       fresh.mobileSidebarRail.length <= 1 ? fresh.mobileSidebarRail : seededShuffle(fresh.mobileSidebarRail, seed),
     )
@@ -390,7 +398,7 @@ export default function MixedHomeClient({
     ], seed)
   }, [isFiltering, visibleBanners, filteredListings, wideSlots, seed])
 
-  const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
+  const hasSidebar = statusMessages.length > 0 || chatModels.length > 0 || sidebarRightRail.length > 0
 
   // Page count must cover BOTH wide slots and mixed feed cards. Previously, when any wide
   // slot existed, only ceil(wides/3) was used — so with 3 listings/banners, totalPages
@@ -702,6 +710,11 @@ export default function MixedHomeClient({
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
               {hasSidebar && (
                 <div className="flex max-h-[calc(100vh-9rem)] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
+                  {sidebarRightRail.length > 0 && (
+                    <div className="flex justify-center">
+                      <BannerSidebarRail banners={sidebarRightRail} />
+                    </div>
+                  )}
                   {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
                   {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
                 </div>

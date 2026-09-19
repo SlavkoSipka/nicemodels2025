@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl'
 import type { BannerPlacement } from '@/lib/bannerPlacement'
-import { LayoutGrid, PanelLeft, Square } from 'lucide-react'
+import { LayoutGrid, PanelLeft, PanelRight, Square } from 'lucide-react'
 import PlacementMockup from './PlacementMockup'
 
 interface PlacementPickerProps {
@@ -12,7 +12,7 @@ interface PlacementPickerProps {
   previewUrl?: string | null
 }
 
-const IDS: BannerPlacement[] = ['feed_wide', 'feed_card', 'sidebar_left']
+const IDS: BannerPlacement[] = ['feed_wide', 'feed_card', 'sidebar_left', 'sidebar_right']
 
 export default function PlacementPicker({
   value,
@@ -25,10 +25,11 @@ export default function PlacementPicker({
     feed_wide: LayoutGrid,
     feed_card: Square,
     sidebar_left: PanelLeft,
+    sidebar_right: PanelRight,
   } as const
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 lg:gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 lg:gap-6">
       {IDS.map(id => {
         const opt = {
           id,

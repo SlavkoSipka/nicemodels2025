@@ -5,6 +5,7 @@ import { resolveLiveLocationCanton } from '@/lib/live-location-canton'
 import { fetchViewCounts } from '@/lib/viewCounts'
 import { fetchActiveAds } from '@/lib/api/activeAds'
 import { buildMetadata } from '@/lib/seo'
+import { normalizePlacement } from '@/lib/bannerPlacement'
 
 export const revalidate = 60
 
@@ -221,10 +222,19 @@ async function buildBanners() {
     blockedOwnerIds = new Set((ownerProfiles ?? []).filter(p => p.is_blocked).map(p => p.id))
   }
 
-  const seenOwners = new Set<string>()
+  // One banner per advertiser PER PLACEMENT. Keyed on placement rather than
+  // owner alone so that an advertiser who paid for two different slots (e.g.
+  // both side rails) actually gets both rendered; the DB already caps them at
+  // one active row per (owner_id, placement).
+  const seenSlots = new Set<string>()
   return (bannersRaw ?? [])
     .filter((b: any) => !blockedOwnerIds.has(b.owner_id))
-    .filter((b: any) => { if (seenOwners.has(b.owner_id)) return false; seenOwners.add(b.owner_id); return true })
+    .filter((b: any) => {
+      const key = `${b.owner_id}:${normalizePlacement(b.placement)}`
+      if (seenSlots.has(key)) return false
+      seenSlots.add(key)
+      return true
+    })
     .map((b: any) => ({
       id: b.id, owner_type: b.owner_type, owner_id: b.owner_id, title: b.title,
       image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,

@@ -947,6 +947,7 @@
     "comments": "Kommentare",
     "contact": "Kontakt",
     "blog": "Blog",
+    "help": "Hilfe",
     "register": "Registrieren",
     "login": "Anmelden",
     "logout": "Abmelden",
@@ -966,6 +967,7 @@
     "linkClubs": "Clubs",
     "linkComments": "Kommentare",
     "linkBlog": "Blog",
+    "linkHelp": "Hilfe",
     "linkContact": "Kontakt",
     "linkPrivacy": "Datenschutz",
     "linkTerms": "AGB",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Abgelehnt",
         "placementCard": "Karten-Slot",
         "placementSidebar": "Linke Spalte",
+        "placementSidebarRight": "Rechte Spalte",
         "placementWide": "Breiter Feed"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Karten-Slot",
         "placementSidebar": "Linke Spalte",
+        "placementSidebarRight": "Rechte Spalte",
         "placementWide": "Breites Banner",
         "statusActive": "Aktiv",
         "statusPending": "Ausstehend",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Abgelehnt",
         "placementCard": "Karten-Slot",
         "placementSidebar": "Linke Spalte",
+        "placementSidebarRight": "Rechte Spalte",
         "placementWide": "Breiter Feed"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "LINKE SPALTE",
       "bannerLeftLine1": "DEINE LINKE",
       "bannerLeftLine2": "SPALTE",
+      "bannerRightLine1": "DEINE RECHTE",
+      "bannerRightLine2": "SPALTE",
       "bannerLeftDesktopHint": "Nur Desktop",
       "leftColumnMobileCaption": "Dieselbe Platzierung — unten am Rand auf Mobilgeräten",
       "wideBannerRepeat": "… weiteres breites Banner wiederholt sich alle 6 Karten",
@@ -4403,6 +4410,11 @@
         "title": "Linke Spalte",
         "zone": "Neben dem Feed",
         "desc": "Vertikal neben der Liste auf Desktop/Laptop. Auf dem Smartphone erscheint dieselbe Grafik unten als Promo‑Streifen. Reihenfolge zufällig pro Aufruf."
+      },
+      "sidebar_right": {
+        "title": "Rechte Spalte",
+        "zone": "Neben dem Feed",
+        "desc": "Vertikal rechts neben der Liste auf Desktop/Laptop – über den Chat- und Status-Widgets. Auf dem Smartphone erscheint dieselbe Grafik unten als Promo‑Streifen. Reihenfolge zufällig pro Aufruf."
       }
     },
     "bannerPlacementGuide": {

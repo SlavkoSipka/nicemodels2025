@@ -947,6 +947,7 @@
     "comments": "Komentarze",
     "contact": "Kontakt",
     "blog": "Blog",
+    "help": "Pomoc",
     "register": "Zarejestruj się",
     "login": "Zaloguj się",
     "logout": "Wyloguj się",
@@ -966,6 +967,7 @@
     "linkClubs": "Kluby",
     "linkComments": "Komentarze",
     "linkBlog": "Blog",
+    "linkHelp": "Pomoc",
     "linkContact": "Kontakt",
     "linkPrivacy": "Prywatność / Datenschutz",
     "linkTerms": "AGB (Regulamin)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Odrzucony",
         "placementCard": "Miejsce karty",
         "placementSidebar": "Lewa kolumna",
+        "placementSidebarRight": "Prawa kolumna",
         "placementWide": "Szeroki kanał"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Miejsce karty",
         "placementSidebar": "Lewa kolumna",
+        "placementSidebarRight": "Prawa kolumna",
         "placementWide": "Szeroki baner",
         "statusActive": "Aktywny",
         "statusPending": "Oczekujący",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Odrzucony",
         "placementCard": "Miejsce karty",
         "placementSidebar": "Lewa kolumna",
+        "placementSidebarRight": "Prawa kolumna",
         "placementWide": "Szeroki kanał"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "TWOJA LEWA KOLUMNA",
       "bannerLeftLine1": "TWOJA LEWA",
       "bannerLeftLine2": "KOLUMNA",
+      "bannerRightLine1": "TWOJA PRAWA",
+      "bannerRightLine2": "KOLUMNA",
       "bannerLeftDesktopHint": "Tylko na komputerze",
       "leftColumnMobileCaption": "To samo miejsce — przyklejony pasek na dole na telefonach",
       "wideBannerRepeat": "… kolejny szeroki baner powtarza się co 6 kart",
@@ -4403,6 +4410,11 @@
         "title": "Lewa kolumna",
         "zone": "Obok kanału",
         "desc": "Pionowe miejsce obok ogłoszeń na komputerze/laptopie. Na telefonach ta sama kreacja pojawia się w dolnym pasku promocyjnym (nie obok siatki). Kolejność miejsc jest losowa przy każdym załadowaniu."
+      },
+      "sidebar_right": {
+        "title": "Prawa kolumna",
+        "zone": "Obok kanału",
+        "desc": "Pionowe miejsce po prawej stronie ogłoszeń na komputerze/laptopie – nad widżetami czatu i statusów. Na telefonach ta sama kreacja pojawia się w dolnym pasku promocyjnym. Kolejność miejsc jest losowa przy każdym załadowaniu."
       }
     },
     "bannerPlacementGuide": {

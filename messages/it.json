@@ -947,6 +947,7 @@
     "comments": "Commenti",
     "contact": "Contatti",
     "blog": "Blog",
+    "help": "Aiuto",
     "register": "Registrati",
     "login": "Accedi",
     "logout": "Esci",
@@ -966,6 +967,7 @@
     "linkClubs": "Club",
     "linkComments": "Commenti",
     "linkBlog": "Blog",
+    "linkHelp": "Aiuto",
     "linkContact": "Contatti",
     "linkPrivacy": "Privacy / Datenschutz",
     "linkTerms": "AGB (Termini)",
@@ -1935,6 +1937,7 @@
         "statusRejected": "Rifiutato",
         "placementCard": "Slot card",
         "placementSidebar": "Colonna sinistra",
+        "placementSidebarRight": "Colonna destra",
         "placementWide": "Feed largo"
       },
       "purchaseHistory": {
@@ -2306,6 +2309,7 @@
         "ctr": "CTR: {value}",
         "placementCard": "Slot card",
         "placementSidebar": "Colonna sinistra",
+        "placementSidebarRight": "Colonna destra",
         "placementWide": "Banner largo",
         "statusActive": "Attivo",
         "statusPending": "In attesa",
@@ -2560,6 +2564,7 @@
         "statusRejected": "Rifiutato",
         "placementCard": "Slot card",
         "placementSidebar": "Colonna sinistra",
+        "placementSidebarRight": "Colonna destra",
         "placementWide": "Feed largo"
       }
     }
@@ -4373,6 +4378,8 @@
       "bannerLeftTitle": "LA TUA COLONNA SINISTRA",
       "bannerLeftLine1": "LA TUA",
       "bannerLeftLine2": "COLONNA SINISTRA",
+      "bannerRightLine1": "LA TUA",
+      "bannerRightLine2": "COLONNA DESTRA",
       "bannerLeftDesktopHint": "Solo desktop",
       "leftColumnMobileCaption": "Stesso posizionamento — striscia fissa in basso sui telefoni",
       "wideBannerRepeat": "… un altro banner largo si ripete ogni 6 card",
@@ -4403,6 +4410,11 @@
         "title": "Colonna sinistra",
         "zone": "Accanto al feed",
         "desc": "Slot verticale accanto all'elenco su desktop/laptop. Sui telefoni la stessa creatività appare nella striscia promozionale in basso (non accanto alla griglia). L'ordine degli slot è casuale a ogni caricamento."
+      },
+      "sidebar_right": {
+        "title": "Colonna destra",
+        "zone": "Accanto al feed",
+        "desc": "Slot verticale a destra dell'elenco su desktop/laptop, sopra i widget chat e stato. Sui telefoni la stessa creatività appare nella striscia promozionale in basso. L'ordine degli slot è casuale a ogni caricamento."
       }
     },
     "bannerPlacementGuide": {

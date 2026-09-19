@@ -98,16 +98,20 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
   const [widePool, setWidePool] = useState<BannerData[]>([])
   const [cardPool, setCardPool] = useState<BannerData[]>([])
   const [sidebarPool, setSidebarPool] = useState<BannerData[]>([])
+  const [sidebarRightPool, setSidebarRightPool] = useState<BannerData[]>([])
   const [mobileSidebarPool, setMobileSidebarPool] = useState<BannerData[]>([])
 
   useEffect(() => {
-    const { feedWide, feedCard, sidebarLeft } = partitionBannersByPlacement(visibleBanners)
+    const { feedWide, feedCard, sidebarLeft, sidebarRight } = partitionBannersByPlacement(visibleBanners)
     setWidePool(feedWide.length <= 1 ? feedWide : randomShuffle([...feedWide]))
     setCardPool(feedCard.length <= 1 ? feedCard : randomShuffle([...feedCard]))
-    // Left rail: only one banner visible; which advertiser wins is random each load/refresh.
-    const sideShuffled = sidebarLeft.length <= 1 ? sidebarLeft : randomShuffle([...sidebarLeft])
-    setSidebarPool(sideShuffled.length ? [sideShuffled[0]] : [])
-    setMobileSidebarPool(sideShuffled)
+    // Each rail shows a single banner; which advertiser wins is random per load/refresh.
+    const leftShuffled = sidebarLeft.length <= 1 ? sidebarLeft : randomShuffle([...sidebarLeft])
+    const rightShuffled = sidebarRight.length <= 1 ? sidebarRight : randomShuffle([...sidebarRight])
+    setSidebarPool(leftShuffled.length ? [leftShuffled[0]] : [])
+    setSidebarRightPool(rightShuffled.length ? [rightShuffled[0]] : [])
+    // Mobile has no rails, so both columns collapse into the bottom promo strip.
+    setMobileSidebarPool([...leftShuffled, ...rightShuffled])
   }, [visibleBanners])
 
   const filteredModels = useMemo(() => {
@@ -293,8 +297,13 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
             </div>
 
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
-              {hasSidebar && (
+              {(hasSidebar || sidebarRightPool.length > 0) && (
                 <div className="flex max-h-[calc(100vh-9rem)] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
+                  {sidebarRightPool.length > 0 && (
+                    <div className="flex justify-center">
+                      <BannerSidebarRail banners={sidebarRightPool} />
+                    </div>
+                  )}
                   {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
                   {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
                 </div>
