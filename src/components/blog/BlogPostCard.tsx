@@ -52,7 +52,7 @@ export default function BlogPostCard({ post }: { post: CmsPost }) {
         className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/30 hover:shadow-lg"
       >
         {/* Cover */}
-        <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-slate-100">
+        <div className="relative aspect-[3/1] w-full shrink-0 overflow-hidden bg-slate-100">
           {image ? (
             isOptimizableImage(image) ? (
               <Image
@@ -79,11 +79,11 @@ export default function BlogPostCard({ post }: { post: CmsPost }) {
                 className="absolute inset-0 opacity-20"
                 style={{
                   backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
-                  backgroundSize: '14px 14px',
+                  backgroundSize: '10px 10px',
                 }}
                 aria-hidden
               />
-              <Newspaper className="relative h-8 w-8 text-white/80" aria-hidden />
+              <Newspaper className="relative h-5 w-5 text-white/80" aria-hidden />
             </div>
           )}
 
