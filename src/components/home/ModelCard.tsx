@@ -79,7 +79,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
       onMouseLeave={() => setCardHover(false)}
     >
       <div
-        className="overflow-hidden flex flex-col sm:flex-row w-full sm:h-full transition-all duration-300"
+        className="overflow-hidden flex flex-col sm:flex-row w-full sm:h-full sm:min-h-[280px] transition-all duration-300"
         style={cardStyle}
       >
         {/* Photo */}
@@ -131,11 +131,14 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
         </div>
 
         {/* Content - desktop only */}
-        <div className="flex-1 hidden sm:flex flex-col min-w-0 overflow-hidden">
+        {/* Text lives in an absolute layer so it never sets the card height —
+            every card in the feed is as tall as its photo, description or not. */}
+        <div className="flex-1 hidden sm:block relative min-w-0">
+          <div className="absolute inset-0 flex flex-col overflow-hidden">
           {/* Thin blue accent line at top */}
           <div style={{ height: 2, background: 'linear-gradient(90deg, #89CFF0, #bae6fd)', flexShrink: 0 }} />
 
-          <div className="px-4 py-3.5 flex flex-col gap-1.5 flex-1">
+          <div className="px-4 py-3.5 flex flex-col gap-1.5 flex-1 min-h-0">
             {/* Premium tag */}
             <span
               className="text-[9px] font-bold uppercase tracking-[0.12em] self-start px-2 py-0.5 rounded-full"
@@ -172,14 +175,14 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
 
             {/* Description */}
             {description ? (
-              <p className="text-[13px] leading-relaxed flex-1" style={{ color: '#64748b' }}>
+              <p className="text-[13px] leading-relaxed flex-1 min-h-0 overflow-hidden" style={{ color: '#64748b', maskImage: 'linear-gradient(to bottom, #000 70%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, #000 70%, transparent)' }}>
                 {description}
               </p>
             ) : <div className="flex-1" />}
 
             {/* Tags */}
             {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-auto pt-1">
+              <div className="flex flex-wrap gap-1.5 mt-auto pt-1 shrink-0">
                 {tags.slice(0, 3).map(tag => (
                   <span
                     key={tag}
@@ -191,6 +194,7 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
                 ))}
               </div>
             )}
+          </div>
           </div>
         </div>
       </div>

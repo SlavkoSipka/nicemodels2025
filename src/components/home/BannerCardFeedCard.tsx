@@ -24,7 +24,7 @@ export default function BannerCardFeedCard({ banner, priority = false }: BannerC
   return (
     <Link href={href} target="_blank" rel="noopener noreferrer" className="block group w-full sm:h-full">
       <div
-        className="overflow-hidden flex flex-col sm:flex-row w-full sm:h-full transition-all duration-300"
+        className="overflow-hidden flex flex-col sm:flex-row w-full sm:h-full sm:min-h-[280px] transition-all duration-300"
         style={{
           background: '#ffffff',
           borderRadius: '10px',
@@ -74,10 +74,13 @@ export default function BannerCardFeedCard({ banner, priority = false }: BannerC
           </div>
         </div>
 
-        <div className="flex-1 hidden sm:flex flex-col min-w-0 overflow-hidden">
+        {/* Text lives in an absolute layer so it never sets the card height —
+            every card in the feed is as tall as its photo, description or not. */}
+        <div className="flex-1 hidden sm:block relative min-w-0">
+          <div className="absolute inset-0 flex flex-col overflow-hidden">
           <div style={{ height: 2, background: 'linear-gradient(90deg, #a78bfa, #ec4899)', flexShrink: 0 }} />
 
-          <div className="px-4 py-3.5 flex flex-col gap-1.5 flex-1">
+          <div className="px-4 py-3.5 flex flex-col gap-1.5 flex-1 min-h-0">
             <span
               className="text-[9px] font-bold uppercase tracking-[0.12em] self-start px-2 py-0.5 rounded-full"
               style={{ background: '#f5f3ff', color: '#6d28d9' }}
@@ -86,15 +89,16 @@ export default function BannerCardFeedCard({ banner, priority = false }: BannerC
             </span>
 
             <h3
-              className="font-bold text-base leading-snug transition-colors group-hover:text-pink-500"
+              className="font-bold text-base leading-snug transition-colors group-hover:text-pink-500 truncate"
               style={{ color: '#1a1a2e' }}
             >
               {banner.title}
             </h3>
 
-            <p className="text-[13px] leading-relaxed flex-1" style={{ color: '#64748b' }}>
+            <p className="text-[13px] leading-relaxed flex-1 min-h-0 overflow-hidden" style={{ color: '#64748b', maskImage: 'linear-gradient(to bottom, #000 70%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, #000 70%, transparent)' }}>
               Tap to view this promotion.
             </p>
+          </div>
           </div>
         </div>
       </div>
