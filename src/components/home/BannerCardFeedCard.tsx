@@ -22,9 +22,9 @@ export default function BannerCardFeedCard({ banner, priority = false }: BannerC
   const href = banner.cta_url || `/${banner.owner_type === 'club' ? 'clubs' : 'models'}/${banner.owner_id}`
 
   return (
-    <Link href={href} target="_blank" rel="noopener noreferrer" className="block group w-full">
+    <Link href={href} target="_blank" rel="noopener noreferrer" className="block group w-full sm:h-full">
       <div
-        className="overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
+        className="overflow-hidden flex flex-col sm:flex-row w-full sm:h-full transition-all duration-300"
         style={{
           background: '#ffffff',
           borderRadius: '10px',

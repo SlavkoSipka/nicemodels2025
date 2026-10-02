@@ -78,6 +78,9 @@ interface MixedHomeClientProps {
 
 const WIDE_PER_PAGE = 3
 const CARDS_PER_SLOT = 4
+// 10 rows of two cards per page. Wide slots still sit after every CARDS_PER_SLOT
+// cards, so the rows past the last wide slot simply run on without one.
+const CARDS_PER_PAGE = 20
 
 function buildInitialCards(
   models: Model[],
@@ -404,7 +407,7 @@ export default function MixedHomeClient({
   // slot existed, only ceil(wides/3) was used — so with 3 listings/banners, totalPages
   // stayed 1 while activeCards could be 40+; only the first 12 cards were ever sliced,
   // so shuffled models could never appear on any page.
-  const cardSlotsPerPage = WIDE_PER_PAGE * CARDS_PER_SLOT
+  const cardSlotsPerPage = CARDS_PER_PAGE
   const pagesFromWide =
     activeWideSlots.length > 0 ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE) : 1
   const pagesFromCards = Math.max(1, Math.ceil(activeCards.length / cardSlotsPerPage))

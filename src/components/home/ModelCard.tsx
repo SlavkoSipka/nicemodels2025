@@ -51,15 +51,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
     </div>
   )
 
-  let ago = ''
-  if (model.created_at) {
-    const diff = Math.floor((Date.now() - new Date(model.created_at).getTime()) / 1000)
-    if (diff < 60) ago = t('timeSec', { n: Math.max(diff, 1) })
-    else if (diff < 3600) ago = t('timeMin', { n: Math.floor(diff / 60) })
-    else if (diff < 86400) ago = t('timeHour', { n: Math.floor(diff / 3600) })
-    else ago = t('timeDay', { n: Math.floor(diff / 86400) })
-  }
-
   const liveCity = details?.live_location_city?.trim()
   const liveLine =
     liveCity
@@ -83,12 +74,12 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
       href={`/models/${model.id}`}
       onClick={() => trackProfileView(model.id)}
       aria-label={t('viewProfileAria', { title })}
-      className="block group w-full rounded-[12px]"
+      className="block group w-full rounded-[12px] sm:h-full"
       onMouseEnter={() => setCardHover(true)}
       onMouseLeave={() => setCardHover(false)}
     >
       <div
-        className="overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
+        className="overflow-hidden flex flex-col sm:flex-row w-full sm:h-full transition-all duration-300"
         style={cardStyle}
       >
         {/* Photo */}
@@ -108,16 +99,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             />
           ) : photoFallback}
 
-
-          {/* Time badge */}
-          {ago && (
-            <span
-              className="absolute bottom-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded-full hidden sm:inline-block"
-              style={{ background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.85)' }}
-            >
-              {ago}
-            </span>
-          )}
 
           {/* View-count badge */}
           <span className="absolute top-2 left-2">
@@ -140,15 +121,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
             className="absolute bottom-0 left-0 right-0 sm:hidden p-2 pt-10"
             style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}
           >
-            {/* Stacked above the name: as an absolute badge it sat on top of the city line. */}
-            {ago && (
-              <span
-                className="inline-block mb-1 text-[9px] font-medium px-1.5 py-px rounded-full"
-                style={{ background: 'rgba(0,0,0,0.55)', color: 'rgba(255,255,255,0.85)' }}
-              >
-                {ago}
-              </span>
-            )}
             <h3 className="text-white font-bold text-[12px] leading-tight truncate">{title}</h3>
             {(city || age) && (
               <p className="text-white/70 text-[10px] mt-0.5 truncate">

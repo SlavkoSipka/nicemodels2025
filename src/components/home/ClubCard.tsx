@@ -39,9 +39,9 @@ export default function ClubCard({ club, priority = false }: ClubCardProps) {
   })()
 
   return (
-    <Link href={`/clubs/${club.id}`} className="block group w-full">
+    <Link href={`/clubs/${club.id}`} className="block group w-full sm:h-full">
       <div
-        className="overflow-hidden flex flex-col sm:flex-row w-full transition-all duration-300"
+        className="overflow-hidden flex flex-col sm:flex-row w-full sm:h-full transition-all duration-300"
         style={{
           background: '#ffffff',
           borderRadius: '10px',
