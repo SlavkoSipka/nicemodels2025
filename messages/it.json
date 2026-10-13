@@ -2725,6 +2725,12 @@
       "modelsH1": "Escort Model Svizzera",
       "modelsIntro": "Sedcard verificate di escort model a Zurigo, Berna, Basilea, Ginevra e in tutta la Svizzera.",
       "modelsBody": "Ogni model mostrata qui ha un annuncio attivo — nessuna voce obsoleta. Filtra per regione, età o tipo di offerta per trovare l'accompagnamento giusto vicino a te. Discreto, sicuro e diretto."
+    },
+    "adSpace": {
+      "label": "Spazio pubblicitario libero",
+      "title": "La tua pubblicità qui",
+      "text": "Raggiungi ogni giorno migliaia di visitatori su NiceModels.ch.",
+      "cta": "Richiedi ora"
     }
   },
   "clubs": {
@@ -3608,6 +3614,7 @@
       "subjectVerification": "Verifica dell'account",
       "subjectTechnical": "Supporto tecnico",
       "subjectBilling": "Fatturazione e pagamenti",
+      "subjectAdvertising": "Pubblicità / Spazio pubblicitario",
       "subjectReport": "Segnala un problema",
       "subjectOther": "Altro",
       "fieldMessage": "Messaggio",

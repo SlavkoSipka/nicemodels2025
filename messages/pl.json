@@ -2725,6 +2725,12 @@
       "modelsH1": "Modelki escort Szwajcaria",
       "modelsIntro": "Zweryfikowane sedcardy modelek escort w Zurychu, Bernie, Bazylei, Genewie i w całej Szwajcarii.",
       "modelsBody": "Każda pokazana tutaj modelka ma aktywne ogłoszenie — żadnych nieaktualnych wpisów. Filtruj według regionu, wieku lub rodzaju oferty, aby znaleźć odpowiednie towarzystwo w pobliżu. Dyskretnie, bezpiecznie i bezpośrednio."
+    },
+    "adSpace": {
+      "label": "Wolna powierzchnia reklamowa",
+      "title": "Twoja reklama tutaj",
+      "text": "Docieraj codziennie do tysięcy odwiedzających NiceModels.ch.",
+      "cta": "Zapytaj teraz"
     }
   },
   "clubs": {
@@ -3608,6 +3614,7 @@
       "subjectVerification": "Weryfikacja konta",
       "subjectTechnical": "Wsparcie techniczne",
       "subjectBilling": "Rozliczenia i płatności",
+      "subjectAdvertising": "Reklama / Powierzchnia reklamowa",
       "subjectReport": "Zgłoś problem",
       "subjectOther": "Inne",
       "fieldMessage": "Wiadomość",

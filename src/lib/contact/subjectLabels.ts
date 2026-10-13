@@ -6,6 +6,7 @@ export const CONTACT_SUBJECT_LABELS: Record<string, string> = {
   verification: 'Account Verification',
   technical: 'Technical Support',
   billing: 'Billing & Payments',
+  advertising: 'Advertising / Ad Space',
   report: 'Report an Issue',
   other: 'Other',
 }

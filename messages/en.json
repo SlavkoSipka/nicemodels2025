@@ -2725,6 +2725,12 @@
       "noModelsFound": "No models found",
       "loadMore": "Load more",
       "sectionHeading": "Latest Profiles in Switzerland"
+    },
+    "adSpace": {
+      "label": "Ad space available",
+      "title": "Your ad here",
+      "text": "Reach thousands of visitors on NiceModels.ch every day.",
+      "cta": "Enquire now"
     }
   },
   "clubs": {
@@ -3608,6 +3614,7 @@
       "subjectVerification": "Account Verification",
       "subjectTechnical": "Technical Support",
       "subjectBilling": "Billing & Payments",
+      "subjectAdvertising": "Advertising / Ad space",
       "subjectReport": "Report an Issue",
       "subjectOther": "Other",
       "fieldMessage": "Message",

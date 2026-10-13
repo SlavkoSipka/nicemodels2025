@@ -2725,6 +2725,12 @@
       "noModelsFound": "Sin modelos",
       "loadMore": "Ver más",
       "sectionHeading": "Perfiles recientes en Suiza"
+    },
+    "adSpace": {
+      "label": "Espacio publicitario libre",
+      "title": "Tu anuncio aquí",
+      "text": "Llega cada día a miles de visitantes en NiceModels.ch.",
+      "cta": "Solicitar ahora"
     }
   },
   "clubs": {
@@ -3608,6 +3614,7 @@
       "subjectVerification": "Verificación de cuenta",
       "subjectTechnical": "Soporte técnico",
       "subjectBilling": "Facturación y pagos",
+      "subjectAdvertising": "Publicidad / Espacio publicitario",
       "subjectReport": "Reportar un problema",
       "subjectOther": "Otro",
       "fieldMessage": "Mensaje",

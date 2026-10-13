@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import emailjs from '@emailjs/browser'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import { Phone, Mail, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-react'
-import { contactSubjectLabel } from '@/lib/contact/subjectLabels'
+import { contactSubjectLabel, CONTACT_SUBJECT_LABELS } from '@/lib/contact/subjectLabels'
 import PhoneInput from '@/components/ui/PhoneInput'
 import { joinPhone, DEFAULT_DIAL_CODE } from '@/lib/countries'
 
@@ -26,6 +26,15 @@ export default function ContactPage() {
   const [sending, setSending] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Links like the home page's "ad space" tile pass ?subject=advertising to
+  // land on the form with the right topic already picked.
+  useEffect(() => {
+    const preset = new URLSearchParams(window.location.search).get('subject')
+    if (preset && preset in CONTACT_SUBJECT_LABELS) {
+      setFormData(prev => (prev.subject ? prev : { ...prev, subject: preset }))
+    }
+  }, [])
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -223,6 +232,7 @@ export default function ContactPage() {
                           <option value="verification">{t('subjectVerification')}</option>
                           <option value="technical">{t('subjectTechnical')}</option>
                           <option value="billing">{t('subjectBilling')}</option>
+                          <option value="advertising">{t('subjectAdvertising')}</option>
                           <option value="report">{t('subjectReport')}</option>
                           <option value="other">{t('subjectOther')}</option>
                         </select>

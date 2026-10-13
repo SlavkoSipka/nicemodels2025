@@ -2725,6 +2725,12 @@
       "modelsH1": "Modele escort Elveția",
       "modelsIntro": "Sedcarduri verificate de la modele escort în Zürich, Berna, Basel, Geneva și în toată Elveția.",
       "modelsBody": "Fiecare model afișat aici are un anunț activ — fără intrări învechite. Filtrează după regiune, vârstă sau tip de ofertă pentru a găsi compania potrivită lângă tine. Discret, sigur și direct."
+    },
+    "adSpace": {
+      "label": "Spațiu publicitar liber",
+      "title": "Reclama ta aici",
+      "text": "Ajungi zilnic la mii de vizitatori pe NiceModels.ch.",
+      "cta": "Solicită acum"
     }
   },
   "clubs": {
@@ -3608,6 +3614,7 @@
       "subjectVerification": "Verificarea contului",
       "subjectTechnical": "Asistență tehnică",
       "subjectBilling": "Facturare și plăți",
+      "subjectAdvertising": "Publicitate / Spațiu publicitar",
       "subjectReport": "Raportează o problemă",
       "subjectOther": "Altul",
       "fieldMessage": "Mesaj",

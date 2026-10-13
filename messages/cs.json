@@ -2725,6 +2725,12 @@
       "modelsH1": "Escort modelky Švýcarsko",
       "modelsIntro": "Ověřené sedcardy escort modelek v Curychu, Bernu, Basileji, Ženevě a v celém Švýcarsku.",
       "modelsBody": "Každá zde zobrazená modelka má aktivní inzerát — žádné zastaralé záznamy. Filtrujte podle regionu, věku nebo typu nabídky a najděte vhodný doprovod ve svém okolí. Diskrétně, bezpečně a přímo."
+    },
+    "adSpace": {
+      "label": "Volná reklamní plocha",
+      "title": "Vaše reklama zde",
+      "text": "Oslovte každý den tisíce návštěvníků na NiceModels.ch.",
+      "cta": "Poptat nyní"
     }
   },
   "clubs": {
@@ -3608,6 +3614,7 @@
       "subjectVerification": "Ověření účtu",
       "subjectTechnical": "Technická podpora",
       "subjectBilling": "Fakturace a platby",
+      "subjectAdvertising": "Reklama / Reklamní plocha",
       "subjectReport": "Nahlásit problém",
       "subjectOther": "Jiné",
       "fieldMessage": "Zpráva",

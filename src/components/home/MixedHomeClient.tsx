@@ -9,6 +9,7 @@ import ClubCard, { type ClubCardData } from './ClubCard'
 import BannerCard, { type BannerData } from './BannerCard'
 import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
+import AdSpacePlaceholder from './AdSpacePlaceholder'
 import MobileBannerPopup from './MobileBannerPopup'
 import ListingBannerCard, { type ListingBannerData } from './ListingBannerCard'
 import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
@@ -401,8 +402,6 @@ export default function MixedHomeClient({
     ], seed)
   }, [isFiltering, visibleBanners, filteredListings, wideSlots, seed])
 
-  const hasSidebar = statusMessages.length > 0 || chatModels.length > 0 || sidebarRightRail.length > 0
-
   // Page count must cover BOTH wide slots and mixed feed cards. Previously, when any wide
   // slot existed, only ceil(wides/3) was used — so with 3 listings/banners, totalPages
   // stayed 1 while activeCards could be 40+; only the first 12 cards were ever sliced,
@@ -692,10 +691,12 @@ export default function MixedHomeClient({
         <div className={`w-full pt-3 sm:pt-4 sm:pb-6 ${mobileSidebarRail.length > 0 ? 'pb-40' : 'pb-4'}`}>
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
-              {sidebarRail.length > 0 && (
+              {sidebarRail.length > 0 ? (
                 <div className="max-h-[calc(100vh-9rem)] overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
                   <BannerSidebarRail banners={sidebarRail} />
                 </div>
+              ) : (
+                <AdSpacePlaceholder />
               )}
             </aside>
 
@@ -711,17 +712,16 @@ export default function MixedHomeClient({
             </div>
 
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
-              {hasSidebar && (
-                <div className="flex max-h-[calc(100vh-9rem)] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
-                  {sidebarRightRail.length > 0 && (
-                    <div className="flex justify-center">
-                      <BannerSidebarRail banners={sidebarRightRail} />
-                    </div>
-                  )}
-                  {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
-                  {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
+              {/* An unsold rail shows an "ad space available" tile instead of nothing. */}
+              <div className="flex max-h-[calc(100vh-9rem)] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
+                <div className="flex justify-center">
+                  {sidebarRightRail.length > 0
+                    ? <BannerSidebarRail banners={sidebarRightRail} />
+                    : <AdSpacePlaceholder />}
                 </div>
-              )}
+                {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
+                {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
+              </div>
             </aside>
           </div>
         </div>

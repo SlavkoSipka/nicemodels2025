@@ -2725,6 +2725,12 @@
       "modelsH1": "Escort modellek Svájc",
       "modelsIntro": "Ellenőrzött sedcardok escort modellektől Zürichben, Bernben, Bázelben, Genfben és egész Svájcban.",
       "modelsBody": "Minden itt megjelenő modellnek aktív hirdetése van — nincsenek elavult bejegyzések. Szűrj régió, életkor vagy ajánlat típusa szerint, hogy megtaláld a megfelelő kíséretet a közeledben. Diszkrét, biztonságos és közvetlen."
+    },
+    "adSpace": {
+      "label": "Szabad hirdetési felület",
+      "title": "Az Ön hirdetése itt",
+      "text": "Érjen el naponta több ezer látogatót a NiceModels.ch oldalon.",
+      "cta": "Érdeklődés"
     }
   },
   "clubs": {
@@ -3608,6 +3614,7 @@
       "subjectVerification": "Fiók ellenőrzése",
       "subjectTechnical": "Technikai támogatás",
       "subjectBilling": "Számlázás és fizetések",
+      "subjectAdvertising": "Hirdetés / Hirdetési felület",
       "subjectReport": "Probléma jelentése",
       "subjectOther": "Egyéb",
       "fieldMessage": "Üzenet",
