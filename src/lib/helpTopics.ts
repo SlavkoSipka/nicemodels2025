@@ -12,7 +12,7 @@
 
 export const HELP_PATH = '/hilfe'
 
-export type HelpIcon = 'profile' | 'sedcard'
+export type HelpIcon = 'account' | 'profile' | 'sedcard'
 
 export interface HelpTopic {
   slug: string
@@ -28,6 +28,15 @@ export interface HelpTopic {
 }
 
 export const HELP_TOPICS: HelpTopic[] = [
+  {
+    slug: 'konto-erstellen',
+    title: 'Konto erstellen – animierte Anleitung',
+    short: 'Konto erstellen',
+    description:
+      'Sieh dir Schritt für Schritt an, wie die Registrierung auf NiceModels.ch funktioniert: vom Klick auf «Registrieren» bis zum fertigen Konto – am Laptop und am Handy.',
+    icon: 'account',
+    minutes: 2,
+  },
   {
     slug: 'profil-erstellen',
     title: 'Profil erstellen – Schritt für Schritt',

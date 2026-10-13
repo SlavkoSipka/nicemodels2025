@@ -1,8 +1,9 @@
 import Link from 'next/link'
-import { ChevronRight, IdCard, LayoutDashboard } from 'lucide-react'
+import { ChevronRight, IdCard, LayoutDashboard, UserPlus } from 'lucide-react'
 import { HELP_PATH, HELP_TOPICS, helpUrl, type HelpIcon, type HelpTopic } from '@/lib/helpTopics'
 
 export const HELP_ICONS: Record<HelpIcon, typeof IdCard> = {
+  account: UserPlus,
   profile: IdCard,
   sedcard: LayoutDashboard,
 }

@@ -6,6 +6,7 @@ import Navbar from '@/components/layout/Navbar'
 import RegisterForm from '@/components/auth/RegisterForm'
 import Footer from '@/components/layout/Footer'
 import Link from 'next/link'
+import { PlayCircle } from 'lucide-react'
 
 export default function RegisterPage() {
   const t = useTranslations('auth.register')
@@ -63,6 +64,13 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-gray-700 space-y-2">
+                  <Link
+                    href="/hilfe/konto-erstellen"
+                    className="mb-2 inline-flex items-center gap-2 rounded-lg border border-gray-600 px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:border-brand hover:text-white"
+                  >
+                    <PlayCircle className="h-4 w-4 text-brand" />
+                    Wie funktioniert die Registrierung? Animierte Anleitung ansehen
+                  </Link>
                   <p className="text-xs text-gray-500">
                     {t('haveAccount')}{' '}
                     <Link href="/login" className="text-brand hover:text-brand-hover font-semibold transition-colors">
