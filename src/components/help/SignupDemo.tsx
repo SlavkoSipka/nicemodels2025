@@ -10,9 +10,11 @@ import {
   PageBody,
   SiteHeader,
   keyFor,
+  tabTitle,
   type Device,
   type Flag,
   type KbLayout,
+  type Lang,
   type Screen,
   type Target,
 } from './SignupDemoScreens'
@@ -31,20 +33,28 @@ import {
 
 type Beat =
   | { at: Target; click: true; set?: Flag[]; unset?: Flag[]; reserve?: number }
-  | { at: Target; type: string; kb: KbLayout }
+  | { at: Target; type: string | Record<Lang, string>; kb: KbLayout }
+
+type Copy = string | Record<Device, string>
 
 interface DemoStep {
-  title: string
-  text: string | Record<Device, string>
+  title: Record<Lang, string>
+  text: Record<Lang, Copy>
   beats: Beat[] | Record<Device, Beat[]>
 }
 
 const STEPS: DemoStep[] = [
   {
-    title: 'Registrierung öffnen',
+    title: { de: 'Registrierung öffnen', en: 'Open registration' },
     text: {
-      laptop: 'Klicke oben rechts auf «Registrieren». Die Registrierung ist komplett kostenlos.',
-      phone: 'Tippe oben rechts auf das Menü ☰ und dann auf «Registrieren». Die Registrierung ist komplett kostenlos.',
+      de: {
+        laptop: 'Klicke oben rechts auf «Registrieren». Die Registrierung ist komplett kostenlos.',
+        phone: 'Tippe oben rechts auf das Menü ☰ und dann auf «Registrieren». Die Registrierung ist komplett kostenlos.',
+      },
+      en: {
+        laptop: 'Click “Register” in the top right corner. Signing up is completely free.',
+        phone: 'Tap the menu ☰ in the top right corner, then “Register”. Signing up is completely free.',
+      },
     },
     beats: {
       laptop: [{ at: 'nav-register', click: true, set: ['registerOpen'] }],
@@ -55,67 +65,109 @@ const STEPS: DemoStep[] = [
     },
   },
   {
-    title: 'Benutzertyp wählen',
-    text: 'Wähle, wer du bist: Mitglied / Besucher, Unabhängiges Model oder Agentur / Club. Für ein eigenes Profil wählst du «Unabhängiges Model».',
+    title: { de: 'Benutzertyp wählen', en: 'Choose your user type' },
+    text: {
+      de: 'Wähle, wer du bist: Mitglied / Besucher, Unabhängiges Model oder Agentur / Club. Für ein eigenes Profil wählst du «Unabhängiges Model».',
+      en: 'Pick who you are: Member / Visitor, Independent Model or Agency / Club. For your own profile, choose “Independent Model”.',
+    },
     beats: [
       { at: 'type', click: true, set: ['typeOpen'], reserve: 210 },
       { at: 'type-model', click: true, set: ['typeChosen'], unset: ['typeOpen'] },
     ],
   },
   {
-    title: 'Benutzername eingeben',
-    text: 'Wähle einen Benutzernamen für dein Konto.',
+    title: { de: 'Benutzername eingeben', en: 'Enter a username' },
+    text: { de: 'Wähle einen Benutzernamen für dein Konto.', en: 'Choose a username for your account.' },
     beats: [{ at: 'username', type: 'Sandra_ZH', kb: 'text' }],
   },
   {
-    title: 'E-Mail-Adresse eingeben',
-    text: 'Mit dieser Adresse und deinem Passwort meldest du dich später an. Verwende eine Adresse, auf die du Zugriff hast.',
-    beats: [{ at: 'email', type: 'sandra@beispiel.ch', kb: 'email' }],
+    title: { de: 'E-Mail-Adresse eingeben', en: 'Enter your email address' },
+    text: {
+      de: 'Mit dieser Adresse und deinem Passwort meldest du dich später an. Verwende eine Adresse, auf die du Zugriff hast.',
+      en: 'You will sign in later with this address and your password. Use an address you have access to.',
+    },
+    beats: [{ at: 'email', type: { de: 'sandra@beispiel.ch', en: 'sandra@example.com' }, kb: 'email' }],
   },
   {
-    title: 'Telefonnummer eingeben',
-    text: 'Pflichtfeld. Die Schweizer Vorwahl +41 ist schon ausgewählt – bei einer anderen Nummer wählst du links das passende Land.',
+    title: { de: 'Telefonnummer eingeben', en: 'Enter your phone number' },
+    text: {
+      de: 'Pflichtfeld. Die Schweizer Vorwahl +41 ist schon ausgewählt – bei einer anderen Nummer wählst du links das passende Land.',
+      en: 'Required. The Swiss code +41 is already selected – for a number from another country, pick it on the left.',
+    },
     beats: [{ at: 'phone', type: '79 123 45 67', kb: 'numeric' }],
   },
   {
-    title: 'Geburtsdatum (freiwillig)',
-    text: 'Dieses Feld ist optional. Wenn du es ausfüllst, musst du mindestens 18 Jahre alt sein.',
+    title: { de: 'Geburtsdatum (freiwillig)', en: 'Date of birth (optional)' },
+    text: {
+      de: 'Dieses Feld ist optional. Wenn du es ausfüllst, musst du mindestens 18 Jahre alt sein.',
+      en: 'This field is optional. If you fill it in, you must be at least 18 years old.',
+    },
     beats: [{ at: 'dob', type: '14.03.1996', kb: 'numeric' }],
   },
   {
-    title: 'Passwort festlegen',
-    text: 'Mindestens 6 Zeichen. Mit dem Augen-Symbol kannst du dein Passwort beim Tippen sichtbar machen.',
+    title: { de: 'Passwort festlegen', en: 'Set a password' },
+    text: {
+      de: 'Mindestens 6 Zeichen. Mit dem Augen-Symbol kannst du dein Passwort beim Tippen sichtbar machen.',
+      en: 'At least 6 characters. Use the eye icon to show your password while you type.',
+    },
     beats: [{ at: 'password', type: 'sommer2024', kb: 'text' }],
   },
   {
-    title: 'Passwort bestätigen',
-    text: 'Gib dasselbe Passwort noch einmal ein. Beide Felder müssen genau übereinstimmen.',
+    title: { de: 'Passwort bestätigen', en: 'Confirm your password' },
+    text: {
+      de: 'Gib dasselbe Passwort noch einmal ein. Beide Felder müssen genau übereinstimmen.',
+      en: 'Enter the same password again. Both fields must match exactly.',
+    },
     beats: [{ at: 'confirm', type: 'sommer2024', kb: 'text' }],
   },
   {
-    title: 'AGB und Datenschutz akzeptieren',
-    text: 'Beide Häkchen sind Pflicht. Der Newsletter darunter ist freiwillig.',
+    title: { de: 'AGB und Datenschutz akzeptieren', en: 'Accept the terms and privacy policy' },
+    text: {
+      de: 'Beide Häkchen sind Pflicht. Der Newsletter darunter ist freiwillig.',
+      en: 'Both boxes are required. The newsletter below is optional.',
+    },
     beats: [
       { at: 'terms', click: true, set: ['terms'] },
       { at: 'privacy', click: true, set: ['privacy'] },
     ],
   },
   {
-    title: 'Auf «Registrieren» klicken',
-    text: 'Ein Klick – und dein Konto wird erstellt.',
+    title: { de: 'Auf «Registrieren» klicken', en: 'Click “Register”' },
+    text: { de: 'Ein Klick – und dein Konto wird erstellt.', en: 'One click – and your account is created.' },
     beats: [{ at: 'submit', click: true, set: ['submitting'] }],
   },
   {
-    title: 'Fertig – dein Konto ist da',
-    text: 'Du bist sofort eingeloggt und landest im Onboarding, wo du die ersten Profilangaben machst. Als Mitglied geht es direkt ins Dashboard.',
+    title: { de: 'Fertig – dein Konto ist da', en: 'Done – your account is ready' },
+    text: {
+      de: 'Du bist sofort eingeloggt und landest im Onboarding, wo du die ersten Profilangaben machst. Als Mitglied geht es direkt ins Dashboard.',
+      en: 'You are signed in straight away and land in onboarding, where you add your first profile details. Members go straight to their dashboard.',
+    },
     beats: [],
   },
 ]
 
+/** Labels of the player controls. */
+const CONTROLS = {
+  de: {
+    back: 'Zurück', next: 'Weiter', play: 'Abspielen', pause: 'Pause', again: 'Nochmals', restart: 'Von vorne beginnen',
+    device: 'Gerät wählen', laptop: 'Laptop', phone: 'Handy', steps: 'Schritte der Anleitung',
+    step: (i: number, n: number) => `Schritt ${i} von ${n}`,
+  },
+  en: {
+    back: 'Back', next: 'Next', play: 'Play', pause: 'Pause', again: 'Replay', restart: 'Start over',
+    device: 'Choose device', laptop: 'Laptop', phone: 'Phone', steps: 'Steps of the guide',
+    step: (i: number, n: number) => `Step ${i} of ${n}`,
+  },
+} as const
+
 const LAST = STEPS.length - 1
 
 const beatsOf = (s: DemoStep, d: Device) => (Array.isArray(s.beats) ? s.beats : s.beats[d])
-const textOf = (s: DemoStep, d: Device) => (typeof s.text === 'string' ? s.text : s.text[d])
+const textOf = (s: DemoStep, d: Device, lang: Lang) => {
+  const t = s.text[lang]
+  return typeof t === 'string' ? t : t[d]
+}
+const typedOf = (b: Extract<Beat, { type: unknown }>, lang: Lang) => (typeof b.type === 'string' ? b.type : b.type[lang])
 
 interface DemoState {
   flags: Flag[]
@@ -124,15 +176,17 @@ interface DemoState {
 
 const EMPTY: DemoState = { flags: [], texts: {} }
 
-function applyBeat(s: DemoState, b: Beat): DemoState {
-  if ('type' in b) return { ...s, texts: { ...s.texts, [b.at]: b.type } }
+function applyBeat(s: DemoState, b: Beat, lang: Lang): DemoState {
+  if ('type' in b) return { ...s, texts: { ...s.texts, [b.at]: typedOf(b, lang) } }
   const flags = s.flags.filter(f => !b.unset?.includes(f))
   for (const f of b.set ?? []) if (!flags.includes(f)) flags.push(f)
   return { ...s, flags }
 }
 
-function stateBefore(step: number, device: Device): DemoState {
-  return STEPS.slice(0, step).flatMap(s => beatsOf(s, device)).reduce(applyBeat, EMPTY)
+function stateBefore(step: number, device: Device, lang: Lang): DemoState {
+  return STEPS.slice(0, step)
+    .flatMap(s => beatsOf(s, device))
+    .reduce((s, b) => applyBeat(s, b, lang), EMPTY)
 }
 
 function screenFor(step: number, s: DemoState): Screen {
@@ -171,7 +225,8 @@ const viewportHeightStore = {
 
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
 
-export default function SignupDemo() {
+export default function SignupDemo({ lang = 'de' }: { lang?: Lang }) {
+  const c = CONTROLS[lang]
   const rootRef = useRef<HTMLDivElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -314,7 +369,7 @@ export default function SignupDemo() {
 
     const animate = async () => {
       const beats = beatsOf(STEPS[step], device)
-      let s = stateBefore(step, device)
+      let s = stateBefore(step, device, lang)
       setState(s)
       setFocus(null)
       setPressed(null)
@@ -328,7 +383,7 @@ export default function SignupDemo() {
       if (!(beats[0] && 'type' in beats[0])) showKeyboard(null)
 
       if (reduceMotion) {
-        s = stateBefore(step + 1, device)
+        s = stateBefore(step + 1, device, lang)
         setState(s)
         const last = beats[beats.length - 1]
         await sleep(50)
@@ -367,10 +422,11 @@ export default function SignupDemo() {
             showKeyboard(beat.kb)
             await sleep(320)
           }
-          for (let i = 1; i <= beat.type.length; i++) {
+          const value = typedOf(beat, lang)
+          for (let i = 1; i <= value.length; i++) {
             if (cancelled) return
-            setPressed(device === 'phone' ? keyFor(beat.type[i - 1]) : null)
-            setState({ ...s, texts: { ...s.texts, [beat.at]: beat.type.slice(0, i) } })
+            setPressed(device === 'phone' ? keyFor(value[i - 1]) : null)
+            setState({ ...s, texts: { ...s.texts, [beat.at]: value.slice(0, i) } })
             await sleep(80)
           }
           setPressed(null)
@@ -378,7 +434,7 @@ export default function SignupDemo() {
           setFocus(null)
           if (keyboardRef.current) showKeyboard(null)
         }
-        s = applyBeat(s, beat)
+        s = applyBeat(s, beat, lang)
         setState(s)
         if (screenFor(step, s) !== screenRef.current) {
           screenRef.current = screenFor(step, s)
@@ -395,7 +451,7 @@ export default function SignupDemo() {
     return () => {
       cancelled = true
     }
-  }, [step, run, started, reduceMotion, device])
+  }, [step, run, started, reduceMotion, device, lang])
 
   // Playback stops by itself once the last step has played out.
   const isPlaying = playing && !(step === LAST && stepDone)
@@ -403,9 +459,9 @@ export default function SignupDemo() {
   // Auto-advance once a step has played out and been on screen long enough to read.
   useEffect(() => {
     if (!isPlaying || !stepDone) return
-    const id = setTimeout(() => setStep(s => s + 1), holdMs(textOf(STEPS[step], device)))
+    const id = setTimeout(() => setStep(s => s + 1), holdMs(textOf(STEPS[step], device, lang)))
     return () => clearTimeout(id)
-  }, [isPlaying, stepDone, step, device])
+  }, [isPlaying, stepDone, step, device, lang])
 
   const goTo = (i: number) => {
     setStarted(true)
@@ -444,7 +500,7 @@ export default function SignupDemo() {
   const text = (t: Target) => state.texts[t] ?? ''
   const screen = screenFor(step, state)
   const url = screen === 'home' ? 'nicemodels.ch' : `nicemodels.ch/${screen}`
-  const title = screen === 'home' ? 'NiceModels.ch – Das Erotikportal der Schweiz' : screen === 'register' ? 'Registrieren | NiceModels.ch' : 'Onboarding | NiceModels.ch'
+  const title = tabTitle(lang, screen)
   const viewportH = spec.h - spec.chrome
   const current = STEPS[step]
   const ease = reduceMotion ? 'none' : undefined
@@ -477,12 +533,12 @@ export default function SignupDemo() {
             className="flex flex-col"
             style={{ minHeight: viewportH - spec.header, animation: reduceMotion ? undefined : 'nmDemoFade 300ms ease-out' }}
           >
-            <PageBody device={device} screen={screen} has={has} text={text} focus={focus} />
+            <PageBody device={device} screen={screen} lang={lang} has={has} text={text} focus={focus} />
           </div>
         </div>
         {/* Solid backing and a 1px overlap hide sub-pixel seams that scaling opens between the header bars. */}
         <div className="absolute inset-x-0 z-10" style={{ top: -1, paddingTop: 1, background: '#e8f4fd', transform: 'translateZ(0)' }}>
-          <SiteHeader device={device} screen={screen} has={has} />
+          <SiteHeader device={device} screen={screen} lang={lang} has={has} />
         </div>
       </div>
 
@@ -495,7 +551,7 @@ export default function SignupDemo() {
             transition: ease ?? 'transform 280ms cubic-bezier(.2,.8,.2,1)',
           }}
         >
-          <Keyboard layout={keyboard ?? 'text'} pressed={pressed} />
+          <Keyboard layout={keyboard ?? 'text'} pressed={pressed} lang={lang} />
         </div>
       )}
       {device === 'phone' && (
@@ -568,13 +624,13 @@ export default function SignupDemo() {
 
       {/* Caption + controls */}
       <div className="mt-4 rounded-xl border border-gray-200 bg-white p-3 sm:px-5 sm:py-4">
-        <div className="mb-3 flex gap-1" role="group" aria-label="Schritte der Anleitung">
+        <div className="mb-3 flex gap-1" role="group" aria-label={c.steps}>
           {STEPS.map((s, i) => (
             <button
-              key={s.title}
+              key={s.title.de}
               type="button"
               onClick={() => goTo(i)}
-              aria-label={`Schritt ${i + 1}: ${s.title}`}
+              aria-label={`${c.step(i + 1, STEPS.length)}: ${s.title[lang]}`}
               aria-current={i === step ? 'step' : undefined}
               className="group flex-1 py-1.5"
             >
@@ -589,10 +645,10 @@ export default function SignupDemo() {
 
         <div aria-live="polite" className="min-h-[96px] sm:min-h-[84px]">
           <p className="hidden text-[11px] font-bold uppercase tracking-wider text-pink-600 sm:block">
-            Schritt {step + 1} von {STEPS.length}
+            {c.step(step + 1, STEPS.length)}
           </p>
-          <p className="mt-0.5 text-base font-bold text-gray-900">{current.title}</p>
-          <p className="mt-1 text-[13px] leading-relaxed text-gray-600 sm:text-sm">{textOf(current, device)}</p>
+          <p className="mt-0.5 text-base font-bold text-gray-900">{current.title[lang]}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-gray-600 sm:text-sm">{textOf(current, device, lang)}</p>
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-1.5 sm:gap-2">
@@ -600,10 +656,10 @@ export default function SignupDemo() {
             type="button"
             onClick={() => goTo(step - 1)}
             disabled={step === 0}
-            aria-label="Zurück"
+            aria-label={c.back}
             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 sm:px-3"
           >
-            <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Zurück</span>
+            <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">{c.back}</span>
           </button>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button
@@ -612,21 +668,21 @@ export default function SignupDemo() {
               className="inline-flex items-center gap-1.5 rounded-lg bg-pink-600 px-3 py-2 text-xs font-bold text-white hover:bg-pink-700 sm:px-4"
             >
               {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              {isPlaying ? 'Pause' : step === LAST && stepDone ? 'Nochmals' : 'Abspielen'}
+              {isPlaying ? c.pause : step === LAST && stepDone ? c.again : c.play}
             </button>
             <button
               type="button"
               onClick={restart}
-              aria-label="Von vorne beginnen"
-              title="Von vorne beginnen"
+              aria-label={c.restart}
+              title={c.restart}
               className="hidden rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 sm:inline-flex"
             >
               <RotateCcw className="h-4 w-4" />
             </button>
-            <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-xs font-semibold" role="group" aria-label="Gerät wählen">
+            <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 text-xs font-semibold" role="group" aria-label={c.device}>
               {([
-                { d: 'laptop' as Device, label: 'Laptop', Icon: Laptop },
-                { d: 'phone' as Device, label: 'Handy', Icon: Smartphone },
+                { d: 'laptop' as Device, label: c.laptop, Icon: Laptop },
+                { d: 'phone' as Device, label: c.phone, Icon: Smartphone },
               ]).map(({ d, label, Icon }) => (
                 <button
                   key={d}
@@ -648,10 +704,10 @@ export default function SignupDemo() {
             type="button"
             onClick={() => goTo(step + 1)}
             disabled={step === LAST}
-            aria-label="Weiter"
+            aria-label={c.next}
             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-40 sm:px-3"
           >
-            <span className="hidden sm:inline">Weiter</span> <ChevronRight className="h-4 w-4" />
+            <span className="hidden sm:inline">{c.next}</span> <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>

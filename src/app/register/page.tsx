@@ -69,7 +69,7 @@ export default function RegisterPage() {
                     className="mb-2 inline-flex items-center gap-2 rounded-lg border border-gray-600 px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:border-brand hover:text-white"
                   >
                     <PlayCircle className="h-4 w-4 text-brand" />
-                    Wie funktioniert die Registrierung? Animierte Anleitung ansehen
+                    {t('guideLink')}
                   </Link>
                   <p className="text-xs text-gray-500">
                     {t('haveAccount')}{' '}

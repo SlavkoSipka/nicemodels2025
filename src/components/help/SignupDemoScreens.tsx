@@ -23,7 +23,8 @@ import {
  * phone) for the animated signup guide. Markup and classes mirror Navbar,
  * RegisterForm, PhoneInput and the onboarding page; responsive prefixes are
  * replaced by an explicit `device` switch, because the copy is laid out at the
- * device's width, not the viewer's.
+ * device's width, not the viewer's. Wording follows the site in German or
+ * English (`messages/de.json`, `messages/en.json`).
  *
  * Nothing here is interactive: `SignupDemo` scales it into a device frame,
  * hides it from assistive tech and drives it through `ScreenProps`.
@@ -31,6 +32,7 @@ import {
 
 export type Device = 'laptop' | 'phone'
 export type Screen = 'home' | 'register' | 'onboarding'
+export type Lang = 'de' | 'en'
 
 export type Target =
   | 'nav-register' | 'nav-menu' | 'menu-register'
@@ -48,15 +50,129 @@ export const DEVICE = {
 
 export const KB_HEIGHT: Record<KbLayout, number> = { text: 291, email: 291, numeric: 251 }
 
+/** On-screen wording of the copied pages, as the live site shows it in each language. */
+const UI = {
+  de: {
+    nav: ['Models', 'Clubs / Agentur', 'Jobs / Miete', 'Neueste Aktionen', 'Kommentare', 'Kontakt', 'Blog', 'Hilfe'],
+    flag: '🇩🇪',
+    langCode: 'DE',
+    register: 'Registrieren',
+    login: 'Anmelden',
+    signInTab: 'Anmelden',
+    logout: 'Abmelden',
+    tabs: { title: { home: 'NiceModels.ch – Das Erotikportal der Schweiz', register: 'Registrieren | NiceModels.ch', onboarding: 'Onboarding | NiceModels.ch' } },
+    homeH1: 'Escort Models & Clubs in der Schweiz',
+    filters: ['Region', 'Stadt, PLZ oder Live-Standort', 'Alle Karten durchsuchen...'],
+    leftHeading: 'Ihr persönlicher Zugang in einer Minute.',
+    leftSubtitle: 'Hochwertig und kostenlos.',
+    bullets: [
+      'Komplett kostenlose Registrierung',
+      'Hohe Sicherheitsstandards',
+      'Eigenes Dashboard zum Verwalten',
+      'Erhöhe deine Sichtbarkeit',
+      'Schweizer Qualitätsstandards',
+    ],
+    guideLink: 'Wie funktioniert die Registrierung? Animierte Anleitung ansehen',
+    haveAccount: 'Sie haben bereits ein Konto?',
+    signInHere: 'Hier anmelden',
+    modelAgency: 'Model oder Agentur?',
+    modelAgencyLink: 'Mehr über Verifizierung & Ablauf erfahren',
+    formTitle: 'Neues Konto erstellen',
+    userType: 'Benutzertyp',
+    typeOptions: ['Wer sind Sie?', 'Mitglied / Besucher', 'Unabhängiges Model', 'Agentur / Club'],
+    username: 'Benutzername',
+    email: 'E-Mail',
+    phone: 'Telefonnummer',
+    dob: 'Geburtsdatum',
+    dobHint: '(mindestens 18 Jahre)',
+    password: 'Passwort',
+    confirm: 'Passwort bestätigen',
+    acceptPre: 'Ich akzeptiere die',
+    terms: 'Allgemeinen Geschäftsbedingungen',
+    privacy: 'Datenschutzerklärung',
+    newsletter: 'Newsletter abonnieren',
+    submitting: 'Konto wird erstellt...',
+    welcome: 'Willkommen bei ',
+    obSubtitle: ['Vervollständige dein Profil, damit wir deine ', 'Model', '- oder ', 'Club/Agentur', '-Seite vorbereiten können. Profileinrichtung und Anzeigenaktivierung sind kostenlos; Banner und Inserate sind kostenpflichtige Leistungen.'],
+    obTitle: 'Basis-BIO',
+    obFields: [
+      { label: 'Künstlername', ph: 'Name auf Ihrem Profil', select: false },
+      { label: 'Geschlecht', ph: 'Geschlecht wählen', select: true },
+      { label: 'Alter', ph: 'Alter', select: false },
+      { label: 'Herkunft', ph: 'Herkunft wählen', select: true },
+    ],
+    kbRows: ['qwertzuiopü', 'asdfghjklöä', 'yxcvbnm'],
+    kbSpace: 'Leerzeichen',
+    kbReturn: 'Return',
+    quickType: ['„“', 'Danke', 'Hallo'],
+  },
+  en: {
+    nav: ['Models', 'Clubs / Agency', 'Jobs / Rent', 'Latest Actions', 'Comments', 'Contact', 'Blog', 'Help'],
+    flag: '🇬🇧',
+    langCode: 'EN',
+    register: 'Register',
+    login: 'Log in',
+    signInTab: 'Sign in',
+    logout: 'Logout',
+    tabs: { title: { home: 'NiceModels.ch – Das Erotikportal der Schweiz', register: 'Register | NiceModels.ch', onboarding: 'Onboarding | NiceModels.ch' } },
+    homeH1: 'Escort Models & Clubs in Switzerland',
+    filters: ['Region', 'City, postal code, or live location', 'Search all cards...'],
+    leftHeading: 'Your personal login in one minute.',
+    leftSubtitle: 'High-quality and free.',
+    bullets: [
+      'Absolutely free registration',
+      'High security standards',
+      'Your own dashboard to manage',
+      'Increase your visibility',
+      'Swiss company quality standards',
+    ],
+    guideLink: 'How does registration work? Watch the animated guide',
+    haveAccount: 'Already have an account?',
+    signInHere: 'Sign in here',
+    modelAgency: 'Model or agency?',
+    modelAgencyLink: 'Learn more about verification & the process',
+    formTitle: 'Create new account',
+    userType: 'User type',
+    typeOptions: ['Who are you?', 'Member / Visitor', 'Independent Model', 'Agency / Club'],
+    username: 'Username',
+    email: 'Email',
+    phone: 'Phone number',
+    dob: 'Date of birth',
+    dobHint: '(must be 18+)',
+    password: 'Password',
+    confirm: 'Confirm password',
+    acceptPre: 'I accept the',
+    terms: 'terms and conditions',
+    privacy: 'privacy policy',
+    newsletter: 'Subscribe to newsletter',
+    submitting: 'Creating account...',
+    welcome: 'Welcome to ',
+    obSubtitle: ['Complete your profile so we can prepare your ', 'model', ' or ', 'club/agency', ' page. Profile setup and ad activation are free; banners and listings are paid services.'],
+    obTitle: 'Basic BIO',
+    obFields: [
+      { label: 'Showname', ph: 'Name on your profile', select: false },
+      { label: 'Gender', ph: 'Select gender', select: true },
+      { label: 'Age', ph: 'Age', select: false },
+      { label: 'Background', ph: 'Select background', select: true },
+    ],
+    kbRows: ['qwertyuiop', 'asdfghjkl', 'zxcvbnm'],
+    kbSpace: 'space',
+    kbReturn: 'return',
+    quickType: ['I', 'The', 'I’m'],
+  },
+} as const
+
+export const tabTitle = (lang: Lang, screen: Screen) => UI[lang].tabs.title[screen]
+
 export interface ScreenProps {
   device: Device
   screen: Screen
+  lang: Lang
   has: (f: Flag) => boolean
   text: (t: Target) => string
   focus: Target | null
 }
 
-const NAV_LINKS = ['Models', 'Clubs / Agentur', 'Jobs / Miete', 'Neueste Aktionen', 'Kommentare', 'Kontakt', 'Blog', 'Hilfe']
 const SECRET: Target[] = ['password', 'confirm']
 
 /* ───────────────────────── Browser chrome ───────────────────────── */
@@ -127,7 +243,8 @@ export function BrowserChrome({ device, url, title }: { device: Device; url: str
 
 /* ───────────────────────── Site header (Navbar) ───────────────────────── */
 
-export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' | 'screen' | 'has'>) {
+export function SiteHeader({ device, screen, lang, has }: Pick<ScreenProps, 'device' | 'screen' | 'lang' | 'has'>) {
+  const ui = UI[lang]
   const loggedIn = screen === 'onboarding'
 
   if (device === 'phone') {
@@ -139,7 +256,7 @@ export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' |
             <Image src="/logo.webp" alt="" width={240} height={60} className="h-8 w-auto" />
             <div className="flex items-center gap-1">
               <span className="flex items-center gap-1 px-2 text-[18px]">
-                🇩🇪 <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+                {ui.flag} <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
               </span>
               <span data-demo="nav-menu" className="rounded-lg p-2" style={{ color: '#94a3b8' }}>
                 {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -150,7 +267,7 @@ export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' |
         {open && (
           <div className="absolute inset-x-0 top-full" style={{ backgroundColor: '#ffffff', borderTop: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 12px 24px rgba(0,0,0,0.08)' }}>
             <div className="space-y-1 px-4 py-4">
-              {NAV_LINKS.map(l => (
+              {ui.nav.map(l => (
                 <div key={l} className="block rounded-lg px-4 py-3 text-sm font-semibold" style={{ color: '#475569' }}>
                   {l}
                 </div>
@@ -161,13 +278,13 @@ export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' |
                   className="block w-full rounded-lg px-4 py-3 text-center text-sm font-bold text-white"
                   style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)' }}
                 >
-                  REGISTRIEREN
+                  {ui.register.toUpperCase()}
                 </div>
                 <div
                   className="block w-full rounded-lg px-4 py-3 text-center text-sm font-bold text-white"
                   style={{ background: 'linear-gradient(135deg, #1e3a8a, #2563eb)' }}
                 >
-                  ANMELDEN
+                  {ui.login.toUpperCase()}
                 </div>
               </div>
             </div>
@@ -186,7 +303,7 @@ export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' |
             <Image src="/logo.webp" alt="" width={240} height={60} className="h-12 w-auto" />
             <div className="flex h-16 items-stretch self-stretch" style={{ marginBottom: '-1px' }}>
               <span className="flex items-center gap-1.5 border-l px-5 text-xs font-semibold" style={{ color: '#475569', borderColor: border }}>
-                🇩🇪 DE <ChevronDown className="h-3 w-3" />
+                {ui.flag} {ui.langCode} <ChevronDown className="h-3 w-3" />
               </span>
               {loggedIn ? (
                 <>
@@ -194,16 +311,16 @@ export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' |
                     <User className="h-3.5 w-3.5" /> Sandra_ZH
                   </span>
                   <span className="flex items-center justify-center border-l px-6 text-xs font-semibold" style={{ color: '#475569', borderColor: border }}>
-                    Abmelden
+                    {ui.logout}
                   </span>
                 </>
               ) : (
                 <>
                   <span data-demo="nav-register" className="flex items-center justify-center border-l px-6 text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #be185d, #ec4899)', borderColor: border }}>
-                    Registrieren
+                    {ui.register}
                   </span>
                   <span className="flex items-center justify-center border-l border-r px-6 text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #1e3a8a, #2563eb)', borderColor: border }}>
-                    Anmelden
+                    {ui.login}
                   </span>
                 </>
               )}
@@ -213,7 +330,7 @@ export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' |
       </div>
       <div style={{ background: 'linear-gradient(90deg, #ec4899, #f472b6)', boxShadow: '0 2px 8px rgba(236,72,153,0.15)' }}>
         <div className="flex items-center justify-center gap-1">
-          {NAV_LINKS.map(l => (
+          {ui.nav.map(l => (
             <span key={l} className="px-5 py-2.5 text-[13px] font-semibold tracking-wide" style={{ color: 'rgba(255,255,255,0.85)' }}>
               {l}
             </span>
@@ -227,12 +344,13 @@ export function SiteHeader({ device, screen, has }: Pick<ScreenProps, 'device' |
 /* ───────────────────────── Page bodies ───────────────────────── */
 
 export function PageBody(props: ScreenProps) {
-  if (props.screen === 'home') return <HomeBody device={props.device} />
-  if (props.screen === 'onboarding') return <OnboardingBody device={props.device} />
+  if (props.screen === 'home') return <HomeBody device={props.device} lang={props.lang} />
+  if (props.screen === 'onboarding') return <OnboardingBody device={props.device} lang={props.lang} />
   return <RegisterBody {...props} />
 }
 
-function HomeBody({ device }: { device: Device }) {
+function HomeBody({ device, lang }: { device: Device; lang: Lang }) {
+  const ui = UI[lang]
   const phone = device === 'phone'
   return (
     <div style={{ background: '#fce9f3' }} className="flex-1 pb-10">
@@ -253,20 +371,14 @@ function HomeBody({ device }: { device: Device }) {
 
       <div className={phone ? 'px-2 pt-3' : 'mx-auto max-w-[1100px] px-4 pt-4'}>
         <div className={`rounded-xl bg-white/70 ${phone ? 'px-4 py-3' : 'px-5 py-4'}`}>
-          <p className={`${phone ? 'text-xl' : 'text-2xl'} font-bold leading-tight text-gray-900`}>
-            Escort Models &amp; Clubs in der Schweiz
-          </p>
+          <p className={`${phone ? 'text-xl' : 'text-2xl'} font-bold leading-tight text-gray-900`}>{ui.homeH1}</p>
         </div>
 
         <div className={`grid gap-2 py-3 ${phone ? 'grid-cols-1' : 'grid-cols-3 gap-3 pb-5'}`}>
-          {[
-            { icon: null, label: 'Region' },
-            { icon: MapPin, label: 'Stadt, PLZ oder Live-Standort' },
-            { icon: Search, label: 'Alle Karten durchsuchen...' },
-          ].map(({ icon: Icon, label }) => (
-            <div key={label} className="flex h-[40px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400">
+          {[null, MapPin, Search].map((Icon, i) => (
+            <div key={i} className="flex h-[40px] items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-[13px] text-slate-400">
               {Icon && <Icon className="h-3.5 w-3.5" />}
-              <span className="flex-1 truncate">{label}</span>
+              <span className="flex-1 truncate">{ui.filters[i]}</span>
               {!Icon && <ChevronDown className="h-4 w-4" />}
             </div>
           ))}
@@ -301,7 +413,8 @@ function HomeBody({ device }: { device: Device }) {
   )
 }
 
-function RegisterBody({ device, has, text, focus }: ScreenProps) {
+function RegisterBody({ device, lang, has, text, focus }: ScreenProps) {
+  const ui = UI[lang]
   const phone = device === 'phone'
   const field = (t: Target) =>
     `w-full px-3 py-2 text-sm border-2 rounded-lg bg-gray-50 transition-all ${
@@ -345,8 +458,8 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
         {/* Tabs */}
         <div className={`flex justify-center ${phone ? 'mb-4' : 'mb-6'}`}>
           <div className="inline-flex rounded-lg border border-gray-200 bg-white p-1 shadow-sm">
-            <span className={`py-2 text-sm font-semibold text-gray-500 ${phone ? 'px-4' : 'px-6'}`}>Anmelden</span>
-            <span className={`rounded-md bg-brand py-2 text-sm font-bold text-white shadow-sm ${phone ? 'px-4' : 'px-6'}`}>Registrieren</span>
+            <span className={`py-2 text-sm font-semibold text-gray-500 ${phone ? 'px-4' : 'px-6'}`}>{ui.signInTab}</span>
+            <span className={`rounded-md bg-brand py-2 text-sm font-bold text-white shadow-sm ${phone ? 'px-4' : 'px-6'}`}>{ui.register}</span>
           </div>
         </div>
 
@@ -355,16 +468,10 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
             {/* Left column */}
             <div className={`flex flex-col justify-between bg-[#1f2126] ${phone ? 'p-5' : 'p-8'}`}>
               <div>
-                <p className={`mb-1 font-bold text-white ${phone ? 'text-xl' : 'text-2xl'}`}>Ihr persönlicher Zugang in einer Minute.</p>
-                <p className={`text-sm text-gray-400 ${phone ? 'mb-5' : 'mb-8'}`}>Hochwertig und kostenlos.</p>
+                <p className={`mb-1 font-bold text-white ${phone ? 'text-xl' : 'text-2xl'}`}>{ui.leftHeading}</p>
+                <p className={`text-sm text-gray-400 ${phone ? 'mb-5' : 'mb-8'}`}>{ui.leftSubtitle}</p>
                 <div className={phone ? 'space-y-3' : 'space-y-4'}>
-                  {[
-                    'Komplett kostenlose Registrierung',
-                    'Hohe Sicherheitsstandards',
-                    'Eigenes Dashboard zum Verwalten',
-                    'Erhöhe deine Sichtbarkeit',
-                    'Schweizer Qualitätsstandards',
-                  ].map(item => (
+                  {ui.bullets.map(item => (
                     <div key={item} className="flex items-center gap-3">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand">
                         <Check className="h-3 w-3 text-white" strokeWidth={3} />
@@ -379,13 +486,13 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
                   <span className="flex h-4 w-4 items-center justify-center rounded-full border-[1.5px] border-brand">
                     <span className="ml-px h-0 w-0 border-y-[3px] border-l-[5px] border-y-transparent border-l-brand" />
                   </span>
-                  Wie funktioniert die Registrierung? Animierte Anleitung ansehen
+                  {ui.guideLink}
                 </span>
                 <p className="text-xs text-gray-500">
-                  Sie haben bereits ein Konto? <span className="font-semibold text-brand">Hier anmelden</span>
+                  {ui.haveAccount} <span className="font-semibold text-brand">{ui.signInHere}</span>
                 </p>
                 <p className="text-xs text-gray-500">
-                  Model oder Agentur? <span className="font-semibold text-brand">Mehr über Verifizierung &amp; Ablauf erfahren</span>
+                  {ui.modelAgency} <span className="font-semibold text-brand">{ui.modelAgencyLink}</span>
                 </p>
               </div>
             </div>
@@ -393,27 +500,27 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
             {/* Registration form */}
             <div className={phone ? 'p-5' : 'p-8'}>
               <div className="space-y-3">
-                <p className="mb-3 text-center text-lg font-bold text-gray-900">Neues Konto erstellen</p>
+                <p className="mb-3 text-center text-lg font-bold text-gray-900">{ui.formTitle}</p>
 
                 <div className="relative">
-                  {label('Benutzertyp')}
+                  {label(ui.userType)}
                   <div data-demo="type" className={`${field('type')} flex items-center justify-between text-gray-700`}>
-                    <span>{has('typeChosen') ? 'Unabhängiges Model' : 'Wer sind Sie?'}</span>
+                    <span>{has('typeChosen') ? ui.typeOptions[2] : ui.typeOptions[0]}</span>
                     <ChevronDown className="h-4 w-4 text-gray-600" />
                   </div>
-                  {has('typeOpen') && <TypeMenu device={device} />}
+                  {has('typeOpen') && <TypeMenu device={device} options={ui.typeOptions} />}
                 </div>
 
                 <div>
-                  {label('Benutzername')}
+                  {label(ui.username)}
                   <div data-demo="username" className={field('username')}>
-                    {value('username', 'Benutzername')}
+                    {value('username', ui.username)}
                     {caret('username')}
                   </div>
                 </div>
 
                 <div>
-                  {label('E-Mail')}
+                  {label(ui.email)}
                   <div data-demo="email" className={field('email')}>
                     {value('email', 'name@domain.com')}
                     {caret('email')}
@@ -421,7 +528,7 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
                 </div>
 
                 <div>
-                  {label('Telefonnummer')}
+                  {label(ui.phone)}
                   <div className="flex w-full items-stretch">
                     <span className={`flex shrink-0 items-center gap-1 rounded-l-lg border-2 border-r-0 border-gray-200 bg-gray-50 text-sm font-medium text-gray-800 ${phone ? 'px-2' : 'px-3'}`}>
                       🇨🇭 +41 <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
@@ -439,7 +546,7 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
                 </div>
 
                 <div>
-                  {label(<>Geburtsdatum<span className="ml-1 font-normal text-gray-400">(mindestens 18 Jahre)</span></>, false)}
+                  {label(<>{ui.dob}<span className="ml-1 font-normal text-gray-400">{ui.dobHint}</span></>, false)}
                   <div data-demo="dob" className={field('dob')}>
                     {value('dob', 'DD.MM.YYYY')}
                     {caret('dob')}
@@ -448,7 +555,7 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
 
                 {(['password', 'confirm'] as const).map(t => (
                   <div key={t}>
-                    {label(t === 'password' ? 'Passwort' : 'Passwort bestätigen')}
+                    {label(t === 'password' ? ui.password : ui.confirm)}
                     <div className="relative">
                       <div data-demo={t} className={`${field(t)} pr-10`}>
                         {value(t, '••••••••••')}
@@ -460,9 +567,9 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
                 ))}
 
                 <div className="space-y-2 pt-2">
-                  {checkbox('terms', has('terms'), <>Ich akzeptiere die <span className="font-semibold text-pink-600 underline">Allgemeinen Geschäftsbedingungen</span></>)}
-                  {checkbox('privacy', has('privacy'), <>Ich akzeptiere die <span className="font-semibold text-pink-600 underline">Datenschutzerklärung</span></>)}
-                  {checkbox(null, false, 'Newsletter abonnieren')}
+                  {checkbox('terms', has('terms'), <>{ui.acceptPre} <span className="font-semibold text-pink-600 underline">{ui.terms}</span></>)}
+                  {checkbox('privacy', has('privacy'), <>{ui.acceptPre} <span className="font-semibold text-pink-600 underline">{ui.privacy}</span></>)}
+                  {checkbox(null, false, ui.newsletter)}
                 </div>
 
                 <div
@@ -477,10 +584,10 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                       </svg>
-                      Konto wird erstellt...
+                      {ui.submitting}
                     </span>
                   ) : (
-                    'Registrieren'
+                    ui.register
                   )}
                 </div>
               </div>
@@ -493,16 +600,14 @@ function RegisterBody({ device, has, text, focus }: ScreenProps) {
 }
 
 /** The <select> popup: a macOS menu in Chrome on the laptop, the iOS popover on the phone. */
-function TypeMenu({ device }: { device: Device }) {
-  const options = ['Wer sind Sie?', 'Mitglied / Besucher', 'Unabhängiges Model', 'Agentur / Club']
-
+function TypeMenu({ device, options }: { device: Device; options: readonly string[] }) {
   if (device === 'phone') {
     return (
       <div className="absolute left-0 top-full z-20 mt-1.5 w-[250px] overflow-hidden rounded-[13px] bg-white/95 shadow-[0_10px_40px_rgba(0,0,0,0.25)] backdrop-blur">
         {options.map((o, i) => (
           <div
             key={o}
-            data-demo={o === 'Unabhängiges Model' ? 'type-model' : undefined}
+            data-demo={i === 2 ? 'type-model' : undefined}
             className={`flex h-[44px] items-center gap-2 px-4 text-[17px] ${i < options.length - 1 ? 'border-b border-black/10' : ''} ${i === 0 ? 'text-gray-400' : 'text-black'}`}
           >
             <span className="w-4">{i === 0 && <Check className="h-4 w-4 text-black" strokeWidth={2.5} />}</span>
@@ -515,50 +620,41 @@ function TypeMenu({ device }: { device: Device }) {
 
   return (
     <div className="absolute inset-x-0 top-[22px] z-20 rounded-[6px] border border-black/10 bg-[#f6f6f6]/95 py-[5px] text-[13px] shadow-[0_8px_24px_rgba(0,0,0,0.22)] backdrop-blur">
-      {options.map((o, i) => {
-        const hot = o === 'Unabhängiges Model'
-        return (
-          <div
-            key={o}
-            data-demo={hot ? 'type-model' : undefined}
-            className={`relative mx-[5px] flex h-[22px] items-center rounded-[4px] pl-[22px] ${hot ? 'bg-[#0a63d6] text-white' : i === 0 ? 'text-gray-500' : 'text-gray-900'}`}
-          >
-            {i === 0 && <Check className="absolute left-[6px] h-3 w-3" strokeWidth={3} />}
-            {o}
-          </div>
-        )
-      })}
+      {options.map((o, i) => (
+        <div
+          key={o}
+          data-demo={i === 2 ? 'type-model' : undefined}
+          className={`relative mx-[5px] flex h-[22px] items-center rounded-[4px] pl-[22px] ${i === 2 ? 'bg-[#0a63d6] text-white' : i === 0 ? 'text-gray-500' : 'text-gray-900'}`}
+        >
+          {i === 0 && <Check className="absolute left-[6px] h-3 w-3" strokeWidth={3} />}
+          {o}
+        </div>
+      ))}
     </div>
   )
 }
 
-function OnboardingBody({ device }: { device: Device }) {
+function OnboardingBody({ device, lang }: { device: Device; lang: Lang }) {
+  const ui = UI[lang]
   const phone = device === 'phone'
   const input = 'w-full px-3 py-2 text-sm border-2 border-gray-200 rounded-lg bg-gray-50'
-  const fields = [
-    { label: 'Künstlername', ph: 'Name auf Ihrem Profil', select: false },
-    { label: 'Geschlecht', ph: 'Geschlecht wählen', select: true },
-    { label: 'Alter', ph: 'Alter', select: false },
-    { label: 'Herkunft', ph: 'Herkunft wählen', select: true },
-  ]
+  const [pre, model, mid, club, post] = ui.obSubtitle
   return (
     <div className="flex-1 bg-gradient-to-br from-gray-50 via-pink-50 to-purple-50 px-4 pb-10 pt-4">
       <div className="mx-auto max-w-5xl">
         <div className="mb-3 text-center">
           <p className={`mb-1 font-black tracking-tight text-gray-900 ${phone ? 'text-2xl' : 'text-3xl'}`}>
-            Willkommen bei <span className="text-pink-600">nicemodels.ch</span>
+            {ui.welcome}<span className="text-pink-600">nicemodels.ch</span>
           </p>
           <p className={`mx-auto max-w-2xl text-gray-600 ${phone ? 'text-xs' : 'text-sm'}`}>
-            Vervollständige dein Profil, damit wir deine <span className="font-semibold">Model</span>- oder{' '}
-            <span className="font-semibold">Club/Agentur</span>-Seite vorbereiten können. Profileinrichtung und
-            Anzeigenaktivierung sind kostenlos; Banner und Inserate sind kostenpflichtige Leistungen.
+            {pre}<span className="font-semibold">{model}</span>{mid}<span className="font-semibold">{club}</span>{post}
           </p>
         </div>
         <div className={`rounded-2xl bg-white/90 shadow-2xl ${phone ? 'px-4 py-4' : 'px-8 py-5'}`}>
           <div className="mx-auto max-w-3xl space-y-3">
-            <p className="text-xl font-bold text-gray-900">Basis-BIO</p>
+            <p className="text-xl font-bold text-gray-900">{ui.obTitle}</p>
             <div className={`grid gap-3 ${phone ? 'grid-cols-1' : 'grid-cols-2'}`}>
-              {fields.map(f => (
+              {ui.obFields.map(f => (
                 <div key={f.label}>
                   <span className="mb-1 block text-xs font-bold text-gray-700">
                     {f.label} <span className="text-pink-600">*</span>
@@ -581,7 +677,8 @@ function OnboardingBody({ device }: { device: Device }) {
 
 const KEY_SHADOW = '0 1px 0 rgba(0,0,0,0.3)'
 
-export function Keyboard({ layout, pressed }: { layout: KbLayout; pressed: string | null }) {
+export function Keyboard({ layout, pressed, lang }: { layout: KbLayout; pressed: string | null; lang: Lang }) {
+  const ui = UI[lang]
   const key = (id: string, label: React.ReactNode, opts: { w?: number; dark?: boolean; small?: boolean } = {}) => {
     const down = pressed === id
     return (
@@ -634,32 +731,34 @@ export function Keyboard({ layout, pressed }: { layout: KbLayout; pressed: strin
     )
   }
 
-  const rows = ['qwertzuiopü', 'asdfghjklöä', 'yxcvbnm']
+  const [row1, row2, row3] = ui.kbRows
+  // The English middle row has one key fewer and sits indented by half a key.
+  const indent = row2.length < row1.length ? 'px-[18px]' : ''
   return (
     <div className="bg-[#d1d4db] px-[3px] pb-[34px]" style={{ height: KB_HEIGHT[layout] }}>
       {/* QuickType bar */}
       <div className="flex h-[44px] items-center justify-around text-[15px] text-gray-700">
-        <span>„“</span>
+        <span>{ui.quickType[0]}</span>
         <span className="h-5 w-px bg-gray-400/60" />
-        <span>Danke</span>
+        <span>{ui.quickType[1]}</span>
         <span className="h-5 w-px bg-gray-400/60" />
-        <span>Hallo</span>
+        <span>{ui.quickType[2]}</span>
       </div>
       <div className="space-y-[11px]">
-        <div className="flex gap-[5px]">{rows[0].split('').map(c => key(c, c))}</div>
-        <div className="flex gap-[5px]">{rows[1].split('').map(c => key(c, c))}</div>
+        <div className="flex gap-[5px]">{row1.split('').map(c => key(c, c))}</div>
+        <div className={`flex gap-[5px] ${indent}`}>{row2.split('').map(c => key(c, c))}</div>
         <div className="flex gap-[5px]">
           {key('shift', '⇧', { w: 42, dark: true })}
-          <span className="mx-[7px] flex flex-1 gap-[5px]">{rows[2].split('').map(c => key(c, c))}</span>
+          <span className="mx-[7px] flex flex-1 gap-[5px]">{row3.split('').map(c => key(c, c))}</span>
           {key('back', <Delete className="h-5 w-5" strokeWidth={1.5} />, { w: 42, dark: true })}
         </div>
         <div className="flex gap-[5px]">
           {key('123', '123', { w: 44, dark: true, small: true })}
           {key('globe', <Globe className="h-5 w-5" strokeWidth={1.5} />, { w: 42, dark: true })}
-          {key('space', layout === 'email' ? '' : 'Leerzeichen', { small: true })}
+          {key('space', layout === 'email' ? '' : ui.kbSpace, { small: true })}
           {layout === 'email' && key('@', '@', { w: 36, small: true })}
           {layout === 'email' && key('.', '.', { w: 36, small: true })}
-          {key('return', 'Return', { w: 88, dark: true, small: true })}
+          {key('return', ui.kbReturn, { w: 88, dark: true, small: true })}
         </div>
       </div>
     </div>

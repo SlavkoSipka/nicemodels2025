@@ -9,13 +9,13 @@ export const HELP_ICONS: Record<HelpIcon, typeof IdCard> = {
 }
 
 /** Home › Hilfe › <current> — matches the BreadcrumbList JSON-LD on each page. */
-export function HelpBreadcrumb({ current }: { current: string }) {
+export function HelpBreadcrumb({ current, lang = 'de' }: { current: string; lang?: 'de' | 'en' }) {
   return (
     <nav aria-label="Breadcrumb" className="mb-6">
       <ol className="flex flex-wrap items-center gap-1 text-xs text-gray-500">
         <li>
           <Link href="/" className="hover:text-brand transition-colors">
-            Startseite
+            {lang === 'en' ? 'Home' : 'Startseite'}
           </Link>
         </li>
         <li aria-hidden>
@@ -23,7 +23,7 @@ export function HelpBreadcrumb({ current }: { current: string }) {
         </li>
         <li>
           <Link href={HELP_PATH} className="hover:text-brand transition-colors">
-            Hilfe
+            {lang === 'en' ? 'Help' : 'Hilfe'}
           </Link>
         </li>
         <li aria-hidden>
@@ -96,13 +96,14 @@ export function HelpFaqList({ faqs }: { faqs: HelpFaq[] }) {
 }
 
 /** Links to the other guides, so a reader never dead-ends on an article. */
-export function HelpRelated({ currentSlug }: { currentSlug: string }) {
+export function HelpRelated({ currentSlug, lang = 'de' }: { currentSlug: string; lang?: 'de' | 'en' }) {
+  const en = lang === 'en'
   const others: HelpTopic[] = HELP_TOPICS.filter(t => t.slug !== currentSlug)
   if (others.length === 0) return null
 
   return (
     <div className="mt-12">
-      <h2 className="mb-4 text-lg font-bold text-gray-900 sm:text-xl">Weitere Hilfe-Themen</h2>
+      <h2 className="mb-4 text-lg font-bold text-gray-900 sm:text-xl">{en ? 'More help topics' : 'Weitere Hilfe-Themen'}</h2>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {others.map(topic => {
           const Icon = HELP_ICONS[topic.icon]
@@ -114,9 +115,14 @@ export function HelpRelated({ currentSlug }: { currentSlug: string }) {
             >
               <Icon className="mb-2 h-6 w-6 text-brand" />
               <h3 className="mb-1 text-sm font-bold text-gray-900 group-hover:text-brand transition-colors">
-                {topic.short}
+                {en ? topic.en.short : topic.short}
+                {en && !topic.bilingual && (
+                  <span className="ml-2 rounded bg-gray-100 px-1.5 py-0.5 align-middle text-[10px] font-semibold text-gray-500">
+                    in German
+                  </span>
+                )}
               </h3>
-              <p className="text-sm leading-relaxed text-gray-600">{topic.description}</p>
+              <p className="text-sm leading-relaxed text-gray-600">{en ? topic.en.description : topic.description}</p>
             </Link>
           )
         })}
