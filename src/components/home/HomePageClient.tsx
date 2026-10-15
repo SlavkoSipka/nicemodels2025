@@ -256,9 +256,6 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       <Navbar />
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
-        {/* Stories */}
-        <StoriesSection initialStories={stories} />
-
         {/* Main: 3-col grid at xl with sticky side rails; centered single-column below xl */}
         <div className={`w-full pt-3 sm:pt-4 sm:pb-6 ${mobileSidebarPool.length > 0 ? 'pb-40' : 'pb-4'}`}>
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
@@ -282,6 +279,7 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
                   {tSeo('modelsBody')}
                 </p>
               </div>
+              <StoriesSection initialStories={stories} />
               <CitySelector
                 selectedRegion={selectedRegion}             setSelectedRegion={setSelectedRegion}
                 selectedCity={selectedCity}                 setSelectedCity={setSelectedCity}

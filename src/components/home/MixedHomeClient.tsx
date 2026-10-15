@@ -686,8 +686,6 @@ export default function MixedHomeClient({
     <>
       <Navbar />
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
-        <StoriesSection initialStories={stories} />
-
         <div className={`w-full pt-3 sm:pt-4 sm:pb-6 ${mobileSidebarRail.length > 0 ? 'pb-40' : 'pb-4'}`}>
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
@@ -706,6 +704,7 @@ export default function MixedHomeClient({
                   {tSeo('homeH1')}
                 </h1>
               </div>
+              <StoriesSection initialStories={stories} />
               {renderFilterBar()}
               <h2 className="sr-only">{t('feed.sectionHeading')}</h2>
               {renderFeed()}

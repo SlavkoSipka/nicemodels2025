@@ -73,8 +73,11 @@ export default function StoriesSection({ initialStories }: StoriesSectionProps =
 
   if (loading) {
     return (
-      <div className="py-3 sm:py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
-        <div className="max-w-[1280px] mx-auto px-2 sm:px-4">
+      <div
+        className="rounded-xl px-3 py-3 sm:px-4 sm:py-4"
+        style={{ background: '#e8f4fd', border: '1px solid rgba(137,207,240,0.35)' }}
+      >
+        <div className="w-full">
           <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-1.5 sm:pb-2 scrollbar-hide">
             {[1, 2, 3, 4, 5, 6, 7].map((i) => (
               <div key={i} className="flex-shrink-0 text-center">
@@ -99,8 +102,11 @@ export default function StoriesSection({ initialStories }: StoriesSectionProps =
 
   return (
     <>
-      <div className="py-3 sm:py-5" style={{ background: '#e8f4fd', borderBottom: '1px solid rgba(137,207,240,0.25)' }}>
-        <div className="max-w-[1280px] mx-auto px-2 sm:px-4">
+      <div
+        className="rounded-xl px-3 py-3 sm:px-4 sm:py-4"
+        style={{ background: '#e8f4fd', border: '1px solid rgba(137,207,240,0.35)' }}
+      >
+        <div className="w-full">
           <div className="flex items-center gap-2 sm:gap-4 overflow-x-auto pb-1.5 sm:pb-2 scrollbar-hide">
 
             {/* Add Story */}
