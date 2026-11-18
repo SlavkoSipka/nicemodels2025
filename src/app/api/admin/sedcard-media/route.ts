@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notifyAdminAction } from '@/lib/admin/notify'
+import { removeArchived } from '@/lib/admin/censorArchive'
 
 async function verifyAdmin() {
   const supabase = await createClient()
@@ -19,7 +20,7 @@ const VIDEO_MIME = [
   'video/mp4', 'video/quicktime', 'video/x-ms-wmv',
   'video/x-flv', 'video/x-msvideo', 'video/x-matroska',
 ]
-const MAX_VIDEO_BYTES = 200 * 1024 * 1024
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024
 
 function resolve(ownerType: OwnerType, mediaType: MediaType) {
   const idColumn = ownerType === 'model' ? 'model_id' : 'club_id'
@@ -58,11 +59,67 @@ async function notifyOwner(ownerId: string, added: boolean) {
   })
 }
 
-// POST (FormData): upload a new photo or video for a model/club
+// Videos exceed the serverless request limit, so the browser uploads them
+// straight to storage: `prepare-video` issues the slot, `finish-video` records it.
+async function handleVideoUpload(request: NextRequest) {
+  const { action, ownerType, ownerId, ownerEmail, fileName, contentType, size, path } = await request.json()
+  if (!isOwnerType(ownerType) || !ownerId) {
+    return NextResponse.json({ error: 'Missing or invalid parameters' }, { status: 400 })
+  }
+  const { table, bucket, idColumn, folder } = resolve(ownerType, 'video')
+  const dir = `${ownerEmail || ownerId}/${folder}`
+  const admin = createAdminClient()
+
+  if (action === 'prepare-video') {
+    if (!VIDEO_MIME.includes(contentType)) {
+      return NextResponse.json({ error: 'Unsupported video format' }, { status: 400 })
+    }
+    if (!(size > 0) || size > MAX_VIDEO_BYTES) {
+      return NextResponse.json({ error: 'Video exceeds 50MB' }, { status: 400 })
+    }
+    const ext = String(fileName || '').split('.').pop()?.replace(/[^a-zA-Z0-9]/g, '') || 'mp4'
+    const target = `${dir}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
+    const { data, error } = await admin.storage.from(bucket).createSignedUploadUrl(target)
+    if (error || !data) return NextResponse.json({ error: error?.message || 'Upload failed' }, { status: 500 })
+    return NextResponse.json({ bucket, path: data.path, token: data.token })
+  }
+
+  if (action === 'finish-video') {
+    if (typeof path !== 'string' || path.split('/').slice(0, -1).join('/') !== dir) {
+      return NextResponse.json({ error: 'Invalid upload path' }, { status: 400 })
+    }
+    const name = path.split('/').pop()!
+    const { data: found } = await admin.storage.from(bucket).list(dir, { search: name, limit: 1 })
+    if (found?.[0]?.name !== name) return NextResponse.json({ error: 'Upload not found' }, { status: 400 })
+    const { data: inserted, error } = await admin
+      .from(table)
+      .insert({ [idColumn]: ownerId, file_path: path, file_name: fileName || name, is_approved: true })
+      .select('*')
+      .single()
+    if (error) {
+      await admin.storage.from(bucket).remove([path])
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    await notifyOwner(ownerId, true)
+    const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+    return NextResponse.json({
+      success: true,
+      media: { ...inserted, url: `${SUPA_URL}/storage/v1/object/public/${bucket}/${path}` },
+    })
+  }
+
+  return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
+}
+
+// POST (FormData): upload a new photo for a model/club (JSON: see handleVideoUpload)
 export async function POST(request: NextRequest) {
   try {
     const user = await verifyAdmin()
     if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+    if (request.headers.get('content-type')?.includes('application/json')) {
+      return await handleVideoUpload(request)
+    }
 
     const formData = await request.formData()
     const ownerType = formData.get('ownerType')
@@ -154,7 +211,7 @@ export async function DELETE(request: NextRequest) {
     const user = await verifyAdmin()
     if (!user) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    const { ownerType, mediaType, mediaId } = await request.json()
+    const { ownerType, mediaType, mediaId, notify = true } = await request.json()
     if (!isOwnerType(ownerType) || !isMediaType(mediaType) || !mediaId) {
       return NextResponse.json({ error: 'Missing or invalid parameters' }, { status: 400 })
     }
@@ -172,9 +229,11 @@ export async function DELETE(request: NextRequest) {
       await admin.storage.from(bucket).remove([(media as any).file_path])
     }
     await admin.from(table).delete().eq('id', mediaId)
+    // A censored item's untouched original must not outlive the item itself.
+    await removeArchived(admin, table, mediaId)
 
     const ownerId = (media as any)?.[idColumn]
-    if (ownerId) await notifyOwner(ownerId, false)
+    if (ownerId && notify) await notifyOwner(ownerId, false)
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

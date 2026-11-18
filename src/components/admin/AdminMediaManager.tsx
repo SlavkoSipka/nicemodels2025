@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Upload, Trash2, AlertCircle, Film, GripVertical, Image as ImageIcon, CheckCircle, XCircle, Eraser } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import AdminPhotoCensorModal from './AdminPhotoCensorModal'
+import AdminVideoCensorModal from './AdminVideoCensorModal'
 import { processImage } from '@/lib/imageProcessor'
 import { reorderArray } from '@/lib/reorderArray'
 
@@ -35,9 +37,31 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
   const [uploadingVideos, setUploadingVideos] = useState(false)
   const [error, setError] = useState('')
   const [dragIndex, setDragIndex] = useState<number | null>(null)
-  const [censorTarget, setCensorTarget] = useState<MediaItem | null>(null)
+  const [censorTarget, setCensorTarget] = useState<{ item: MediaItem; type: 'photo' | 'video' } | null>(null)
+
+  // Videos go straight to storage: anything over ~4.5 MB is rejected by the
+  // serverless request limit before it would ever reach the API route.
+  const uploadVideo = async (file: File): Promise<MediaItem> => {
+    const call = async (body: Record<string, unknown>) => {
+      const res = await fetch('/api/admin/sedcard-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...body, ownerType, ownerId, ownerEmail, fileName: file.name }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Upload failed')
+      return json
+    }
+    const slot = await call({ action: 'prepare-video', contentType: file.type, size: file.size })
+    const { error: uploadError } = await createClient().storage
+      .from(slot.bucket)
+      .uploadToSignedUrl(slot.path, slot.token, file, { contentType: file.type, cacheControl: '31536000' })
+    if (uploadError) throw uploadError
+    return (await call({ action: 'finish-video', path: slot.path })).media as MediaItem
+  }
 
   const uploadOne = async (file: File, mediaType: 'photo' | 'video'): Promise<MediaItem | null> => {
+    if (mediaType === 'video') return uploadVideo(file)
     const fd = new FormData()
     fd.append('ownerType', ownerType)
     fd.append('mediaType', mediaType)
@@ -72,7 +96,7 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
     setUploadingVideos(true); setError('')
     try {
       for (const file of files) {
-        if (file.size > 200 * 1024 * 1024) { setError(t('videoTooLarge', { name: file.name })); continue }
+        if (file.size > 50 * 1024 * 1024) { setError(t('videoTooLarge', { name: file.name })); continue }
         if (!VIDEO_MIME.includes(file.type)) { setError(t('invalidVideo', { name: file.name })); continue }
         const media = await uploadOne(file, 'video')
         if (media) setVideos(prev => [media, ...prev])
@@ -114,10 +138,12 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
   // A censored save swaps the storage object, so the <img> needs the new path —
   // the old URL keeps serving the uncensored frame from cache.
   const onCensorSaved = (url: string, filePath: string) => {
-    const id = censorTarget?.id
+    if (!censorTarget) return
+    const { item, type } = censorTarget
     setCensorTarget(null)
-    if (!id) return
-    setPhotos(prev => prev.map(p => (p.id === id ? { ...p, url, file_path: filePath } : p)))
+    const patch = (m: MediaItem) => (m.id === item.id ? { ...m, url, file_path: filePath } : m)
+    if (type === 'photo') setPhotos(prev => prev.map(patch))
+    else setVideos(prev => prev.map(patch))
   }
 
   const onDrop = (index: number) => async (e: React.DragEvent) => {
@@ -186,9 +212,9 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
                   <div className="aspect-[3/4] bg-gray-100">
                     {p.url && <img src={p.url} alt={p.file_name} className="w-full h-full object-cover pointer-events-none" />}
                   </div>
-                  <div className="absolute bottom-1 right-1">{badge(p.is_approved)}</div>
+                  <div className="absolute top-1 right-1 z-10 pointer-events-none">{badge(p.is_approved)}</div>
                   <div className="p-1.5 space-y-1">
-                    <button type="button" onClick={() => setCensorTarget(p)}
+                    <button type="button" onClick={() => setCensorTarget({ item: p, type: 'photo' })}
                       className="w-full px-1 py-1 text-[11px] rounded bg-brand/10 text-brand hover:bg-brand/20 font-semibold flex items-center justify-center gap-1">
                       <Eraser className="w-3 h-3" /> {t('censor')}
                     </button>
@@ -233,16 +259,22 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
                   {v.url && <video src={v.url} className="w-full h-full object-cover" controls />}
                 </div>
                 <div className="absolute top-1 right-1">{badge(v.is_approved)}</div>
-                <div className="p-1.5 flex gap-1 bg-white">
-                  <button type="button" onClick={() => toggleApproval(v, 'video')}
-                    className="flex-1 px-1 py-1 text-[11px] rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold flex items-center justify-center gap-1">
-                    {v.is_approved ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-                    {v.is_approved ? t('hide') : t('publish')}
+                <div className="p-1.5 space-y-1 bg-white">
+                  <button type="button" onClick={() => setCensorTarget({ item: v, type: 'video' })}
+                    className="w-full px-1 py-1 text-[11px] rounded bg-brand/10 text-brand hover:bg-brand/20 font-semibold flex items-center justify-center gap-1">
+                    <Eraser className="w-3 h-3" /> {t('censor')}
                   </button>
-                  <button type="button" onClick={() => deleteMedia(v, 'video')}
-                    className="px-1.5 py-1 text-[11px] bg-red-50 text-red-600 rounded hover:bg-red-100 font-semibold flex items-center justify-center">
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                  <div className="flex gap-1">
+                    <button type="button" onClick={() => toggleApproval(v, 'video')}
+                      className="flex-1 px-1 py-1 text-[11px] rounded bg-gray-100 text-gray-700 hover:bg-gray-200 font-semibold flex items-center justify-center gap-1">
+                      {v.is_approved ? <XCircle className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                      {v.is_approved ? t('hide') : t('publish')}
+                    </button>
+                    <button type="button" onClick={() => deleteMedia(v, 'video')}
+                      className="px-1.5 py-1 text-[11px] bg-red-50 text-red-600 rounded hover:bg-red-100 font-semibold flex items-center justify-center">
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -250,11 +282,19 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
         )}
       </div>
 
-      {censorTarget && (
+      {censorTarget?.type === 'photo' && (
         <AdminPhotoCensorModal
           ownerType={ownerType}
-          mediaId={censorTarget.id}
-          fileName={censorTarget.file_name}
+          mediaId={censorTarget.item.id}
+          fileName={censorTarget.item.file_name}
+          onClose={() => setCensorTarget(null)}
+          onSaved={onCensorSaved}
+        />
+      )}
+      {censorTarget?.type === 'video' && (
+        <AdminVideoCensorModal
+          ownerType={ownerType}
+          mediaId={censorTarget.item.id}
           onClose={() => setCensorTarget(null)}
           onSaved={onCensorSaved}
         />

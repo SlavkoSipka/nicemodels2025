@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { X, Trash2, CheckCircle, XCircle } from 'lucide-react'
+import { X, Trash2, CheckCircle, XCircle, Eraser } from 'lucide-react'
+import AdminPhotoCensorModal from './AdminPhotoCensorModal'
+import AdminVideoCensorModal from './AdminVideoCensorModal'
 
 interface Media {
   id: string
@@ -31,6 +33,8 @@ export default function PhotoGalleryModal({
 }: PhotoGalleryModalProps) {
   const t = useTranslations('admin.photoGallery')
   const tc = useTranslations('admin.common')
+  const tm = useTranslations('admin.mediaManager')
+  const [censorTarget, setCensorTarget] = useState<Media | null>(null)
   const [loading, setLoading] = useState(true)
   const [photos, setPhotos] = useState<Media[]>([])
   const [videos, setVideos] = useState<Media[]>([])
@@ -99,37 +103,15 @@ export default function PhotoGalleryModal({
       return
     }
 
-    const table = profileType === 'model'
-      ? (item.type === 'photo' ? 'model_photos' : 'model_videos')
-      : (item.type === 'photo' ? 'club_photos' : 'club_videos')
-    
-    const bucket = profileType === 'model'
-      ? (item.type === 'photo' ? 'model-photos' : 'model-videos')
-      : (item.type === 'photo' ? 'club-photos' : 'club-videos')
-
     try {
-      // Delete from database first
-      const { error: dbError } = await supabase
-        .from(table)
-        .delete()
-        .eq('id', item.id)
+      // Through the API so a censored item's archived original goes with it.
+      const res = await fetch('/api/admin/sedcard-media', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ownerType: profileType, mediaType: item.type, mediaId: item.id, notify: false }),
+      })
+      if (!res.ok) throw new Error('Delete failed')
 
-      if (dbError) {
-        console.error('DB Error:', dbError)
-        throw dbError
-      }
-
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from(bucket)
-        .remove([item.file_path])
-
-      if (storageError) {
-        console.error('Storage Error:', storageError)
-        // Don't throw - file might already be deleted
-      }
-
-      // Reload media
       await loadMedia()
       setSelectedMedia(null)
       alert(t('deleteSuccess'))
@@ -290,6 +272,13 @@ export default function PhotoGalleryModal({
             {/* Actions */}
             <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row gap-2 sm:gap-4 sm:justify-center">
               <button
+                onClick={() => { setCensorTarget(selectedMedia); setSelectedMedia(null) }}
+                className="px-4 sm:px-6 py-2.5 sm:py-3 bg-brand hover:bg-brand-hover text-white rounded-lg font-semibold flex items-center justify-center gap-2"
+              >
+                <Eraser className="w-5 h-5" />
+                {tm('censor')}
+              </button>
+              <button
                 onClick={() => handleToggleApproval(selectedMedia)}
                 className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold flex items-center justify-center gap-2 ${
                   selectedMedia.is_approved
@@ -319,6 +308,24 @@ export default function PhotoGalleryModal({
             </div>
           </div>
         </div>
+      )}
+
+      {censorTarget?.type === 'photo' && (
+        <AdminPhotoCensorModal
+          ownerType={profileType}
+          mediaId={censorTarget.id}
+          fileName={censorTarget.file_name}
+          onClose={() => setCensorTarget(null)}
+          onSaved={() => { setCensorTarget(null); loadMedia() }}
+        />
+      )}
+      {censorTarget?.type === 'video' && (
+        <AdminVideoCensorModal
+          ownerType={profileType}
+          mediaId={censorTarget.id}
+          onClose={() => setCensorTarget(null)}
+          onSaved={() => { setCensorTarget(null); loadMedia() }}
+        />
       )}
     </div>
   )

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notifyAdminAction } from '@/lib/admin/notify'
+import { ORIGINALS_BUCKET, archivePrefix, ensureOriginalsBucket, findArchived } from '@/lib/admin/censorArchive'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -16,8 +17,6 @@ export const dynamic = 'force-dynamic'
  * happens on the first edit — editing twice must not overwrite the true
  * original with an already-censored frame.
  */
-
-const ORIGINALS_BUCKET = 'media-originals'
 
 type OwnerType = 'model' | 'club'
 
@@ -45,28 +44,6 @@ async function verifyAdmin() {
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return null
   return user
-}
-
-type Admin = ReturnType<typeof createAdminClient>
-
-async function ensureOriginalsBucket(admin: Admin) {
-  const { data } = await admin.storage.getBucket(ORIGINALS_BUCKET)
-  if (data) return
-  // Private on purpose: the whole point of censoring is that the untouched
-  // frame stops being reachable from the public CDN.
-  await admin.storage.createBucket(ORIGINALS_BUCKET, { public: false })
-}
-
-function archivePrefix(table: string, mediaId: string) {
-  return `${table}/${mediaId}`
-}
-
-async function findArchived(admin: Admin, table: string, mediaId: string) {
-  const { data } = await admin.storage
-    .from(ORIGINALS_BUCKET)
-    .list(archivePrefix(table, mediaId), { limit: 1 })
-  const name = data?.[0]?.name
-  return name ? `${archivePrefix(table, mediaId)}/${name}` : null
 }
 
 // GET: stream the current image same-origin (a cross-origin <img> would taint

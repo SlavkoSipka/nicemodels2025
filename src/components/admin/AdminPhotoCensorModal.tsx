@@ -3,15 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import {
-  X, Square, Brush, Undo2, Trash2, Save, RotateCcw, Loader2, AlertCircle, Droplets, Grid3x3, Ban,
+  X, Undo2, Trash2, Save, RotateCcw, Loader2, AlertCircle,
 } from 'lucide-react'
 import { encodeCanvas } from '@/lib/imageProcessor'
 import {
   composeCensored, type CensorEffect, type CensorShape, type EffectCache,
 } from '@/lib/censorCanvas'
+import CensorToolControls, { type CensorTool } from './CensorToolControls'
 
 type Effect = CensorEffect
-type Tool = 'rect' | 'brush'
+type Tool = CensorTool
 type Shape = CensorShape
 
 interface Props {
@@ -85,7 +86,8 @@ export default function AdminPhotoCensorModal({ ownerType, mediaId, fileName, on
 
     const { naturalWidth: iw, naturalHeight: ih } = image
     const box = stage.getBoundingClientRect()
-    const scale = Math.min(box.width / iw, box.height / ih)
+    // The stage has 8px padding on each side.
+    const scale = Math.min((box.width - 16) / iw, (box.height - 16) / ih)
     const cssW = Math.max(1, Math.floor(iw * scale))
     const cssH = Math.max(1, Math.floor(ih * scale))
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
@@ -216,18 +218,6 @@ export default function AdminPhotoCensorModal({ ownerType, mediaId, fileName, on
     }
   }
 
-  const effectBtn = (value: Effect, Icon: typeof Droplets, label: string) => (
-    <button
-      type="button"
-      onClick={() => setEffect(value)}
-      className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-bold transition-colors ${
-        effect === value ? 'bg-brand text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
-      }`}
-    >
-      <Icon className="w-3.5 h-3.5" /> {label}
-    </button>
-  )
-
   return (
     <div className="fixed inset-0 z-[9998] flex flex-col bg-neutral-900">
       {/* Header */}
@@ -270,44 +260,12 @@ export default function AdminPhotoCensorModal({ ownerType, mediaId, fileName, on
 
       {/* Toolbar */}
       <div className="shrink-0 border-t border-white/10 bg-neutral-900 px-3 pt-2.5 pb-[max(0.75rem,env(safe-area-inset-bottom))] space-y-2.5">
-        <div className="flex gap-1.5">
-          {effectBtn('blur', Droplets, t('blur'))}
-          {effectBtn('pixelate', Grid3x3, t('pixelate'))}
-          {effectBtn('black', Ban, t('blackBar'))}
-        </div>
-
-        <div className="flex gap-1.5">
-          <button type="button" onClick={() => setTool('rect')}
-            className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-bold transition-colors ${
-              tool === 'rect' ? 'bg-white text-neutral-900' : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}>
-            <Square className="w-3.5 h-3.5" /> {t('rectangle')}
-          </button>
-          <button type="button" onClick={() => setTool('brush')}
-            className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-xs font-bold transition-colors ${
-              tool === 'brush' ? 'bg-white text-neutral-900' : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}>
-            <Brush className="w-3.5 h-3.5" /> {t('brush')}
-          </button>
-        </div>
-
-        {effect !== 'black' && (
-          <label className="block">
-            <span className="text-[11px] font-semibold text-white/60">{t('strength')}</span>
-            <input type="range" min={30} max={100} value={strength}
-              onChange={e => setStrength(Number(e.target.value))}
-              className="w-full accent-brand" />
-          </label>
-        )}
-
-        {tool === 'brush' && (
-          <label className="block">
-            <span className="text-[11px] font-semibold text-white/60">{t('brushSize')}</span>
-            <input type="range" min={3} max={40} value={brushSize}
-              onChange={e => setBrushSize(Number(e.target.value))}
-              className="w-full accent-brand" />
-          </label>
-        )}
+        <CensorToolControls
+          effect={effect} onEffect={setEffect}
+          tool={tool} onTool={setTool}
+          strength={strength} onStrength={setStrength}
+          brushSize={brushSize} onBrushSize={setBrushSize}
+        />
 
         <div className="flex items-center gap-1.5">
           <button type="button" onClick={() => setShapes(prev => prev.slice(0, -1))}

@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { ArrowLeft, Trash2, User, Building2, X, Image, CheckCircle, XCircle } from 'lucide-react'
+import { ArrowLeft, Trash2, User, Building2, X, Image, CheckCircle, XCircle, Eraser } from 'lucide-react'
+import AdminPhotoCensorModal from '@/components/admin/AdminPhotoCensorModal'
+import AdminVideoCensorModal from '@/components/admin/AdminVideoCensorModal'
 
 interface MediaItem {
   id: string
@@ -26,6 +28,8 @@ type OwnerFilter = 'all' | 'models' | 'clubs'
 export default function ReviewMediaPage() {
   const t = useTranslations('admin.reviewMedia')
   const tc = useTranslations('admin.common')
+  const tm = useTranslations('admin.mediaManager')
+  const [censorTarget, setCensorTarget] = useState<MediaItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [filter, setFilter] = useState<StatusFilter>('all')
@@ -124,14 +128,15 @@ export default function ReviewMediaPage() {
 
   const handleDelete = async (item: MediaItem) => {
     if (!confirm(t('confirmDelete'))) return
-    const table = item.owner_type === 'model' ? (item.type === 'photo' ? 'model_photos' : 'model_videos') : (item.type === 'photo' ? 'club_photos' : 'club_videos')
-    const bucket = item.owner_type === 'model' ? (item.type === 'photo' ? 'model-photos' : 'model-videos') : (item.type === 'photo' ? 'club-photos' : 'club-videos')
-    try {
-      await supabase.storage.from(bucket).remove([item.file_path])
-      await supabase.from(table).delete().eq('id', item.id)
-      loadMedia()
-      setSelectedMedia(null)
-    } catch { /* silently fail */ }
+    // Through the API so a censored item's archived original goes with it.
+    const res = await fetch('/api/admin/sedcard-media', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ownerType: item.owner_type, mediaType: item.type, mediaId: item.id, notify: false }),
+    }).catch(() => null)
+    if (!res?.ok) return
+    loadMedia()
+    setSelectedMedia(null)
   }
 
   const handleToggle = async (item: MediaItem) => {
@@ -313,6 +318,10 @@ export default function ReviewMediaPage() {
             </div>
 
             <div className="flex flex-wrap gap-2 sm:gap-3 justify-center">
+              <button onClick={() => { setCensorTarget(selectedMedia); setSelectedMedia(null) }}
+                className="px-4 sm:px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors bg-brand hover:bg-brand-hover text-white">
+                <Eraser className="w-4 h-4" /> {tm('censor')}
+              </button>
               <button onClick={() => handleToggle(selectedMedia)}
                 className={`px-4 sm:px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-1.5 transition-colors ${
                   selectedMedia.is_approved
@@ -328,6 +337,24 @@ export default function ReviewMediaPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {censorTarget?.type === 'photo' && (
+        <AdminPhotoCensorModal
+          ownerType={censorTarget.owner_type}
+          mediaId={censorTarget.id}
+          fileName={censorTarget.file_name}
+          onClose={() => setCensorTarget(null)}
+          onSaved={() => { setCensorTarget(null); loadMedia() }}
+        />
+      )}
+      {censorTarget?.type === 'video' && (
+        <AdminVideoCensorModal
+          ownerType={censorTarget.owner_type}
+          mediaId={censorTarget.id}
+          onClose={() => setCensorTarget(null)}
+          onSaved={() => { setCensorTarget(null); loadMedia() }}
+        />
       )}
     </div>
   )
