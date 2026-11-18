@@ -87,7 +87,11 @@ export async function POST(request: NextRequest) {
       snapshot.job_listings = listings.data
     }
 
-    await admin.from('deleted_accounts').insert({
+    // Archive first and refuse to continue if it fails. This insert used to be
+    // fire-and-forget, and because `deleted_accounts` was never created in the
+    // database every deletion silently destroyed the account with no trace —
+    // the admin "Deleted accounts" screen stayed empty forever.
+    const { error: archiveError } = await admin.from('deleted_accounts').insert({
       original_user_id: userIdToDelete,
       email: profile.email,
       username: profile.username,
@@ -96,6 +100,13 @@ export async function POST(request: NextRequest) {
       deleted_by: deletedBy,
       snapshot,
     })
+
+    if (archiveError) {
+      return NextResponse.json(
+        { error: `Account not deleted: could not archive it first (${archiveError.message})` },
+        { status: 500 },
+      )
+    }
 
     // Pokušaj #1: standardni Supabase admin API.
     // Ako neki FK nema ON DELETE CASCADE ili custom trigger blokira,

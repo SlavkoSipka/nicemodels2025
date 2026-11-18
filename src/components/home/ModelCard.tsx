@@ -5,7 +5,6 @@ import CardPhoto from './CardPhoto'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { Sparkles, CheckCircle } from 'lucide-react'
-import { trackProfileView } from '@/lib/tracking'
 import ViewCount from '@/components/ui/ViewCount'
 
 interface ModelCardProps {
@@ -72,7 +71,6 @@ export default function ModelCard({ model, priority = false }: ModelCardProps) {
   return (
     <Link
       href={`/models/${model.id}`}
-      onClick={() => trackProfileView(model.id)}
       aria-label={t('viewProfileAria', { title })}
       className="block group w-full rounded-[12px] sm:h-full"
       onMouseEnter={() => setCardHover(true)}

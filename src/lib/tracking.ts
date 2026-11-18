@@ -32,15 +32,43 @@ export async function trackModelAction(
 /**
  * Track profile view with debouncing to prevent multiple rapid fires.
  * One timer per model so clicking another card does not cancel the first model’s pending view.
+ *
+ * A view is counted at most once per model per browser session window. Without
+ * this every reload of a profile added another view, so the counter measured
+ * reloads rather than visitors.
  */
 const profileViewTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
+const VIEW_DEDUP_MS = 30 * 60 * 1000
+
+function countedRecently(modelId: string): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const seen = window.sessionStorage.getItem(`nm_pv_${modelId}`)
+    return Boolean(seen) && Date.now() - Number(seen) < VIEW_DEDUP_MS
+  } catch {
+    // Private mode / storage disabled: fall back to counting the view.
+    return false
+  }
+}
+
+function markCounted(modelId: string): void {
+  try {
+    window.sessionStorage.setItem(`nm_pv_${modelId}`, String(Date.now()))
+  } catch {
+    // ignore
+  }
+}
+
 export function trackProfileView(modelId: string): void {
+  if (countedRecently(modelId)) return
+
   const prev = profileViewTimeouts.get(modelId)
   if (prev) clearTimeout(prev)
 
   const t = setTimeout(() => {
     profileViewTimeouts.delete(modelId)
+    markCounted(modelId)
     trackModelAction(modelId, 'profile_view')
   }, 1000)
   profileViewTimeouts.set(modelId, t)
