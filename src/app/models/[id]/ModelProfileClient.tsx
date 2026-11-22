@@ -20,17 +20,14 @@ import {
   hairColorKey,
   eyeColorKey,
   genderKey,
-  pubicHairKey,
   dayOfWeekKey,
   rateDurationKey,
   incallOptionKey,
   outcallOptionKey,
 } from '@/lib/modelDisplaySlugs'
 import { usePageLoader } from '@/components/layout/PageLoader'
-import StartChatButton from '@/components/chat/StartChatButton'
 import { getCityByDbCityName } from '@/lib/data/cities-seo'
 import {
-  MapPin,
   Heart,
   Share2,
   Phone,
@@ -38,25 +35,14 @@ import {
   Globe,
   MessageCircle,
   Clock,
-  Calendar,
-  DollarSign,
-  User,
-  Ruler,
   Eye,
-  Palette,
-  Scale,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
-  Languages as LanguagesIcon,
   Sparkles,
-  ImageIcon,
-  Home,
-  Briefcase,
-  Info,
   Star,
   Users,
-  Handshake
+  Handshake,
 } from 'lucide-react'
 
 interface ModelProfileClientProps {
@@ -109,7 +95,6 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   const touchStartX = useRef<number | null>(null)
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [showContact, setShowContact] = useState(false)
-  const [idCopied, setIdCopied] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -118,12 +103,6 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const publicIdLabel = profile.public_id ? `#${profile.public_id}` : `#${profile.id.slice(0, 6)}`
-  const handleCopyId = () => {
-    navigator.clipboard.writeText(publicIdLabel)
-    setIdCopied(true)
-    setTimeout(() => setIdCopied(false), 1800)
-  }
   const [isFavorite, setIsFavorite] = useState(false)
   const [isCheckingFavorite, setIsCheckingFavorite] = useState(true)
   const [isSavingFavorite, setIsSavingFavorite] = useState(false)
@@ -135,7 +114,6 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   const [commentRating, setCommentRating] = useState(0)
   const [submittingComment, setSubmittingComment] = useState(false)
   const [commentSuccess, setCommentSuccess] = useState(false)
-  const [hasExistingComment, setHasExistingComment] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [myComment, setMyComment] = useState<any>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -400,15 +378,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
     if (data && !error) {
       setMyComment(data)
-      // Only block form if comment is online or awaiting review (not rejected)
-      setHasExistingComment(
-        data.status === 'pending' ||
-        data.status === 'approved' ||
-        data.status === 'reviewed'
-      )
     } else {
       setMyComment(null)
-      setHasExistingComment(false)
     }
   }
 
@@ -433,7 +404,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
       .select('id, is_blocked')
       .in('id', [user.id, profile.id])
 
-    const blockedRow = (blockCheck || []).find((r: any) => r.is_blocked)
+    const blockedRow = (blockCheck || []).find((r) => r.is_blocked)
     if (blockedRow) {
       setSubmittingComment(false)
       alert(blockedRow.id === user.id
@@ -457,7 +428,6 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
       setCommentText('')
       setCommentRating(0)
       setShowCommentForm(false)
-      setHasExistingComment(true)
       
       await checkExistingComment()
       
@@ -590,7 +560,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
   // Build unified media list: photos first, then videos
   const mediaItems: { type: 'photo' | 'video'; url: string; id?: string }[] = [
     ...photos
-      .map((photo: any) => {
+      .map((photo) => {
         if (!photo.file_path) return null
         return {
           type: 'photo' as const,
@@ -600,7 +570,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
       })
       .filter(Boolean),
     ...videos
-      .map((video: any) => {
+      .map((video) => {
         if (!video.file_path) return null
         return {
           type: 'video' as const,
@@ -610,13 +580,10 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
       .filter(Boolean),
   ]
 
-  // Keep photoUrls for backward compat (stats display)
-  const photoUrls = mediaItems.filter(m => m.type === 'photo').map(m => m.url)
-
-  // Preload photos adjacent to the current one so flipping feels instant.
-  // Goes through the same /_next/image optimizer + width/quality the
-  // lightbox <Image> itself uses, instead of fetching the full-resolution
-  // original — that was pulling down ~1.5MB per navigation unconditionally.
+  // Preload the neighbouring photos through the image optimizer, so flipping
+  // feels instant without downloading full-resolution originals. The quality
+  // must be one of images.qualities in next.config.ts and match the main
+  // photo's <Image>, otherwise the optimizer rejects or re-renders it.
   useEffect(() => {
     const toPreload = [
       mediaItems[selectedPhotoIndex + 1],
@@ -625,7 +592,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
     toPreload.forEach(item => {
       if (item?.type === 'photo') {
         const img = new window.Image()
-        img.src = `/_next/image?url=${encodeURIComponent(item.url)}&w=750&q=82`
+        img.src = `/_next/image?url=${encodeURIComponent(item.url)}&w=750&q=80`
       }
     })
   }, [selectedPhotoIndex, mediaItems])
@@ -908,7 +875,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 </div>
 
                 {modelDetails?.slogan && (
-                  <p className="text-sm italic mb-4 leading-relaxed" style={{ color: '#F472B6' }}>"{modelDetails.slogan}"</p>
+                  <p className="text-sm italic mb-4 leading-relaxed" style={{ color: '#F472B6' }}>&quot;{modelDetails.slogan}&quot;</p>
                 )}
 
                 {/* Show Contact */}
@@ -1098,8 +1065,8 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── Rates ── */}
             {rates.length > 0 && (() => {
-              const incallRates = rates.filter((r: any) => r.rate_type === 'incall')
-              const outcallRates = rates.filter((r: any) => r.rate_type === 'outcall')
+              const incallRates = rates.filter((r) => r.rate_type === 'incall')
+              const outcallRates = rates.filter((r) => r.rate_type === 'outcall')
               return (
                 <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -1111,7 +1078,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#EC4899' }}>{t('incallTitle')}</span>
                       </div>
-                      {incallRates.length > 0 ? incallRates.map((rate: any) => (
+                      {incallRates.length > 0 ? incallRates.map((rate) => (
                         <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
                           <span className="text-xs" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
                           <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
@@ -1125,7 +1092,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       <div className="px-4 py-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#818CF8' }}>{t('outcallTitle')}</span>
                       </div>
-                      {outcallRates.length > 0 ? outcallRates.map((rate: any) => (
+                      {outcallRates.length > 0 ? outcallRates.map((rate) => (
                         <div key={rate.id} className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid #f8fafc' }}>
                           <span className="text-xs" style={{ color: '#64748b' }}>{formatDuration(rate.duration)}</span>
                           <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{rate.amount} <span className="text-xs font-normal" style={{ color: '#94a3b8' }}>{rate.currency || 'CHF'}</span></span>
@@ -1158,7 +1125,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 <div className="px-5 py-4">
                   {services.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {services.map((service: any) => (
+                      {services.map((service) => (
                         <span key={service.id} className="text-xs px-3 py-1.5 font-medium rounded-md" style={{ background: 'rgba(236,72,153,0.08)', color: '#BE185D', border: '1px solid rgba(236,72,153,0.2)' }}>
                           {service.service?.name || t('fallbackService')}
                         </span>
@@ -1195,7 +1162,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                   <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#94a3b8' }}>{t('languagesTitle')}</span>
                 </div>
                 <div className="px-5 py-4 flex flex-wrap gap-2">
-                  {languages.map((lang: any) => {
+                  {languages.map((lang) => {
                     const filled = levelToStarCount(lang.level)
                     const levelShort = formatLanguageLevel(lang.level)
                     return (
@@ -1322,7 +1289,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 </div>
                 <div className="px-5 py-3">
                   {(() => {
-                    const is24_7 = workingHours.length === 7 && workingHours.every((wh: any) =>
+                    const is24_7 = workingHours.length === 7 && workingHours.every((wh) =>
                       wh.start_time === '00:00:00' && wh.end_time === '23:59:00'
                     )
                     if (is24_7) return (
@@ -1333,7 +1300,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     )
                     return (
                       <div>
-                        {workingHours.map((wh: any) => (
+                        {workingHours.map((wh) => (
                           <div key={wh.id} className="flex justify-between items-center py-2" style={{ borderBottom: '1px solid #f8fafc' }}>
                             <span className="text-xs" style={{ color: '#64748b' }}>{formatDayOfWeek(wh.day_of_week)}</span>
                             <span className="text-xs font-semibold" style={{ color: '#0f172a' }}>
@@ -1358,7 +1325,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                 </div>
                 <div className="p-4">
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {collabModels.map((model: any) => (
+                    {collabModels.map((model) => (
                       <Link
                         key={model.id}
                         href={`/models/${model.id}`}
@@ -1406,7 +1373,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
 
             {/* ── Reviews ── */}
             {(() => {
-              const otherComments = comments?.filter((c: any) => c.user?.id !== currentUserId) || []
+              const otherComments = comments?.filter((c) => c.user?.id !== currentUserId) || []
               return isLoggedIn && otherComments.length > 0 && (
                 <div className="rounded-xl overflow-hidden" style={{ background: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
                   <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -1414,7 +1381,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                     <span className="text-[11px] font-bold" style={{ color: '#cbd5e1' }}>({otherComments.length})</span>
                   </div>
                   <div className="px-5 py-4 space-y-4">
-                    {otherComments.map((comment: any) => (
+                    {otherComments.map((comment) => (
                       <div key={comment.id} className="pb-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <div className="flex items-start justify-between mb-1.5">
                           <span className="text-sm font-bold" style={{ color: '#0f172a' }}>{comment.user.username || t('anonymousAuthor')}</span>
@@ -1679,7 +1646,7 @@ export default function ModelProfileClient({ modelData, allModelIds, prevId: ser
                       sizes="(max-width: 768px) 100vw, 550px"
                       className="object-contain object-center cursor-zoom-in transition-opacity duration-300"
                       priority
-                      quality={82}
+                      quality={80}
                       placeholder="blur"
                       blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z"
                       onClick={() => { setLightboxIndex(selectedPhotoIndex); setLightboxOpen(true) }}

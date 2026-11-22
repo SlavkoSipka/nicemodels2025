@@ -1,25 +1,9 @@
 import type { NextConfig } from "next";
-import fs from 'fs'
-import path from 'path'
 import createNextIntlPlugin from 'next-intl/plugin'
 
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts')
 
-// Copy TinyMCE to public folder for self-hosting (no API key needed)
-const tinymceSrc = path.join(process.cwd(), 'node_modules/tinymce')
-const tinymceDest = path.join(process.cwd(), 'public/tinymce')
-if (fs.existsSync(tinymceSrc)) {
-  try {
-    fs.cpSync(tinymceSrc, tinymceDest, { recursive: true, force: false, errorOnExist: false })
-  } catch {
-    // non-fatal: skip self-host copy if disk/permissions fail
-  }
-}
-
 const nextConfig: NextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   compress: true,
   reactStrictMode: true,
   poweredByHeader: false,
@@ -52,6 +36,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  async redirects() {
+    return [
+      // Legacy URLs: model profiles live at /models/[id]; model sign-up goes through /register.
+      { source: '/profile/:id', destination: '/models/:id', permanent: true },
+      { source: '/register/model', destination: '/register', permanent: true },
+    ]
   },
   async headers() {
     // ─── CSP Inventory (as of 2026-06-26) ────────────────────────────────────

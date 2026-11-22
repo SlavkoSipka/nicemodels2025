@@ -25,12 +25,11 @@ export default function StatisticsPage() {
       if (!user) return
       const { data: summary } = await supabase.from('model_statistics_summary').select('*').eq('model_id', user.id).single()
       if (summary) setModelStats(summary)
-      let startDate = new Date()
+      const startDate = new Date()
       if (dateRange === 'week') startDate.setDate(startDate.getDate() - 7)
       else if (dateRange === 'month') startDate.setMonth(startDate.getMonth() - 1)
       else if (dateRange === 'year') startDate.setFullYear(startDate.getFullYear() - 1)
-      // The totals for a range are summed from these rows, so the limit has to
-      // cover the range — capping at 30 made "year" report one month.
+      // Range totals are summed from these rows, so the limit must cover the range.
       const rowLimit = dateRange === 'year' ? 366 : dateRange === 'month' ? 31 : dateRange === 'week' ? 7 : 30
       const q = supabase.from('model_statistics_daily').select('*').eq('model_id', user.id).order('date', { ascending: false }).limit(rowLimit)
       if (dateRange !== 'all') q.gte('date', startDate.toISOString().split('T')[0])

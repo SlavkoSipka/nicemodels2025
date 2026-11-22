@@ -934,6 +934,25 @@
       "tooLarge": "Videoclipul editat depășește 50 MB.",
       "hintEmpty": "Marchează zona pe imagine. Dacă persoana se mișcă, alege o secțiune și marchează fiecare secțiune separat.",
       "hintCount": "{count, plural, one {# zonă marcată} few {# zone marcate} other {# de zone marcate}}"
+    },
+    "changeRole": {
+      "button": "Schimbă tipul",
+      "title": "Schimbă tipul contului",
+      "current": "Acum: {role}",
+      "chooseNew": "Tip nou de cont",
+      "role_user": "Vizitator",
+      "role_model": "Model",
+      "role_company": "Club / agenție",
+      "effect_user": "Cont normal de vizitator, fără profil pe site.",
+      "effect_model": "La următoarea autentificare completează profilul de model (poze, date, prețuri).",
+      "effect_company": "La următoarea autentificare se completează profilul clubului.",
+      "noteData": "Datele existente nu se șterg. Dacă tipul este readus, revin.",
+      "noteNotify": "Persoana primește un e-mail și o notificare. Datele de autentificare rămân aceleași.",
+      "cancel": "Anulează",
+      "close": "Închide",
+      "confirm": "Schimbă în {role}",
+      "failed": "Tipul contului nu a putut fi schimbat.",
+      "changedBanner": "{name} este acum {role}. Noul profil se configurează la următoarea autentificare."
     }
   },
   "common": {

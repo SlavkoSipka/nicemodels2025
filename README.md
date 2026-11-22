@@ -1,292 +1,87 @@
-# 💎 Nice Models - Escort Platform
+# NiceModels.ch
 
-A modern, full-featured escort platform built with Next.js 16, Supabase, and TypeScript.
+Swiss directory for models, clubs and agencies. It covers public model profiles (sedcards), club pages, job and rental listings, stories, chat, and an admin back office. Ads, banners and listings are paid through Stripe.
 
-## 🚀 Quick Start
+## Stack
 
-### Prerequisites
-- Node.js 20 or higher
-- npm or yarn
-- Supabase account
+- **Next.js 16** (App Router), React 19, TypeScript, Tailwind CSS
+- **Supabase**: PostgreSQL with Row Level Security, Auth, Storage, Realtime
+- **next-intl**: interface in 10 languages, German by default; the locale comes from a cookie, not the URL
+- **TanStack Query** for client-side data
+- **Stripe Checkout** (CHF), **Resend** for transactional email, **EmailJS** for the contact form
+- **Netlify** hosting
 
-### Local Development
+## Getting started
 
-1. **Clone the repository**
-```bash
-git clone <your-repo-url>
-cd nicemodels2025
-```
+Requirements: Node.js 20 and access to the Supabase project.
 
-2. **Install dependencies**
 ```bash
 npm install
-```
-
-3. **Set up environment variables**
-
-Create `.env.local` file in the root directory:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
-```
-
-Get these values from your Supabase project:
-- Dashboard → Project Settings → API
-
-4. **Set up Supabase database**
-
-Execute SQL scripts in order from `supabase-docs/` folder:
-- Start with table creation scripts
-- Then add RLS policies
-- Finally add functions
-
-See `supabase-docs/README.md` for detailed instructions.
-
-5. **Run development server**
-```bash
+cp .env.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Fill in `.env.local` before starting; [docs/deployment.md](docs/deployment.md#environment-variables) describes each variable. The app runs at http://localhost:3000.
 
----
+## Scripts
 
-## 📦 Tech Stack
+| Command | Description |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` | Production build, including type checking |
+| `npm run start` | Serve the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check without emitting |
 
-- **Framework:** Next.js 16 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS
-- **Database:** Supabase (PostgreSQL)
-- **Authentication:** Supabase Auth
-- **Storage:** Supabase Storage
-- **Icons:** Lucide React
-- **Deployment:** Netlify
+Maintenance scripts in `scripts/`:
 
----
+| Script | Description |
+|---|---|
+| `generate-icons.mjs` | Regenerates the favicon and app icons from `public/logo.webp` |
+| `seed-cities.mjs` | Imports Swiss localities from the official postcode CSV into `cities` |
+| `fix-mislabeled-photos.mjs` | Re-encodes stored images whose content does not match their extension |
 
-## 🏗️ Project Structure
+## Project structure
 
-```
-├── src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── dashboard/         # Dashboard pages (model, company, user, admin)
-│   │   ├── models/            # Model profile pages
-│   │   ├── clubs/             # Club profile pages
-│   │   ├── auth/              # Authentication callbacks
-│   │   └── ...
-│   ├── components/            # React components
-│   │   ├── auth/             # Login, register forms
-│   │   ├── layout/           # Navbar, sidebar, footer
-│   │   ├── home/             # Homepage components
-│   │   └── ...
-│   └── lib/                   # Utilities and configurations
-│       ├── supabase/         # Supabase client/server setup
-│       └── api/              # API helper functions
-├── supabase-docs/             # Database schema and documentation
-├── public/                    # Static assets
-└── netlify.toml              # Netlify configuration
-```
-
----
-
-## 👥 User Roles
-
-### 1. **Models** 👤
-- Create and manage profile
-- Upload photos and videos
-- Set rates and services
-- Activate ads
-- View statistics
-- Respond to invites from clubs
-
-### 2. **Clubs/Agencies** 🏢
-- Manage club profile
-- Invite models
-- Activate ads
-- View analytics
-- Manage multiple models
-
-### 3. **Regular Users** 💝
-- Browse models and clubs
-- Save favorites
-- Leave reviews (admin-approved)
-- View public comments
-
-### 4. **Admin** ⚙️
-- Review and approve content
-- Verify users
-- Manage comments
-- View all statistics
-- Block/unblock users
-
----
-
-## 🎨 Key Features
-
-### For Models
-- ✅ Complete profile management
-- ✅ Photo/video gallery with admin approval
-- ✅ Service and rate management
-- ✅ Working hours scheduler
-- ✅ Ad packages (currently free during beta)
-- ✅ Statistics and analytics
-- ✅ Club invitations system
-
-### For Clubs/Agencies
-- ✅ Club profile with photos
-- ✅ Model invitation system
-- ✅ Multiple model management
-- ✅ Club ad packages
-- ✅ Analytics (profile views, contact clicks)
-
-### For Users
-- ✅ Browse models and clubs
-- ✅ Advanced search and filters
-- ✅ Save favorites
-- ✅ Leave reviews (admin moderated)
-- ✅ View public comments
-
-### General Features
-- ✅ Supabase authentication
-- ✅ Role-based access control
-- ✅ File upload (photos, banners)
-- ✅ Real-time notifications
-- ✅ Blog system (template ready)
-- ✅ Contact page
-- ✅ Responsive design
-
----
-
-## 🚀 Deployment
-
-**For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md)**
-
-### Quick Deploy to Netlify
-
-1. Push code to GitHub
-2. Connect to Netlify
-3. Add environment variables
-4. Deploy!
-
-Detailed step-by-step guide available in `DEPLOYMENT.md`.
-
----
-
-## 📚 Documentation
-
-- **Database Schema:** `supabase-docs/DATABASE-STRUCTURE.md`
-- **Deployment Guide:** `DEPLOYMENT.md`
-- **Invite System:** `INVITE-SYSTEM-README.md`
-- **Supabase Setup:** `supabase-docs/README.md`
-
----
-
-## 🔐 Security
-
-- ✅ Row Level Security (RLS) on all tables
-- ✅ Secure authentication with Supabase
-- ✅ Environment variables for sensitive data
-- ✅ Admin-only routes protected
-- ✅ File upload validation
-
----
-
-## 🐛 Troubleshooting
-
-### Build fails
-```bash
-# Clear Next.js cache
-rm -rf .next
-npm run build
+```text
+src/
+  app/              Routes (App Router)
+    api/            Route handlers: admin, checkout, Stripe webhook, cron, tracking, email
+    dashboard/      Signed-in areas: admin, model, company (clubs), user
+    models/ clubs/ jobs-rents/ escort/ blog/ ...   Public pages
+  components/       UI, grouped by feature
+  lib/              Data access, Supabase clients, email, Stripe, tracking, helpers
+  i18n/             next-intl request configuration
+  proxy.ts          Request proxy: Supabase session refresh, visitor region cookie
+messages/           Translations (de, en, fr, it, es, pl, ro, hu, cs, ru)
+supabase-docs/      SQL migration scripts and database changelog
+docs/               Developer documentation
+scripts/            Maintenance scripts
+public/             Static assets
 ```
 
-### Database connection issues
-- Verify `.env.local` has correct Supabase credentials
-- Check Supabase project is active
-- Ensure RLS policies are set up correctly
+## Accounts
 
-### Photos not displaying
-- Check Supabase Storage bucket permissions
-- Verify photos are marked as `is_approved: true`
-- Check CORS settings in Supabase
+| Role | Can |
+|---|---|
+| Visitor (`user`) | Browse, save favourites and searches, comment, chat, publish job and rental listings |
+| Model (`model`) | Maintain a profile with photos, videos, rates, services and working hours; post stories; activate a sedcard; buy banners; see statistics |
+| Club or agency (`company`) | Maintain a club profile, invite models, activate an ad, publish job and rental listings, buy banners |
+| Admin (`admin`) | Moderate content, verify identities, censor or remove media, block users and listings, change account types, view statistics |
 
----
+## Documentation
 
-## 🔄 Development Workflow
+- [Database](docs/database.md): clients, roles, migrations, storage, auth, conventions
+- [Schema reference](docs/schema.md): every table, view and RPC function
+- [Deployment](docs/deployment.md): environment variables, Supabase settings, scheduled jobs
+- [Payments](docs/payments.md): Stripe checkout and webhook
+- [Email](docs/email.md): Resend, Supabase Auth email, templates
+- [SEO](docs/seo.md): metadata, sitemap, structured data
 
-1. **Local Development**
-```bash
-npm run dev
-```
+## Deployment
 
-2. **Type Checking**
-```bash
-npx tsc --noEmit
-```
+Pushing to `master` deploys to production on Netlify. Database changes are applied by hand in the Supabase SQL Editor before the code that needs them is deployed. See [docs/deployment.md](docs/deployment.md).
 
-3. **Build for Production**
-```bash
-npm run build
-```
+## License
 
-4. **Test Production Build Locally**
-```bash
-npm run build
-npm run start
-```
-
----
-
-## 📝 Environment Variables
-
-Required variables in `.env.local`:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-```
-
-**Note:** Variables prefixed with `NEXT_PUBLIC_` are exposed to the browser.
-
----
-
-## 🎯 Beta Features
-
-Currently in beta (free):
-- Model ad activation (normally paid)
-- Club ad activation (normally paid)
-- Banner ads (normally paid)
-
-These will require payment integration when going live.
-
----
-
-## 📧 Support
-
-For issues or questions:
-1. Check existing documentation
-2. Review Supabase logs
-3. Check browser console for errors
-4. Review deployment logs on Netlify
-
----
-
-## 📄 License
-
-This project is private and proprietary.
-
----
-
-## 🙏 Acknowledgments
-
-Built with:
-- [Next.js](https://nextjs.org/)
-- [Supabase](https://supabase.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Lucide Icons](https://lucide.dev/)
-
----
-
-**Version:** 0.1.0 (Beta)  
-**Last Updated:** February 2026
+Proprietary. All rights reserved.

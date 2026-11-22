@@ -109,7 +109,7 @@ export default function BasicInfoPage() {
       ])
 
       // Derive contact methods from new column or fall back to legacy flags.
-      let methods: ContactMethod[] = Array.isArray(contactData?.contact_methods)
+      const methods: ContactMethod[] = Array.isArray(contactData?.contact_methods)
         ? (contactData!.contact_methods as ContactMethod[])
         : []
       if (methods.length === 0 && contactData) {

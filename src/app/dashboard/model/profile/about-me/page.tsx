@@ -55,17 +55,6 @@ export default function AboutMePage() {
     } finally { setSaving(false) }
   }
 
-  const applyFormatting = (tag: string) => {
-    const ta = document.getElementById('about-me-textarea') as HTMLTextAreaElement
-    if (!ta) return
-    const start = ta.selectionStart
-    const end = ta.selectionEnd
-    const selected = aboutMe.substring(start, end)
-    if (selected) {
-      setAboutMe(aboutMe.substring(0, start) + `<${tag}>${selected}</${tag}>` + aboutMe.substring(end))
-    }
-  }
-
   if (loading) return null
 
   return (

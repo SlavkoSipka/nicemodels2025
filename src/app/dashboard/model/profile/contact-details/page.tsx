@@ -46,7 +46,7 @@ export default function ContactDetailsPage() {
           setNoWithheldNumbers(data.no_withheld_numbers || false)
           setOtherInstructions(data.other_instructions || '')
         }
-      } catch (err: any) {
+      } catch {
         setError(t('loadFailed'))
       } finally { setLoading(false) }
     }

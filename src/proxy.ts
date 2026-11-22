@@ -47,7 +47,6 @@ export async function proxy(request: NextRequest) {
 
   const skipRefresh =
     p.startsWith('/api/track')
-    || p.startsWith('/api/_debug')
     || p.startsWith('/api/locale')
     || p.startsWith('/api/cron')
     || p.startsWith('/api/stripe/webhook')

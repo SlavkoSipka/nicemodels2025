@@ -8,7 +8,6 @@ export default function CompanyCreateJobRentPage() {
   return (
     <CreateJobRentForm
       backHref="/dashboard/company/jobs-rent"
-      successHref="/dashboard/company/jobs-rent"
       subtitle={t('subtitle')}
       prefillFromClubContact
       requireActiveAd

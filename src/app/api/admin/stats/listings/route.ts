@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
   let topListings: { id: string; title: string; type: string; status: string; views: number; clicks: number }[] = []
   if (topIds.length > 0) {
     const { data: meta } = await admin.from('job_listings').select('id,title,listing_type,status').in('id', topIds)
-    const map = new Map((meta || []).map((m: any) => [m.id, m]))
+    const map = new Map((meta || []).map((m) => [m.id, m]))
     topListings = topIds.map(id => {
       const m: any = map.get(id)
       return {

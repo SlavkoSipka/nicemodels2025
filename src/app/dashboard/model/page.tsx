@@ -146,8 +146,8 @@ export default function ModelDashboardPage() {
           club_details: clubsMap.get(inv.club_id),
         }))
 
-        const profMap = new Map((senderProfilesRes.data || []).map((p: any) => [p.id, p]))
-        const detMap = new Map((senderDetailsRes.data || []).map((d: any) => [d.model_id, d]))
+        const profMap = new Map((senderProfilesRes.data || []).map((p) => [p.id, p]))
+        const detMap = new Map((senderDetailsRes.data || []).map((d) => [d.model_id, d]))
         const enrichedCollabs = (collabInvitesData || []).map(c => ({
           ...c,
           sender_name:

@@ -1,4 +1,4 @@
-/** Rows from `cities` used to map live_location_* → canton for region filters */
+/** `cities` rows used to resolve a live location to its canton for region filters. */
 export type CityCantonRow = { name: string; postal_code: string | null; canton: string | null }
 
 /** Resolve canton for a model’s live city; prefers postal match when multiple rows share a name */

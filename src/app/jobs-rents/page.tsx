@@ -51,9 +51,9 @@ export default async function JobsRentsPage() {
   const listingIds = allListings.map(l => l.id)
   const clubIds = [...new Set(allListings.map(l => l.club_id))]
 
-  let clubDetailsMap = new Map<string, any>()
-  let photosMap = new Map<string, string[]>()
-  let servicesMap = new Map<string, any[]>()
+  const clubDetailsMap = new Map<string, any>()
+  const photosMap = new Map<string, string[]>()
+  const servicesMap = new Map<string, any[]>()
 
   if (listingIds.length > 0) {
     const admin = createAdminClient()

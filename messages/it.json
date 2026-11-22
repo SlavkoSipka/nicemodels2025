@@ -934,6 +934,25 @@
       "tooLarge": "Il video modificato supera 50 MB.",
       "hintEmpty": "Segna l’area sull’immagine. Se la persona si muove, scegli un tratto e segna ogni tratto separatamente.",
       "hintCount": "{count, plural, one {# area segnata} other {# aree segnate}}"
+    },
+    "changeRole": {
+      "button": "Cambia tipo",
+      "title": "Cambia tipo di account",
+      "current": "Attuale: {role}",
+      "chooseNew": "Nuovo tipo di account",
+      "role_user": "Visitatore",
+      "role_model": "Modella",
+      "role_company": "Club / agenzia",
+      "effect_user": "Account visitatore normale, senza profilo sul sito.",
+      "effect_model": "Al prossimo accesso compila il profilo da modella (foto, dati, prezzi).",
+      "effect_company": "Al prossimo accesso compila il profilo del club.",
+      "noteData": "I dati esistenti non vengono eliminati. Se il tipo viene ripristinato, tornano.",
+      "noteNotify": "La persona riceve un’e-mail e una notifica. I dati di accesso restano uguali.",
+      "cancel": "Annulla",
+      "close": "Chiudi",
+      "confirm": "Cambia in {role}",
+      "failed": "Impossibile cambiare il tipo di account.",
+      "changedBanner": "{name} ora è {role}. Il nuovo profilo si configura al prossimo accesso."
     }
   },
   "common": {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Flag, CheckCircle, XCircle, Clock, Eye, X } from 'lucide-react'
+import { Flag, CheckCircle, XCircle, Clock, Eye, X } from 'lucide-react'
 
 interface Report {
   id: string
@@ -39,7 +39,7 @@ export default function AdminReportsPage() {
     if (!res.ok) { setLoading(false); return }
 
     const { reports: data } = await res.json()
-    const mapped: Report[] = (data || []).map((r: any) => ({
+    const mapped: Report[] = (data || []).map((r) => ({
       ...r,
       reporter: r.reporter || { id: r.reporter_id, username: 'N/A', public_id: null, role: 'unknown' },
       reported: r.reported || { id: r.reported_id, username: 'N/A', public_id: null, role: 'unknown' },

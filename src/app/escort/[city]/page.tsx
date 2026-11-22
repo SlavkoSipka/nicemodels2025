@@ -112,10 +112,10 @@ async function buildCityData(cfg: CityConfig) {
   ]
 
   // ── Models ──
-  const profileMap = new Map((profileRows ?? []).map((p: any) => [p.id, p]))
+  const profileMap = new Map((profileRows ?? []).map((p) => [p.id, p]))
   const cityModelIds = (detailRows ?? [])
-    .filter((d: any) => profileMap.has(d.model_id))
-    .map((d: any) => d.model_id)
+    .filter((d) => profileMap.has(d.model_id))
+    .map((d) => d.model_id)
 
   let models: ModelRow[] = []
   if (cityModelIds.length > 0) {
@@ -135,8 +135,8 @@ async function buildCityData(cfg: CityConfig) {
     }
 
     models = (detailRows ?? [])
-      .filter((d: any) => profileMap.has(d.model_id))
-      .map((d: any) => ({
+      .filter((d) => profileMap.has(d.model_id))
+      .map((d) => ({
         id: d.model_id,
         username: profileMap.get(d.model_id)?.username ?? '',
         photoUrl: photoMap.get(d.model_id) ?? null,
@@ -153,8 +153,8 @@ async function buildCityData(cfg: CityConfig) {
   }
 
   // ── Clubs ──
-  const contactMap = new Map((clubContactRows ?? []).map((c: any) => [c.club_id, c]))
-  const cityClubIds = (clubDetailRows ?? []).map((d: any) => d.club_id)
+  const contactMap = new Map((clubContactRows ?? []).map((c) => [c.club_id, c]))
+  const cityClubIds = (clubDetailRows ?? []).map((d) => d.club_id)
 
   let clubs: ClubCardData[] = []
   if (cityClubIds.length > 0) {
@@ -173,7 +173,7 @@ async function buildCityData(cfg: CityConfig) {
       }
     }
 
-    clubs = (clubDetailRows ?? []).map((d: any) => ({
+    clubs = (clubDetailRows ?? []).map((d) => ({
       id: d.club_id,
       display_name: d.display_name || d.club_name || '',
       area: d.area || '',

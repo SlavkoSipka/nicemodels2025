@@ -6,7 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { Search, UserPlus, AlertCircle, CheckCircle, X, Check, Users, MapPin, Send, Inbox, Handshake } from 'lucide-react'
+import { Search, UserPlus, AlertCircle, CheckCircle, X, Check, Users, Send, Inbox, Handshake } from 'lucide-react'
 
 interface ModelSearchResult {
   id: string
@@ -70,7 +70,7 @@ export default function ModelCollaborationsPage() {
       loadExcluded(user.id),
     ])
 
-    await loadAllModels(user.id)
+    await loadAllModels()
     setLoading(false)
   }
 
@@ -143,14 +143,14 @@ export default function ModelCollaborationsPage() {
       supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
-    const detailsMap = new Map((details || []).map(d => [d.model_id, d]))
+    const detailsMap = new Map((details || []).map(d => [d.model_id, d] as const))
     const photosMap = new Map<string, string>()
     for (const p of (photos || [])) {
       if (!photosMap.has(p.model_id) && p.file_path) {
         photosMap.set(p.model_id, `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
       }
     }
-    const profilesMap = new Map((profiles || []).map(p => [p.id, p]))
+    const profilesMap = new Map((profiles || []).map(p => [p.id, p] as const))
 
     return items.map(item => {
       const mid = item[idField]
@@ -179,14 +179,14 @@ export default function ModelCollaborationsPage() {
       supabase.from('model_photos').select('model_id, file_path').in('model_id', partnerIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
-    const detailsMap = new Map((details || []).map(d => [d.model_id, d]))
+    const detailsMap = new Map((details || []).map(d => [d.model_id, d] as const))
     const photosMap = new Map<string, string>()
     for (const p of (photos || [])) {
       if (!photosMap.has(p.model_id) && p.file_path) {
         photosMap.set(p.model_id, `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
       }
     }
-    const profilesMap = new Map((profiles || []).map(p => [p.id, p]))
+    const profilesMap = new Map((profiles || []).map(p => [p.id, p] as const))
 
     return items.map(item => {
       const mid = item.sender_id === currentUserId ? item.receiver_id : item.sender_id
@@ -230,7 +230,7 @@ export default function ModelCollaborationsPage() {
     return ids
   }
 
-  const loadAllModels = async (userId: string) => {
+  const loadAllModels = async () => {
     const supabase = createClient()
     const { data: profiles } = await supabase
       .from('profiles')
@@ -247,7 +247,7 @@ export default function ModelCollaborationsPage() {
       supabase.from('model_photos').select('model_id, file_path').in('model_id', modelIds).eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
-    const detailsMap = new Map((details || []).map(d => [d.model_id, d]))
+    const detailsMap = new Map((details || []).map(d => [d.model_id, d] as const))
     const photosMap = new Map<string, string>()
     for (const p of (photos || [])) {
       if (!photosMap.has(p.model_id) && p.file_path) {
@@ -348,7 +348,7 @@ export default function ModelCollaborationsPage() {
         loadSent(user.id),
         loadExcluded(user.id),
       ])
-      await loadAllModels(user.id)
+      await loadAllModels()
 
       setTimeout(() => setSuccess(''), 4000)
     } catch (err: any) {
@@ -402,7 +402,7 @@ export default function ModelCollaborationsPage() {
         loadCollaborations(user.id),
         loadExcluded(user.id),
       ])
-      await loadAllModels(user.id)
+      await loadAllModels()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
       setError(err.message || t('respondFailed'))
@@ -427,7 +427,7 @@ export default function ModelCollaborationsPage() {
         loadSent(user.id),
         loadExcluded(user.id),
       ])
-      await loadAllModels(user.id)
+      await loadAllModels()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
       setError(err.message || t('cancelFailed'))
@@ -452,7 +452,7 @@ export default function ModelCollaborationsPage() {
         loadCollaborations(user.id),
         loadExcluded(user.id),
       ])
-      await loadAllModels(user.id)
+      await loadAllModels()
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
       setError(err.message || t('removeFailed'))

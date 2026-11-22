@@ -61,7 +61,7 @@ async function run(req: NextRequest) {
     if (!n.user_id || !n.related_entity_id) continue
     const userMap = byUser.get(n.user_id) || new Map<string, FavDigestItem>()
     const modelId = String(n.related_entity_id)
-    const item = userMap.get(modelId) || {
+    const item: FavDigestItem = userMap.get(modelId) || {
       modelId,
       modelName: n.title?.replace(/ posted .*$| moved .*$| is back online$/, '').trim() || 'A favorite',
       events: [],

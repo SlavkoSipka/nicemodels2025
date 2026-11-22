@@ -76,17 +76,17 @@ export default async function AdminModelEditPage({ params }: Props) {
       modelId={id}
       profile={profile}
       modelDetails={modelDetails}
-      photos={(photos || []).map((p: any) => ({
+      photos={(photos || []).map((p) => ({
         ...p,
         url: p.file_path ? `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}` : null,
       }))}
-      videos={(videos || []).map((v: any) => ({
+      videos={(videos || []).map((v) => ({
         ...v,
         url: v.file_path ? `${SUPA_URL}/storage/v1/object/public/model-videos/${v.file_path}` : null,
       }))}
       contactDetails={contactDetails}
       languages={languages || []}
-      modelServices={(services || []).map((s: any) => s.service_id)}
+      modelServices={(services || []).map((s) => s.service_id)}
       allServices={allServices || []}
       workingHours={workingHours || []}
       rates={rates || []}

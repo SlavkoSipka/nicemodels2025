@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import Link from 'next/link'
-import { ArrowLeft, User, Building2, UserX, UserCheck, UserCircle, Shield } from 'lucide-react'
+import { User, Building2, UserX, UserCheck, UserCircle, Shield } from 'lucide-react'
 
 interface BlockedUser {
   id: string

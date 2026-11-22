@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Filter, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import CitySearch from '@/components/ui/CitySearch'
 
 export default function SearchFilters() {
   const t = useTranslations('search.filters')

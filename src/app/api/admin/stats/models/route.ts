@@ -62,8 +62,8 @@ export async function GET(req: NextRequest) {
       admin.from('profiles').select('id,username').in('id', topIds),
       admin.from('model_details').select('model_id,showname').in('model_id', topIds),
     ])
-    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
-    const detailMap = new Map((details || []).map((d: any) => [d.model_id, d]))
+    const profileMap = new Map((profiles || []).map((p) => [p.id, p]))
+    const detailMap = new Map((details || []).map((d) => [d.model_id, d]))
 
     const contacts = new Map<string, number>()
     const favorites = new Map<string, number>()

@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
@@ -35,13 +35,9 @@ export async function updateSession(request: NextRequest) {
     data: { user: userFromJwt },
   } = await supabase.auth.getUser()
 
-  // NOTE: we used to call `supabase.auth.signOut()` here whenever getUser()
-  // returned a refresh-token error. That fires spuriously on mobile right
-  // after sign-in (the freshly-set cookies aren't visible on the very next
-  // request yet) and wipes a perfectly good session, leaving the user
-  // appearing logged-out on dashboard/navbar. Now we just treat the user as
-  // null for this request without destroying cookies — a real stale token
-  // will resolve itself on the next request or on manual re-login.
+  // Do not sign out on a refresh-token error: right after sign-in on mobile the
+  // new cookies are not visible yet, and signing out would destroy a valid
+  // session. The user is treated as anonymous for this request only.
   const user = userFromJwt
 
   // Protected routes

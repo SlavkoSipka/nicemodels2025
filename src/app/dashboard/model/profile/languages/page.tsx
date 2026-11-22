@@ -55,7 +55,7 @@ export default function LanguagesPage() {
         setUser(user)
         const { data } = await supabase.from('model_languages').select('*').eq('model_id', user.id)
         const mapped = data && data.length > 0
-          ? data.map((l: any) => ({ language: l.language, level: l.level, stars: levelToDefaultStars(l.level) }))
+          ? data.map((l) => ({ language: l.language, level: l.level, stars: levelToDefaultStars(l.level) }))
           : [{ language: '', level: 'excellent_native', stars: 5 }]
         setLanguages(mapped)
         setLoading(false)

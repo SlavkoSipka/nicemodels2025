@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { Ban, CheckCircle, Search, UserCircle, Pencil, Trash2, X, Save, AlertCircle, Download, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { Ban, CheckCircle, Search, UserCircle, Pencil, Trash2, X, Save, AlertCircle, Download, ArrowUpDown, ArrowUp, ArrowDown, Repeat } from 'lucide-react'
 import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
 import { formatDobDisplay } from '@/lib/utils/dob'
 import DobInput from '@/components/forms/DobInput'
 import AdminMessageButton from '@/components/admin/AdminMessageButton'
+import AdminChangeRoleDialog, { type AccountRole } from '@/components/admin/AdminChangeRoleDialog'
 import PhoneInput from '@/components/ui/PhoneInput'
 import { splitPhone, joinPhone, DEFAULT_DIAL_CODE } from '@/lib/countries'
 
@@ -45,6 +46,9 @@ export default function AdminUsersPage() {
   const t = useTranslations('admin.users')
   const tc = useTranslations('admin.common')
   const tSb = useTranslations('admin.sidebar')
+  const tr = useTranslations('admin.changeRole')
+  const [roleTarget, setRoleTarget] = useState<Visitor | null>(null)
+  const [roleChanged, setRoleChanged] = useState<{ name: string; role: AccountRole } | null>(null)
   const [loading, setLoading] = useState(true)
   const [visitors, setVisitors] = useState<Visitor[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -287,6 +291,13 @@ export default function AdminUsersPage() {
               value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
+          {roleChanged && (
+            <div className="flex items-start justify-between gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2">
+              <p className="text-sm text-emerald-800">{tr('changedBanner', { name: roleChanged.name, role: tr(`role_${roleChanged.role}`) })}</p>
+              <button onClick={() => setRoleChanged(null)} className="text-emerald-700 text-xs font-bold shrink-0">✕</button>
+            </div>
+          )}
+
 
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Mobile card list */}
@@ -333,6 +344,10 @@ export default function AdminUsersPage() {
                     <button onClick={() => openEdit(visitor)}
                       className="flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-violet-50 text-violet-700 inline-flex items-center justify-center gap-1">
                       <Pencil className="w-3 h-3" /> {tc('edit')}
+                    </button>
+                    <button onClick={() => setRoleTarget(visitor)}
+                      className="flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md bg-brand/10 text-brand inline-flex items-center justify-center gap-1">
+                      <Repeat className="w-3 h-3" /> {tr('button')}
                     </button>
                     <button onClick={() => handleBlock(visitor.id, visitor.is_blocked)}
                       className={`flex-1 px-2.5 py-1.5 text-xs font-semibold rounded-md ${
@@ -433,6 +448,10 @@ export default function AdminUsersPage() {
                               className="px-2.5 py-1 text-xs font-semibold rounded-md bg-violet-50 text-violet-700 hover:bg-violet-100 inline-flex items-center gap-1"
                             >
                               <Pencil className="w-3 h-3" /> {tc('edit')}
+                            </button>
+                            <button onClick={() => setRoleTarget(visitor)}
+                              className="px-2.5 py-1 text-xs font-semibold rounded-md bg-brand/10 text-brand hover:bg-brand/20 inline-flex items-center gap-1 whitespace-nowrap">
+                              <Repeat className="w-3 h-3" /> {tr('button')}
                             </button>
                             <button onClick={() => handleBlock(visitor.id, visitor.is_blocked)}
                               className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
@@ -602,6 +621,21 @@ export default function AdminUsersPage() {
 
         </div>
       </div>
+      {roleTarget && (
+        <AdminChangeRoleDialog
+          userId={roleTarget.id}
+          name={roleTarget.username || roleTarget.email}
+          currentRole="user"
+          onClose={() => setRoleTarget(null)}
+          onChanged={(role) => {
+            const target = roleTarget
+            setRoleTarget(null)
+            // The account now belongs to another list, so it leaves this one.
+            setVisitors(prev => prev.filter(x => x.id !== target.id))
+            setRoleChanged({ name: target.username || target.email, role })
+          }}
+        />
+      )}
     </div>
   )
 }

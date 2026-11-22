@@ -934,6 +934,25 @@
       "tooLarge": "Das bearbeitete Video ist grösser als 50 MB.",
       "hintEmpty": "Bereich auf dem Bild markieren. Bewegt sich die Person: Abschnitt wählen und pro Abschnitt neu markieren.",
       "hintCount": "{count, plural, one {# Bereich markiert} other {# Bereiche markiert}}"
+    },
+    "changeRole": {
+      "button": "Typ ändern",
+      "title": "Profiltyp ändern",
+      "current": "Aktuell: {role}",
+      "chooseNew": "Neuer Profiltyp",
+      "role_user": "Besucher",
+      "role_model": "Model",
+      "role_company": "Club / Agentur",
+      "effect_user": "Normales Besucherkonto, kein Profil auf der Seite.",
+      "effect_model": "Beim nächsten Login füllt sie das Model-Profil aus (Fotos, Angaben, Preise).",
+      "effect_company": "Beim nächsten Login füllt er das Club-Profil aus.",
+      "noteData": "Bestehende Daten werden nicht gelöscht. Wird der Typ zurückgeändert, sind sie wieder da.",
+      "noteNotify": "Die Person erhält eine E-Mail und eine Benachrichtigung. Login-Daten bleiben gleich.",
+      "cancel": "Abbrechen",
+      "close": "Schliessen",
+      "confirm": "Zu {role} ändern",
+      "failed": "Profiltyp konnte nicht geändert werden.",
+      "changedBanner": "{name} ist jetzt {role}. Beim nächsten Login wird das neue Profil eingerichtet."
     }
   },
   "common": {

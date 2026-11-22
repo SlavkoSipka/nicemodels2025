@@ -102,7 +102,7 @@ const FILTER_KEYS: { value: FilterType; key: string }[] = [
 
 function formatTimeAgo(
   dateStr: string,
-  t: (key: string, values?: Record<string, unknown>) => string,
+  t: (key: string, values?: Record<string, string | number | Date>) => string,
 ): string {
   const now = Date.now()
   const then = new Date(dateStr).getTime()

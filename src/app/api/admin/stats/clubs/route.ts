@@ -50,8 +50,8 @@ export async function GET(req: NextRequest) {
       admin.from('profiles').select('id,username').in('id', topIds),
       admin.from('club_details').select('club_id,club_name').in('club_id', topIds),
     ])
-    const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]))
-    const detailMap = new Map((details || []).map((d: any) => [d.club_id, d]))
+    const profileMap = new Map((profiles || []).map((p) => [p.id, p]))
+    const detailMap = new Map((details || []).map((d) => [d.club_id, d]))
 
     const contacts = new Map<string, number>()
     for (const r of list) {

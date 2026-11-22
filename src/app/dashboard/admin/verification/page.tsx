@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useTranslations } from 'next-intl'
-import { ArrowLeft, ShieldCheck, User, Building2, X, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { ShieldCheck, User, Building2, X, Clock, CheckCircle, XCircle } from 'lucide-react'
 import { formatDobDisplay } from '@/lib/utils/dob'
 
 interface Verification {

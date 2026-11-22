@@ -24,7 +24,6 @@ export async function fetchViewCounts(
     const { data, error } = await supabase.rpc(cfg.fn, { [cfg.idsArg]: ids })
     if (error) {
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.warn(`[viewCounts] ${cfg.fn} failed`, error.message)
       }
       return out

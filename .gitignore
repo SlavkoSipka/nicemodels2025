@@ -47,3 +47,9 @@ data-snapshot/
 *.dump
 *-snapshot.json
 .photo-backup/
+
+# Local tooling
+.claude/
+.cursor/
+tmp/
+*.log

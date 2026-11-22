@@ -48,7 +48,7 @@ export function useAuth() {
   return useContext(AuthContext)
 }
 
-function withTimeout<T>(p: Promise<T>, ms: number, label = 'request'): Promise<T> {
+function withTimeout<T>(p: PromiseLike<T>, ms: number, label = 'request'): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<T>((_, reject) => {
     timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms)

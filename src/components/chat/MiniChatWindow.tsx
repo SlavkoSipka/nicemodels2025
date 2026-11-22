@@ -76,7 +76,7 @@ export default function MiniChatWindow({
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload: any) => {
+        (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
             const hasTempVersion = prev.some((msg) => msg.id.toString().startsWith('temp-'));
@@ -108,7 +108,7 @@ export default function MiniChatWindow({
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload: any) => {
+        (payload) => {
           const updatedMsg = payload.new as Message;
           setMessages((prev) =>
             prev.map((msg) => (msg.id === updatedMsg.id ? updatedMsg : msg))
@@ -132,7 +132,7 @@ export default function MiniChatWindow({
           table: 'conversations',
           filter: `id=eq.${conversationId}`,
         },
-        (payload: any) => {
+        (payload) => {
           const conv = payload.new;
           // Determine if other user is typing
           const now = new Date().getTime();
@@ -283,7 +283,7 @@ export default function MiniChatWindow({
         .eq('id', conversationId);
     }
 
-    const { data, error } = await supabase.from('messages').insert({
+    const { error } = await supabase.from('messages').insert({
       conversation_id: conversationId,
       sender_id: currentUserId,
       message_text: messageToSend,

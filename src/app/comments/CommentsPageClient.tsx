@@ -24,6 +24,7 @@ interface Comment {
   model: {
     id: string
     username: string
+    public_id?: number | null
     model_details: Array<{
       showname: string
       city: string

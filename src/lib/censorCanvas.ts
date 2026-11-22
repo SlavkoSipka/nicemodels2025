@@ -1,9 +1,4 @@
-/**
- * Canvas pipeline behind the admin photo and video censor.
- *
- * Kept out of the modals so the redaction maths can be exercised on its own —
- * a wrong blur radius or a clip that leaks is only visible in pixels.
- */
+/** Canvas pipeline shared by the admin photo and video censor. */
 
 export type CensorEffect = 'blur' | 'pixelate' | 'black'
 
@@ -158,7 +153,7 @@ function paintShape(
   ctx.restore()
 }
 
-/** Redacted copy at the image's own resolution — what actually gets uploaded. */
+/** Redacted copy at the image's own resolution; this is what gets uploaded. */
 export function composeCensored(img: Source, shapes: CensorShape[], cache: EffectCache): HTMLCanvasElement {
   const { w, h } = sizeOf(img)
   const out = makeCanvas(w, h)

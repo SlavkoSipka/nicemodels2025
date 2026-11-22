@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Save, CheckCircle, AlertCircle, User, MapPin, Phone,
   Sparkles, Clock, Languages, ChevronDown, ChevronUp, Trash2, Plus,
@@ -66,7 +65,6 @@ export default function AdminModelEditClient({
   adPackages, currentAdExpiry,
 }: Props) {
   const router = useRouter()
-  const supabase = createClient()
   const t = useTranslations('admin.modelEdit')
   const tc = useTranslations('admin.common')
   const ethn = useTranslations('onboarding.model.eth')
@@ -161,7 +159,7 @@ export default function AdminModelEditClient({
   // ── Languages ──
   const [langs, setLangs] = useState(
     initLangs.length > 0
-      ? initLangs.map((l: any) => ({ language: l.language, stars: levelToStars(l.level) }))
+      ? initLangs.map((l) => ({ language: l.language, stars: levelToStars(l.level) }))
       : [{ language: '', stars: 5 }]
   )
 
@@ -173,8 +171,8 @@ export default function AdminModelEditClient({
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
   // ── Working hours ──
-  const initIs247 = initWH.length === 7 && initWH.every((h: any) => h.start_time === '00:00:00' && h.end_time === '23:59:00')
-  const initAllSame = !initIs247 && initWH.length === 7 && initWH.every((h: any) => h.start_time === initWH[0]?.start_time && h.end_time === initWH[0]?.end_time)
+  const initIs247 = initWH.length === 7 && initWH.every((h) => h.start_time === '00:00:00' && h.end_time === '23:59:00')
+  const initAllSame = !initIs247 && initWH.length === 7 && initWH.every((h) => h.start_time === initWH[0]?.start_time && h.end_time === initWH[0]?.end_time)
   const [scheduleType, setScheduleType] = useState<'24_7' | 'same_every_day' | 'custom'>(
     initIs247 ? '24_7' : initAllSame ? 'same_every_day' : initWH.length > 0 ? 'custom' : '24_7'
   )
@@ -185,7 +183,7 @@ export default function AdminModelEditClient({
     const base: Record<string, DayHours> = {}
     DAYS.forEach(d => { base[d] = { from: '', to: '' } })
     if (!initIs247 && !initAllSame) {
-      initWH.forEach((h: any) => { base[h.day_of_week] = { from: h.start_time?.slice(0, 5) || '', to: h.end_time?.slice(0, 5) || '' } })
+      initWH.forEach((h) => { base[h.day_of_week] = { from: h.start_time?.slice(0, 5) || '', to: h.end_time?.slice(0, 5) || '' } })
     }
     return base
   })
@@ -208,8 +206,8 @@ export default function AdminModelEditClient({
     if (s <= 2) return t('starBasic'); if (s === 3) return t('starFair'); if (s === 4) return t('starGood'); return t('starExcellent')
   }
 
-  const getServicesByCategory = (cat: string) => allServices.filter((s: any) => s.category === cat)
-  const getSelectedCount = (cat: string) => getServicesByCategory(cat).filter((s: any) => selectedServices.includes(s.id)).length
+  const getServicesByCategory = (cat: string) => allServices.filter((s) => s.category === cat)
+  const getSelectedCount = (cat: string) => getServicesByCategory(cat).filter((s) => selectedServices.includes(s.id)).length
   const getCategoryLabel = (cat: string) => ({
     main: t('categoryMain'), extra: t('categoryExtra'),
     fetish_bizarre: t('categoryFetish'), virtual: t('categoryVirtual'),
@@ -223,7 +221,7 @@ export default function AdminModelEditClient({
     setSaving(true)
 
     try {
-      const validLangs = langs.filter((l: any) => l.language)
+      const validLangs = langs.filter((l) => l.language)
       const whRows: any[] = []
       if (scheduleType === '24_7') {
         DAYS.forEach(d => whRows.push({ model_id: modelId, day_of_week: d, start_time: '00:00', end_time: '23:59' }))
@@ -305,7 +303,7 @@ export default function AdminModelEditClient({
       if (validLangs.length > 0) {
         operations.push({
           action: 'insert', table: 'model_languages',
-          data: validLangs.map((l: any) => ({ model_id: modelId, language: l.language, level: starToLevel(l.stars) })),
+          data: validLangs.map((l) => ({ model_id: modelId, language: l.language, level: starToLevel(l.stars) })),
         })
       }
       if (selectedServices.length > 0) {
@@ -794,7 +792,7 @@ export default function AdminModelEditClient({
                       </button>
                       {expanded && (
                         <div className="p-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {catSvc.map((svc: any) => (
+                          {catSvc.map((svc) => (
                             <label key={svc.id} className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-brand/5 text-sm">
                               <input type="checkbox" checked={selectedServices.includes(svc.id)}
                                 onChange={() => setSelectedServices(prev => prev.includes(svc.id) ? prev.filter(x => x !== svc.id) : [...prev, svc.id])}
@@ -897,7 +895,7 @@ export default function AdminModelEditClient({
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {['incall', 'outcall'].map(type => {
-                    const filtered = rates.filter((r: any) => r.rate_type === type)
+                    const filtered = rates.filter((r) => r.rate_type === type)
                     const typeLabel = type === 'incall' ? t('incallType') : t('outcallType')
                     return (
                       <div key={type}>
@@ -906,7 +904,7 @@ export default function AdminModelEditClient({
                           <p className="text-xs text-gray-400">—</p>
                         ) : (
                           <div className="space-y-1">
-                            {filtered.map((r: any) => (
+                            {filtered.map((r) => (
                               <div key={r.id} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
                                 <span className="text-sm text-gray-600">{formatDuration(r.duration)}</span>
                                 <span className="text-sm font-bold text-gray-900">{r.amount} {r.currency || 'CHF'}</span>
@@ -978,7 +976,7 @@ export default function AdminModelEditClient({
                       onChange={e => setAdPackageId(e.target.value)}
                       className={inputCls + ' sm:w-auto'}
                     >
-                      {adPackages.map((p: any) => {
+                      {adPackages.map((p) => {
                         const dur = p.duration_days
                           ? t('sedcardDays', { count: p.duration_days })
                           : t('sedcardHours', { count: p.duration_hours })

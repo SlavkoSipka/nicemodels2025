@@ -2,11 +2,10 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 
 /**
- * Root layout šalje klijentu samo javne namespace-ove kako bi HTML svake
- * javne stranice bio ~100 KB lakši (vidi `src/lib/i18n/messageScopes.ts`).
- * Dashboard je iza logina i koristi `dashboard.*` / `admin.*`, pa ovde
- * ponovo montiramo provider sa punim katalogom — ugnježdeni provider
- * pregazi onaj iz root layout-a za ceo /dashboard podstablo.
+ * The root layout ships only public message namespaces (see
+ * `src/lib/i18n/messageScopes.ts`). The dashboard needs `dashboard.*` and
+ * `admin.*`, so it mounts a provider with the full catalog; the nested
+ * provider replaces the root one for the whole /dashboard subtree.
  */
 export default async function DashboardLayout({
   children,

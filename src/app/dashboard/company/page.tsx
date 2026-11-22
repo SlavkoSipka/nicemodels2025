@@ -56,9 +56,9 @@ async function loadViewBreakdown(
     ),
   ])
 
-  const modelIds = (modelLinksRes.data ?? []).map((r: any) => r.invited_model_id).filter(Boolean) as string[]
-  const listingIds = (listingsRes.data ?? []).map((r: any) => r.id).filter(Boolean) as string[]
-  const bannerIds = (bannersRes.data ?? []).map((r: any) => r.id).filter(Boolean) as string[]
+  const modelIds = (modelLinksRes.data ?? []).map((r) => r.invited_model_id).filter(Boolean) as string[]
+  const listingIds = (listingsRes.data ?? []).map((r) => r.id).filter(Boolean) as string[]
+  const bannerIds = (bannersRes.data ?? []).map((r) => r.id).filter(Boolean) as string[]
 
   const [sedcardCount, listingCount, bannerCount] = await Promise.all([
     modelIds.length === 0

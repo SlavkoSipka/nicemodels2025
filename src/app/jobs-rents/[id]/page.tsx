@@ -1,10 +1,8 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notFound } from 'next/navigation'
 import Navbar from '@/components/layout/Navbar'
 import ListingDetailClient from './ListingDetailClient'
-import { fetchViewCounts } from '@/lib/viewCounts'
 import { buildBreadcrumbJsonLd } from '@/lib/seo'
 
 interface PageProps {

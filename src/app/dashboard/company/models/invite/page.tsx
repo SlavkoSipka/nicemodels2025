@@ -10,6 +10,7 @@ import { Search, UserPlus, AlertCircle, CheckCircle, ArrowLeft, X, Zap } from 'l
 interface ModelSearchResult {
   id: string
   username: string
+  public_id?: number | null
   is_verified: boolean
   profile_status: string
   showname?: string
@@ -143,7 +144,7 @@ export default function InviteModelPage() {
         .select('model_id, showname, city, age')
         .in('model_id', modelIds)
 
-      const detailsMap = new Map(modelDetails?.map(d => [d.model_id, d]) || [])
+      const detailsMap = new Map(modelDetails?.map(d => [d.model_id, d] as const) || [])
 
       setAllModels(availableProfiles.map(profile => ({
         ...profile,

@@ -8,7 +8,7 @@ import { useAuth } from '@/components/auth/AuthProvider'
 import { X, Plus, ChevronDown, ChevronUp, GripVertical } from 'lucide-react'
 import { processImage, extensionFor, IMMUTABLE_CACHE_CONTROL } from '@/lib/imageProcessor'
 import { reorderArray, persistPhotoDisplayOrder } from '@/lib/reorderArray'
-import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import CitySearch from '@/components/ui/CitySearch'
 import RichTextEditor from '@/components/ui/RichTextEditor'
 import { splitPhone } from '@/lib/countries'
 import { ageFromDateOfBirth } from '@/lib/age'
@@ -1607,7 +1607,7 @@ export default function ModelOnboardingForm() {
                     {/* Category Services */}
                     {isExpanded && (
                       <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-2 bg-white">
-                        {categoryServices.map((service: any) => (
+                        {categoryServices.map((service) => (
                           <button
                             key={service.id}
                             type="button"

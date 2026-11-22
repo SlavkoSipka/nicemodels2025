@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, Save, CheckCircle, AlertCircle, Building2, MapPin, Phone,
   Clock, ShieldCheck, Ban, ImageIcon, Zap,
@@ -38,7 +37,6 @@ export default function AdminClubEditClient({
   adPackages, currentAdExpiry,
 }: Props) {
   const router = useRouter()
-  const supabase = createClient()
   const t = useTranslations('admin.clubEdit')
   const tc = useTranslations('admin.common')
 
@@ -118,8 +116,8 @@ export default function AdminClubEditClient({
   })
 
   // ── Working hours ──
-  const initIs247 = initWH.length === 7 && initWH.every((h: any) => h.opens_at === '00:00:00' && h.closes_at === '23:59:00')
-  const initAllSame = !initIs247 && initWH.length === 7 && initWH.every((h: any) => h.opens_at === initWH[0]?.opens_at && h.closes_at === initWH[0]?.closes_at)
+  const initIs247 = initWH.length === 7 && initWH.every((h) => h.opens_at === '00:00:00' && h.closes_at === '23:59:00')
+  const initAllSame = !initIs247 && initWH.length === 7 && initWH.every((h) => h.opens_at === initWH[0]?.opens_at && h.closes_at === initWH[0]?.closes_at)
   const [scheduleType, setScheduleType] = useState<'24_7' | 'same_every_day' | 'custom'>(
     initIs247 ? '24_7' : initAllSame ? 'same_every_day' : initWH.length > 0 ? 'custom' : '24_7'
   )
@@ -130,7 +128,7 @@ export default function AdminClubEditClient({
     const base: Record<string, DayHours> = {}
     DAYS.forEach(d => { base[d] = { from: '', to: '' } })
     if (!initIs247 && !initAllSame) {
-      initWH.forEach((h: any) => {
+      initWH.forEach((h) => {
         base[h.day_of_week] = { from: h.opens_at?.slice(0, 5) || '', to: h.closes_at?.slice(0, 5) || '' }
       })
     }
@@ -607,7 +605,7 @@ export default function AdminClubEditClient({
                       onChange={e => setAdPackageId(e.target.value)}
                       className={inputCls + ' sm:w-auto'}
                     >
-                      {adPackages.map((p: any) => {
+                      {adPackages.map((p) => {
                         const dur = p.duration_days
                           ? t('sedcardDays', { count: p.duration_days })
                           : t('sedcardHours', { count: p.duration_hours })

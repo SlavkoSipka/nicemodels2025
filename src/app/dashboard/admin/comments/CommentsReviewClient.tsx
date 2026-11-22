@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
-  MessageSquare, CheckCircle, XCircle, User, Phone, Mail,
+  MessageSquare, XCircle, User, Phone, Mail,
   MapPin, Loader2, MessageCircle, Reply, ShieldCheck, Star, Sparkles,
 } from 'lucide-react'
 

@@ -934,6 +934,25 @@
       "tooLarge": "The edited video is larger than 50 MB.",
       "hintEmpty": "Mark the area on the picture. If the person moves, pick a section and mark each section separately.",
       "hintCount": "{count, plural, one {# area marked} other {# areas marked}}"
+    },
+    "changeRole": {
+      "button": "Change type",
+      "title": "Change account type",
+      "current": "Current: {role}",
+      "chooseNew": "New account type",
+      "role_user": "Visitor",
+      "role_model": "Model",
+      "role_company": "Club / agency",
+      "effect_user": "Regular visitor account, no profile on the site.",
+      "effect_model": "On next login she fills in the model profile (photos, details, prices).",
+      "effect_company": "On next login they fill in the club profile.",
+      "noteData": "Existing data is not deleted. If the type is changed back, it is restored.",
+      "noteNotify": "The person gets an email and a notification. Login details stay the same.",
+      "cancel": "Cancel",
+      "close": "Close",
+      "confirm": "Change to {role}",
+      "failed": "Could not change the account type.",
+      "changedBanner": "{name} is now {role}. The new profile is set up on next login."
     }
   },
   "common": {

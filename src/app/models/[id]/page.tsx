@@ -97,9 +97,9 @@ const getActiveModelIds = cache(async (): Promise<string[]> => {
       .eq('role', 'model')
       .eq('is_blocked', false)
       .order('created_at', { ascending: true })
-    ids = (fallback || []).map((m: any) => m.id as string)
+    ids = (fallback || []).map((m) => m.id as string)
   } else {
-    ids = (data as any[]).map((m: any) => m.id as string)
+    ids = (data as any[]).map((m) => m.id as string)
   }
   _idsCache = { ids, at: Date.now() }
   return ids
@@ -188,7 +188,7 @@ function getModelPublicBundle(id: string) {
           .order('created_at', { ascending: false }),
       ])
 
-      const photoIds = (photos || []).map((p: any) => p.id).filter(Boolean)
+      const photoIds = (photos || []).map((p) => p.id).filter(Boolean)
       const likeCounts: Record<string, number> = {}
       if (photoIds.length > 0) {
         const { data: countsData } = await admin.rpc('get_photo_like_counts', { photo_ids: photoIds })
@@ -204,8 +204,8 @@ function getModelPublicBundle(id: string) {
         admin.from('model_collaborations').select('sender_id').eq('receiver_id', id).eq('status', 'accepted'),
       ])
       const partnerIds = [
-        ...(collabAsSender || []).map((c: any) => c.receiver_id),
-        ...(collabAsReceiver || []).map((c: any) => c.sender_id),
+        ...(collabAsSender || []).map((c) => c.receiver_id),
+        ...(collabAsReceiver || []).map((c) => c.sender_id),
       ]
       if (partnerIds.length) {
         const [{ data: partnerProfiles }, { data: partnerDetails }, { data: partnerPhotos }] = await Promise.all([
@@ -214,14 +214,14 @@ function getModelPublicBundle(id: string) {
           admin.from('model_photos').select('model_id, file_path').in('model_id', partnerIds)
             .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
         ])
-        const dMap = new Map((partnerDetails ?? []).map((d: any) => [d.model_id, d]))
+        const dMap = new Map((partnerDetails ?? []).map((d) => [d.model_id, d]))
         const pMap = new Map<string, string>()
         for (const p of partnerPhotos ?? []) {
           if (!pMap.has(p.model_id) && p.file_path) {
             pMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
           }
         }
-        collabModels = (partnerProfiles ?? []).map((p: any) => ({
+        collabModels = (partnerProfiles ?? []).map((p) => ({
           ...p,
           ...(dMap.get(p.id) || {}),
           photoUrl: pMap.get(p.id) || null,
@@ -240,7 +240,7 @@ function getModelPublicBundle(id: string) {
         languages: languages || [],
         workingHours: workingHours || [],
         contactDetails: contactDetails ?? null,
-        comments: (comments || []).filter((c: any) => {
+        comments: (comments || []).filter((c) => {
           const u = Array.isArray(c.user) ? c.user[0] : c.user
           return !u?.is_blocked
         }),
@@ -306,7 +306,7 @@ async function getModelData(id: string) {
       .select('photo_id')
       .eq('user_id', viewer.id)
       .in('photo_id', bundle.photoIds)
-    if (userLikes) userLikedPhotoIds = userLikes.map((r: any) => r.photo_id)
+    if (userLikes) userLikedPhotoIds = userLikes.map((r) => r.photo_id)
   }
 
   // Same ~2h freshness rule as homepage: stale GPS is not shown publicly.

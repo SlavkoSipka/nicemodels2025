@@ -2,40 +2,29 @@ import { createClient } from '@/lib/supabase/client'
 
 export type TrackingAction = 'profile_view' | 'contact_view' | 'favorite_add' | 'share'
 
-/**
- * Track user action on model profile
- */
+/** Record an action on a model profile. Failures are logged, never shown to the visitor. */
 export async function trackModelAction(
   modelId: string,
   actionType: TrackingAction
 ): Promise<void> {
   try {
     const supabase = createClient()
-    
-    // Get current user (if logged in)
     const { data: { user } } = await supabase.auth.getUser()
-    
-    // Track action
+
     await supabase.from('model_statistics').insert({
       model_id: modelId,
       user_id: user?.id || null,
       action_type: actionType,
       user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : null,
     })
-    
-    // Silent fail - ne prikazujemo greške korisniku
   } catch (error) {
     console.error('Tracking error:', error)
   }
 }
 
 /**
- * Track profile view with debouncing to prevent multiple rapid fires.
- * One timer per model so clicking another card does not cancel the first model’s pending view.
- *
- * A view is counted at most once per model per browser session window. Without
- * this every reload of a profile added another view, so the counter measured
- * reloads rather than visitors.
+ * Track a profile view, debounced per model. A model is counted at most once
+ * per 30 minutes in a browser session, so reloads do not inflate the count.
  */
 const profileViewTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 

@@ -212,6 +212,32 @@ export function sendVerificationRejectedEmail(opts: BaseRecipient & { reason?: s
   })
 }
 
+export function sendAccountTypeChangedEmail(opts: BaseRecipient & { newRole: 'user' | 'model' | 'company' }) {
+  const name = opts.displayName || 'there'
+  const label = opts.newRole === 'model' ? 'model' : opts.newRole === 'company' ? 'club / agency' : 'visitor'
+  const needsSetup = opts.newRole !== 'user'
+  return sendEmail({
+    to: opts.email,
+    subject: 'Your NiceModels account type has been changed',
+    kind: 'admin_account_type_changed',
+    recipientUserId: opts.userId ?? null,
+    layout: {
+      title: 'Your account type has been changed',
+      preheader: `Your NiceModels account is now a ${label} account.`,
+      bodyHtml: `
+        <p>Hi ${escape(name)},</p>
+        <p>Our team has changed your account on NiceModels.ch to a <strong>${escape(label)}</strong> account.</p>
+        ${needsSetup
+          ? '<p>Sign in with your usual email and password — you will be guided through setting up your new profile.</p>'
+          : '<p>You can sign in with your usual email and password as before.</p>'}
+        <p style="margin-top:14px;color:#64748b;font-size:13px;">If you did not expect this, please contact us at <a href="mailto:${SUPPORT_EMAIL}" style="color:#ec4899;">${SUPPORT_EMAIL}</a>.</p>
+      `,
+      ctaLabel: needsSetup ? 'Set up my profile' : 'Sign in',
+      ctaUrl: `${APP_URL}/login`,
+    },
+  })
+}
+
 // ---------- Welcome (registration) --------------------------------------------
 
 export function sendWelcomeEmail(opts: BaseRecipient) {

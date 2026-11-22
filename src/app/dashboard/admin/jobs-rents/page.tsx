@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, Search, Briefcase, Pencil, MapPin, Building2 } from 'lucide-react'
+import { Ban, Search, Briefcase, Pencil, MapPin, Building2 } from 'lucide-react'
 
 interface Listing {
   id: string
@@ -44,7 +44,7 @@ export default function AdminJobsRentsPage() {
 
     if (error) { setLoading(false); return }
 
-    const clubIds = [...new Set((data || []).map((l: any) => l.club_id).filter(Boolean))]
+    const clubIds = [...new Set((data || []).map((l) => l.club_id).filter(Boolean))]
 
     const [{ data: profiles }, { data: photos }] = await Promise.all([
       clubIds.length > 0
@@ -53,7 +53,7 @@ export default function AdminJobsRentsPage() {
       supabase
         .from('job_listing_photos')
         .select('listing_id, file_path')
-        .in('listing_id', (data || []).map((l: any) => l.id))
+        .in('listing_id', (data || []).map((l) => l.id))
         .order('display_order', { ascending: true }),
     ])
 
@@ -69,7 +69,7 @@ export default function AdminJobsRentsPage() {
       }
     }
 
-    setListings((data || []).map((l: any) => ({
+    setListings((data || []).map((l) => ({
       ...l,
       clubName: profileMap[l.club_id] || 'N/A',
       photoUrl: photoMap[l.id] || null,

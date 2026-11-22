@@ -1,46 +1,35 @@
 #!/usr/bin/env node
 /**
- * fix-mislabeled-photos.mjs
+ * Repairs oversized images in Supabase Storage whose content does not match
+ * their extension.
  *
- * Sanira prevelike slike u Supabase storage-u, sa naglaskom na fajlove kod
- * kojih SADRŽAJ NE ODGOVARA EKSTENZIJI.
+ * Where no WebP encoder exists (older Safari / iOS < 16.4), canvas.toBlob()
+ * returns a PNG; images uploaded before src/lib/imageProcessor.ts checked the
+ * returned type were stored as multi-megabyte PNGs named `.webp`. New uploads
+ * are encoded correctly; this script fixes files already in storage.
  *
- * Uzrok: `canvas.toBlob(cb, 'image/webp', q)` po spec-u sme da padne na
- * `image/png` kada enkoder nije dostupan (stariji Safari / iOS < 16.4).
- * `src/lib/imageProcessor.ts` je taj blob slepo imenovao `.webp`, pa su
- * fotografije od 2–5 MB (RGBA PNG) završavale u galerijama. Netlify Image CDN
- * mora da povuče i dekodira ceo original na svaki cache miss — to je direktno
- * rušilo LCP. Popravka za NOVE uploade je već u `imageProcessor.ts`; ova
- * skripta sređuje ono što je već u storage-u.
+ * Scope: storage only (list, download, upload). Files are rewritten in place,
+ * so file_path / file_name / media_url in the database stay valid.
  *
- * ─── ŠTA OVA SKRIPTA NE RADI ────────────────────────────────────────────────
- * Ne dodiruje bazu. Nema nijednog `.from(tabela)` poziva — samo
- * `storage.list`, `storage.download`, `storage.upload`. Fajl se prepisuje na
- * ISTOJ putanji, pa `file_path` / `file_name` / `media_url` ostaju validni.
- * Tabele fotografija ionako ne čuvaju ni veličinu ni MIME ni dimenzije.
+ * Safety rules:
+ * 1. Every original is saved to --backup-dir before it is overwritten;
+ *    --restore puts them all back.
+ * 2. Content is always re-encoded in the format its extension promises.
+ * 3. Images with an alpha channel are never converted to JPEG.
+ * 4. PNGs are not palette-quantised (banding on photos).
+ * 5. By default only mismatched files are touched; --include-oversized also
+ *    recompresses correctly labelled large files, which trades quality.
+ * 6. Each upload is verified against the object's eTag (the content MD5) from
+ *    list(); download() is served from cache and can return the old version.
+ *    A failed verification restores the original immediately.
  *
- * ─── SIGURNOSNA PRAVILA ─────────────────────────────────────────────────────
- * 1. Svaki original se PRE prepisivanja snimi lokalno u --backup-dir.
- *    `--restore` vraća sve nazad iz tog foldera.
- * 2. Sadržaj se uvek enkoduje u format koji ekstenzija već obećava, da se ne
- *    napravi novi nesklad.
- * 3. Slike sa alfa kanalom se NIKAD ne konvertuju u JPEG (gubitak providnosti).
- * 4. PNG se ne kvantizuje na paletu (banding na fotografijama).
- * 5. Podrazumevano se diraju SAMO fajlovi sa neskladom sadržaj/ekstenzija.
- *    `--include-oversized` dodaje i ispravno zavedene ali velike fajlove —
- *    to je kompromis kvaliteta, ne ispravka buga, pa je eksplicitan.
- * 6. Posle svakog upload-a `list()` vraća stvarni eTag objekta (MD5 sadržaja),
- *    koji se poredi sa MD5-om poslatog bafera. `download()` se NE koristi za
- *    verifikaciju — servira se kroz keš i ume da vrati staru verziju odmah
- *    posle upisa. Neuspela verifikacija odmah vraća original.
- *
- * Pokretanje:
- *   node scripts/fix-mislabeled-photos.mjs                     # dry-run
- *   node scripts/fix-mislabeled-photos.mjs --apply             # samo neskladi
+ * Usage:
+ *   node scripts/fix-mislabeled-photos.mjs                     # dry run
+ *   node scripts/fix-mislabeled-photos.mjs --apply             # mismatched files only
  *   node scripts/fix-mislabeled-photos.mjs --apply --include-oversized
- *   node scripts/fix-mislabeled-photos.mjs --restore           # vrati sve nazad
+ *   node scripts/fix-mislabeled-photos.mjs --restore           # undo everything
  *
- * Zahteva SUPABASE_SERVICE_ROLE_KEY i NEXT_PUBLIC_SUPABASE_URL (.env.local).
+ * Requires SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL (.env.local).
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -163,7 +152,7 @@ for (const bucket of BUCKETS) {
     const isMismatch = real !== target
 
     if (isMismatch) mismatched++; else oversized++
-    // Pravilo 5: ispravno zavedene fajlove diramo samo na izričit zahtev.
+    // Rule 5: correctly labelled files only with --include-oversized.
     if (!isMismatch && !INCLUDE_OVERSIZED) { skipped++; continue }
 
     let meta
@@ -171,7 +160,7 @@ for (const bucket of BUCKETS) {
       console.error(`  ✗ nečitljiva slika ${file.path}: ${e.message}`); failed++; continue
     }
 
-    // Pravilo 3: providnost se ne sme izgubiti.
+    // Rule 3: never lose transparency.
     if (meta.hasAlpha && target === 'jpeg') {
       console.log(`  ⊘ ${file.path} — ima alfa kanal, JPEG bi ga obrisao. Preskačem.`)
       skipped++; continue
@@ -182,7 +171,7 @@ for (const bucket of BUCKETS) {
       const pipe = sharp(buf).rotate().resize({ width: MAX_WIDTH, withoutEnlargement: true })
       out = await (
         target === 'webp' ? pipe.webp({ quality: QUALITY })
-        // Pravilo 4: bez `palette: true` — kvantizacija na 256 boja pravi banding.
+        // Rule 4: no `palette: true`; 256-colour quantisation causes banding.
         : target === 'png' ? pipe.png({ compressionLevel: 9 })
         : pipe.jpeg({ quality: QUALITY, mozjpeg: true })
       ).toBuffer()
@@ -198,7 +187,7 @@ for (const bucket of BUCKETS) {
     console.log(`  ${APPLY ? '→' : '·'} ${file.path}  [${tag}]  ${mb(buf.length)} MB → ${mb(out.length)} MB`)
     if (!APPLY) continue
 
-    // Pravilo 1: backup PRE upisa.
+    // Rule 1: back up before writing.
     const bp = backupPath(bucket, file.path)
     fs.mkdirSync(path.dirname(bp), { recursive: true })
     fs.writeFileSync(bp, buf)
@@ -208,14 +197,9 @@ for (const bucket of BUCKETS) {
       .upload(file.path, out, { contentType: `image/${target}`, cacheControl: IMMUTABLE, upsert: true })
     if (upErr) { console.error(`    ✗ upload: ${upErr.message}`); failed++; continue }
 
-    // Pravilo 6: verifikuj preko `list()` metapodataka, NE preko `download()`.
-    //
-    // Supabase storage servira `download()` kroz keš (`cache-control` na samom
-    // objektu), pa čitanje odmah posle upisa ume da vrati staru verziju iako je
-    // upis prošao. Prva verzija ove skripte je zbog toga proglašavala svaki
-    // upis neuspelim i vraćala original. `list()` vraća stvarni `eTag` objekta,
-    // a to je MD5 sadržaja — poređenje sa MD5-om onoga što smo poslali je
-    // verifikacija bajt po bajt bez dodirivanja keširane putanje.
+    // Rule 6: verify through list() metadata, not download(). download() is
+    // served from cache and can return the previous version right after a
+    // write; the eTag from list() is the MD5 of the stored content.
     const dir = path.posix.dirname(file.path)
     const name = path.posix.basename(file.path)
     const { data: listed } = await supabase.storage.from(bucket).list(dir === '.' ? '' : dir, { limit: 100 })

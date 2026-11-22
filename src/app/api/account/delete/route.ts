@@ -4,16 +4,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendAccountDeletedEmail } from '@/lib/email/templates'
 
 /**
- * Permanently delete an account.
+ * Permanently delete an account: the signed-in user's own, or any account
+ * when an admin passes `userId`.
  *
- * - Authenticated user calling without `userId` → deletes self.
- * - Admin calling with `userId` → deletes the target user.
- *
- * Flow:
- *   1. Snapshot profile (+ role-specific details) into `deleted_accounts`.
- *   2. Call `admin.auth.admin.deleteUser(userId)` which removes the row from
- *      `auth.users`, frees the email for re-registration and (via the FK
- *      cascade on `profiles.id`) wipes the public profile.
+ * A snapshot of the profile and its role-specific data is archived in
+ * `deleted_accounts` first. Deleting the auth user then frees the email for
+ * re-registration and cascades to the public profile.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -87,10 +83,8 @@ export async function POST(request: NextRequest) {
       snapshot.job_listings = listings.data
     }
 
-    // Archive first and refuse to continue if it fails. This insert used to be
-    // fire-and-forget, and because `deleted_accounts` was never created in the
-    // database every deletion silently destroyed the account with no trace —
-    // the admin "Deleted accounts" screen stayed empty forever.
+    // The archive is the only record of a deleted account, so a failed insert
+    // stops the deletion.
     const { error: archiveError } = await admin.from('deleted_accounts').insert({
       original_user_id: userIdToDelete,
       email: profile.email,
@@ -108,9 +102,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Pokušaj #1: standardni Supabase admin API.
-    // Ako neki FK nema ON DELETE CASCADE ili custom trigger blokira,
-    // fallback ispod koristi `admin_delete_user` RPC.
+    // Some foreign keys lack ON DELETE CASCADE, which makes the auth API fail;
+    // the admin_delete_user RPC removes dependent rows first.
     const { error: deleteError } = await admin.auth.admin.deleteUser(userIdToDelete)
     if (deleteError) {
       const { error: rpcError } = await admin.rpc('admin_delete_user', { target_id: userIdToDelete })

@@ -934,6 +934,25 @@
       "tooLarge": "Upravené video je větší než 50 MB.",
       "hintEmpty": "Označ oblast na obraze. Když se osoba pohybuje, vyber úsek a označ každý úsek zvlášť.",
       "hintCount": "{count, plural, one {# označená oblast} few {# označené oblasti} other {# označených oblastí}}"
+    },
+    "changeRole": {
+      "button": "Změnit typ",
+      "title": "Změnit typ účtu",
+      "current": "Nyní: {role}",
+      "chooseNew": "Nový typ účtu",
+      "role_user": "Návštěvník",
+      "role_model": "Modelka",
+      "role_company": "Klub / agentura",
+      "effect_user": "Běžný účet návštěvníka, bez profilu na webu.",
+      "effect_model": "Při dalším přihlášení vyplní profil modelky (fotky, údaje, ceny).",
+      "effect_company": "Při dalším přihlášení se vyplní profil klubu.",
+      "noteData": "Stávající data se nemažou. Při vrácení typu se obnoví.",
+      "noteNotify": "Osoba dostane e-mail a upozornění. Přihlašovací údaje zůstávají stejné.",
+      "cancel": "Zrušit",
+      "close": "Zavřít",
+      "confirm": "Změnit na: {role}",
+      "failed": "Typ účtu se nepodařilo změnit.",
+      "changedBanner": "{name} je nyní: {role}. Nový profil se nastaví při dalším přihlášení."
     }
   },
   "common": {

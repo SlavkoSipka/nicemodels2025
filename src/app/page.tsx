@@ -22,7 +22,7 @@ const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 async function buildModels() {
   const admin = createAdminClient()
   const modelsData: any[] = await fetchActiveAds(admin, 'models_with_active_ads')
-  const modelIds: string[] = modelsData.map((m: any) => m.id)
+  const modelIds: string[] = modelsData.map((m) => m.id)
 
   let models: any[] = []
   if (modelIds.length > 0) {
@@ -70,11 +70,9 @@ async function buildModels() {
         photosMap.set(p.model_id, `${SUPA_URL}/storage/v1/object/public/model-photos/${p.file_path}`)
     }
 
-    // Projektuj samo polja koja `MixedHomeClient`/`ModelCard` zaista koriste.
-    // `models_with_active_ads` vraća i `email` i `role`, a `...m` ih je slao u
-    // RSC payload — dakle u HTML svake posete. To je bilo i nepotrebnih ~KB po
-    // modelu i curenje mejl adresa modela u javni izvorni kod stranice.
-    models = modelsData.map((m: any) => ({
+    // Project only the fields the cards read: the RPC also returns `email` and
+    // `role`, which must not reach the page payload.
+    models = modelsData.map((m) => ({
       id: m.id,
       username: m.username,
       created_at: m.created_at,
@@ -86,11 +84,11 @@ async function buildModels() {
     }))
 
     const modelCityNames = [...new Set(
-      models.map((m: any) => m.model_details?.city).filter(Boolean),
+      models.map((m) => m.model_details?.city).filter(Boolean),
     )] as string[]
 
     const liveCityNames = [...new Set(
-      models.map((m: any) => m.model_details?.live_location_city).filter(Boolean),
+      models.map((m) => m.model_details?.live_location_city).filter(Boolean),
     )] as string[]
 
     const uniqCityNames = [...new Set([...modelCityNames, ...liveCityNames])]
@@ -124,7 +122,7 @@ async function buildModels() {
       }
     }
 
-    models = models.map((m: any) => ({
+    models = models.map((m) => ({
       ...m,
       canton: m.model_details?.city ? cityCantonMap.get(m.model_details.city) || null : null,
       live_location_canton: resolveLiveLocationCanton(
@@ -143,7 +141,7 @@ async function buildClubs() {
   const clubsRaw: any[] = await fetchActiveAds(admin, 'clubs_with_active_ads')
   let clubs: any[] = []
   if (clubsRaw.length) {
-    const clubIds = clubsRaw.map((c: any) => c.id)
+    const clubIds = clubsRaw.map((c) => c.id)
     const [{ data: clubDetails }, { data: clubContacts }, { data: clubPhotos }] = await Promise.all([
       admin.from('club_details').select('club_id, display_name, club_name, is_club, area, about_description').in('club_id', clubIds),
       admin.from('club_contact_details').select('club_id, city').in('club_id', clubIds),
@@ -158,7 +156,7 @@ async function buildClubs() {
         photoMap.set(p.club_id, `${SUPA_URL}/storage/v1/object/public/club-photos/${p.file_path}`)
     }
 
-    clubs = clubsRaw.map((c: any) => {
+    clubs = clubsRaw.map((c) => {
       const det = detMap.get(c.id)
       const con = contactMap.get(c.id)
       return {
@@ -173,7 +171,7 @@ async function buildClubs() {
     })
 
     const clubCityNames = [...new Set(
-      clubs.map((c: any) => c.city).filter(Boolean)
+      clubs.map((c) => c.city).filter(Boolean)
     )] as string[]
 
     if (clubCityNames.length > 0) {
@@ -190,15 +188,15 @@ async function buildClubs() {
         }
       }
 
-      clubs = clubs.map((c: any) => ({
+      clubs = clubs.map((c) => ({
         ...c,
         canton: c.city ? clubCityCantonMap.get(c.city) || null : null,
       }))
     }
 
-    const clubIds2 = clubs.map((c: any) => c.id)
+    const clubIds2 = clubs.map((c) => c.id)
     const clubViewCountMap = await fetchViewCounts(admin, 'club', clubIds2)
-    clubs = clubs.map((c: any) => ({ ...c, view_count: clubViewCountMap.get(c.id) ?? 0 }))
+    clubs = clubs.map((c) => ({ ...c, view_count: clubViewCountMap.get(c.id) ?? 0 }))
   }
   return clubs
 }
@@ -212,7 +210,7 @@ async function buildBanners() {
     .or(`expires_at.is.null,expires_at.gt.${now}`)
     .order('display_order')
 
-  const bannerOwnerIds = [...new Set((bannersRaw ?? []).map((b: any) => b.owner_id).filter(Boolean))]
+  const bannerOwnerIds = [...new Set((bannersRaw ?? []).map((b) => b.owner_id).filter(Boolean))]
   let blockedOwnerIds = new Set<string>()
   if (bannerOwnerIds.length > 0) {
     const { data: ownerProfiles } = await admin
@@ -228,14 +226,14 @@ async function buildBanners() {
   // one active row per (owner_id, placement).
   const seenSlots = new Set<string>()
   return (bannersRaw ?? [])
-    .filter((b: any) => !blockedOwnerIds.has(b.owner_id))
-    .filter((b: any) => {
+    .filter((b) => !blockedOwnerIds.has(b.owner_id))
+    .filter((b) => {
       const key = `${b.owner_id}:${normalizePlacement(b.placement)}`
       if (seenSlots.has(key)) return false
       seenSlots.add(key)
       return true
     })
-    .map((b: any) => ({
+    .map((b) => ({
       id: b.id, owner_type: b.owner_type, owner_id: b.owner_id, title: b.title,
       image_url: b.image_path ? `${SUPA_URL}/storage/v1/object/public/banners/${b.image_path}` : null,
       cta_url: b.cta_url,
@@ -377,14 +375,9 @@ async function buildChatModels() {
   return chatModels
 }
 
-// Jedan cache unos umesto sedam.
-//
-// Ranije je svaki blok imao svoj `unstable_cache` ključ, pa je render
-// homepage-a radio 7 čitanja iz cache store-a (na Netlify-u je to 7 mrežnih
-// poziva ka Blobs-u) pre nego što uopšte krene HTML. Svi su delili isti
-// 60s TTL i istekli bi zajedno, a `revalidateTag` se nigde ne poziva —
-// pa odvojeni ključevi nisu donosili ništa. Builderi i dalje idu paralelno
-// unutar jednog `Promise.all`, tako da broj upita ka bazi ostaje isti.
+// One cache entry for the whole page: every section shares the same TTL, and
+// each extra key is another cache-store read (a network call on Netlify)
+// before rendering starts. The builders still run in parallel.
 const getHomeData = unstable_cache(
   async () => {
     const [models, clubs, banners, listings, statusMessages, chatModels, stories] =

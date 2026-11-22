@@ -76,7 +76,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload: any) => {
+        (payload) => {
           const newMsg = payload.new as Message;
           setMessages((prev) => {
             if (!prev.some((msg) => msg.id === newMsg.id)) {
@@ -100,7 +100,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload: any) => {
+        (payload) => {
           setMessages((prev) =>
             prev.map((msg) => (msg.id === payload.new.id ? (payload.new as Message) : msg))
           );
@@ -123,7 +123,7 @@ export default function ChatPageClient({ conversationId }: ChatPageClientProps) 
           table: 'conversations',
           filter: `id=eq.${conversationId}`,
         },
-        (payload: any) => {
+        (payload) => {
           const conv = payload.new;
           if (!currentUserId) return;
           

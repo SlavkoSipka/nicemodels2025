@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
@@ -10,7 +10,6 @@ import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 
 function LoginFormInner() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const t = useTranslations('auth.login')
   const [email, setEmail] = useState('')

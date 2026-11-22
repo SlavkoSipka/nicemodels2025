@@ -69,11 +69,11 @@ export default async function AdminClubEditPage({ params }: Props) {
       profile={profile}
       clubDetails={clubDetails}
       contactDetails={contactDetails}
-      photos={(photos || []).map((p: any) => ({
+      photos={(photos || []).map((p) => ({
         ...p,
         url: p.file_path ? `${SUPA_URL}/storage/v1/object/public/club-photos/${p.file_path}` : null,
       }))}
-      videos={(videos || []).map((v: any) => ({
+      videos={(videos || []).map((v) => ({
         ...v,
         url: v.file_path ? `${SUPA_URL}/storage/v1/object/public/club-videos/${v.file_path}` : null,
       }))}

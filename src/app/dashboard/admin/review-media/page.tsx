@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
-import { ArrowLeft, Trash2, User, Building2, X, Image, CheckCircle, XCircle, Eraser } from 'lucide-react'
+import { Trash2, User, Building2, X, Image as ImageIcon, CheckCircle, XCircle, Eraser } from 'lucide-react'
 import AdminPhotoCensorModal from '@/components/admin/AdminPhotoCensorModal'
 import AdminVideoCensorModal from '@/components/admin/AdminVideoCensorModal'
 
@@ -19,6 +18,7 @@ interface MediaItem {
   owner_type: 'model' | 'club'
   owner_name: string
   owner_id: string
+  owner_public_id?: number | null
 }
 
 type StatusFilter = 'all' | 'approved' | 'not_approved'
@@ -44,7 +44,7 @@ export default function ReviewMediaPage() {
   const loadMedia = async () => {
     setLoading(true)
 
-    let allMedia: MediaItem[] = []
+    const allMedia: MediaItem[] = []
 
     if (ownerFilter === 'all' || ownerFilter === 'models') {
       if (typeFilter === 'all' || typeFilter === 'photos') {
@@ -170,7 +170,7 @@ export default function ReviewMediaPage() {
           <div>
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                <Image className="w-5 h-5 text-amber-600" />
+                <ImageIcon className="w-5 h-5 text-amber-600" />
               </div>
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">{t('title')}</h1>
@@ -230,7 +230,7 @@ export default function ReviewMediaPage() {
           {/* Media Grid */}
           {mediaItems.length === 0 ? (
             <div className="bg-white border border-gray-200 rounded-lg py-12 text-center">
-              <Image className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <ImageIcon className="w-10 h-10 text-gray-300 mx-auto mb-2" />
               <p className="text-sm text-gray-400">{t('noMediaMatches')}</p>
             </div>
           ) : (

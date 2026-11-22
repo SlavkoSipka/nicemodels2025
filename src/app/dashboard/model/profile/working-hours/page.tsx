@@ -35,18 +35,18 @@ export default function WorkingHoursPage() {
         setUser(user)
         const { data } = await supabase.from('model_working_hours').select('*').eq('model_id', user.id)
         if (data && data.length > 0) {
-          const is24_7 = data.length === 7 && data.every((h: any) => h.start_time === '00:00:00' && h.end_time === '23:59:00')
+          const is24_7 = data.length === 7 && data.every((h) => h.start_time === '00:00:00' && h.end_time === '23:59:00')
           if (is24_7) { setScheduleType('24_7') }
           else {
             const first = data[0]
-            const allSame = data.every((h: any) => h.start_time === first.start_time && h.end_time === first.end_time)
+            const allSame = data.every((h) => h.start_time === first.start_time && h.end_time === first.end_time)
             if (allSame && data.length === 7) {
               setScheduleType('same_every_day')
               setSameEveryDayHours({ from: first.start_time?.slice(0, 5) || '', to: first.end_time?.slice(0, 5) || '' })
             } else {
               setScheduleType('custom')
               const custom: Record<string, DayHours> = {}
-              data.forEach((h: any) => { custom[h.day_of_week] = { from: h.start_time?.slice(0, 5) || '', to: h.end_time?.slice(0, 5) || '' } })
+              data.forEach((h) => { custom[h.day_of_week] = { from: h.start_time?.slice(0, 5) || '', to: h.end_time?.slice(0, 5) || '' } })
               setCustomHours(prev => ({ ...prev, ...custom }))
             }
           }

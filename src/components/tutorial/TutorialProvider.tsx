@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { driver, type Driver, type DriveStep } from 'driver.js'
+import { driver, type Driver, type DriveStep, type Side } from 'driver.js'
 import 'driver.js/dist/driver.css'
 import { useAuth } from '@/components/auth/AuthProvider'
 import { TOUR_ROUTES, TOUR_STEPS, type TourName, type TourStepDef } from './tourSteps'
@@ -171,7 +171,8 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
         popover: {
           title: t(s.titleKey),
           description: t(s.descKey),
-          side: s.side,
+          // driver.js supports 'over' at runtime; its Side type omits it.
+          side: s.side as Side | undefined,
           align: s.align,
           ...(s.onNext
             ? {

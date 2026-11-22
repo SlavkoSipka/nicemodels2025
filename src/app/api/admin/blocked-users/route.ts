@@ -35,7 +35,7 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    const users = (data || []).map((u: any) => ({
+    const users = (data || []).map((u) => ({
       ...u,
       model_details: Array.isArray(u.model_details) ? u.model_details[0] : u.model_details,
       club_details: Array.isArray(u.club_details) ? u.club_details[0] : u.club_details,

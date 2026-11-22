@@ -5,8 +5,9 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, User, Users, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown, Zap, EyeOff } from 'lucide-react'
+import { Ban, CheckCircle, Search, User, Users, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown, Zap, EyeOff, Repeat } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
+import AdminChangeRoleDialog, { type AccountRole } from '@/components/admin/AdminChangeRoleDialog'
 import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
 
 interface Model {
@@ -33,6 +34,9 @@ export default function AdminModelsPage() {
   const t = useTranslations('admin.models')
   const tc = useTranslations('admin.common')
   const tSb = useTranslations('admin.sidebar')
+  const tr = useTranslations('admin.changeRole')
+  const [roleTarget, setRoleTarget] = useState<Model | null>(null)
+  const [roleChanged, setRoleChanged] = useState<{ name: string; role: AccountRole } | null>(null)
   const [loading, setLoading] = useState(true)
   const [models, setModels] = useState<Model[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -56,7 +60,7 @@ export default function AdminModelsPage() {
 
     if (error) { setLoading(false); return }
 
-    const modelIds = (data || []).map((m: any) => m.id)
+    const modelIds = (data || []).map((m) => m.id)
     const [{ data: photos }, contactsRes, sedcardsRes] = await Promise.all([
       supabase
         .from('model_photos')
@@ -90,7 +94,7 @@ export default function AdminModelsPage() {
       contactMap[c.model_id] = { phone }
     }
 
-    setModels((data || []).map((m: any) => ({
+    setModels((data || []).map((m) => ({
       ...m,
       model_details: Array.isArray(m.model_details) ? m.model_details[0] : m.model_details,
       photoUrl: photoMap[m.id] || null,
@@ -137,9 +141,8 @@ export default function AdminModelsPage() {
     }
   }
 
-  // 'online' mirrors models_with_active_ads() exactly: package running, sedcard
-  // not set to private, account not blocked. 'hidden' is paid but off the public
-  // site for one of the latter two reasons — without the split it looks like 'off'.
+  // 'online' matches models_with_active_ads(): package running, sedcard public,
+  // account not blocked. 'hidden' means paid but not visible on the site.
   const sedcardState = (m: Model): SedcardFilter =>
     !m.sedcard_expires_at ? 'off' : m.sedcard_visible && !m.is_blocked ? 'online' : 'hidden'
 
@@ -267,6 +270,13 @@ export default function AdminModelsPage() {
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
 
+          {roleChanged && (
+            <div className="flex items-start justify-between gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2">
+              <p className="text-sm text-emerald-800">{tr('changedBanner', { name: roleChanged.name, role: tr(`role_${roleChanged.role}`) })}</p>
+              <button onClick={() => setRoleChanged(null)} className="text-emerald-700 text-xs font-bold shrink-0">✕</button>
+            </div>
+          )}
+
           {/* Sedcard filter */}
           <div className="flex flex-wrap items-center gap-1.5">
             {([
@@ -347,6 +357,11 @@ export default function AdminModelsPage() {
                       model.is_blocked ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                     }`}>
                     {model.is_blocked ? tc('unblock') : tc('block')}
+                  </button>
+                  <button onClick={() => setRoleTarget(model)}
+                    className="p-1.5 rounded-md bg-brand/10 text-brand"
+                    title={tr('button')} aria-label={tr('button')}>
+                    <Repeat className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => handleDelete(model)}
                     className="p-1.5 rounded-md bg-red-50 text-red-700"
@@ -472,6 +487,11 @@ export default function AdminModelsPage() {
                             }`}>
                             {model.is_blocked ? tc('unblock') : tc('block')}
                           </button>
+                          <button onClick={() => setRoleTarget(model)}
+                            className="p-1.5 text-xs font-semibold rounded-md bg-brand/10 text-brand hover:bg-brand/20 transition-colors"
+                            title={tr('button')} aria-label={tr('button')}>
+                            <Repeat className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => handleDelete(model)}
                             className="p-1.5 text-xs font-semibold rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
@@ -502,6 +522,21 @@ export default function AdminModelsPage() {
           profileId={selectedModel.id}
           profileName={selectedModel.model_details?.showname || selectedModel.username || 'Model'}
           profileType="model" />
+      )}
+      {roleTarget && (
+        <AdminChangeRoleDialog
+          userId={roleTarget.id}
+          name={roleTarget.model_details?.showname || roleTarget.username || roleTarget.email}
+          currentRole="model"
+          onClose={() => setRoleTarget(null)}
+          onChanged={(role) => {
+            const target = roleTarget
+            setRoleTarget(null)
+            // The account now belongs to another list, so it leaves this one.
+            setModels(prev => prev.filter(x => x.id !== target.id))
+            setRoleChanged({ name: target.model_details?.showname || target.username || target.email, role })
+          }}
+        />
       )}
     </div>
   )

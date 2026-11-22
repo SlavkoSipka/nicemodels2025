@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { isClubAdFreePeriod } from '@/lib/clubAdFree'
@@ -27,7 +26,6 @@ interface CartItem {
 }
 
 export default function CompanyActivateAdPage() {
-  const router = useRouter()
   const t = useTranslations('dashboard.company.activateAd')
   const locale = useLocale()
   const dateLocaleTag = `${locale}-CH`

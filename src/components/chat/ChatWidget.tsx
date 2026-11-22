@@ -164,7 +164,7 @@ export default function ChatWidget() {
           table: 'messages',
         },
         () => {
-          loadConversations();
+          loadConversations(currentUserId);
         }
       )
       .subscribe();
@@ -207,7 +207,7 @@ export default function ChatWidget() {
 
   async function updateOnlineUsers(presenceState: any) {
     const onlineUserIds = Object.keys(presenceState).flatMap((key) =>
-      presenceState[key].map((presence: any) => presence.user_id)
+      presenceState[key].map((presence) => presence.user_id)
     );
 
     if (onlineUserIds.length === 0) {
@@ -263,7 +263,7 @@ export default function ChatWidget() {
 
     // Fetch display names via server API
     let onlineDisplayNames = new Map<string, string>();
-    const onlineIds = profiles.map((p: any) => p.id);
+    const onlineIds = profiles.map((p) => p.id);
     if (onlineIds.length > 0) {
       try {
         const res = await fetch('/api/chat/display-names', {
@@ -278,7 +278,7 @@ export default function ChatWidget() {
       } catch { /* fallback to username */ }
     }
 
-    const usersWithPhotos = profiles.map((profile: any) => ({
+    const usersWithPhotos = profiles.map((profile) => ({
       id: profile.id,
       role: profile.role,
       username: onlineDisplayNames.get(profile.id) || profile.username,
@@ -354,9 +354,9 @@ export default function ChatWidget() {
       }
     }
 
-    const profileMap = new Map((profiles || []).map((p: any) => {
+    const profileMap = new Map((profiles || []).map((p) => {
       const displayName = displayNameMap.get(p.id) || p.username;
-      return [p.id, { id: p.id, username: displayName, role: p.role, avatar_url: p.avatar_url }];
+      return [p.id, { id: p.id, username: displayName, role: p.role, avatar_url: p.avatar_url }] as const;
     }));
     const onlineMap = new Map((onlineStatuses || []).map(s => [s.user_id, s.is_online]));
 

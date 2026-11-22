@@ -123,8 +123,8 @@ export default function ManageModelsPage() {
             .order('uploaded_at', { ascending: false }),
         ])
 
-        const profileMap = new Map((invProfiles || []).map(p => [p.id, p]))
-        const detailsMap = new Map((invDetails || []).map(d => [d.model_id, d]))
+        const profileMap = new Map((invProfiles || []).map(p => [p.id, p] as const))
+        const detailsMap = new Map((invDetails || []).map(d => [d.model_id, d] as const))
         const photoMap = new Map<string, string>()
         for (const p of (invPhotos || [])) {
           if (!photoMap.has(p.model_id)) photoMap.set(p.model_id, p.file_path)

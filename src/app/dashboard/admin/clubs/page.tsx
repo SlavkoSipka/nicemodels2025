@@ -5,8 +5,9 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Ban, CheckCircle, Search, Building2, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown, Zap, EyeOff } from 'lucide-react'
+import { Ban, CheckCircle, Search, Building2, Camera, Pencil, Trash2, Download, ArrowUpDown, ArrowUp, ArrowDown, Zap, EyeOff, Repeat } from 'lucide-react'
 import PhotoGalleryModal from '@/components/admin/PhotoGalleryModal'
+import AdminChangeRoleDialog, { type AccountRole } from '@/components/admin/AdminChangeRoleDialog'
 import { downloadXlsx, fmtDateTime } from '@/lib/exportXlsx'
 
 interface Club {
@@ -34,6 +35,9 @@ export default function AdminClubsPage() {
   const t = useTranslations('admin.clubs')
   const tc = useTranslations('admin.common')
   const tSb = useTranslations('admin.sidebar')
+  const tr = useTranslations('admin.changeRole')
+  const [roleTarget, setRoleTarget] = useState<Club | null>(null)
+  const [roleChanged, setRoleChanged] = useState<{ name: string; role: AccountRole } | null>(null)
   const [loading, setLoading] = useState(true)
   const [clubs, setClubs] = useState<Club[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -57,7 +61,7 @@ export default function AdminClubsPage() {
 
     if (error) { setLoading(false); return }
 
-    const clubIds = (data || []).map((c: any) => c.id)
+    const clubIds = (data || []).map((c) => c.id)
     const [{ data: photos }, contactsRes, sedcardsRes] = await Promise.all([
       supabase
         .from('club_photos')
@@ -89,7 +93,7 @@ export default function AdminClubsPage() {
       contactMap[c.club_id] = { phone, email: c.email || null, website: c.website || null }
     }
 
-    setClubs((data || []).map((c: any) => ({
+    setClubs((data || []).map((c) => ({
       ...c,
       club_details: Array.isArray(c.club_details) ? c.club_details[0] : c.club_details,
       photoUrl: photoMap[c.id] || null,
@@ -269,6 +273,13 @@ export default function AdminClubsPage() {
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" />
           </div>
 
+          {roleChanged && (
+            <div className="flex items-start justify-between gap-2 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2">
+              <p className="text-sm text-emerald-800">{tr('changedBanner', { name: roleChanged.name, role: tr(`role_${roleChanged.role}`) })}</p>
+              <button onClick={() => setRoleChanged(null)} className="text-emerald-700 text-xs font-bold shrink-0">✕</button>
+            </div>
+          )}
+
           {/* Sedcard filter */}
           <div className="flex flex-wrap items-center gap-1.5">
             {([
@@ -349,6 +360,11 @@ export default function AdminClubsPage() {
                       club.is_blocked ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                     }`}>
                     {club.is_blocked ? tc('unblock') : tc('block')}
+                  </button>
+                  <button onClick={() => setRoleTarget(club)}
+                    className="p-1.5 rounded-md bg-brand/10 text-brand"
+                    title={tr('button')} aria-label={tr('button')}>
+                    <Repeat className="w-3.5 h-3.5" />
                   </button>
                   <button onClick={() => handleDelete(club)}
                     className="p-1.5 rounded-md bg-red-50 text-red-700"
@@ -468,6 +484,11 @@ export default function AdminClubsPage() {
                             }`}>
                             {club.is_blocked ? tc('unblock') : tc('block')}
                           </button>
+                          <button onClick={() => setRoleTarget(club)}
+                            className="p-1.5 text-xs font-semibold rounded-md bg-brand/10 text-brand hover:bg-brand/20 transition-colors"
+                            title={tr('button')} aria-label={tr('button')}>
+                            <Repeat className="w-3.5 h-3.5" />
+                          </button>
                           <button
                             onClick={() => handleDelete(club)}
                             className="p-1.5 text-xs font-semibold rounded-md bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
@@ -498,6 +519,21 @@ export default function AdminClubsPage() {
           profileId={selectedClub.id}
           profileName={selectedClub.club_details?.club_name || selectedClub.club_details?.display_name || selectedClub.username || 'Club'}
           profileType="club" />
+      )}
+      {roleTarget && (
+        <AdminChangeRoleDialog
+          userId={roleTarget.id}
+          name={roleTarget.club_details?.club_name || roleTarget.club_details?.display_name || roleTarget.username || roleTarget.email}
+          currentRole="company"
+          onClose={() => setRoleTarget(null)}
+          onChanged={(role) => {
+            const target = roleTarget
+            setRoleTarget(null)
+            // The account now belongs to another list, so it leaves this one.
+            setClubs(prev => prev.filter(x => x.id !== target.id))
+            setRoleChanged({ name: target.club_details?.club_name || target.club_details?.display_name || target.username || target.email, role })
+          }}
+        />
       )}
     </div>
   )

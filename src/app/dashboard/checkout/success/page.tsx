@@ -113,7 +113,7 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
             <div>
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{t('items')}</p>
               <ul className="space-y-2">
-                {(order.order_items || []).map((it: any) => (
+                {(order.order_items || []).map((it) => (
                   <li key={it.id} className="flex items-center justify-between text-sm">
                     <span className="text-gray-900">
                       {it.product?.name || t('itemFallback')}

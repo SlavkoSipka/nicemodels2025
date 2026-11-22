@@ -15,6 +15,7 @@ export type EmailKind =
   | 'admin_account_blocked'
   | 'admin_account_unblocked'
   | 'admin_account_deleted'
+  | 'admin_account_type_changed'
   | 'admin_listing_blocked'
   | 'admin_listing_unblocked'
   | 'admin_custom_message'
@@ -39,6 +40,7 @@ export const KIND_TO_CATEGORY: Record<EmailKind, EmailCategory> = {
   admin_account_blocked:   'admin_actions',
   admin_account_unblocked: 'admin_actions',
   admin_account_deleted:   'admin_actions',
+  admin_account_type_changed: 'admin_actions',
   admin_listing_blocked:   'admin_actions',
   admin_listing_unblocked: 'admin_actions',
   admin_custom_message:    'admin_actions',
@@ -61,6 +63,7 @@ export const NON_OPT_OUT_KINDS: Set<EmailKind> = new Set([
   'admin_account_blocked',
   'admin_account_unblocked',
   'admin_account_deleted',
+  'admin_account_type_changed',
   // One-time welcome after registration.
   'welcome',
   // Internal notice to the NiceModels team — never carries an unsubscribe link.

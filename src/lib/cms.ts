@@ -1,5 +1,5 @@
 /**
- * Reads articles from the AI Blog CMS.
+ * Reads articles from the external blog CMS.
  *
  * The CMS is a separate service with its own database; everything here goes
  * through its public read API, which needs no key. Articles are German (de-CH)

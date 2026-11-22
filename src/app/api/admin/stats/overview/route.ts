@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { verifyAdmin, bucketByDay } from '@/lib/adminApi'
 import { denseTrafficSeriesFromRpc } from '@/lib/adminUtils'
@@ -8,7 +8,7 @@ export const runtime = 'nodejs'
 const DAY = 24 * 60 * 60 * 1000
 const TRAFFIC_FALLBACK_ROWS = 8000
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   if (!(await verifyAdmin())) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }

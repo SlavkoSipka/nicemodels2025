@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 
-// Re-export pure utilities so callers that previously imported from here still work.
-export { RangeKey, rangeToDate, parseRange, bucketByDay, shortDate } from '@/lib/adminUtils'
+// Pure helpers live in adminUtils so client code can import them without server deps.
+export { rangeToDate, parseRange, bucketByDay, shortDate } from '@/lib/adminUtils'
+export type { RangeKey } from '@/lib/adminUtils'
 
 /**
  * Verifies the current request comes from an admin user.

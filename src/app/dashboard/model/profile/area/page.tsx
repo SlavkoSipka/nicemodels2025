@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import { MapPin, Save, CheckCircle, AlertCircle, Navigation, Loader2 } from 'lucide-react'
-import CitySearch, { type CityResult } from '@/components/ui/CitySearch'
+import CitySearch from '@/components/ui/CitySearch'
 
 export default function AreaPage() {
   const router = useRouter()

@@ -934,6 +934,25 @@
       "tooLarge": "A szerkesztett videó nagyobb 50 MB-nál.",
       "hintEmpty": "Jelöld ki a területet a képen. Ha a személy mozog, válassz szakaszt, és minden szakaszt külön jelölj.",
       "hintCount": "{count, plural, one {# terület kijelölve} other {# terület kijelölve}}"
+    },
+    "changeRole": {
+      "button": "Típus módosítása",
+      "title": "Fióktípus módosítása",
+      "current": "Jelenleg: {role}",
+      "chooseNew": "Új fióktípus",
+      "role_user": "Látogató",
+      "role_model": "Modell",
+      "role_company": "Klub / ügynökség",
+      "effect_user": "Normál látogatói fiók, profil nélkül az oldalon.",
+      "effect_model": "A következő belépéskor kitölti a modellprofilt (fotók, adatok, árak).",
+      "effect_company": "A következő belépéskor kitöltik a klubprofilt.",
+      "noteData": "A meglévő adatok nem törlődnek. A típus visszaállításakor visszakerülnek.",
+      "noteNotify": "A személy e-mailt és értesítést kap. A belépési adatok nem változnak.",
+      "cancel": "Mégse",
+      "close": "Bezárás",
+      "confirm": "Módosítás erre: {role}",
+      "failed": "A fióktípust nem sikerült módosítani.",
+      "changedBanner": "{name} mostantól: {role}. Az új profil a következő belépéskor áll be."
     }
   },
   "common": {

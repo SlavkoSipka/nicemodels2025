@@ -1,7 +1,8 @@
 import { createBrowserClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-// Singleton instance — prevents multiple simultaneous auth refresh calls
-let clientInstance: ReturnType<typeof createBrowserClient> | null = null
+// A single browser client avoids concurrent auth refreshes.
+let clientInstance: SupabaseClient | null = null
 
 export function createClient() {
   if (clientInstance) return clientInstance

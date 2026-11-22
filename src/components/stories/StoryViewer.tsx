@@ -55,10 +55,6 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
   const prevModel = hasPrevModel ? allModelStories[currentModelIndex - 1] : null;
   const nextModel = hasNextModel ? allModelStories[currentModelIndex + 1] : null;
 
-  if (!currentStory) return null;
-
-  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-stories/${currentStory.media_url}`;
-
   useEffect(() => {
     setCurrentIndex(pendingStoryIndex.current);
     pendingStoryIndex.current = 0;
@@ -66,6 +62,7 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
   }, [currentModelIndex]);
 
   useEffect(() => {
+    if (!currentStory) return;
     markAsViewed(currentStory.id);
     setProgress(0);
     if (!isPaused) startProgress();
@@ -74,6 +71,7 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
   }, [currentIndex, currentModelIndex]);
 
   useEffect(() => {
+    if (!currentStory) return;
     if (isPaused) {
       stopProgress();
     } else {
@@ -81,6 +79,11 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPaused]);
+
+  // Hooks above must run on every render, so the empty-state return comes after them.
+  if (!currentStory) return null;
+
+  const mediaUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/model-stories/${currentStory.media_url}`;
 
   async function markAsViewed(storyId: string) {
     try {
@@ -147,7 +150,8 @@ export default function StoryViewer({ allModelStories, initialModelIndex, onClos
   function togglePause() {
     setIsPaused((p) => !p);
     if (videoRef.current) {
-      isPaused ? videoRef.current.play() : videoRef.current.pause();
+      if (isPaused) videoRef.current.play();
+      else videoRef.current.pause();
     }
   }
 

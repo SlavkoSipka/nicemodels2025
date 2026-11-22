@@ -238,7 +238,7 @@ export default function AdminOverviewPage() {
             <p className="text-sm text-gray-400 py-6 text-center">{t('noRecentActivity')}</p>
           ) : (
             <div className="space-y-1.5 -m-1 max-h-96 overflow-y-auto">
-              {siteActions.map((a: any) => (
+              {siteActions.map((a) => (
                 <div key={a.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50">
                   <div className="w-8 h-8 rounded-md bg-brand/10 flex items-center justify-center shrink-0 text-brand">
                     <ActivityIcon type={a.action_type} />

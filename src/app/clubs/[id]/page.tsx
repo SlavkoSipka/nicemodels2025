@@ -103,7 +103,7 @@ export default async function ClubPage({ params }: PageProps) {
   if (rows.length > 0) {
     const hhmm = (v: string | null) => (v ? v.slice(0, 5) : null)
     const is24_7 = rows.length === 7 && rows.every(
-      (r: any) => !r.is_closed && r.opens_at === '00:00:00' && r.closes_at === '23:59:59',
+      (r) => !r.is_closed && r.opens_at === '00:00:00' && r.closes_at === '23:59:59',
     )
     workingHours = { always_available: is24_7 }
     for (const r of rows as any[]) {
@@ -121,7 +121,7 @@ export default async function ClubPage({ params }: PageProps) {
   let clubModels: any[] = []
 
   if (accepted?.length) {
-    const modelIds = accepted.map((a: any) => a.invited_model_id)
+    const modelIds = accepted.map((a) => a.invited_model_id)
 
     const [{ data: modelProfiles }, { data: modelDetails }, { data: modelPhotos }] = await Promise.all([
       admin.from('profiles').select('id, username, is_verified').in('id', modelIds),
@@ -130,7 +130,7 @@ export default async function ClubPage({ params }: PageProps) {
         .eq('is_approved', true).order('model_id').order('display_order', { ascending: true }).order('uploaded_at', { ascending: false }),
     ])
 
-    const detailsMap = new Map((modelDetails ?? []).map((d: any) => [d.model_id, d]))
+    const detailsMap = new Map((modelDetails ?? []).map((d) => [d.model_id, d]))
     const photosMap = new Map<string, string>()
     for (const p of modelPhotos ?? []) {
       if (!photosMap.has(p.model_id) && p.file_path) {
@@ -138,7 +138,7 @@ export default async function ClubPage({ params }: PageProps) {
       }
     }
 
-    clubModels = (modelProfiles ?? []).map((p: any) => ({
+    clubModels = (modelProfiles ?? []).map((p) => ({
       ...p,
       ...(detailsMap.get(p.id) || {}),
       photoUrl: photosMap.get(p.id) || null,

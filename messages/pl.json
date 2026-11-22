@@ -934,6 +934,25 @@
       "tooLarge": "Edytowane wideo przekracza 50 MB.",
       "hintEmpty": "Zaznacz obszar na obrazie. Jeśli osoba się porusza, wybierz fragment i zaznacz każdy osobno.",
       "hintCount": "{count, plural, one {# zaznaczony obszar} few {# zaznaczone obszary} other {# zaznaczonych obszarów}}"
+    },
+    "changeRole": {
+      "button": "Zmień typ",
+      "title": "Zmień typ konta",
+      "current": "Obecnie: {role}",
+      "chooseNew": "Nowy typ konta",
+      "role_user": "Odwiedzający",
+      "role_model": "Modelka",
+      "role_company": "Klub / agencja",
+      "effect_user": "Zwykłe konto odwiedzającego, bez profilu na stronie.",
+      "effect_model": "Przy następnym logowaniu uzupełni profil modelki (zdjęcia, dane, ceny).",
+      "effect_company": "Przy następnym logowaniu uzupełniany jest profil klubu.",
+      "noteData": "Istniejące dane nie są usuwane. Po przywróceniu typu wracają.",
+      "noteNotify": "Osoba otrzyma e-mail i powiadomienie. Dane logowania pozostają bez zmian.",
+      "cancel": "Anuluj",
+      "close": "Zamknij",
+      "confirm": "Zmień na: {role}",
+      "failed": "Nie udało się zmienić typu konta.",
+      "changedBanner": "{name} to teraz: {role}. Nowy profil zostanie skonfigurowany przy następnym logowaniu."
     }
   },
   "common": {

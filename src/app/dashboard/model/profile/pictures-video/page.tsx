@@ -44,7 +44,7 @@ export default function PicturesVideoPage() {
         if (u) urls.set(p.id, u.publicUrl)
       }
       setPhotoUrls(urls)
-    } catch (err: any) {
+    } catch {
       setError(t('loadFailed'))
     } finally { setLoading(false) }
   }
@@ -72,7 +72,7 @@ export default function PicturesVideoPage() {
         const { data: ud } = supabase.storage.from('model-photos').getPublicUrl(pd.file_path)
         if (ud) setPhotoUrls(prev => new Map(prev).set(pd.id, ud.publicUrl))
       }
-    } catch (err: any) {
+    } catch {
       setError(t('uploadPhotoFailed'))
     } finally { setUploadingPhotos(false); e.target.value = '' }
   }
@@ -97,7 +97,7 @@ export default function PicturesVideoPage() {
         if (de) throw de
         setUploadedVideos(prev => [vd, ...prev])
       }
-    } catch (err: any) {
+    } catch {
       setError(t('uploadVideoFailed'))
     } finally { setUploadingVideos(false); e.target.value = '' }
   }

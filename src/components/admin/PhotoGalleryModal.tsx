@@ -32,7 +32,6 @@ export default function PhotoGalleryModal({
   profileType
 }: PhotoGalleryModalProps) {
   const t = useTranslations('admin.photoGallery')
-  const tc = useTranslations('admin.common')
   const tm = useTranslations('admin.mediaManager')
   const [censorTarget, setCensorTarget] = useState<Media | null>(null)
   const [loading, setLoading] = useState(true)

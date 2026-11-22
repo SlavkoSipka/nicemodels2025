@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import {
-  Briefcase, MapPin, Calendar, Phone, Mail, Globe,
+  Briefcase, MapPin, Phone, Mail, Globe,
   Building2, ChevronDown, X, Check
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'

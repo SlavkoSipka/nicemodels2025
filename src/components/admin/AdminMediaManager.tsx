@@ -135,8 +135,7 @@ export default function AdminMediaManager({ ownerType, ownerId, ownerEmail, phot
     } catch { setError(t('updateFailed')) }
   }
 
-  // A censored save swaps the storage object, so the <img> needs the new path —
-  // the old URL keeps serving the uncensored frame from cache.
+  // A censored save creates a new storage object; the old URL may still be cached.
   const onCensorSaved = (url: string, filePath: string) => {
     if (!censorTarget) return
     const { item, type } = censorTarget

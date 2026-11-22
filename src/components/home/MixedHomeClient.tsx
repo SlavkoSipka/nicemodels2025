@@ -69,10 +69,9 @@ interface MixedHomeClientProps {
   chatModels: ChatModel[]
   stories?: any[]
   /**
-   * Per-request shuffle seed generated on the server. Reusing the same seed on
-   * the client makes the SSR and hydrated card order identical (deterministic),
-   * so the feed no longer reshuffles after hydration and moves cards out from
-   * under the user's finger.
+   * Shuffle seed generated per request on the server. Reusing it on the client
+   * keeps the server-rendered and hydrated card order identical, so cards do
+   * not jump after hydration.
    */
   seed?: number
 }
@@ -402,10 +401,7 @@ export default function MixedHomeClient({
     ], seed)
   }, [isFiltering, visibleBanners, filteredListings, wideSlots, seed])
 
-  // Page count must cover BOTH wide slots and mixed feed cards. Previously, when any wide
-  // slot existed, only ceil(wides/3) was used — so with 3 listings/banners, totalPages
-  // stayed 1 while activeCards could be 40+; only the first 12 cards were ever sliced,
-  // so shuffled models could never appear on any page.
+  // The page count must cover both the wide slots and the regular cards.
   const cardSlotsPerPage = CARDS_PER_PAGE
   const pagesFromWide =
     activeWideSlots.length > 0 ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE) : 1

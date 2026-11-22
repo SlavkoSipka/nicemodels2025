@@ -42,7 +42,6 @@ const METHOD_COLORS: Record<string, string> = {
 
 export default function RevenueStatsPage() {
   const t = useTranslations('admin.stats')
-  const tc = useTranslations('admin.common')
   const [range, setRange] = useState<RangeKey>('30d')
   const [data, setData] = useState<Resp | null>(null)
   const [loading, setLoading] = useState(true)

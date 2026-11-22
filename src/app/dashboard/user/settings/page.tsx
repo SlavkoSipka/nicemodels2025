@@ -9,7 +9,6 @@ import { Settings, Mail, Bell, Lock, Trash2, CheckCircle } from 'lucide-react'
 export default function UserSettings() {
   const router = useRouter()
   const t = useTranslations('dashboard.user.settings')
-  const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [newsletterEnabled, setNewsletterEnabled] = useState(false)
@@ -22,7 +21,7 @@ export default function UserSettings() {
     const { data: { user } } = await supabase.auth.getUser()
     if (user) {
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-      if (data) { setProfile(data); setNewsletterEnabled(data.newsletter_enabled || false) }
+      if (data) { setNewsletterEnabled(data.newsletter_enabled || false) }
     }
     setLoading(false)
   }

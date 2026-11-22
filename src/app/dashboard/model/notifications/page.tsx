@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { Bell, Check, X, Trash2 } from 'lucide-react'
+import { Bell, Check, Trash2 } from 'lucide-react'
 
 interface Notification {
   id: string

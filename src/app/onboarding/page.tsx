@@ -18,6 +18,17 @@ export default function OnboardingPage() {
   const [userRole, setUserRole] = useState<string | null>(null)
   const [stuckTooLong, setStuckTooLong] = useState(false)
   const welcomeRequested = useRef(false)
+  // An admin may have changed the account type while this browser still holds
+  // the old profile; deciding on it would bounce between /onboarding and the
+  // old dashboard forever. Re-read the profile once before deciding.
+  const [profileFresh, setProfileFresh] = useState(false)
+  const refreshStarted = useRef(false)
+
+  useEffect(() => {
+    if (authLoading || !user || refreshStarted.current) return
+    refreshStarted.current = true
+    refreshProfile().catch(() => {}).finally(() => setProfileFresh(true))
+  }, [authLoading, user, refreshProfile])
 
   // Decide what to do once auth + profile resolve.
   useEffect(() => {
@@ -26,7 +37,7 @@ export default function OnboardingPage() {
       router.push('/login')
       return
     }
-    if (!profile) return // wait for AuthProvider to load it
+    if (!profile || !profileFresh) return // wait for a fresh profile
 
     if (profile.role === 'user') {
       router.push('/dashboard/user')
@@ -39,7 +50,7 @@ export default function OnboardingPage() {
       return
     }
     setUserRole(profile.role || 'user')
-  }, [authLoading, user, profile, router])
+  }, [authLoading, user, profile, profileFresh, router])
 
   // One-time welcome email when onboarding form is shown (model / club).
   useEffect(() => {

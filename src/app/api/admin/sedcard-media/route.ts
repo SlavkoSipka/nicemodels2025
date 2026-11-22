@@ -144,9 +144,8 @@ export async function POST(request: NextRequest) {
     const { table, bucket, idColumn, folder } = resolve(ownerType, mediaType)
     const admin = createAdminClient()
 
-    // Ne pretpostavljaj 'webp' — klijent šalje ono što je njegov canvas
-    // enkoder stvarno proizveo (WebP ili JPEG fallback). Pogrešna ekstenzija
-    // je ranije značila PNG/JPEG serviran kao `image/webp`.
+    // Name the file after what the client's encoder actually produced
+    // (WebP, or the JPEG fallback) so it is served with the right type.
     const photoExt = file.type === 'image/webp'
       ? 'webp'
       : file.type === 'image/png'

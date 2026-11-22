@@ -113,13 +113,7 @@ export default function PageLoader({ children }: { children: React.ReactNode }) 
       {visible && (
         <>
           <style>{LOADER_KEYFRAMES}</style>
-          {/*
-            Slim top progress bar. Critically: the whole layer is
-            `pointer-events: none` and only 3px tall, so it can NEVER cover the
-            page or swallow the user's taps (the old full-screen white overlay
-            was the main cause of "tap does nothing -> tap again"). Instant
-            per-route loading.tsx skeletons provide the real content feedback.
-          */}
+          {/* Slim progress bar: 3px tall and pointer-events: none, so it can never cover the page or swallow taps. */}
           <div
             aria-hidden="true"
             style={{

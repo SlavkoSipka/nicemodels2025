@@ -46,7 +46,7 @@ export async function GET() {
     return NextResponse.json({ verifications: [] })
   }
 
-  const userIds = Array.from(new Set(list.map((v: any) => v.user_id))).filter(Boolean)
+  const userIds = Array.from(new Set(list.map((v) => v.user_id))).filter(Boolean)
 
   const [profilesRes, modelDetailsRes, clubDetailsRes] = await Promise.all([
     admin
@@ -63,11 +63,11 @@ export async function GET() {
       .in('club_id', userIds),
   ])
 
-  const profileMap = new Map((profilesRes.data || []).map((p: any) => [p.id, p]))
-  const modelMap = new Map((modelDetailsRes.data || []).map((m: any) => [m.model_id, m]))
-  const clubMap = new Map((clubDetailsRes.data || []).map((c: any) => [c.club_id, c]))
+  const profileMap = new Map((profilesRes.data || []).map((p) => [p.id, p]))
+  const modelMap = new Map((modelDetailsRes.data || []).map((m) => [m.model_id, m]))
+  const clubMap = new Map((clubDetailsRes.data || []).map((c) => [c.club_id, c]))
 
-  const merged = list.map((v: any) => {
+  const merged = list.map((v) => {
     const p = profileMap.get(v.user_id) as any
     return {
       ...v,

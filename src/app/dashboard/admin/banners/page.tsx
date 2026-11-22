@@ -3,9 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import Link from 'next/link'
-import { ArrowLeft, Megaphone, CheckCircle, XCircle, Trash2, Mail, ExternalLink } from 'lucide-react'
-import BannerCard from '@/components/home/BannerCard'
+import { Megaphone, CheckCircle, XCircle, Trash2, Mail, ExternalLink } from 'lucide-react'
 
 interface Banner {
   id: string
@@ -29,7 +27,6 @@ type Filter = 'all' | 'pending' | 'active' | 'expired' | 'rejected'
 export default function AdminBannersPage() {
   const t = useTranslations('admin.banners')
   const tc = useTranslations('admin.common')
-  const tSb = useTranslations('admin.sidebar')
   const [loading, setLoading] = useState(true)
   const [banners, setBanners] = useState<Banner[]>([])
   const [filter, setFilter] = useState<Filter>('all')

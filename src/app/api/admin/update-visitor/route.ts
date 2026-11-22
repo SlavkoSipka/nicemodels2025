@@ -131,9 +131,8 @@ export async function DELETE(request: NextRequest) {
 
     const admin = createAdminClient()
 
-    // Pokušaj #1: standardni Supabase admin API.
-    // Ako neki FK nema ON DELETE CASCADE, ovo će puknuti – fallback ispod
-    // koristi `admin_delete_user` RPC koji defanzivno čisti zavisnike.
+    // Some foreign keys lack ON DELETE CASCADE, which makes the auth API fail;
+    // the admin_delete_user RPC removes dependent rows first.
     const { error } = await admin.auth.admin.deleteUser(userId)
     if (error) {
       const { error: rpcError } = await admin.rpc('admin_delete_user', { target_id: userId })

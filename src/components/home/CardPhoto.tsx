@@ -18,12 +18,9 @@ interface CardPhotoProps {
 }
 
 /**
- * Card photo that recovers from a failed load.
- *
- * next/image never retries: one dropped request on a mobile connection left
- * a card as an empty grey box until the visitor reloaded the whole page. On
- * error this first retries the storage URL directly (skipping the image CDN),
- * then falls back to the placeholder icon instead of a broken image.
+ * Card photo that recovers from a failed load. next/image does not retry, so
+ * on error it loads the storage URL directly (bypassing the image CDN) and,
+ * if that fails too, renders the fallback.
  */
 export default function CardPhoto({ src, alt, sizes, quality, className, priority = false, fallback }: CardPhotoProps) {
   const [attempt, setAttempt] = useState<'optimized' | 'direct' | 'failed'>('optimized')

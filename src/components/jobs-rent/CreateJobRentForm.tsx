@@ -44,8 +44,6 @@ interface UploadedPhoto {
 interface Props {
   /** Where to send the user after submit / cancel. */
   backHref: string
-  /** Successful create destination. Defaults to backHref. */
-  successHref?: string
   /** Header subtitle text. */
   subtitle?: string
   /** Whether the form needs to pre-fill phone/email from a club_contact_details row. */
@@ -58,7 +56,6 @@ interface Props {
 
 export default function CreateJobRentForm({
   backHref,
-  successHref,
   subtitle,
   prefillFromClubContact = false,
   requireActiveAd = false,
@@ -73,7 +70,6 @@ export default function CreateJobRentForm({
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
 
   const [listingType, setListingType] = useState<'job' | 'rent'>('job')
   const [title, setTitle] = useState('')
@@ -259,7 +255,7 @@ export default function CreateJobRentForm({
     setSubmitting(true)
 
     let createdListingId: string | null = null
-    let uploadedPhotoPaths: string[] = []
+    const uploadedPhotoPaths: string[] = []
 
     try {
       const actDate = activationType === 'at_date' && activationDate
@@ -402,12 +398,6 @@ export default function CreateJobRentForm({
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
             <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
-        {success && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-emerald-800">{success}</p>
           </div>
         )}
 

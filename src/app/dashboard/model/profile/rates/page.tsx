@@ -102,9 +102,9 @@ export default function RatesPage() {
         setUser(user)
         const { data } = await supabase.from('model_rates').select('*').eq('model_id', user.id)
         if (data) {
-          const map = (r: any) => ({ id: r.id, duration: r.duration, amount: r.amount.toString(), customTime: r.custom_time_value?.toString(), customUnit: r.custom_time_unit })
-          setIncallRates(data.filter((r: any) => r.rate_type === 'incall').map(map))
-          setOutcallRates(data.filter((r: any) => r.rate_type === 'outcall').map(map))
+          const map = (r) => ({ id: r.id, duration: r.duration, amount: r.amount.toString(), customTime: r.custom_time_value?.toString(), customUnit: r.custom_time_unit })
+          setIncallRates(data.filter((r) => r.rate_type === 'incall').map(map))
+          setOutcallRates(data.filter((r) => r.rate_type === 'outcall').map(map))
         }
         setLoading(false)
       } catch { setLoading(false) }

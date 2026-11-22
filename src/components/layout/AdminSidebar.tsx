@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
 import LanguageSwitcher from '@/components/admin/LanguageSwitcher'
 import {
-  LayoutDashboard, BarChart3, Globe, Users, Building2, Briefcase,
+  LayoutDashboard, Globe, Users, Building2, Briefcase,
   Megaphone, DollarSign, UserCircle, Image as ImageIcon, ShieldCheck,
   Flag, UserX, MessageSquare, Activity, Home, LogOut, ChevronLeft,
   Trash2, Menu, X,

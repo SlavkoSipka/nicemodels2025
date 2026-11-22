@@ -1,27 +1,13 @@
 import type { AbstractIntlMessages } from 'next-intl'
 
 /**
- * Namespace-ovi koji postoje samo iza logina (dashboard + admin panel).
+ * Namespaces used only behind login. `dashboard` and `admin` make up most of
+ * the message catalog, so public routes receive `publicMessages` instead of
+ * the full set; `/dashboard` and `/register` mount their own provider with
+ * everything.
  *
- * `messages/de.json` je ~168 KB, a `dashboard` i `admin` zajedno su ~61% toga.
- * Root layout ih je slao u SVAKI HTML dokument preko `NextIntlClientProvider`,
- * pa je anonimni posetilac homepage-a skidao 100 KB prevoda za ekrane koje
- * nikada neće videti. Javne rute sada dobijaju samo `publicMessages`, a
- * `/dashboard/**` i `/register/**` imaju sopstveni provider sa punim setom
- * (vidi `src/app/dashboard/layout.tsx` i `src/app/register/layout.tsx`).
- *
- * Ako neka JAVNA stranica ikada zatreba `dashboard.*` ili `admin.*` ključ,
- * ili se namespace mora dodati ovde, ili taj deo stabla dobija svoj provider —
- * u suprotnom `useTranslations` puca na missing message.
- *
- * Kompromis: ugnježdeni `IntlProvider` iz use-intl ZAMENJUJE `messages`, ne
- * spaja ih sa roditeljskim. Zato /dashboard i /register serijalizuju katalog
- * dvaput — javni podskup iz root layout-a plus pun set iz svog providera,
- * ≈65 KB viška po strani. To su stranice iza logina koje se ne indeksiraju i
- * nisu deo LCP-a koji merimo, pa je razmena (−108 KB na SVAKOJ javnoj strani)
- * jasno pozitivna. Ako i to zasmeta, rešenje je da root layout dobije putanju
- * (npr. header iz `src/proxy.ts`) i sam bira set, čime ugnježdeni provideri
- * potpuno otpadaju.
+ * A public page that needs a key from these namespaces must get its own
+ * provider, otherwise `useTranslations` reports a missing message.
  */
 const AUTHENTICATED_ONLY_NAMESPACES = ['dashboard', 'admin'] as const
 

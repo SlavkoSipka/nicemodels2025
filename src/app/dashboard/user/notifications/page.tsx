@@ -4,7 +4,7 @@ import { useMemo, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/components/auth/AuthProvider'
 import {
@@ -147,7 +147,7 @@ export default function UserNotificationsPage() {
     const uid = user?.id
     if (!uid) return
     const key = ['notifications-user-list', uid] as const
-    queryClient.setQueryData(key, old => {
+    queryClient.setQueryData<InfiniteData<Notification[]>>(key, old => {
       if (!old) return old
       return { ...old, pages: old.pages.map(fn) }
     })

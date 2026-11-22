@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslations } from 'next-intl'
 import { createClient } from '@/lib/supabase/client'
-import { Filter, MapPin, Calendar, User, Search, X } from 'lucide-react'
+import { Filter, MapPin, Calendar, User, X } from 'lucide-react'
 
 interface FiltersProps {
   selectedCity: string
@@ -34,7 +34,6 @@ export default function Filters({
   const [cityQuery, setCityQuery] = useState('')
   const [cityResults, setCityResults] = useState<CityOption[]>([])
   const [isCityOpen, setIsCityOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const cityRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null)
 
@@ -46,7 +45,6 @@ export default function Filters({
 
   const searchCities = useCallback(async (q: string) => {
     if (q.length < 1) { setCityResults([]); return }
-    setLoading(true)
     const isNumeric = /^\d/.test(q)
     let query = supabase
       .from('cities')
@@ -62,7 +60,6 @@ export default function Filters({
 
     const { data } = await query
     if (data) setCityResults(data)
-    setLoading(false)
   }, [supabase])
 
   const handleCityInput = (val: string) => {

@@ -8,10 +8,9 @@ export const dynamic = 'force-dynamic'
 type SedcardState = { expiresAt: string; visible: boolean }
 
 /**
- * Which models/clubs currently have a running ad package ("sedcard online").
- * Mirrors the expiry math in models_with_active_ads() / clubs_with_active_ads(),
- * but also reports rows that are paid yet invisible on the public site — the
- * case the admin list has to tell apart from "no package at all".
+ * Models or clubs with a running ad package ("sedcard online"). Uses the same
+ * expiry rules as models_with_active_ads() / clubs_with_active_ads(), and also
+ * reports packages that are paid but not visible on the public site.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -76,9 +75,8 @@ export async function GET(request: NextRequest) {
       for (const id of ids) if (!seen.has(id)) hiddenIds.add(id)
     }
     if (ids.length > 0 && role === 'company') {
-      // Clubs have no private switch, but clubs_with_active_ads() JOINs
-      // club_details and requires onboarding_completed — a club missing either
-      // pays for a package nobody can see. Blocking is judged client-side.
+      // Clubs have no private switch, but clubs_with_active_ads() requires a
+      // club_details row and completed onboarding. Blocking is checked client-side.
       const [{ data: details }, { data: profiles }] = await Promise.all([
         admin.from('club_details').select('club_id').in('club_id', ids),
         admin.from('profiles').select('id, onboarding_completed').in('id', ids),

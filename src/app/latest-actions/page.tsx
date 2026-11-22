@@ -38,7 +38,7 @@ export default async function LatestActionsPage() {
   ])
 
   const actorIds = [...new Set((actions || []).map(a => a.actor_id).filter(Boolean))]
-  let actorMap: Record<string, { username: string; showname?: string; photoUrl?: string }> = {}
+  const actorMap: Record<string, { username: string; showname?: string; photoUrl?: string }> = {}
 
   if (actorIds.length) {
     const [{ data: profiles }, { data: details }, { data: photos }] = await Promise.all([

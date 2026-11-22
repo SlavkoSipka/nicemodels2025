@@ -65,7 +65,6 @@ export async function sendEmail(args: SendEmailArgs): Promise<SendResult> {
   const client = getResendClient()
   if (!client) {
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
       console.info(`[email] would send "${kind}" to ${trimmed} (no RESEND_API_KEY)`)
     }
     await logEmail({

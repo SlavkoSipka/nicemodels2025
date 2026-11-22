@@ -9,13 +9,11 @@ export const dynamic = 'force-dynamic'
 
 /**
  * Admin photo censoring: replace a published photo with a redacted version
- * (blur / pixelate / black bar painted in the browser) without asking the
- * model to re-upload.
+ * drawn in the browser.
  *
- * The untouched original is archived to a PRIVATE bucket before the public
- * object is replaced, so a mis-drawn redaction can be undone. Archiving only
- * happens on the first edit — editing twice must not overwrite the true
- * original with an already-censored frame.
+ * The original is archived to a private bucket before the public object is
+ * replaced, so a redaction can be undone. Only the first edit archives, so a
+ * second edit never overwrites the true original.
  */
 
 type OwnerType = 'model' | 'club'
@@ -142,7 +140,7 @@ export async function POST(request: NextRequest) {
           contentType: contentTypeFor(currentPath),
           upsert: false,
         })
-      // Without a recoverable original the edit is irreversible — refuse it.
+      // Without a recoverable original the edit would be irreversible.
       if (archiveError) {
         return NextResponse.json(
           { error: `Could not archive the original: ${archiveError.message}` },

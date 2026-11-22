@@ -39,7 +39,7 @@ export default function ServicesPage() {
           setServicesFor(md.services_for || [])
           setOtherServices(md.other_services || '')
         }
-        if (modelServicesData) setSelectedServices(modelServicesData.map((s: any) => s.service_id))
+        if (modelServicesData) setSelectedServices(modelServicesData.map((s) => s.service_id))
         setLoading(false)
       } catch { setLoading(false) }
     }

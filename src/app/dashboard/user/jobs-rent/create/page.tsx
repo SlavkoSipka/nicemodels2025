@@ -8,7 +8,6 @@ export default function UserCreateJobRentPage() {
   return (
     <CreateJobRentForm
       backHref="/dashboard/user/jobs-rent"
-      successHref="/dashboard/user/jobs-rent"
       subtitle={t('subtitle')}
     />
   )
