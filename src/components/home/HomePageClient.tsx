@@ -9,6 +9,7 @@ import ModelCard from './ModelCard'
 import BannerCard, { BannerData } from './BannerCard'
 import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
+import AdSpacePlaceholder, { AdSpaceWide, AdSpaceCard } from './AdSpacePlaceholder'
 import MobileBannerPopup from './MobileBannerPopup'
 import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
 import { cantonGroup } from '@/lib/cantons'
@@ -94,6 +95,13 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     [initialBanners, effectiveCanton],
   )
 
+  /**
+   * What is booked per placement. The pools below are filled after mount, so
+   * the "your ad here" placeholders key off these counts instead: a booked
+   * slot never flashes a placeholder before its banner arrives.
+   */
+  const booked = useMemo(() => partitionBannersByPlacement(visibleBanners), [visibleBanners])
+
   /** Per-placement pools; shuffled for fair rotation when multiple advertisers exist. */
   const [widePool, setWidePool] = useState<BannerData[]>([])
   const [cardPool, setCardPool] = useState<BannerData[]>([])
@@ -162,8 +170,6 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
   // filter starts back at the first page of cards.
   useEffect(() => { setVisibleCount(PAGE_SIZE) }, [filteredModels])
 
-  const hasSidebar = statusMessages.length > 0 || chatModels.length > 0
-
   const isFiltered =
     selectedRegion !== 'all' ||
     selectedCity !== 'all' ||
@@ -208,6 +214,9 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     }
     const WIDE_GAP = 6
     const CARD_GAP = 4
+    // Unsold slots: each PAGE_SIZE block of sedcards gets one "your ad here"
+    // row (where the next wide banner would go) and, further down, one card.
+    const CARD_AD_AT = 16
     const items: React.ReactNode[] = []
     let wideIdx = 0
     let cardIdx = 0
@@ -219,21 +228,28 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
     visibleModels.forEach((model, i) => {
       items.push(<ModelCard key={model.id} model={model} priority={i < 4} />)
       const n = i + 1
+      const more = n < visibleModels.length
       if (n % WIDE_GAP === 0 && wideIdx < widePool.length) {
         items.push(<BannerCard key={`banner-wide-${widePool[wideIdx].id}-${n}`} banner={widePool[wideIdx]} />)
         wideIdx++
+      } else if (more && n % PAGE_SIZE === WIDE_GAP && wideIdx >= booked.feedWide.length) {
+        items.push(<AdSpaceWide key={`ad-wide-${n}`} />)
       }
       if (n % CARD_GAP === 0 && cardIdx < cardPool.length) {
         items.push(
           <BannerCardFeedCard key={`banner-card-${cardPool[cardIdx].id}-${n}`} banner={cardPool[cardIdx]} />
         )
         cardIdx++
+      } else if (more && n % PAGE_SIZE === CARD_AD_AT && cardIdx >= booked.feedCard.length) {
+        items.push(<AdSpaceCard key={`ad-card-${n}`} />)
       }
     })
     const hasMore = filteredModels.length > visibleCount
     return (
       <>
-        <div className="grid w-full grid-cols-2 gap-2 sm:gap-4">
+        {/* Card-sized ads add one cell, which can leave a gap before the next
+            full-width row; dense flow lets the following sedcard fill it. */}
+        <div className="grid w-full grid-flow-row-dense grid-cols-2 gap-2 sm:gap-4">
           {items}
         </div>
         {hasMore && (
@@ -257,13 +273,17 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
 
         {/* Main: 3-col grid at xl with sticky side rails; centered single-column below xl */}
-        <div className={`w-full pt-3 sm:pt-4 sm:pb-6 ${mobileSidebarPool.length > 0 ? 'pb-40' : 'pb-4'}`}>
+        {/* Below xl a fixed strip sits at the bottom (booked rail banners, or the
+            "your ad here" bar), so leave room for it under the feed. */}
+        <div className={`w-full pt-3 sm:pt-4 xl:pb-6 ${mobileSidebarPool.length > 0 ? 'pb-40' : 'pb-24'}`}>
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
-              {sidebarPool.length > 0 && (
+              {sidebarPool.length > 0 ? (
                 <div className="max-h-[calc(100vh-9rem)] overflow-y-auto overflow-x-hidden overscroll-contain pr-1">
                   <BannerSidebarRail banners={sidebarPool} />
                 </div>
+              ) : (
+                booked.sidebarLeft.length === 0 && <AdSpacePlaceholder />
               )}
             </aside>
 
@@ -295,22 +315,30 @@ export default function HomePageClient({ initialModels, initialBanners = [], sta
             </div>
 
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
-              {(hasSidebar || sidebarRightPool.length > 0) && (
-                <div className="flex max-h-[calc(100vh-9rem)] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
-                  {sidebarRightPool.length > 0 && (
+              {/* An unsold rail shows an "ad space available" tile instead of nothing. */}
+              <div className="flex max-h-[calc(100vh-9rem)] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
+                {sidebarRightPool.length > 0 ? (
+                  <div className="flex justify-center">
+                    <BannerSidebarRail banners={sidebarRightPool} />
+                  </div>
+                ) : (
+                  booked.sidebarRight.length === 0 && (
                     <div className="flex justify-center">
-                      <BannerSidebarRail banners={sidebarRightPool} />
+                      <AdSpacePlaceholder />
                     </div>
-                  )}
-                  {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
-                  {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
-                </div>
-              )}
+                  )
+                )}
+                {chatModels.length > 0 && <AvailableForChat models={chatModels} />}
+                {statusMessages.length > 0 && <LatestStatusMessages messages={statusMessages} />}
+              </div>
             </aside>
           </div>
         </div>
       </div>
-      <MobileBannerPopup banners={mobileSidebarPool} />
+      <MobileBannerPopup
+        banners={mobileSidebarPool}
+        showPlaceholder={booked.sidebarLeft.length + booked.sidebarRight.length === 0}
+      />
       <Footer />
     </>
   )

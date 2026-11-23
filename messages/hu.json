@@ -2778,7 +2778,9 @@
       "label": "Szabad hirdetési felület",
       "title": "Az Ön hirdetése itt",
       "text": "Érjen el naponta több ezer látogatót a NiceModels.ch oldalon.",
-      "cta": "Érdeklődés"
+      "cta": "Érdeklődés",
+      "ctaBook": "Banner foglalása",
+      "close": "Bezárás"
     }
   },
   "clubs": {

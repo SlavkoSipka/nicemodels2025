@@ -2778,7 +2778,9 @@
       "label": "Volná reklamní plocha",
       "title": "Vaše reklama zde",
       "text": "Oslovte každý den tisíce návštěvníků na NiceModels.ch.",
-      "cta": "Poptat nyní"
+      "cta": "Poptat nyní",
+      "ctaBook": "Rezervovat banner",
+      "close": "Zavřít"
     }
   },
   "clubs": {

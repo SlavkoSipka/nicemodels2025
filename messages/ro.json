@@ -2778,7 +2778,9 @@
       "label": "Spațiu publicitar liber",
       "title": "Reclama ta aici",
       "text": "Ajungi zilnic la mii de vizitatori pe NiceModels.ch.",
-      "cta": "Solicită acum"
+      "cta": "Solicită acum",
+      "ctaBook": "Rezervă un banner",
+      "close": "Închide"
     }
   },
   "clubs": {

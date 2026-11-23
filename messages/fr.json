@@ -2778,7 +2778,9 @@
       "label": "Espace publicitaire libre",
       "title": "Votre publicité ici",
       "text": "Touchez chaque jour des milliers de visiteurs sur NiceModels.ch.",
-      "cta": "Demander maintenant"
+      "cta": "Demander maintenant",
+      "ctaBook": "Réserver une bannière",
+      "close": "Fermer"
     }
   },
   "clubs": {

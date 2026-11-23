@@ -9,7 +9,7 @@ import ClubCard, { type ClubCardData } from './ClubCard'
 import BannerCard, { type BannerData } from './BannerCard'
 import BannerCardFeedCard from './BannerCardFeedCard'
 import BannerSidebarRail from './BannerSidebarRail'
-import AdSpacePlaceholder from './AdSpacePlaceholder'
+import AdSpacePlaceholder, { AdSpaceWide, AdSpaceCard } from './AdSpacePlaceholder'
 import MobileBannerPopup from './MobileBannerPopup'
 import ListingBannerCard, { type ListingBannerData } from './ListingBannerCard'
 import { filterBannersByCanton, partitionBannersByPlacement } from '@/lib/bannerPlacement'
@@ -59,6 +59,7 @@ type CardItem =
   | { type: 'banner'; data: BannerData }
   | { type: 'banner_card'; data: BannerData }
   | { type: 'listing'; data: ListingBannerData }
+  | { type: 'ad_card'; key: string }
 
 interface MixedHomeClientProps {
   models: Model[]
@@ -81,6 +82,34 @@ const CARDS_PER_SLOT = 4
 // 10 rows of two cards per page. Wide slots still sit after every CARDS_PER_SLOT
 // cards, so the rows past the last wide slot simply run on without one.
 const CARDS_PER_PAGE = 20
+// Cell (0-based, within a page) where an unsold page shows its "your ad here"
+// card: row 6, so it sits well apart from the wide ad row near the top.
+const CARD_AD_INDEX = 10
+
+/**
+ * Give every page of the feed that has no booked `feed_card` banner one
+ * "your ad here" card. It takes a real cell, so such a page holds one sedcard
+ * fewer instead of leaving a gap in the two-column grid. Short pages (the last
+ * one, or a narrow search) get none, so the placeholder never sits alone at
+ * the end of the list.
+ */
+function withCardAdSpace(cards: CardItem[]): CardItem[] {
+  const out: CardItem[] = []
+  let i = 0
+  let n = 0
+  while (i < cards.length) {
+    const pageSlice = cards.slice(i, i + CARDS_PER_PAGE)
+    if (pageSlice.length <= CARD_AD_INDEX || pageSlice.some(c => c.type === 'banner_card')) {
+      out.push(...pageSlice)
+      i += pageSlice.length
+      continue
+    }
+    const real = cards.slice(i, i + CARDS_PER_PAGE - 1)
+    out.push(...real.slice(0, CARD_AD_INDEX), { type: 'ad_card', key: `ad-card-${n++}` }, ...real.slice(CARD_AD_INDEX))
+    i += real.length
+  }
+  return out
+}
 
 function buildInitialCards(
   models: Model[],
@@ -392,6 +421,8 @@ export default function MixedHomeClient({
     ], seed)
   }, [isFiltering, filteredModels, filteredClubs, cards, visibleBanners, seed])
 
+  const feedCells = useMemo(() => withCardAdSpace(activeCards), [activeCards])
+
   const activeWideSlots = useMemo(() => {
     const { feedWide } = partitionBannersByPlacement(visibleBanners)
     if (!isFiltering) return wideSlots
@@ -405,11 +436,11 @@ export default function MixedHomeClient({
   const cardSlotsPerPage = CARDS_PER_PAGE
   const pagesFromWide =
     activeWideSlots.length > 0 ? Math.ceil(activeWideSlots.length / WIDE_PER_PAGE) : 1
-  const pagesFromCards = Math.max(1, Math.ceil(activeCards.length / cardSlotsPerPage))
+  const pagesFromCards = Math.max(1, Math.ceil(feedCells.length / cardSlotsPerPage))
   const totalPages = Math.max(pagesFromWide, pagesFromCards)
 
   const pageWide = activeWideSlots.slice(page * WIDE_PER_PAGE, (page + 1) * WIDE_PER_PAGE)
-  const pageCards = activeCards.slice(
+  const pageCards = feedCells.slice(
     page * cardSlotsPerPage,
     (page + 1) * cardSlotsPerPage,
   )
@@ -599,6 +630,10 @@ export default function MixedHomeClient({
           {(() => {
             const nodes: React.ReactNode[] = []
             let cardIdx = 0
+            // While the page has room for another wide banner, one "your ad
+            // here" row holds that spot: right after the booked ones, but never
+            // above the first sedcards.
+            const wideAdSlot = pageWide.length < WIDE_PER_PAGE ? Math.max(pageWide.length, 1) : -1
 
             for (let s = 0; s < Math.max(pageWide.length, Math.ceil(pageCards.length / CARDS_PER_SLOT)); s++) {
               if (s < pageWide.length) {
@@ -608,6 +643,8 @@ export default function MixedHomeClient({
                 } else if (slot.type === 'listing') {
                   nodes.push(<ListingBannerCard key={`l-${slot.data.id}`} listing={slot.data} />)
                 }
+              } else if (s === wideAdSlot) {
+                nodes.push(<AdSpaceWide key={`ad-wide-${page}`} />)
               }
 
               const chunk = pageCards.slice(cardIdx, cardIdx + CARDS_PER_SLOT)
@@ -620,6 +657,8 @@ export default function MixedHomeClient({
                   nodes.push(<ClubCard key={`c-${item.data.id}`} club={item.data} priority={isTop} />)
                 } else if (item.type === 'banner_card') {
                   nodes.push(<BannerCardFeedCard key={`bc-${item.data.id}`} banner={item.data} priority={isTop} />)
+                } else if (item.type === 'ad_card') {
+                  nodes.push(<AdSpaceCard key={item.key} />)
                 }
               })
             }
@@ -682,7 +721,9 @@ export default function MixedHomeClient({
     <>
       <Navbar />
       <div className="min-h-screen" style={{ background: '#fce9f3' }}>
-        <div className={`w-full pt-3 sm:pt-4 sm:pb-6 ${mobileSidebarRail.length > 0 ? 'pb-40' : 'pb-4'}`}>
+        {/* Below xl a fixed strip sits at the bottom (booked rail banners, or the
+            "your ad here" bar), so leave room for it under the feed. */}
+        <div className={`w-full pt-3 sm:pt-4 xl:pb-6 ${mobileSidebarRail.length > 0 ? 'pb-40' : 'pb-24'}`}>
           <div className="mx-auto w-full max-w-[1700px] px-2 sm:px-4 xl:grid xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:gap-x-5 xl:items-start">
             <aside className="hidden xl:block xl:sticky xl:top-[120px] xl:self-start">
               {sidebarRail.length > 0 ? (
@@ -721,7 +762,7 @@ export default function MixedHomeClient({
           </div>
         </div>
       </div>
-      <MobileBannerPopup banners={mobileSidebarRail} />
+      <MobileBannerPopup banners={mobileSidebarRail} showPlaceholder />
       <Footer />
     </>
   )

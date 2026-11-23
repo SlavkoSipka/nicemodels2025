@@ -2778,7 +2778,9 @@
       "label": "Wolna powierzchnia reklamowa",
       "title": "Twoja reklama tutaj",
       "text": "Docieraj codziennie do tysięcy odwiedzających NiceModels.ch.",
-      "cta": "Zapytaj teraz"
+      "cta": "Zapytaj teraz",
+      "ctaBook": "Zarezerwuj baner",
+      "close": "Zamknij"
     }
   },
   "clubs": {

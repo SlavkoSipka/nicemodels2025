@@ -2778,7 +2778,9 @@
       "label": "Ad space available",
       "title": "Your ad here",
       "text": "Reach thousands of visitors on NiceModels.ch every day.",
-      "cta": "Enquire now"
+      "cta": "Enquire now",
+      "ctaBook": "Book a banner",
+      "close": "Close"
     }
   },
   "clubs": {

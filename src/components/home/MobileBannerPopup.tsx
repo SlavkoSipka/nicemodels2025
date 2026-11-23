@@ -6,6 +6,7 @@ import { X } from 'lucide-react'
 import { trackBannerImpression, trackBannerClick } from '@/lib/tracking'
 import type { BannerData } from './BannerCard'
 import BannerImage from './BannerImage'
+import { AdSpaceStrip } from './AdSpacePlaceholder'
 
 const BLUR =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAABgUE/8QAIhAAAQMEAgMAAAAAAAAAAAAAAQIDBAAFERIhMUH/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8Aqd2uUi3zVNNJSpCk5BKiQc+eMCrLSLFHiulDzilEeKlE4/p4oopVJGKXY//Z'
@@ -14,6 +15,12 @@ const DISMISS_KEY = 'nm:mobileBannerPopup:dismissed'
 
 interface MobileBannerPopupProps {
   banners: BannerData[]
+  /**
+   * Show the "your ad here" strip when no rail banner is booked. Leave it off
+   * while the page is still working out its banner pool, so a booked banner
+   * does not flash the placeholder first.
+   */
+  showPlaceholder?: boolean
 }
 
 /**
@@ -21,7 +28,7 @@ interface MobileBannerPopupProps {
  * purchased side-rail banners (`sidebar_left` + `sidebar_right`), since mobile
  * has no room for the rails themselves. Hidden at xl+ (the rails take over).
  */
-export default function MobileBannerPopup({ banners }: MobileBannerPopupProps) {
+export default function MobileBannerPopup({ banners, showPlaceholder = false }: MobileBannerPopupProps) {
   const list = banners.filter(b => b.image_url)
   const [dismissed, setDismissed] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -72,7 +79,8 @@ export default function MobileBannerPopup({ banners }: MobileBannerPopupProps) {
     return () => io.disconnect()
   }, [dismissed, list])
 
-  if (list.length === 0 || dismissed) return null
+  if (list.length === 0) return showPlaceholder ? <AdSpaceStrip /> : null
+  if (dismissed) return null
 
   const dismiss = () => {
     try {

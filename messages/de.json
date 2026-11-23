@@ -2778,7 +2778,9 @@
       "label": "Werbefläche frei",
       "title": "Ihre Werbung hier",
       "text": "Erreichen Sie täglich tausende Besucher auf NiceModels.ch.",
-      "cta": "Jetzt anfragen"
+      "cta": "Jetzt anfragen",
+      "ctaBook": "Banner buchen",
+      "close": "Schliessen"
     }
   },
   "clubs": {
