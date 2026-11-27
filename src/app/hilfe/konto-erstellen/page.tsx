@@ -164,7 +164,7 @@ const COPY: Record<Lang, PageCopy> = {
         title: 'Click “Register”',
         body: 'Your account is created right away and you are signed in. Models and clubs continue in onboarding; members go straight to their dashboard.',
         href: helpUrl('profil-erstellen'),
-        hrefLabel: 'Next: create your profile (in German)',
+        hrefLabel: 'Next: create your profile',
       },
     ],
     faqHeading: 'Frequently asked questions',

@@ -5,9 +5,10 @@
  * all read from this one list, so adding a guide means adding an entry here
  * plus the matching route folder — nothing else needs touching.
  *
- * Copy is German-only, like /werden-model: the site resolves locale from a
- * cookie rather than the URL, so a translated guide would have no distinct URL
- * to be indexed at.
+ * Articles render in German for German visitors and in English for everyone
+ * else (`bilingual`); metadata stays German, as the site resolves the locale
+ * from a cookie rather than the URL, so a translation has no URL of its own to
+ * be indexed at.
  */
 
 export const HELP_PATH = '/hilfe'
@@ -62,6 +63,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       description:
         'From registration and verification to a complete profile: every step explained, including the details that make your profile complete.',
     },
+    bilingual: true,
   },
   {
     slug: 'sedcard',
@@ -77,6 +79,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       description:
         'What a sedcard is, how to activate it in the dashboard, how long it runs and how to make it more visible.',
     },
+    bilingual: true,
   },
 ]
 
