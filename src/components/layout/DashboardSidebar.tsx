@@ -241,7 +241,14 @@ export default function DashboardSidebar({ userRole = 'model' }: DashboardSideba
                 <span>{t('buyBanner')}</span>
               </Link>
 
-              <Link href="/dashboard/model/upload-story" className={navLinkCls('/dashboard/model/upload-story')}>
+              <Link
+                href="/dashboard/model/upload-story"
+                className={`flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3 rounded-lg font-semibold transition-all shadow-sm text-sm ${
+                  isActive('/dashboard/model/upload-story')
+                    ? 'text-white bg-gradient-to-r from-pink-600 to-rose-600 shadow-pink-200'
+                    : 'text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 hover:shadow-md hover:shadow-pink-100'
+                }`}
+              >
                 <Camera className="w-5 h-5 shrink-0" />
                 <span>{t('uploadStory')}</span>
               </Link>
